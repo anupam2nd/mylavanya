@@ -1,0 +1,167 @@
+
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { supabase } from "@/lib/supabaseClient";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ButtonCustom } from "@/components/ui/button-custom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import BookingForm from "@/components/booking/BookingForm";
+import { toast } from "@/hooks/use-toast";
+
+const ServiceDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [service, setService] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [showBookingForm, setShowBookingForm] = useState(false);
+  
+  useEffect(() => {
+    const fetchServiceDetails = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('PriceMST')
+          .select('*')
+          .eq('prodid', id)
+          .single();
+          
+        if (error) {
+          throw error;
+        }
+        
+        setService(data);
+      } catch (error) {
+        console.error("Error fetching service details:", error);
+        toast({
+          title: "Error",
+          description: "Could not load service details",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (id) {
+      fetchServiceDetails();
+    }
+  }, [id]);
+  
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  if (!service) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-medium mb-4">Service not found</h2>
+        <p className="text-gray-600 mb-6">The service you are looking for does not exist.</p>
+        <Button onClick={() => navigate("/services")}>
+          Back to Services
+        </Button>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="min-h-screen bg-gray-50 pb-16">
+      <div className="bg-gradient-to-r from-violet-100 to-purple-50 py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate("/services")}
+            className="mb-4"
+          >
+            ← Back to Services
+          </Button>
+          <h1 className="text-3xl font-bold text-gray-900">{service.pname}</h1>
+          <p className="text-lg font-medium text-primary mt-1">₹{service.pprice.toFixed(2)}</p>
+        </div>
+      </div>
+      
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="h-64 sm:h-80 bg-gray-200">
+                <img 
+                  src="/placeholder.svg"
+                  alt={service.pname}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-6">
+                <h2 className="text-2xl font-semibold mb-4">Service Description</h2>
+                <p className="text-gray-600 mb-6">
+                  {service.pdesc || "Professional beauty service tailored for weddings and special occasions. Our expert team uses premium products to ensure you look your best on your special day."}
+                </p>
+                
+                <h3 className="text-xl font-medium mb-3">What's Included</h3>
+                <ul className="list-disc list-inside mb-6 space-y-2 text-gray-600">
+                  <li>Professional makeup application</li>
+                  <li>Consultation to understand your preferences</li>
+                  <li>Premium quality products</li>
+                  <li>Touch-ups for perfect finish</li>
+                </ul>
+                
+                <h3 className="text-xl font-medium mb-3">Additional Information</h3>
+                <p className="text-gray-600">
+                  Our services are available for on-site appointments. We bring all necessary equipment to your location, whether it's a hotel, home, or venue.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow p-6 sticky top-24">
+              <h2 className="text-lg font-semibold mb-3 text-center">Book This Service</h2>
+              
+              {!showBookingForm ? (
+                <ButtonCustom 
+                  variant="primary-gradient" 
+                  className="w-full" 
+                  size="lg"
+                  onClick={() => setShowBookingForm(true)}
+                >
+                  Book Now
+                </ButtonCustom>
+              ) : (
+                <BookingForm 
+                  serviceId={service.prodid} 
+                  serviceName={service.pname}
+                  servicePrice={service.pprice}
+                  onCancel={() => setShowBookingForm(false)}
+                />
+              )}
+              
+              <div className="border-t mt-6 pt-6">
+                <h3 className="font-medium text-center mb-4">Need Help?</h3>
+                <div className="text-center">
+                  <p className="text-gray-600 text-sm mb-2">Contact our customer support</p>
+                  <p className="text-primary font-medium">support@beautyservices.com</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ServiceDetail;
