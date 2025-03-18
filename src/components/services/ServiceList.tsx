@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Loader } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import ServiceCard from "./ServiceCard";
+import { ButtonCustom } from "@/components/ui/button-custom";
 
 interface ServiceListProps {
   featured?: boolean;

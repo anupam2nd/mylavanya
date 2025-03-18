@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Hero from "@/components/sections/Hero";
@@ -6,7 +5,7 @@ import ServiceList from "@/components/services/ServiceList";
 import HowItWorks from "@/components/sections/HowItWorks";
 import Testimonials from "@/components/sections/Testimonials";
 import BookingBanner from "@/components/sections/BookingBanner";
-import { AuthModal } from "@/components/auth/AuthModal";
+import AuthModal from "@/components/auth/AuthModal";
 
 const Index = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
