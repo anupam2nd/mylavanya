@@ -51,6 +51,8 @@ type FormValues = z.infer<typeof formSchema>;
 interface BookingFormProps {
   serviceId: number;
   serviceName: string;
+  servicePrice?: number; // Add the servicePrice prop as optional
+  onCancel?: () => void; // Add the onCancel prop as optional
   onSuccess?: () => void;
 }
 
@@ -60,7 +62,7 @@ const timeSlots = [
   "05:00 PM", "06:00 PM", "07:00 PM"
 ];
 
-const BookingForm = ({ serviceId, serviceName, onSuccess }: BookingFormProps) => {
+const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess }: BookingFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
@@ -116,7 +118,12 @@ const BookingForm = ({ serviceId, serviceName, onSuccess }: BookingFormProps) =>
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="text-xl font-semibold mb-4">Book Your Appointment</h3>
+      {servicePrice && (
+        <div className="mb-4 text-center">
+          <p className="text-lg font-medium">Price: ₹{servicePrice.toFixed(2)}</p>
+        </div>
+      )}
+      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -250,15 +257,28 @@ const BookingForm = ({ serviceId, serviceName, onSuccess }: BookingFormProps) =>
             )}
           />
 
-          <ButtonCustom
-            type="submit"
-            className="w-full"
-            variant="primary-gradient"
-            disabled={isSubmitting}
-            isLoading={isSubmitting}
-          >
-            {isSubmitting ? "Processing..." : "Book Appointment"}
-          </ButtonCustom>
+          <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+            <ButtonCustom
+              type="submit"
+              className="flex-1"
+              variant="primary-gradient"
+              disabled={isSubmitting}
+              isLoading={isSubmitting}
+            >
+              {isSubmitting ? "Processing..." : "Book Appointment"}
+            </ButtonCustom>
+            
+            {onCancel && (
+              <ButtonCustom 
+                type="button" 
+                onClick={onCancel}
+                className="flex-1"
+                variant="outline"
+              >
+                Cancel
+              </ButtonCustom>
+            )}
+          </div>
         </form>
       </Form>
     </div>
