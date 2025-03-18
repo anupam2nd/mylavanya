@@ -8,22 +8,29 @@ import Testimonials from "@/components/sections/Testimonials";
 import BookingBanner from "@/components/sections/BookingBanner";
 import AuthModal from "@/components/auth/AuthModal";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 const Index = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const navigate = useNavigate();
 
+  // Log to confirm Index is being loaded
+  console.log("Index page rendering");
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <Hero 
-        onBookNow={() => navigate("/services")}
-        onLogin={() => setIsAuthModalOpen(true)}
-      />
-      <ServiceList featured={true} />
-      <HowItWorks />
-      <BookingBanner onBookNow={() => navigate("/services")} />
-      <Testimonials />
+      <main className="flex-grow">
+        <Hero 
+          onBookNow={() => navigate("/services")}
+          onLogin={() => setIsAuthModalOpen(true)}
+        />
+        <ServiceList featured={true} />
+        <HowItWorks />
+        <BookingBanner onBookNow={() => navigate("/services")} />
+        <Testimonials />
+      </main>
+      <Footer />
       
       <AuthModal 
         isOpen={isAuthModalOpen}

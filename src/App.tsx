@@ -9,6 +9,9 @@ import NotFound from "./pages/NotFound";
 import Services from "./pages/Services";
 import ServiceDetail from "./pages/ServiceDetail";
 
+// Log to confirm App is being loaded
+console.log("App component rendering");
+
 const queryClient = new QueryClient();
 
 const App = () => (
