@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Instagram, Facebook, Twitter, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
@@ -13,7 +12,7 @@ export default function Footer() {
           {/* Brand & About */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center">
-              <span className="text-2xl font-serif font-bold">GLÓ<span className="text-primary">W</span></span>
+              <span className="text-2xl font-serif font-bold">My<span className="text-primary">Lavanya</span></span>
             </Link>
             <p className="text-muted-foreground">
               Premium beauty services for your special events. We make you glow on your big day.
@@ -114,7 +113,7 @@ export default function Footer() {
         <div className="mt-16 pt-8 border-t border-border/60">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              © {currentYear} GLÓ<span className="text-primary">W</span>. All rights reserved.
+              © {currentYear} My<span className="text-primary">Lavanya</span>. All rights reserved.
             </p>
             <div className="flex items-center space-x-4 text-sm text-muted-foreground">
               <Link to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link>
