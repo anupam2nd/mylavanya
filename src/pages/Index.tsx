@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Hero from "@/components/sections/Hero";
@@ -6,6 +7,7 @@ import HowItWorks from "@/components/sections/HowItWorks";
 import Testimonials from "@/components/sections/Testimonials";
 import BookingBanner from "@/components/sections/BookingBanner";
 import AuthModal from "@/components/auth/AuthModal";
+import Navbar from "@/components/layout/Navbar";
 
 const Index = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -13,6 +15,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      <Navbar />
       <Hero 
         onBookNow={() => navigate("/services")}
         onLogin={() => setIsAuthModalOpen(true)}
