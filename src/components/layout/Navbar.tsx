@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, User, ShoppingBag } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Handle scroll effect
   useEffect(() => {
@@ -37,6 +38,10 @@ export default function Navbar() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
+
+  const handleBookNow = () => {
+    navigate("/services");
+  };
   
   return (
     <header 
@@ -90,7 +95,12 @@ export default function Navbar() {
               Sign In
             </ButtonCustom>
             
-            <ButtonCustom variant="primary-gradient">Book Now</ButtonCustom>
+            <ButtonCustom 
+              variant="primary-gradient"
+              onClick={handleBookNow}
+            >
+              Book Now
+            </ButtonCustom>
           </div>
           
           {/* Mobile menu button */}
@@ -141,6 +151,7 @@ export default function Navbar() {
               <ButtonCustom 
                 variant="primary-gradient" 
                 className="w-full"
+                onClick={handleBookNow}
               >
                 Book Now
               </ButtonCustom>
