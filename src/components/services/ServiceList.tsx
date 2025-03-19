@@ -11,13 +11,12 @@ interface ServiceListProps {
   categoryFilter?: string;
 }
 
-// Define a service type to solve the excessive typing depth issue
+// Define a service type that matches the actual database schema
 interface Service {
   prod_id: number;
   ProductName: string;
   Price: number;
-  Description?: string | null;
-  pcatgry?: string | null;
+  Description: string | null;
   created_at?: string;
 }
 
@@ -35,17 +34,13 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
       try {
         console.log("Fetching services with filter:", categoryFilter);
         
-        // Use properly typed query
+        // Only select columns that actually exist in the table
         let query = supabase
           .from('PriceMST')
-          .select('prod_id, ProductName, Price, Description, pcatgry, created_at');
+          .select('prod_id, ProductName, Price, Description, created_at');
         
-        // Apply filters if needed
-        if (categoryFilter) {
-          query = query.eq('pcatgry', categoryFilter);
-        }
-        
-        // Limit results for featured section
+        // Apply filters if needed, but only if the column exists
+        // For now, we'll skip the categoryFilter since pcatgry doesn't exist
         if (featured) {
           query = query.limit(4);
         }
