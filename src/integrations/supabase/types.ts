@@ -40,15 +40,7 @@ export type Database = {
           Purpose?: string
           Status?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "BookMST_Product_fkey"
-            columns: ["Product"]
-            isOneToOne: false
-            referencedRelation: "PriceMST"
-            referencedColumns: ["prod_id"]
-          },
-        ]
+        Relationships: []
       }
       PriceMST: {
         Row: {

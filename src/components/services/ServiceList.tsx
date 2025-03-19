@@ -14,10 +14,11 @@ interface ServiceListProps {
 // Define a service type that matches the actual database schema
 interface Service {
   prod_id: number;
-  ProductName: string;
+  ProductName: string | null;
   Price: number;
   Description: string | null;
   created_at?: string;
+  Services: string;
 }
 
 const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => {
@@ -59,8 +60,17 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
           throw error;
         }
         
-        console.log("Services fetched:", data);
-        setServices(data || []);
+        // Add detailed logging to debug the issue
+        console.log("Services fetched raw data:", data);
+        
+        if (!data || data.length === 0) {
+          console.log("No services found in the PriceMST table. Check your Supabase data.");
+          // Instead of setting an error, we'll just set services to an empty array
+          setServices([]);
+        } else {
+          console.log("Services data structure example:", data[0]);
+          setServices(data);
+        }
       } catch (error) {
         console.error("Error fetching services:", error);
         setError("Failed to load services. Please try again later.");
@@ -125,7 +135,8 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
           <div className="text-center py-12 bg-gray-50 rounded-lg shadow-sm">
             <p className="text-lg text-gray-600">No services available</p>
             <p className="text-sm text-gray-500 mt-2">
-              Please add services to your PriceMST table in Supabase
+              The PriceMST table might be empty or there might be an issue accessing the data.
+              Please check your Supabase database.
             </p>
           </div>
         )}
