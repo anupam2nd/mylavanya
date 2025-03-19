@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Instagram, Facebook, Twitter, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
@@ -41,11 +42,11 @@ export default function Footer() {
               name: "About Us",
               href: "/about"
             }, {
+              name: "FAQ",
+              href: "/about#faq"
+            }, {
               name: "Booking",
               href: "/booking"
-            }, {
-              name: "FAQ",
-              href: "/faq"
             }].map(link => <li key={link.name}>
                   <Link to={link.href} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
                     <ChevronRight size={16} className="mr-1" />

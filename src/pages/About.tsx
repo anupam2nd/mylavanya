@@ -51,7 +51,7 @@ export default function About() {
           </section>
           
           {/* FAQ Section */}
-          <section className="py-10 md:py-16 bg-accent/10 rounded-xl">
+          <section id="faq" className="py-10 md:py-16 bg-accent/10 rounded-xl">
             <div className="max-w-3xl mx-auto px-4">
               <h2 className="text-3xl md:text-4xl font-display font-bold mb-12 text-center">Frequently Asked <span className="text-primary">Questions</span></h2>
               
