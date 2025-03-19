@@ -1,7 +1,5 @@
-
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-
 interface ServiceCardProps {
   service: {
     prodid: number;
@@ -11,16 +9,13 @@ interface ServiceCardProps {
   };
   onClick: () => void;
 }
-
-const ServiceCard = ({ service, onClick }: ServiceCardProps) => {
-  return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+const ServiceCard = ({
+  service,
+  onClick
+}: ServiceCardProps) => {
+  return <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
       <div className="h-48 bg-gray-200">
-        <img 
-          src="/placeholder.svg"
-          alt={service.pname}
-          className="w-full h-full object-cover"
-        />
+        <img alt={service.pname} src="/lovable-uploads/1167ac24-9ba6-4ffb-9110-6d3d68d873e7.png" className="w-full h-full object-contain" />
       </div>
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg truncate mb-1">{service.pname}</h3>
@@ -30,16 +25,10 @@ const ServiceCard = ({ service, onClick }: ServiceCardProps) => {
         </p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <ButtonCustom 
-          onClick={onClick} 
-          className="w-full"
-          variant="primary-gradient"
-        >
+        <ButtonCustom onClick={onClick} className="w-full" variant="primary-gradient">
           Book Now
         </ButtonCustom>
       </CardFooter>
-    </Card>
-  );
+    </Card>;
 };
-
 export default ServiceCard;
