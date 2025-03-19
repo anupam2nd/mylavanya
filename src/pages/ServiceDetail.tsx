@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -21,28 +21,36 @@ import BookingForm from "@/components/booking/BookingForm";
 import { toast } from "@/hooks/use-toast";
 
 const ServiceDetail = () => {
-  const { id } = useParams();
+  const { serviceId } = useParams();
   const navigate = useNavigate();
   const [service, setService] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
   
   useEffect(() => {
     const fetchServiceDetails = async () => {
       try {
+        setLoading(true);
+        setError(null);
+        console.log("Fetching service with ID:", serviceId);
+        
         const { data, error } = await supabase
           .from('PriceMST')
           .select('*')
-          .eq('prodid', id)
+          .eq('prod_id', serviceId)
           .single();
           
         if (error) {
+          console.error("Supabase error:", error);
           throw error;
         }
         
+        console.log("Service data:", data);
         setService(data);
       } catch (error) {
         console.error("Error fetching service details:", error);
+        setError("Could not load service details");
         toast({
           title: "Error",
           description: "Could not load service details",
@@ -53,15 +61,27 @@ const ServiceDetail = () => {
       }
     };
     
-    if (id) {
+    if (serviceId) {
       fetchServiceDetails();
     }
-  }, [id]);
+  }, [serviceId]);
   
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-medium mb-4">Error Loading Service</h2>
+        <p className="text-gray-600 mb-6">{error}</p>
+        <Button onClick={() => navigate("/services")}>
+          Back to Services
+        </Button>
       </div>
     );
   }
@@ -89,26 +109,26 @@ const ServiceDetail = () => {
           >
             ← Back to Services
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">{service.pname}</h1>
-          <p className="text-lg font-medium text-primary mt-1">₹{service.pprice.toFixed(2)}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{service.ProductName}</h1>
+          <p className="text-lg font-medium text-primary mt-1">₹{service.Price.toFixed(2)}</p>
         </div>
       </div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="h-64 sm:h-80 bg-gray-200">
                 <img 
                   src="/placeholder.svg"
-                  alt={service.pname}
+                  alt={service.ProductName}
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="p-6">
                 <h2 className="text-2xl font-semibold mb-4">Service Description</h2>
                 <p className="text-gray-600 mb-6">
-                  {service.pdesc || "Professional beauty service tailored for weddings and special occasions. Our expert team uses premium products to ensure you look your best on your special day."}
+                  {service.Description || "Professional beauty service tailored for weddings and special occasions. Our expert team uses premium products to ensure you look your best on your special day."}
                 </p>
                 
                 <h3 className="text-xl font-medium mb-3">What's Included</h3>
@@ -128,7 +148,7 @@ const ServiceDetail = () => {
           </div>
           
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow p-6 sticky top-24">
+            <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
               <h2 className="text-lg font-semibold mb-3 text-center">Book This Service</h2>
               
               {!showBookingForm ? (
@@ -142,9 +162,9 @@ const ServiceDetail = () => {
                 </ButtonCustom>
               ) : (
                 <BookingForm 
-                  serviceId={service.prodid} 
-                  serviceName={service.pname}
-                  servicePrice={service.pprice}
+                  serviceId={service.prod_id} 
+                  serviceName={service.ProductName}
+                  servicePrice={service.Price}
                   onCancel={() => setShowBookingForm(false)}
                 />
               )}
@@ -153,7 +173,7 @@ const ServiceDetail = () => {
                 <h3 className="font-medium text-center mb-4">Need Help?</h3>
                 <div className="text-center">
                   <p className="text-gray-600 text-sm mb-2">Contact our customer support</p>
-                  <p className="text-primary font-medium">support@beautyservices.com</p>
+                  <p className="text-primary font-medium">support@mylavanya.com</p>
                 </div>
               </div>
             </div>

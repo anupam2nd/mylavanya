@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -51,8 +51,8 @@ type FormValues = z.infer<typeof formSchema>;
 interface BookingFormProps {
   serviceId: number;
   serviceName: string;
-  servicePrice?: number; // Add the servicePrice prop as optional
-  onCancel?: () => void; // Add the onCancel prop as optional
+  servicePrice?: number; 
+  onCancel?: () => void;
   onSuccess?: () => void;
 }
 
@@ -79,18 +79,27 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess
     setIsSubmitting(true);
     
     try {
+      console.log("Submitting booking:", {
+        Product: serviceId,
+        Purpose: serviceName,
+        Phone_no: data.phone,
+        Booking_date: format(data.date, "yyyy-MM-dd"),
+        booking_time: data.time,
+        Status: "pending"
+      });
+      
       const { error } = await supabase.from("BookMST").insert({
-        prodid: serviceId,
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        bookdate: format(data.date, "yyyy-MM-dd"),
-        booktime: data.time,
-        notes: data.notes,
-        status: "pending"
+        Product: serviceId,
+        Purpose: serviceName,
+        Phone_no: data.phone,
+        Booking_date: format(data.date, "yyyy-MM-dd"),
+        booking_time: data.time,
+        Status: "pending",
+        price: servicePrice
       });
 
       if (error) {
+        console.error("Supabase booking error:", error);
         throw error;
       }
 
@@ -103,6 +112,8 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess
       
       if (onSuccess) {
         onSuccess();
+      } else {
+        onCancel && onCancel();
       }
     } catch (error) {
       console.error("Error submitting booking:", error);
@@ -117,7 +128,7 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white rounded-lg p-6">
       {servicePrice && (
         <div className="mb-4 text-center">
           <p className="text-lg font-medium">Price: ₹{servicePrice.toFixed(2)}</p>
