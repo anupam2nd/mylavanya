@@ -39,7 +39,8 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
         let query = supabase
           .from('PriceMST')
           .select('*'); // Select all columns to make sure we get everything
-        
+
+          console.log('query',query)
         // Apply category filter if provided and relevant column exists
         if (categoryFilter && categoryFilter !== 'all') {
           // This is a placeholder - if you have a category column in your table,
