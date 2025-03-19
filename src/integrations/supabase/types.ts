@@ -56,21 +56,24 @@ export type Database = {
           Description: string | null
           Price: number
           prod_id: number
-          ProductName: string
+          ProductName: string | null
+          Services: string
         }
         Insert: {
           created_at?: string
           Description?: string | null
           Price: number
           prod_id?: number
-          ProductName?: string
+          ProductName?: string | null
+          Services?: string
         }
         Update: {
           created_at?: string
           Description?: string | null
           Price?: number
           prod_id?: number
-          ProductName?: string
+          ProductName?: string | null
+          Services?: string
         }
         Relationships: []
       }

@@ -37,7 +37,7 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
         // Create a query to the PriceMST table
         let query = supabase
           .from('PriceMST')
-          .select('prod_id, ProductName, Price, Description, created_at');
+          .select('*'); // Select all columns to make sure we get everything
         
         // Apply category filter if provided and relevant column exists
         if (categoryFilter && categoryFilter !== 'all') {
@@ -113,7 +113,7 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
                 key={service.prod_id}
                 service={{
                   prodid: service.prod_id,
-                  pname: service.ProductName,
+                  pname: service.ProductName || "Unnamed Service",
                   pprice: service.Price,
                   pdesc: service.Description
                 }}
