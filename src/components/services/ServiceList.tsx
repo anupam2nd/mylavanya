@@ -34,13 +34,20 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
       try {
         console.log("Fetching services with filter:", categoryFilter);
         
-        // Only select columns that actually exist in the table
+        // Create a query to the PriceMST table
         let query = supabase
           .from('PriceMST')
           .select('prod_id, ProductName, Price, Description, created_at');
         
-        // Apply filters if needed, but only if the column exists
-        // For now, we'll skip the categoryFilter since pcatgry doesn't exist
+        // Apply category filter if provided and relevant column exists
+        if (categoryFilter && categoryFilter !== 'all') {
+          // This is a placeholder - if you have a category column in your table,
+          // you would filter by it here. Since your schema doesn't show a category column,
+          // we'll comment this out for now.
+          // query = query.eq('category', categoryFilter);
+        }
+        
+        // Limit results if featured is true
         if (featured) {
           query = query.limit(4);
         }
@@ -117,6 +124,9 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
         ) : (
           <div className="text-center py-12 bg-gray-50 rounded-lg shadow-sm">
             <p className="text-lg text-gray-600">No services available</p>
+            <p className="text-sm text-gray-500 mt-2">
+              Please add services to your PriceMST table in Supabase
+            </p>
           </div>
         )}
         
