@@ -26,11 +26,13 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <div className="py-16 bg-white">
+    <div className="py-24 bg-gradient-to-b from-background to-accent/10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">How It Works</h2>
-          <p className="mt-4 max-w-2xl mx-auto text-gray-600">
+        <div className="text-center mb-16">
+          <p className="text-primary font-medium mb-3">Simple Process</p>
+          <h2 className="text-3xl font-bold text-foreground sm:text-4xl">How It Works</h2>
+          <div className="w-24 h-1 bg-primary mx-auto mt-6"></div>
+          <p className="mt-6 max-w-2xl mx-auto text-muted-foreground">
             Book your beauty services in just a few simple steps
           </p>
         </div>
@@ -39,15 +41,19 @@ const HowItWorks = () => {
           {steps.map((step, index) => (
             <div 
               key={index} 
-              className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300"
+              className="bg-white p-8 rounded-2xl shadow-card hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center"
             >
-              <div className="flex flex-col items-center text-center">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <step.icon className="h-6 w-6 text-primary" />
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-primary/10 rounded-full blur-md"></div>
+                <div className="relative h-16 w-16 rounded-full flex items-center justify-center bg-secondary text-primary">
+                  <step.icon className="h-8 w-8" />
                 </div>
-                <h3 className="text-lg font-medium mb-2">{step.title}</h3>
-                <p className="text-gray-500">{step.description}</p>
+                <div className="absolute -top-2 -right-2 h-6 w-6 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
+                  {index + 1}
+                </div>
               </div>
+              <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
+              <p className="text-muted-foreground">{step.description}</p>
             </div>
           ))}
         </div>
