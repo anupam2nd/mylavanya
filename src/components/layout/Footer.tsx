@@ -1,12 +1,9 @@
 import { Link } from "react-router-dom";
 import { Instagram, Facebook, Twitter, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
-
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-  
-  return (
-    <footer className="bg-accent/30 pt-16 pb-8">
+  return <footer className="bg-accent/30 pt-16 pb-8">
       <div className="container-custom">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand & About */}
@@ -18,25 +15,13 @@ export default function Footer() {
               Premium beauty services for your special events. We make you glow on your big day.
             </p>
             <div className="flex items-center space-x-4 pt-2">
-              <a 
-                href="#" 
-                className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors"
-                aria-label="Instagram"
-              >
+              <a href="#" className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" aria-label="Instagram">
                 <Instagram size={18} />
               </a>
-              <a 
-                href="#" 
-                className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors"
-                aria-label="Facebook"
-              >
+              <a href="#" className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" aria-label="Facebook">
                 <Facebook size={18} />
               </a>
-              <a 
-                href="#" 
-                className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors"
-                aria-label="Twitter"
-              >
+              <a href="#" className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" aria-label="Twitter">
                 <Twitter size={18} />
               </a>
             </div>
@@ -46,23 +31,27 @@ export default function Footer() {
           <div className="space-y-4">
             <h4 className="text-lg font-medium">Quick Links</h4>
             <ul className="space-y-2">
-              {[
-                { name: "Home", href: "/" },
-                { name: "Services", href: "/services" },
-                { name: "About Us", href: "/about" },
-                { name: "Booking", href: "/booking" },
-                { name: "FAQ", href: "/faq" },
-              ].map((link) => (
-                <li key={link.name}>
-                  <Link 
-                    to={link.href}
-                    className="flex items-center text-muted-foreground hover:text-primary transition-colors"
-                  >
+              {[{
+              name: "Home",
+              href: "/"
+            }, {
+              name: "Services",
+              href: "/services"
+            }, {
+              name: "About Us",
+              href: "/about"
+            }, {
+              name: "Booking",
+              href: "/booking"
+            }, {
+              name: "FAQ",
+              href: "/faq"
+            }].map(link => <li key={link.name}>
+                  <Link to={link.href} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
                     <ChevronRight size={16} className="mr-1" />
                     {link.name}
                   </Link>
-                </li>
-              ))}
+                </li>)}
             </ul>
           </div>
           
@@ -72,22 +61,16 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start text-muted-foreground">
                 <MapPin size={18} className="mr-3 text-primary shrink-0 mt-1" />
-                <span>123 Beauty Street, Glow City, NY 10001</span>
+                <span className="text-base font-medium">DN 30 SALT LAKE CITY SEC V KOLKATA 700091</span>
               </li>
               <li>
-                <a 
-                  href="tel:+1234567890" 
-                  className="flex items-center text-muted-foreground hover:text-primary transition-colors"
-                >
+                <a href="tel:+1234567890" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
                   <Phone size={18} className="mr-3 text-primary" />
                   <span>+1 (234) 567-890</span>
                 </a>
               </li>
               <li>
-                <a 
-                  href="mailto:hello@glowbeauty.com" 
-                  className="flex items-center text-muted-foreground hover:text-primary transition-colors"
-                >
+                <a href="mailto:hello@glowbeauty.com" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
                   <Mail size={18} className="mr-3 text-primary" />
                   <span>hello@glowbeauty.com</span>
                 </a>
@@ -100,11 +83,7 @@ export default function Footer() {
             <h4 className="text-lg font-medium">Newsletter</h4>
             <p className="text-muted-foreground">Subscribe to receive updates on special offers and events.</p>
             <form className="flex flex-col sm:flex-row gap-2">
-              <input 
-                type="email" 
-                placeholder="Your email"
-                className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              />
+              <input type="email" placeholder="Your email" className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
               <ButtonCustom type="submit" size="sm">Subscribe</ButtonCustom>
             </form>
           </div>
@@ -122,6 +101,5 @@ export default function Footer() {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 }
