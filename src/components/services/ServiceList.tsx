@@ -16,8 +16,9 @@ interface Service {
   prod_id: number;
   ProductName: string;
   Price: number;
-  Description?: string;
-  pcatgry?: string;
+  Description?: string | null;
+  pcatgry?: string | null;
+  created_at?: string;
 }
 
 const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => {
@@ -34,9 +35,10 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
       try {
         console.log("Fetching services with filter:", categoryFilter);
         
+        // Use properly typed query
         let query = supabase
           .from('PriceMST')
-          .select('*')
+          .select('prod_id, ProductName, Price, Description, pcatgry, created_at');
         
         // Apply filters if needed
         if (categoryFilter) {
