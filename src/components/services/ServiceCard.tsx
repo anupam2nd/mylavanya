@@ -7,8 +7,7 @@ interface ServiceCardProps {
     prodid: number;
     pname: string;
     pprice: number;
-    pdesc?: string;
-    pcatgry?: string;
+    pdesc?: string | null;
   };
   onClick: () => void;
 }

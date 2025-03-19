@@ -66,6 +66,7 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
   }, [featured, categoryFilter]);
   
   const handleServiceClick = (serviceId: number) => {
+    console.log("Navigating to service detail:", serviceId);
     navigate(`/services/${serviceId}`);
   };
   
