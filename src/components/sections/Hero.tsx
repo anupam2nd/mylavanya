@@ -1,15 +1,14 @@
-
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
-
 interface HeroProps {
   onBookNow: () => void;
   onLogin: () => void;
 }
-
-const Hero = ({ onBookNow, onLogin }: HeroProps) => {
-  return (
-    <div className="relative bg-gradient-to-b from-secondary/30 to-background pt-28 pb-24 sm:pt-32 sm:pb-32 overflow-hidden">
+const Hero = ({
+  onBookNow,
+  onLogin
+}: HeroProps) => {
+  return <div className="relative bg-gradient-to-b from-secondary/30 to-background pt-28 pb-24 sm:pt-32 sm:pb-32 overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute top-1/4 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/40 rounded-full blur-3xl -z-10"></div>
@@ -33,31 +32,19 @@ const Hero = ({ onBookNow, onLogin }: HeroProps) => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-              <ButtonCustom 
-                variant="primary-gradient" 
-                size="lg" 
-                onClick={onBookNow}
-                className="group"
-              >
+              <ButtonCustom variant="primary-gradient" size="lg" onClick={onBookNow} className="group">
                 Book Your Service 
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
               </ButtonCustom>
               
-              <ButtonCustom
-                variant="outline"
-                size="lg"
-                onClick={onLogin}
-                className="border-primary/20 text-foreground"
-              >
+              <ButtonCustom variant="outline" size="lg" onClick={onLogin} className="border-primary/20 text-foreground">
                 Sign In
               </ButtonCustom>
             </div>
             
             <div className="flex items-center justify-center lg:justify-start space-x-4 text-sm text-muted-foreground pt-4">
               <div className="flex">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star key={star} size={16} className="text-primary fill-primary" />
-                ))}
+                {[1, 2, 3, 4, 5].map(star => <Star key={star} size={16} className="text-primary fill-primary" />)}
               </div>
               <span>500+ Happy Clients</span>
             </div>
@@ -67,17 +54,11 @@ const Hero = ({ onBookNow, onLogin }: HeroProps) => {
             <div className="absolute -top-4 -left-4 w-24 h-24 bg-secondary rounded-full"></div>
             <div className="absolute -bottom-10 -right-6 w-36 h-36 bg-accent/30 rounded-full"></div>
             <div className="relative z-10">
-              <img 
-                src="/placeholder.svg"
-                alt="Beauty Services" 
-                className="w-full h-auto rounded-2xl shadow-card object-cover" 
-              />
+              <img alt="Beauty Services" src="/lovable-uploads/0b9c4ec6-8c62-4d2f-a9b8-bfcf1f87fabd.jpg" className="w-full h-auto rounded-2xl shadow-card object-contain" />
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Hero;
