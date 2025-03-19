@@ -11,8 +11,17 @@ interface ServiceListProps {
   categoryFilter?: string;
 }
 
+// Define a service type to solve the excessive typing depth issue
+interface Service {
+  prod_id: number;
+  ProductName: string;
+  Price: number;
+  Description?: string;
+  pcatgry?: string;
+}
+
 const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => {
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();

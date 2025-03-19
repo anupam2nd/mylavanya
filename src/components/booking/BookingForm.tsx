@@ -82,16 +82,17 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess
       console.log("Submitting booking:", {
         Product: serviceId,
         Purpose: serviceName,
-        Phone_no: data.phone,
+        Phone_no: parseInt(data.phone), // Convert string to number
         Booking_date: format(data.date, "yyyy-MM-dd"),
         booking_time: data.time,
-        Status: "pending"
+        Status: "pending",
+        price: servicePrice
       });
       
       const { error } = await supabase.from("BookMST").insert({
         Product: serviceId,
         Purpose: serviceName,
-        Phone_no: data.phone,
+        Phone_no: parseInt(data.phone), // Convert string to number
         Booking_date: format(data.date, "yyyy-MM-dd"),
         booking_time: data.time,
         Status: "pending",

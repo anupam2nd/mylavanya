@@ -21,7 +21,7 @@ import BookingForm from "@/components/booking/BookingForm";
 import { toast } from "@/hooks/use-toast";
 
 const ServiceDetail = () => {
-  const { serviceId } = useParams();
+  const { serviceId } = useParams<{ serviceId: string }>();
   const navigate = useNavigate();
   const [service, setService] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -35,10 +35,21 @@ const ServiceDetail = () => {
         setError(null);
         console.log("Fetching service with ID:", serviceId);
         
+        // Convert serviceId to number
+        if (!serviceId) {
+          throw new Error("Service ID is required");
+        }
+        
+        const serviceIdNumber = parseInt(serviceId);
+        
+        if (isNaN(serviceIdNumber)) {
+          throw new Error("Invalid service ID");
+        }
+        
         const { data, error } = await supabase
           .from('PriceMST')
           .select('*')
-          .eq('prod_id', serviceId)
+          .eq('prod_id', serviceIdNumber)
           .single();
           
         if (error) {
