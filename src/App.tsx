@@ -8,6 +8,10 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Services from "./pages/Services";
 import ServiceDetail from "./pages/ServiceDetail";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 
 // Log to confirm App is being loaded
 console.log("App component rendering");
@@ -24,6 +28,10 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/services" element={<Services />} />
           <Route path="/services/:serviceId" element={<ServiceDetail />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
