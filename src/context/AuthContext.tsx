@@ -38,24 +38,28 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   }, []);
 
   const login = (userData: User) => {
+    console.log("Logging in user:", userData);
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = () => {
+    console.log("Logging out user");
     setUser(null);
     localStorage.removeItem('user');
     navigate('/');
   };
 
+  const contextValue = {
+    user, 
+    loading, 
+    login, 
+    logout, 
+    isAuthenticated: user !== null
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      login, 
-      logout, 
-      isAuthenticated: user !== null 
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

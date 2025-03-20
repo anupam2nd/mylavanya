@@ -10,6 +10,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -22,34 +23,39 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({ firstName: "", lastName: "", email: "", password: "" });
   const navigate = useNavigate();
+  const { login } = useAuth();
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      // Query the UserMST table to find a matching user
+      console.log("Attempting login with:", loginData.email);
+      // Explicitly convert email to lowercase for consistent matching
       const { data, error } = await supabase
         .from('UserMST')
         .select('id, Username, role')
-        .eq('Username', loginData.email)
+        .ilike('Username', loginData.email.trim().toLowerCase())
         .eq('password', loginData.password)
-        .single();
+        .maybeSingle();
+      
+      console.log("Query result:", data, error);
       
       if (error) {
-        throw new Error('Invalid credentials');
+        console.error("Supabase query error:", error);
+        throw new Error('Error querying user');
       }
       
       if (!data) {
-        throw new Error('User not found');
+        throw new Error('Invalid credentials');
       }
       
-      // Store user session in localStorage
-      localStorage.setItem('user', JSON.stringify({
-        id: data.id,
+      // Login using the context function
+      login({
+        id: data.id.toString(),
         email: data.Username,
         role: data.role
-      }));
+      });
       
       toast({
         title: "Login successful",
@@ -81,11 +87,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setIsLoading(true);
     
     try {
+      // Convert email to lowercase for consistency
+      const email = registerData.email.trim().toLowerCase();
+      
       // Check if user already exists
       const { data: existingUser } = await supabase
         .from('UserMST')
         .select('Username')
-        .eq('Username', registerData.email)
+        .ilike('Username', email)
         .single();
       
       if (existingUser) {
@@ -97,9 +106,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         .from('UserMST')
         .insert([
           { 
-            Username: registerData.email,
+            Username: email,
             password: registerData.password,
-            role: 'user'
+            role: 'user',
+            FirstName: registerData.firstName, 
+            LastName: registerData.lastName
           }
         ])
         .select();
@@ -113,7 +124,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       
       // Switch to login tab
       setActiveTab("login");
-      setLoginData({ email: registerData.email, password: registerData.password });
+      setLoginData({ email, password: registerData.password });
     } catch (error: any) {
       console.error('Registration error:', error);
       toast({

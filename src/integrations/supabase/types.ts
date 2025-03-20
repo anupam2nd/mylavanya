@@ -116,19 +116,25 @@ export type Database = {
       }
       usermst: {
         Row: {
+          FirstName: string | null
           id: number
+          LastName: string | null
           password: string | null
           role: string
           username: string | null
         }
         Insert: {
+          FirstName?: string | null
           id?: number
+          LastName?: string | null
           password?: string | null
           role?: string
           username?: string | null
         }
         Update: {
+          FirstName?: string | null
           id?: number
+          LastName?: string | null
           password?: string | null
           role?: string
           username?: string | null
@@ -137,19 +143,25 @@ export type Database = {
       }
       UserMST: {
         Row: {
+          FirstName: string | null
           id: number
+          LastName: string | null
           password: string | null
           role: string | null
           Username: string | null
         }
         Insert: {
+          FirstName?: string | null
           id?: number
+          LastName?: string | null
           password?: string | null
           role?: string | null
           Username?: string | null
         }
         Update: {
+          FirstName?: string | null
           id?: number
+          LastName?: string | null
           password?: string | null
           role?: string | null
           Username?: string | null
