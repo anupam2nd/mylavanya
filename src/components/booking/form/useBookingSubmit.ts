@@ -78,7 +78,7 @@ export const useBookingSubmit = () => {
           Qty: service.quantity || 1,
           Address: data.address,
           Pincode: parseInt(data.pincode),
-          name: data.name
+          Name: data.name // Using the correct field name (Name with capital N)
         });
       });
       

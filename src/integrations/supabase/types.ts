@@ -17,6 +17,7 @@ export type Database = {
           booking_time: string
           created_at: string | null
           id: number
+          name: string | null
           Name: string | null
           Phone_no: number
           Pincode: number | null
@@ -33,6 +34,7 @@ export type Database = {
           booking_time: string
           created_at?: string | null
           id?: number
+          name?: string | null
           Name?: string | null
           Phone_no: number
           Pincode?: number | null
@@ -49,6 +51,7 @@ export type Database = {
           booking_time?: string
           created_at?: string | null
           id?: number
+          name?: string | null
           Name?: string | null
           Phone_no?: number
           Pincode?: number | null
