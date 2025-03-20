@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { GenericTable } from "./types";
 
 export const fetchRecordById = async (tableName: string, recordId: number) => {
   try {
