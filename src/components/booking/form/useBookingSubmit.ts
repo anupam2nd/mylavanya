@@ -57,7 +57,8 @@ export const useBookingSubmit = () => {
         time: data.time,
         phone: data.phone,
         address: data.address,
-        pincode: data.pincode
+        pincode: data.pincode,
+        name: data.name
       });
       
       // Insert multiple bookings with the same booking reference number
@@ -65,7 +66,7 @@ export const useBookingSubmit = () => {
         return supabase.from("BookMST").insert({
           Product: service.id,
           Purpose: service.name,
-          Phone_no: parseInt(data.phone),
+          Phone_no: parseInt(data.phone.replace(/\D/g, '')),
           Booking_date: format(data.date, "yyyy-MM-dd"),
           booking_time: data.time,
           Status: "pending",
