@@ -90,6 +90,72 @@ export type Database = {
         }
         Relationships: []
       }
+      statusmst: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: number
+          status_code: string
+          status_name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          status_code: string
+          status_name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          status_code?: string
+          status_name?: string
+        }
+        Relationships: []
+      }
+      usermst: {
+        Row: {
+          id: number
+          password: string | null
+          role: string
+          username: string | null
+        }
+        Insert: {
+          id?: number
+          password?: string | null
+          role?: string
+          username?: string | null
+        }
+        Update: {
+          id?: number
+          password?: string | null
+          role?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      UserMST: {
+        Row: {
+          id: number
+          password: string | null
+          role: string | null
+          Username: string | null
+        }
+        Insert: {
+          id?: number
+          password?: string | null
+          role?: string | null
+          Username?: string | null
+        }
+        Update: {
+          id?: number
+          password?: string | null
+          role?: string | null
+          Username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
