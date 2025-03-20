@@ -1,6 +1,8 @@
 
-import { Package, Star, CheckCircle } from "lucide-react";
+import { Package, Star, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Service {
   ProductName: string;
@@ -13,6 +15,17 @@ interface ServicesListProps {
 }
 
 const ServicesList = ({ services }: ServicesListProps) => {
+  // Track which services are expanded
+  const [expandedServices, setExpandedServices] = useState<number[]>([]);
+
+  const toggleService = (index: number) => {
+    setExpandedServices(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index) 
+        : [...prev, index]
+    );
+  };
+
   // Function to get an icon based on the service name
   const getServiceIcon = (serviceName: string) => {
     const normalizedName = serviceName.toLowerCase();
@@ -43,40 +56,82 @@ const ServicesList = ({ services }: ServicesListProps) => {
         Services
       </p>
       <div className="space-y-3">
-        {services.map((service, index) => (
-          <div 
-            key={index} 
-            className={cn(
-              "p-4 rounded-md border shadow-sm transition-all hover:shadow-md",
-              getCardColor(index)
-            )}
-          >
-            <div className="flex items-start">
-              <div className="p-2 rounded-full bg-white shadow-sm mr-3">
-                {getServiceIcon(service.ProductName)}
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-foreground">{service.ProductName}</p>
-                <div className="grid grid-cols-3 gap-2 text-sm text-gray-600 mt-2">
-                  <div className="bg-white/50 p-2 rounded">
-                    <p className="text-xs text-gray-500">Quantity</p>
-                    <p className="font-medium">{service.Qty || 1}</p>
+        {services.map((service, index) => {
+          const isExpanded = expandedServices.includes(index);
+          return (
+            <Collapsible 
+              key={index} 
+              open={isExpanded}
+              onOpenChange={() => toggleService(index)}
+              className={cn(
+                "p-4 rounded-md border shadow-sm transition-all hover:shadow-md",
+                getCardColor(index)
+              )}
+            >
+              <div className="flex items-start">
+                <div className="p-2 rounded-full bg-white shadow-sm mr-3">
+                  {getServiceIcon(service.ProductName)}
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-center">
+                    <p className="font-medium text-foreground">{service.ProductName}</p>
+                    <CollapsibleTrigger asChild>
+                      <button className="p-1 rounded-full hover:bg-white/50 transition-colors">
+                        {isExpanded ? 
+                          <ChevronUp size={16} className="text-gray-600" /> : 
+                          <ChevronDown size={16} className="text-gray-600" />
+                        }
+                      </button>
+                    </CollapsibleTrigger>
                   </div>
-                  <div className="bg-white/50 p-2 rounded">
-                    <p className="text-xs text-gray-500">Price</p>
-                    <p className="font-medium">₹{service.price?.toFixed(2) || '0.00'}</p>
-                  </div>
-                  <div className="bg-white/50 p-2 rounded">
-                    <p className="text-xs text-gray-500">Total</p>
-                    <p className="font-medium text-primary">
-                      ₹{((service.Qty || 1) * service.price)?.toFixed(2) || '0.00'}
-                    </p>
+                  
+                  <div className="grid grid-cols-3 gap-2 text-sm text-gray-600 mt-2">
+                    <div className="bg-white/50 p-2 rounded">
+                      <p className="text-xs text-gray-500">Quantity</p>
+                      <p className="font-medium">{service.Qty || 1}</p>
+                    </div>
+                    <div className="bg-white/50 p-2 rounded">
+                      <p className="text-xs text-gray-500">Price</p>
+                      <p className="font-medium">₹{service.price?.toFixed(2) || '0.00'}</p>
+                    </div>
+                    <div className="bg-white/50 p-2 rounded">
+                      <p className="text-xs text-gray-500">Total</p>
+                      <p className="font-medium text-primary">
+                        ₹{((service.Qty || 1) * service.price)?.toFixed(2) || '0.00'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        ))}
+              
+              <CollapsibleContent className="mt-3 pt-3 border-t border-gray-200">
+                <div className="bg-white/70 rounded-md p-3">
+                  <h4 className="font-medium text-sm mb-2">Service Details</h4>
+                  <dl className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <dt className="text-xs text-gray-500">Service ID</dt>
+                      <dd className="font-medium">SVC-{1000 + index}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-gray-500">Category</dt>
+                      <dd className="font-medium">
+                        {service.ProductName.includes("Premium") ? "Premium" : 
+                         service.ProductName.includes("Package") ? "Package" : "Standard"}
+                      </dd>
+                    </div>
+                    <div className="col-span-2 mt-2">
+                      <dt className="text-xs text-gray-500">Description</dt>
+                      <dd className="text-sm text-gray-600 mt-1">
+                        {service.ProductName} includes all standard features and benefits. 
+                        Our professional staff will ensure quality service delivery.
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
       </div>
     </div>
   );
