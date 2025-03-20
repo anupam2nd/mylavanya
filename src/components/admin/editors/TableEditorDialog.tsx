@@ -54,11 +54,11 @@ const TableEditorDialog: React.FC<TableEditorProps> = ({
       
       try {
         setLoading(true);
-        // Type assertion needed for tableName
+        // Type assertion for tableName and using TableRecord type
         const data = await fetchRecordById(tableName as TableName, recordId);
         
         if (data) {
-          // Transform data to match form fields
+          // Transform data to match form fields with explicit type handling
           const formData: Record<string, any> = {};
           
           columns.forEach((column) => {
@@ -91,7 +91,7 @@ const TableEditorDialog: React.FC<TableEditorProps> = ({
       setLoading(true);
       
       // Clean up values for submission
-      const submissionData: any = { ...values };
+      const submissionData: Record<string, any> = { ...values };
       
       // Process the insert or update using RPC or direct query with type casting
       if (recordId) {
