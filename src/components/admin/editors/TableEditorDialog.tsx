@@ -19,7 +19,7 @@ import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import { FormFieldInput } from "./FormFields";
 import { createDynamicSchema } from "./schemaUtils";
-import { fetchRecordById, updateRecord, insertRecord, TableName } from "./tableDataService";
+import { fetchRecordById, updateRecord, insertRecord, TableName, TableRecord } from "./tableDataService";
 import { TableEditorProps } from "./types";
 import { z } from "zod";
 
@@ -59,7 +59,7 @@ const TableEditorDialog: React.FC<TableEditorProps> = ({
         
         if (data) {
           // Transform data to match form fields
-          const formData: any = {};
+          const formData: Record<string, any> = {};
           
           columns.forEach((column) => {
             if (column.name in data) {

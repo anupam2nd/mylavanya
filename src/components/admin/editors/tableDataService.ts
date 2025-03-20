@@ -4,11 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 // Define valid table names explicitly to avoid recursive type issues
 export type TableName = "BookMST" | "PriceMST" | "statusmst" | "UserMST";
 
-// Use a simpler generic type approach 
-export const fetchRecordById = async <T>(
+// Use Record<string, any> for a generic table record type
+export type TableRecord = Record<string, any>;
+
+// Simplify the return type to avoid excessive type instantiation
+export const fetchRecordById = async (
   tableName: TableName, 
   recordId: number
-): Promise<T | null> => {
+): Promise<TableRecord | null> => {
   try {
     const { data, error } = await supabase
       .from(tableName)
@@ -17,7 +20,7 @@ export const fetchRecordById = async <T>(
       .single();
 
     if (error) throw error;
-    return data as T;
+    return data as TableRecord;
   } catch (error) {
     console.error(`Error fetching ${tableName} record:`, error);
     throw error;
