@@ -9,10 +9,17 @@ interface CustomerDetailsProps {
 const CustomerDetails = ({ booking }: CustomerDetailsProps) => {
   return (
     <>
-      {booking.Name && (
+      {booking.name && (
         <div>
           <p className="text-sm font-medium text-gray-500">Name</p>
-          <p className="font-medium">{booking.Name}</p>
+          <p className="font-medium">{booking.name}</p>
+        </div>
+      )}
+      
+      {booking.email && (
+        <div>
+          <p className="text-sm font-medium text-gray-500">Email</p>
+          <p className="font-medium">{booking.email}</p>
         </div>
       )}
       

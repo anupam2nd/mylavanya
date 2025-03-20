@@ -22,7 +22,8 @@ export interface BookingData {
   Qty: number;
   Address?: string;
   Pincode?: number;
-  Name?: string;
+  name?: string;
+  email?: string;
 }
 
 const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
@@ -85,10 +86,10 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
         </div>
         <h2 class="print-title">Booking Details</h2>
         <div class="detail-grid">
-          ${firstBooking.Name ? `
+          ${firstBooking.name ? `
           <div class="detail-item">
             <div class="detail-label">Name</div>
-            <div class="detail-value">${firstBooking.Name}</div>
+            <div class="detail-value">${firstBooking.name}</div>
           </div>
           ` : ''}
           <div class="detail-item">
