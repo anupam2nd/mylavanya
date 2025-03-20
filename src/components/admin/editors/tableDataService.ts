@@ -2,6 +2,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { GenericTable } from "./types";
 
+// Define valid table names type based on Supabase database schema
+type TableName = "BookMST" | "PriceMST" | "statusmst" | "UserMST";
+
 export const fetchRecordById = async (tableName: string, recordId: number) => {
   try {
     // Use rpc to get around TypeScript limitations for dynamic table names
@@ -15,7 +18,7 @@ export const fetchRecordById = async (tableName: string, recordId: number) => {
     if (error) {
       // Fallback to direct query if RPC doesn't exist
       const { data: directData, error: directError } = await supabase
-        .from(tableName)
+        .from(tableName as TableName)
         .select('*')
         .eq('id', recordId)
         .single();
@@ -43,7 +46,7 @@ export const updateRecord = async (tableName: string, recordId: number, submissi
     if (error) {
       // Fall back to direct query if RPC doesn't exist
       const { error: directError } = await supabase
-        .from(tableName)
+        .from(tableName as TableName)
         .update(submissionData)
         .eq('id', recordId);
         
@@ -66,7 +69,7 @@ export const insertRecord = async (tableName: string, submissionData: any) => {
     if (error) {
       // Fall back to direct query if RPC doesn't exist
       const { error: directError } = await supabase
-        .from(tableName)
+        .from(tableName as TableName)
         .insert(submissionData);
         
       if (directError) throw directError;

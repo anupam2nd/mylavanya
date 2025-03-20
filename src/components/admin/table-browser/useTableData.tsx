@@ -3,6 +3,9 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define valid table names type based on Supabase database schema
+type TableName = "BookMST" | "PriceMST" | "statusmst" | "UserMST";
+
 export const useTableData = () => {
   const { toast } = useToast();
   const [tables, setTables] = useState<string[]>([]);
@@ -85,7 +88,7 @@ export const useTableData = () => {
           
           // For TypeScript safety, use proper type assertion
           const { data: columnsData, error: columnsError } = await supabase
-            .from(selectedTable)
+            .from(selectedTable as TableName)
             .select('*')
             .limit(0);
             
@@ -141,7 +144,7 @@ export const useTableData = () => {
       
       // Use proper type assertion for dynamic table names
       const { data, error } = await supabase
-        .from(selectedTable)
+        .from(selectedTable as TableName)
         .select('*')
         .order('id', { ascending: true });
 
@@ -167,7 +170,7 @@ export const useTableData = () => {
     try {
       // Use proper type assertion for dynamic table name
       const { error } = await supabase
-        .from(selectedTable)
+        .from(selectedTable as TableName)
         .delete()
         .eq('id', recordId);
 
