@@ -202,7 +202,8 @@ const AdminUsers = () => {
         throw new Error("Password is required for new users");
       }
 
-      const userData = {
+      // Create base user data without password
+      const userData: any = {
         Username: username,
         FirstName: firstName || null,
         LastName: lastName || null,
