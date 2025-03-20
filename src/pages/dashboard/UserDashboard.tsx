@@ -28,7 +28,14 @@ const UserDashboard = () => {
           .limit(5);
 
         if (error) throw error;
-        setBookings(data || []);
+        
+        // Transform the data to match the BookingData interface
+        const transformedData = data?.map(booking => ({
+          ...booking,
+          ProductName: booking.Purpose // Use Purpose as ProductName since it's required
+        })) || [];
+        
+        setBookings(transformedData);
       } catch (error) {
         console.error('Error fetching bookings:', error);
       } finally {
@@ -112,7 +119,7 @@ const UserDashboard = () => {
               <div className="space-y-4">
                 {bookings.map((booking) => (
                   <div 
-                    key={booking.id} 
+                    key={booking.Booking_NO} // Use Booking_NO as a key instead of id
                     className="flex items-start justify-between p-4 border rounded-lg"
                   >
                     <div className="space-y-1">

@@ -24,6 +24,7 @@ export interface BookingData {
   Pincode?: number;
   name?: string;
   email?: string;
+  id?: number;
 }
 
 const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
