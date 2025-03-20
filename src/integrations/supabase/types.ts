@@ -114,33 +114,6 @@ export type Database = {
         }
         Relationships: []
       }
-      usermst: {
-        Row: {
-          FirstName: string | null
-          id: number
-          LastName: string | null
-          password: string | null
-          role: string
-          username: string | null
-        }
-        Insert: {
-          FirstName?: string | null
-          id?: number
-          LastName?: string | null
-          password?: string | null
-          role?: string
-          username?: string | null
-        }
-        Update: {
-          FirstName?: string | null
-          id?: number
-          LastName?: string | null
-          password?: string | null
-          role?: string
-          username?: string | null
-        }
-        Relationships: []
-      }
       UserMST: {
         Row: {
           FirstName: string | null

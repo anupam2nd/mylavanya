@@ -14,6 +14,14 @@ import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import TrackBooking from "./pages/TrackBooking";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminBookings from "./pages/admin/AdminBookings";
+import AdminServices from "./pages/admin/AdminServices";
+import AdminUsers from "./pages/admin/AdminUsers";
+import UserDashboard from "./pages/user/UserDashboard";
+import UserBookings from "./pages/user/UserBookings";
+import Profile from "./pages/user/Profile";
+import Settings from "./pages/user/Settings";
 
 // Log to confirm App is being loaded
 console.log("App component rendering");
@@ -36,6 +44,19 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/track-booking" element={<TrackBooking />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/bookings" element={<AdminBookings />} />
+            <Route path="/admin/services" element={<AdminServices />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            
+            {/* User Routes */}
+            <Route path="/user/dashboard" element={<UserDashboard />} />
+            <Route path="/user/bookings" element={<UserBookings />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
