@@ -18,6 +18,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBookings from "./pages/admin/AdminBookings";
 import AdminServices from "./pages/admin/AdminServices";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminStatus from "./pages/admin/AdminStatus";
 import UserDashboard from "./pages/user/UserDashboard";
 import UserBookings from "./pages/user/UserBookings";
 import Profile from "./pages/user/Profile";
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/admin/bookings" element={<AdminBookings />} />
             <Route path="/admin/services" element={<AdminServices />} />
             <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/status" element={<AdminStatus />} />
             
             {/* User Routes */}
             <Route path="/user/dashboard" element={<UserDashboard />} />
