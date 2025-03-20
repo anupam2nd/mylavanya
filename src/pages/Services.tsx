@@ -30,6 +30,10 @@ const Services = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const navigate = useNavigate();
 
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -64,7 +68,7 @@ const Services = () => {
                   <h3 className="font-medium mb-4">Categories</h3>
                   <RadioGroup 
                     value={selectedCategory} 
-                    onValueChange={setSelectedCategory}
+                    onValueChange={handleCategoryChange}
                     className="space-y-2"
                   >
                     {categories.map((category) => (

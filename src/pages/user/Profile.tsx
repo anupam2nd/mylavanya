@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,24 +7,88 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: user?.email || "",
     name: "",
     phone: ""
   });
 
+  // Fetch existing profile data if available
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('UserMST')
+          .select('FirstName, LastName, Username')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) {
+          console.error("Error fetching profile:", error);
+          return;
+        }
+        
+        if (data) {
+          setFormData(prev => ({
+            ...prev,
+            name: data.FirstName || "",
+            phone: data.Username || "" // Using Username field for phone as per current schema
+          }));
+        }
+      } catch (error) {
+        console.error("Error in profile fetch:", error);
+      }
+    };
+    
+    fetchProfileData();
+  }, [user?.id]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Profile update logic would go here
-    console.log("Profile update with:", formData);
+    if (!user?.id) return;
+    
+    setIsLoading(true);
+    
+    try {
+      // Update the UserMST table with the new profile data
+      const { error } = await supabase
+        .from('UserMST')
+        .upsert({
+          id: Number(user.id),
+          FirstName: formData.name,
+          Username: formData.phone // Using Username field for phone as per current schema
+        });
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast({
+        title: "Update Failed",
+        description: "There was a problem updating your profile. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -72,7 +136,9 @@ const Profile = () => {
                   />
                 </div>
 
-                <Button type="submit">Update Profile</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Updating..." : "Update Profile"}
+                </Button>
               </form>
             </CardContent>
           </Card>

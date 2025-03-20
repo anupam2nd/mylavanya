@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "@/components/ui/calendar";
-import { format, isAfter, isBefore, startOfDay, endOfDay, addDays } from "date-fns";
+import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { 
   Table, 
@@ -305,7 +305,7 @@ const AdminBookings = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="">All Statuses</SelectItem>
-                          {statusOptions.map((option) => (
+                          {statusOptions && statusOptions.map((option) => (
                             <SelectItem key={option.status_code} value={option.status_code}>
                               {option.status_name}
                             </SelectItem>
@@ -460,7 +460,7 @@ const AdminBookings = () => {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    {statusOptions.map((option) => (
+                    {statusOptions && statusOptions.map((option) => (
                       <SelectItem key={option.status_code} value={option.status_code}>
                         {option.status_name}
                       </SelectItem>
