@@ -9,24 +9,12 @@ export const fetchRecordById = async (tableName: TableName, recordId: number) =>
   try {
     // Use rpc to get around TypeScript limitations for dynamic table names
     const { data, error } = await supabase
-      .rpc('get_record_by_id', { 
-        p_table_name: tableName,
-        p_record_id: recordId
-      })
+      .from(tableName)
+      .select('*')
+      .eq('id', recordId)
       .single();
       
-    if (error) {
-      // Fallback to direct query if RPC doesn't exist
-      const { data: directData, error: directError } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq('id', recordId)
-        .single();
-        
-      if (directError) throw directError;
-      return directData;
-    }
-    
+    if (error) throw error;
     return data;
   } catch (error) {
     console.error(`Error fetching ${tableName} record:`, error);
@@ -36,22 +24,12 @@ export const fetchRecordById = async (tableName: TableName, recordId: number) =>
 
 export const updateRecord = async (tableName: TableName, recordId: number, submissionData: any) => {
   try {
-    // Try RPC first
-    const { error } = await supabase.rpc('update_record', {
-      p_table_name: tableName,
-      p_record_id: recordId,
-      p_record_data: submissionData
-    });
-    
-    if (error) {
-      // Fall back to direct query if RPC doesn't exist
-      const { error: directError } = await supabase
-        .from(tableName)
-        .update(submissionData)
-        .eq('id', recordId);
+    const { error } = await supabase
+      .from(tableName)
+      .update(submissionData)
+      .eq('id', recordId);
         
-      if (directError) throw directError;
-    }
+    if (error) throw error;
   } catch (updateError) {
     console.error('Update failed:', updateError);
     throw updateError;
@@ -60,20 +38,11 @@ export const updateRecord = async (tableName: TableName, recordId: number, submi
 
 export const insertRecord = async (tableName: TableName, submissionData: any) => {
   try {
-    // Try RPC first
-    const { error } = await supabase.rpc('insert_record', {
-      p_table_name: tableName,
-      p_record_data: submissionData
-    });
-    
-    if (error) {
-      // Fall back to direct query if RPC doesn't exist
-      const { error: directError } = await supabase
-        .from(tableName)
-        .insert(submissionData);
+    const { error } = await supabase
+      .from(tableName)
+      .insert(submissionData);
         
-      if (directError) throw directError;
-    }
+    if (error) throw error;
   } catch (insertError) {
     console.error('Insert failed:', insertError);
     throw insertError;

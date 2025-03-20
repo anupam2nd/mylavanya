@@ -6,22 +6,8 @@ import { TableName } from "@/components/admin/editors/tableDataService";
 // Fetch available tables from the database
 export const fetchDatabaseTables = async () => {
   try {
-    // Use a direct SQL query to get table information
-    const { data, error } = await supabase.rpc('get_user_tables');
-
-    if (error) {
-      // Fallback to raw query if RPC doesn't exist
-      const { data: rawData, error: rawError } = await supabase.rpc('get_tables');
-      
-      if (rawError) {
-        console.error('Could not fetch tables:', rawError);
-        throw new Error("Could not fetch database tables");
-      }
-      
-      return rawData || [];
-    } else {
-      return data || [];
-    }
+    // Manually return the list of valid tables
+    return ["BookMST", "PriceMST", "statusmst", "UserMST"];
   } catch (error) {
     console.error('Error fetching tables:', error);
     throw error;
@@ -33,45 +19,43 @@ export const fetchTableColumns = async (tableName: string) => {
   if (!tableName) return [];
   
   try {
-    // Get column information using RPC
-    const { data, error } = await supabase.rpc('get_table_columns', {
-      p_table_name: tableName
-    });
-
-    if (error) {
-      // Fallback to raw query
-      console.error('Could not fetch columns using RPC:', error);
-      
-      if (!isValidTableName(tableName)) {
-        console.error(`Invalid table name: ${tableName}`);
-        throw new Error(`Table "${tableName}" is not accessible`);
-      }
-      
-      // Use typed table name for the query
-      const { data: columnsData, error: columnsError } = await supabase
-        .from(tableName as TableName)
-        .select('*')
-        .limit(0);
-        
-      if (columnsError) {
-        console.error(`Error fetching columns for ${tableName}:`, columnsError);
-        throw new Error(`Could not fetch columns for ${tableName}`);
-      }
-      
-      // Derive columns from the returned object structure
-      if (columnsData) {
-        return columnsData.length > 0 
-          ? Object.keys(columnsData[0]).map(column_name => ({
-              column_name,
-              data_type: typeof columnsData[0][column_name],
-              is_nullable: 'YES'
-            }))
-          : [];
-      }
-      return [];
-    } else {
-      return data || [];
+    if (!isValidTableName(tableName)) {
+      console.error(`Invalid table name: ${tableName}`);
+      throw new Error(`Table "${tableName}" is not accessible`);
     }
+    
+    // Use typed table name for the query
+    const { data, error } = await supabase
+      .from(tableName as TableName)
+      .select('*')
+      .limit(0);
+      
+    if (error) {
+      console.error(`Error fetching columns for ${tableName}:`, error);
+      throw new Error(`Could not fetch columns for ${tableName}`);
+    }
+    
+    // Derive columns from the returned object structure
+    if (data) {
+      // If no data returned, try to get columns through reflection API
+      const reflection = await supabase.rpc('get_table_columns', { 
+        p_table_name: tableName 
+      });
+      
+      if (reflection.data && reflection.data.length > 0) {
+        return reflection.data;
+      }
+      
+      // Fall back to extracting from sample data
+      return data.length > 0 
+        ? Object.keys(data[0]).map(column_name => ({
+            column_name,
+            data_type: typeof data[0][column_name],
+            is_nullable: 'YES'
+          }))
+        : [];
+    }
+    return [];
   } catch (error) {
     console.error(`Error fetching columns for ${tableName}:`, error);
     throw error;

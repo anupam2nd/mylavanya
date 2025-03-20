@@ -7,6 +7,7 @@ import {
   fetchTableRecords,
   deleteTableRecord 
 } from "./api/tableFetchers";
+import { isValidTableName } from "./utils/tableValidation";
 
 export const useTableData = () => {
   const { toast } = useToast();
