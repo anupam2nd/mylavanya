@@ -17,7 +17,7 @@ export const fetchRecordById = async (
       .from(tableName)
       .select('*')
       .eq('id', recordId)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data as TableRecord;
