@@ -1,9 +1,11 @@
 
 import { Card } from "@/components/ui/card";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { Button } from "@/components/ui/button";
-import { Printer } from "lucide-react";
 import { useRef } from "react";
+import BookingHeader from "./BookingHeader";
+import BookingReference from "./BookingReference";
+import CustomerDetails from "./CustomerDetails";
+import ServicesList from "./ServicesList";
+import TotalAmount from "./TotalAmount";
 
 export interface BookingDetailsProps {
   bookingDetails: BookingData[];
@@ -161,88 +163,13 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
 
   return (
     <div className="mt-8" ref={printRef}>
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold">Booking Information</h3>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handlePrint}
-          className="flex items-center gap-2"
-        >
-          <Printer size={16} />
-          Print Booking
-        </Button>
-      </div>
+      <BookingHeader onPrint={handlePrint} />
       <div className="bg-gray-50 rounded-lg border p-6">
         <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2 bg-primary/10 p-4 rounded-md border border-primary/20 mb-2">
-            <p className="text-sm font-medium text-gray-500">Booking Reference</p>
-            <p className="text-xl font-bold text-red-600">{firstBooking.Booking_NO}</p>
-          </div>
-          
-          {firstBooking.name && (
-            <div>
-              <p className="text-sm font-medium text-gray-500">Name</p>
-              <p className="font-medium">{firstBooking.name}</p>
-            </div>
-          )}
-          
-          <div>
-            <p className="text-sm font-medium text-gray-500">Phone</p>
-            <p className="font-medium">{firstBooking.Phone_no}</p>
-          </div>
-          
-          <div>
-            <p className="text-sm font-medium text-gray-500">Status</p>
-            <StatusBadge status={firstBooking.Status || 'pending'} />
-          </div>
-          
-          <div>
-            <p className="text-sm font-medium text-gray-500">Booking Date</p>
-            <p className="font-medium">{firstBooking.Booking_date}</p>
-          </div>
-          
-          <div>
-            <p className="text-sm font-medium text-gray-500">Booking Time</p>
-            <p className="font-medium">{firstBooking.booking_time}</p>
-          </div>
-          
-          {firstBooking.Address && (
-            <div className="col-span-2">
-              <p className="text-sm font-medium text-gray-500">Address</p>
-              <p className="font-medium">{firstBooking.Address}</p>
-            </div>
-          )}
-          
-          {firstBooking.Pincode && (
-            <div>
-              <p className="text-sm font-medium text-gray-500">Pincode</p>
-              <p className="font-medium">{firstBooking.Pincode}</p>
-            </div>
-          )}
-          
-          <div className="col-span-2 mt-4 border-t pt-4">
-            <p className="text-sm font-medium text-gray-500 mb-3">Services</p>
-            <div className="space-y-3">
-              {bookingDetails.map((booking, index) => (
-                <div key={index} className="bg-white p-3 rounded-md border">
-                  <p className="font-medium">{booking.ProductName}</p>
-                  <div className="flex justify-between text-sm text-gray-500 mt-1">
-                    <p>Quantity: {booking.Qty || 1}</p>
-                    <p>Price: ₹{booking.price?.toFixed(2) || '0.00'}</p>
-                    <p>Total: ₹{((booking.Qty || 1) * booking.price)?.toFixed(2) || '0.00'}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="col-span-2 mt-4 flex justify-end">
-            <div className="bg-primary/5 p-3 rounded-md border border-primary/10">
-              <p className="text-sm font-medium text-gray-500">Total Amount</p>
-              <p className="text-xl font-bold">₹{totalAmount.toFixed(2)}</p>
-            </div>
-          </div>
+          <BookingReference reference={firstBooking.Booking_NO} />
+          <CustomerDetails booking={firstBooking} />
+          <ServicesList services={bookingDetails} />
+          <TotalAmount amount={totalAmount} />
         </div>
       </div>
     </div>
