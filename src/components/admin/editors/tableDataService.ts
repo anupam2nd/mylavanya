@@ -4,22 +4,22 @@ import { supabase } from "@/integrations/supabase/client";
 // Define valid table names explicitly to avoid recursive type issues
 export type TableName = "BookMST" | "PriceMST" | "statusmst" | "UserMST";
 
+// Type for query response to avoid type instantiation depth issues
+type QueryResponse = {
+  data: any;
+  error: any;
+};
+
 export const fetchRecordById = async (tableName: TableName, recordId: number) => {
   try {
-    // const { data, error } = await supabase
-    //   .from(tableName)
-    //   .select('*')
-    //   .eq('id', recordId)
-    //   .single();
-      
-        const { data, error } = await supabase
-          .from(tableName)
-          .select('*')
-          .eq('id', recordId)
-          .single() as unknown as any;
+    const response: QueryResponse = await supabase
+      .from(tableName)
+      .select('*')
+      .eq('id', recordId)
+      .single();
     
-    if (error) throw error;
-    return data;
+    if (response.error) throw response.error;
+    return response.data;
   } catch (error) {
     console.error(`Error fetching ${tableName} record:`, error);
     throw error;
