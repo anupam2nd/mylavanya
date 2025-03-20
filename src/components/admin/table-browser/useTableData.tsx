@@ -85,7 +85,7 @@ export const useTableData = () => {
           
           // For TypeScript safety, use proper type assertion
           const { data: columnsData, error: columnsError } = await supabase
-            .from(selectedTable as unknown as keyof typeof supabase.schema)
+            .from(selectedTable)
             .select('*')
             .limit(0);
             
@@ -141,7 +141,7 @@ export const useTableData = () => {
       
       // Use proper type assertion for dynamic table names
       const { data, error } = await supabase
-        .from(selectedTable as unknown as keyof typeof supabase.schema)
+        .from(selectedTable)
         .select('*')
         .order('id', { ascending: true });
 
@@ -167,7 +167,7 @@ export const useTableData = () => {
     try {
       // Use proper type assertion for dynamic table name
       const { error } = await supabase
-        .from(selectedTable as unknown as keyof typeof supabase.schema)
+        .from(selectedTable)
         .delete()
         .eq('id', recordId);
 

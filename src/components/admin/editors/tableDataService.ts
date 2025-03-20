@@ -15,7 +15,7 @@ export const fetchRecordById = async (tableName: string, recordId: number) => {
     if (error) {
       // Fallback to direct query if RPC doesn't exist
       const { data: directData, error: directError } = await supabase
-        .from(tableName as unknown as keyof typeof supabase.schema)
+        .from(tableName)
         .select('*')
         .eq('id', recordId)
         .single();
@@ -43,7 +43,7 @@ export const updateRecord = async (tableName: string, recordId: number, submissi
     if (error) {
       // Fall back to direct query if RPC doesn't exist
       const { error: directError } = await supabase
-        .from(tableName as unknown as keyof typeof supabase.schema)
+        .from(tableName)
         .update(submissionData)
         .eq('id', recordId);
         
@@ -66,8 +66,8 @@ export const insertRecord = async (tableName: string, submissionData: any) => {
     if (error) {
       // Fall back to direct query if RPC doesn't exist
       const { error: directError } = await supabase
-        .from(tableName as unknown as keyof typeof supabase.schema)
-        .insert([submissionData]);
+        .from(tableName)
+        .insert(submissionData);
         
       if (directError) throw directError;
     }
