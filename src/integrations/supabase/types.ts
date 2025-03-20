@@ -16,9 +16,9 @@ export type Database = {
           Booking_NO: string | null
           booking_time: string
           created_at: string | null
+          email: string | null
           id: number
           name: string | null
-          Name: string | null
           Phone_no: number
           Pincode: number | null
           price: number | null
@@ -33,9 +33,9 @@ export type Database = {
           Booking_NO?: string | null
           booking_time: string
           created_at?: string | null
+          email?: string | null
           id?: number
           name?: string | null
-          Name?: string | null
           Phone_no: number
           Pincode?: number | null
           price?: number | null
@@ -50,9 +50,9 @@ export type Database = {
           Booking_NO?: string | null
           booking_time?: string
           created_at?: string | null
+          email?: string | null
           id?: number
           name?: string | null
-          Name?: string | null
           Phone_no?: number
           Pincode?: number | null
           price?: number | null

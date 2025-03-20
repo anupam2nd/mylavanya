@@ -56,6 +56,7 @@ export const useBookingSubmit = () => {
         date: format(data.date, "yyyy-MM-dd"),
         time: data.time,
         phone: data.phone,
+        email: data.email,
         address: data.address,
         pincode: data.pincode,
         name: data.name
@@ -78,7 +79,8 @@ export const useBookingSubmit = () => {
           Qty: service.quantity || 1,
           Address: data.address,
           Pincode: parseInt(data.pincode),
-          Name: data.name // Using the correct field name (Name with capital N)
+          Name: data.name,
+          email: data.email // Adding the email field to the submission
         });
       });
       
