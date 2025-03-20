@@ -50,6 +50,11 @@ interface TableEditorProps {
   title?: string;
 }
 
+// Create a type for generic table operations
+type GenericTable = {
+  [key: string]: any;
+};
+
 const TableEditor: React.FC<TableEditorProps> = ({
   tableName,
   recordId,
@@ -137,6 +142,7 @@ const TableEditor: React.FC<TableEditorProps> = ({
           
         if (error) {
           // Fallback to direct query if RPC doesn't exist
+          // We need to use type assertion to handle dynamic table names
           const { data: directData, error: directError } = await supabase
             .from(tableName as any)
             .select('*')
@@ -206,6 +212,7 @@ const TableEditor: React.FC<TableEditorProps> = ({
           
           if (error) {
             // Fall back to direct query if RPC doesn't exist
+            // We need to use type assertion to handle dynamic table names
             const { error: directError } = await supabase
               .from(tableName as any)
               .update(submissionData)
@@ -233,6 +240,7 @@ const TableEditor: React.FC<TableEditorProps> = ({
           
           if (error) {
             // Fall back to direct query if RPC doesn't exist
+            // We need to use type assertion to handle dynamic table names
             const { error: directError } = await supabase
               .from(tableName as any)
               .insert([submissionData]);

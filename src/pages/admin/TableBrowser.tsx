@@ -34,6 +34,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import TableEditor from "@/components/admin/TableEditor";
 
+// Create a type for generic table operations
+type GenericTable = {
+  [key: string]: any;
+};
+
 const TableBrowser = () => {
   const { toast } = useToast();
   const [tables, setTables] = useState<string[]>([]);
@@ -119,7 +124,7 @@ const TableBrowser = () => {
           // Fallback to raw query
           console.error('Could not fetch columns using RPC:', error);
           
-          // For TypeScript safety, we'll use a simpler approach with any type
+          // For TypeScript safety, we'll use type assertion with any
           const { data: columnsData, error: columnsError } = await supabase
             .from(selectedTable as any)
             .select('*')
@@ -175,6 +180,7 @@ const TableBrowser = () => {
     try {
       setLoading(true);
       
+      // Use type assertion to handle dynamic table names
       const { data, error } = await supabase
         .from(selectedTable as any)
         .select('*')
@@ -226,6 +232,7 @@ const TableBrowser = () => {
     if (recordToDelete === null || !selectedTable) return;
 
     try {
+      // Use type assertion to handle dynamic table names
       const { error } = await supabase
         .from(selectedTable as any)
         .delete()
