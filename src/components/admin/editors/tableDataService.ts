@@ -14,9 +14,8 @@ export const fetchRecordById = async (tableName: string, recordId: number) => {
       
     if (error) {
       // Fallback to direct query if RPC doesn't exist
-      // We need to use type assertion to handle dynamic table names
       const { data: directData, error: directError } = await supabase
-        .from(tableName as any)
+        .from(tableName as unknown as keyof typeof supabase.schema)
         .select('*')
         .eq('id', recordId)
         .single();
@@ -43,9 +42,8 @@ export const updateRecord = async (tableName: string, recordId: number, submissi
     
     if (error) {
       // Fall back to direct query if RPC doesn't exist
-      // We need to use type assertion to handle dynamic table names
       const { error: directError } = await supabase
-        .from(tableName as any)
+        .from(tableName as unknown as keyof typeof supabase.schema)
         .update(submissionData)
         .eq('id', recordId);
         
@@ -67,9 +65,8 @@ export const insertRecord = async (tableName: string, submissionData: any) => {
     
     if (error) {
       // Fall back to direct query if RPC doesn't exist
-      // We need to use type assertion to handle dynamic table names
       const { error: directError } = await supabase
-        .from(tableName as any)
+        .from(tableName as unknown as keyof typeof supabase.schema)
         .insert([submissionData]);
         
       if (directError) throw directError;

@@ -83,9 +83,9 @@ export const useTableData = () => {
           // Fallback to raw query
           console.error('Could not fetch columns using RPC:', error);
           
-          // For TypeScript safety, we'll use type assertion with any
+          // For TypeScript safety, use proper type assertion
           const { data: columnsData, error: columnsError } = await supabase
-            .from(selectedTable as any)
+            .from(selectedTable as unknown as keyof typeof supabase.schema)
             .select('*')
             .limit(0);
             
@@ -139,9 +139,9 @@ export const useTableData = () => {
     try {
       setLoading(true);
       
-      // Use type assertion to handle dynamic table names
+      // Use proper type assertion for dynamic table names
       const { data, error } = await supabase
-        .from(selectedTable as any)
+        .from(selectedTable as unknown as keyof typeof supabase.schema)
         .select('*')
         .order('id', { ascending: true });
 
@@ -165,9 +165,9 @@ export const useTableData = () => {
     if (!selectedTable) return;
 
     try {
-      // Use type assertion to handle dynamic table names
+      // Use proper type assertion for dynamic table name
       const { error } = await supabase
-        .from(selectedTable as any)
+        .from(selectedTable as unknown as keyof typeof supabase.schema)
         .delete()
         .eq('id', recordId);
 
