@@ -12,6 +12,7 @@ export type Database = {
       BookMST: {
         Row: {
           Booking_date: string
+          Booking_NO: string | null
           booking_time: string
           id: number
           Phone_no: number
@@ -22,6 +23,7 @@ export type Database = {
         }
         Insert: {
           Booking_date: string
+          Booking_NO?: string | null
           booking_time: string
           id?: number
           Phone_no: number
@@ -32,6 +34,7 @@ export type Database = {
         }
         Update: {
           Booking_date?: string
+          Booking_NO?: string | null
           booking_time?: string
           id?: number
           Phone_no?: number

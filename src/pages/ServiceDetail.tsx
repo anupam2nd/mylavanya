@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
@@ -14,17 +15,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import BookingForm from "@/components/booking/BookingForm";
 import { toast } from "@/hooks/use-toast";
+
 const ServiceDetail = () => {
-  const {
-    serviceId
-  } = useParams<{
-    serviceId: string;
-  }>();
+  const { serviceId } = useParams<{ serviceId: string }>();
   const navigate = useNavigate();
   const [service, setService] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
+
   useEffect(() => {
     const fetchServiceDetails = async () => {
       try {
@@ -40,10 +39,7 @@ const ServiceDetail = () => {
         if (isNaN(serviceIdNumber)) {
           throw new Error("Invalid service ID");
         }
-        const {
-          data,
-          error
-        } = await supabase.from('PriceMST').select('*').eq('prod_id', serviceIdNumber).single();
+        const { data, error } = await supabase.from('PriceMST').select('*').eq('prod_id', serviceIdNumber).single();
         if (error) {
           console.error("Supabase error:", error);
           throw error;
@@ -66,11 +62,18 @@ const ServiceDetail = () => {
       fetchServiceDetails();
     }
   }, [serviceId]);
+
+  const handleBookingSuccess = () => {
+    setShowBookingForm(false);
+    // We don't need to do anything else here as the form component now displays the success state
+  };
+
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>;
   }
+  
   if (error) {
     return <div className="container mx-auto px-4 py-16 text-center">
         <h2 className="text-2xl font-medium mb-4">Error Loading Service</h2>
@@ -80,6 +83,7 @@ const ServiceDetail = () => {
         </Button>
       </div>;
   }
+  
   if (!service) {
     return <div className="container mx-auto px-4 py-16 text-center">
         <h2 className="text-2xl font-medium mb-4">Service not found</h2>
@@ -89,6 +93,7 @@ const ServiceDetail = () => {
         </Button>
       </div>;
   }
+  
   return <div className="min-h-screen bg-gray-50 pb-16">
       <div className="bg-gradient-to-r from-violet-100 to-purple-50 py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -135,7 +140,13 @@ const ServiceDetail = () => {
               
               {!showBookingForm ? <ButtonCustom variant="primary-gradient" className="w-full" size="lg" onClick={() => setShowBookingForm(true)}>
                   Book Now
-                </ButtonCustom> : <BookingForm serviceId={service.prod_id} serviceName={service.ProductName} servicePrice={service.Price} onCancel={() => setShowBookingForm(false)} />}
+                </ButtonCustom> : <BookingForm 
+                  serviceId={service.prod_id} 
+                  serviceName={service.ProductName} 
+                  servicePrice={service.Price} 
+                  onCancel={() => setShowBookingForm(false)}
+                  onSuccess={handleBookingSuccess}
+                />}
               
               <div className="border-t mt-6 pt-6">
                 <h3 className="font-medium text-center mb-4">Need Help?</h3>
@@ -150,4 +161,5 @@ const ServiceDetail = () => {
       </div>
     </div>;
 };
+
 export default ServiceDetail;

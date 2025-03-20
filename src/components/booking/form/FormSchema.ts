@@ -2,9 +2,12 @@
 import { z } from "zod";
 
 export const bookingFormSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name cannot exceed 100 characters"),
   email: z.string().email("Please enter a valid email address"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  phone: z.string()
+    .min(10, "Phone number must be exactly 10 digits")
+    .max(10, "Phone number must be exactly 10 digits")
+    .regex(/^[6-9]\d{9}$/, "Please enter a valid Indian mobile number"),
   date: z.date({
     required_error: "Please select a date",
   }),

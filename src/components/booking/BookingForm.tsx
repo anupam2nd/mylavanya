@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
@@ -9,8 +10,14 @@ import TimePickerField from "./form/TimePickerField";
 import NotesField from "./form/NotesField";
 import FormActions from "./form/FormActions";
 import { useBookingSubmit } from "./form/useBookingSubmit";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2 } from "lucide-react";
 
 const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess }: BookingFormProps) => {
+  const [bookingCompleted, setBookingCompleted] = useState(false);
+  const [bookingRef, setBookingRef] = useState<string | null>(null);
+
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: {
@@ -30,11 +37,34 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess
   });
 
   const onSubmit = async (data: BookingFormValues) => {
-    const success = await submitBooking(data);
-    if (success) {
+    const result = await submitBooking(data);
+    if (result.success) {
+      setBookingRef(result.bookingRef);
+      setBookingCompleted(true);
       form.reset();
     }
   };
+
+  if (bookingCompleted && bookingRef) {
+    return (
+      <div className="bg-white rounded-lg p-6 text-center">
+        <CheckCircle2 className="mx-auto h-12 w-12 text-green-500 mb-4" />
+        <h3 className="text-lg font-medium mb-2">Booking Confirmed!</h3>
+        <Alert className="mb-4 bg-green-50 border-green-200">
+          <AlertTitle className="text-green-800">Your Booking Reference</AlertTitle>
+          <AlertDescription className="text-lg font-semibold text-green-700">
+            {bookingRef}
+          </AlertDescription>
+        </Alert>
+        <p className="text-gray-600 mb-6">
+          Please save this reference number for any future inquiries about your appointment.
+        </p>
+        <Button onClick={onCancel} className="w-full">
+          Done
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg p-6">
