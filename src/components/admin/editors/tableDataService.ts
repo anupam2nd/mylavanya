@@ -6,12 +6,18 @@ export type TableName = "BookMST" | "PriceMST" | "statusmst" | "UserMST";
 
 export const fetchRecordById = async (tableName: TableName, recordId: number) => {
   try {
-    const { data, error } = await supabase
-      .from(tableName)
-      .select('*')
-      .eq('id', recordId)
-      .single();
+    // const { data, error } = await supabase
+    //   .from(tableName)
+    //   .select('*')
+    //   .eq('id', recordId)
+    //   .single();
       
+        const { data, error } = await supabase
+          .from(tableName)
+          .select('*')
+          .eq('id', recordId)
+          .single() as unknown as any;
+    
     if (error) throw error;
     return data;
   } catch (error) {
