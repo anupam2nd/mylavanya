@@ -6,7 +6,7 @@ import { Printer } from "lucide-react";
 import { useRef } from "react";
 
 export interface BookingDetailsProps {
-  bookingDetails: BookingData | null;
+  bookingDetails: BookingData[];
 }
 
 export interface BookingData {
@@ -24,7 +24,14 @@ export interface BookingData {
 const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
   const printRef = useRef<HTMLDivElement>(null);
 
-  if (!bookingDetails) return null;
+  if (!bookingDetails || bookingDetails.length === 0) return null;
+
+  // All bookings have the same reference, date, phone, etc. - just different services
+  const firstBooking = bookingDetails[0];
+  
+  // Calculate total price for all services
+  const totalAmount = bookingDetails.reduce((sum, booking) => 
+    sum + (booking.price * (booking.Qty || 1)), 0);
 
   const handlePrint = () => {
     const printContent = printRef.current;
@@ -37,6 +44,10 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
         .print-header { text-align: center; margin-bottom: 30px; }
         .booking-ref { font-size: 24px; font-weight: bold; color: #e11d48; margin-bottom: 8px; }
         .print-title { font-size: 22px; margin-bottom: 20px; }
+        .services-list { margin-bottom: 20px; }
+        .service-item { padding: 10px 0; border-bottom: 1px solid #eee; }
+        .service-name { font-weight: bold; }
+        .service-details { color: #666; font-size: 14px; }
         .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .detail-item { margin-bottom: 8px; }
         .detail-label { font-size: 14px; color: #666; margin-bottom: 4px; }
@@ -46,6 +57,7 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
         .status-pending { background-color: #fef9c3; color: #854d0e; }
         .status-cancelled { background-color: #fee2e2; color: #b91c1c; }
         .status-processing { background-color: #dbeafe; color: #1e40af; }
+        .total-section { margin-top: 20px; text-align: right; font-size: 18px; }
         .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #666; }
         @media print {
           .no-print { display: none; }
@@ -69,49 +81,47 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
       ${printStyles}
       <div class="print-container">
         <div class="print-header">
-          <div class="booking-ref">Booking #${bookingDetails.Booking_NO}</div>
+          <div class="booking-ref">Booking #${firstBooking.Booking_NO}</div>
         </div>
         <h2 class="print-title">Booking Details</h2>
         <div class="detail-grid">
           <div class="detail-item">
-            <div class="detail-label">Service</div>
-            <div class="detail-value">${bookingDetails.ProductName}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Purpose</div>
-            <div class="detail-value">${bookingDetails.Purpose}</div>
-          </div>
-          <div class="detail-item">
             <div class="detail-label">Phone</div>
-            <div class="detail-value">${bookingDetails.Phone_no}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Quantity</div>
-            <div class="detail-value">${bookingDetails.Qty || 1}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Unit Price</div>
-            <div class="detail-value">₹${bookingDetails.price?.toFixed(2) || '0.00'}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Total Amount</div>
-            <div class="detail-value">₹${((bookingDetails.Qty || 1) * bookingDetails.price)?.toFixed(2) || '0.00'}</div>
+            <div class="detail-value">${firstBooking.Phone_no}</div>
           </div>
           <div class="detail-item">
             <div class="detail-label">Booking Date</div>
-            <div class="detail-value">${bookingDetails.Booking_date}</div>
+            <div class="detail-value">${firstBooking.Booking_date}</div>
           </div>
           <div class="detail-item">
             <div class="detail-label">Booking Time</div>
-            <div class="detail-value">${bookingDetails.booking_time}</div>
+            <div class="detail-value">${firstBooking.booking_time}</div>
           </div>
           <div class="detail-item">
             <div class="detail-label">Status</div>
             <div class="detail-value">
-              <span class="status ${getStatusClass(bookingDetails.Status)}">${bookingDetails.Status?.toUpperCase() || 'PENDING'}</span>
+              <span class="status ${getStatusClass(firstBooking.Status)}">${firstBooking.Status?.toUpperCase() || 'PENDING'}</span>
             </div>
           </div>
         </div>
+        
+        <h3>Services</h3>
+        <div class="services-list">
+          ${bookingDetails.map((booking) => `
+            <div class="service-item">
+              <div class="service-name">${booking.ProductName}</div>
+              <div class="service-details">
+                Quantity: ${booking.Qty || 1} × ₹${booking.price?.toFixed(2) || '0.00'} = 
+                ₹${((booking.Qty || 1) * booking.price)?.toFixed(2) || '0.00'}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="total-section">
+          <strong>Total Amount: ₹${totalAmount.toFixed(2)}</strong>
+        </div>
+        
         <div class="footer">
           <p>Thank you for choosing our service. For any questions, please contact customer support.</p>
         </div>
@@ -146,43 +156,46 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2 bg-primary/10 p-4 rounded-md border border-primary/20 mb-2">
             <p className="text-sm font-medium text-gray-500">Booking Reference</p>
-            <p className="text-xl font-bold text-red-600">{bookingDetails.Booking_NO}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Service</p>
-            <p className="font-medium">{bookingDetails.ProductName}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Purpose</p>
-            <p className="font-medium">{bookingDetails.Purpose}</p>
+            <p className="text-xl font-bold text-red-600">{firstBooking.Booking_NO}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Phone</p>
-            <p className="font-medium">{bookingDetails.Phone_no}</p>
+            <p className="font-medium">{firstBooking.Phone_no}</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">Quantity</p>
-            <p className="font-medium">{bookingDetails.Qty || 1}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Unit Price</p>
-            <p className="font-medium">₹{bookingDetails.price?.toFixed(2) || '0.00'}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Total Amount</p>
-            <p className="font-medium">₹{((bookingDetails.Qty || 1) * bookingDetails.price)?.toFixed(2) || '0.00'}</p>
+            <p className="text-sm font-medium text-gray-500">Status</p>
+            <StatusBadge status={firstBooking.Status || 'pending'} />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Booking Date</p>
-            <p className="font-medium">{bookingDetails.Booking_date}</p>
+            <p className="font-medium">{firstBooking.Booking_date}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Booking Time</p>
-            <p className="font-medium">{bookingDetails.booking_time}</p>
+            <p className="font-medium">{firstBooking.booking_time}</p>
           </div>
-          <div className="col-span-2">
-            <p className="text-sm font-medium text-gray-500">Status</p>
-            <StatusBadge status={bookingDetails.Status || 'pending'} />
+          
+          <div className="col-span-2 mt-4 border-t pt-4">
+            <p className="text-sm font-medium text-gray-500 mb-3">Services</p>
+            <div className="space-y-3">
+              {bookingDetails.map((booking, index) => (
+                <div key={index} className="bg-white p-3 rounded-md border">
+                  <p className="font-medium">{booking.ProductName}</p>
+                  <div className="flex justify-between text-sm text-gray-500 mt-1">
+                    <p>Quantity: {booking.Qty || 1}</p>
+                    <p>Price: ₹{booking.price?.toFixed(2) || '0.00'}</p>
+                    <p>Total: ₹{((booking.Qty || 1) * booking.price)?.toFixed(2) || '0.00'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="col-span-2 mt-4 flex justify-end">
+            <div className="bg-primary/5 p-3 rounded-md border border-primary/10">
+              <p className="text-sm font-medium text-gray-500">Total Amount</p>
+              <p className="text-xl font-bold">₹{totalAmount.toFixed(2)}</p>
+            </div>
           </div>
         </div>
       </div>

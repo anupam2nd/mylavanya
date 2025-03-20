@@ -10,51 +10,54 @@ import TrackingError from "@/components/tracking/TrackingError";
 
 const TrackBooking = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [bookingDetails, setBookingDetails] = useState<BookingData | null>(null);
+  const [bookingDetails, setBookingDetails] = useState<BookingData[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (data: TrackingFormValues) => {
     setIsLoading(true);
     setError(null);
-    setBookingDetails(null);
+    setBookingDetails([]);
     
     try {
       // Convert phone to number for comparison with the database
       const phoneNumber = parseInt(data.phone.replace(/\D/g, ''));
       
-      // First get the booking details
-      const { data: bookingData, error: bookingError } = await supabase
+      // Get all bookings matching the reference and phone number
+      const { data: bookingsData, error: bookingError } = await supabase
         .from("BookMST")
         .select("*")
         .eq("Booking_NO", data.bookingRef)
-        .eq("Phone_no", phoneNumber)
-        .maybeSingle();
+        .eq("Phone_no", phoneNumber);
 
       if (bookingError) {
         throw bookingError;
       }
 
-      if (!bookingData) {
+      if (!bookingsData || bookingsData.length === 0) {
         setError("No booking found with the provided details. Please check and try again.");
         return;
       }
 
-      // Get the service details
-      const { data: serviceData, error: serviceError } = await supabase
-        .from("PriceMST")
-        .select("ProductName")
-        .eq("prod_id", bookingData.Product)
-        .maybeSingle();
+      // Get all service details for the bookings
+      const servicePromises = bookingsData.map(booking => 
+        supabase
+          .from("PriceMST")
+          .select("ProductName")
+          .eq("prod_id", booking.Product)
+          .single()
+      );
 
-      if (serviceError) {
-        throw serviceError;
-      }
-
+      const serviceResults = await Promise.all(servicePromises);
+      
       // Combine booking and service data
-      setBookingDetails({
-        ...bookingData,
-        ProductName: serviceData?.ProductName || "Unknown Service",
+      const detailedBookings = bookingsData.map((booking, index) => {
+        return {
+          ...booking,
+          ProductName: serviceResults[index].data?.ProductName || "Unknown Service",
+        };
       });
+
+      setBookingDetails(detailedBookings);
 
     } catch (error) {
       console.error("Error fetching booking details:", error);
@@ -90,7 +93,7 @@ const TrackBooking = () => {
             <CardContent>
               <TrackingForm onSubmit={handleSubmit} isLoading={isLoading} />
               <TrackingError error={error} />
-              <BookingDetails bookingDetails={bookingDetails} />
+              {bookingDetails.length > 0 && <BookingDetails bookingDetails={bookingDetails} />}
             </CardContent>
           </Card>
         </div>
