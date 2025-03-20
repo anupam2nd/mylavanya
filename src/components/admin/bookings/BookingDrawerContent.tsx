@@ -4,6 +4,7 @@ import { Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Booking } from "@/hooks/useBookings";
+import { useAuth } from "@/context/AuthContext";
 
 interface BookingDrawerContentProps {
   booking: Booking;
@@ -14,6 +15,9 @@ export const BookingDrawerContent: React.FC<BookingDrawerContentProps> = ({
   booking,
   handleEditClick,
 }) => {
+  const { user } = useAuth();
+  const canEdit = user && ['user', 'admin', 'superadmin'].includes(user.role);
+
   return (
     <div className="px-4 pb-4 space-y-4">
       <div className="grid grid-cols-2 gap-3">
@@ -52,12 +56,14 @@ export const BookingDrawerContent: React.FC<BookingDrawerContentProps> = ({
           </div>
         )}
       </div>
-      <Button 
-        className="w-full" 
-        onClick={() => handleEditClick(booking)}
-      >
-        <Edit className="h-4 w-4 mr-2" /> Edit Booking
-      </Button>
+      {canEdit && (
+        <Button 
+          className="w-full" 
+          onClick={() => handleEditClick(booking)}
+        >
+          <Edit className="h-4 w-4 mr-2" /> Edit Booking
+        </Button>
+      )}
     </div>
   );
 };

@@ -32,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit, Plus, Trash2, UserCog } from "lucide-react";
+import { Edit, Plus, Trash2, UserCog, XCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +43,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useAuth } from "@/context/AuthContext";
 
 interface User {
   id: number;
@@ -50,16 +51,18 @@ interface User {
   FirstName: string | null;
   LastName: string | null;
   role: string | null;
+  active?: boolean;
 }
 
 const AdminUsers = () => {
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUserData, setCurrentUserData] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   
   // Form state
@@ -68,12 +71,15 @@ const AdminUsers = () => {
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("");
   const [password, setPassword] = useState("");
+  const [isActive, setIsActive] = useState(true);
   
   const roleOptions = [
     { value: "user", label: "User" },
     { value: "admin", label: "Admin" },
     { value: "superadmin", label: "Super Admin" }
   ];
+
+  const isSuperAdmin = currentUser?.role === 'superadmin';
 
   // Fetch users
   useEffect(() => {
@@ -104,22 +110,24 @@ const AdminUsers = () => {
 
   const handleAddNew = () => {
     setIsNewUser(true);
-    setCurrentUser(null);
+    setCurrentUserData(null);
     setUsername("");
     setFirstName("");
     setLastName("");
     setRole("user");
     setPassword("");
+    setIsActive(true);
     setOpenDialog(true);
   };
 
   const handleEdit = (user: User) => {
     setIsNewUser(false);
-    setCurrentUser(user);
+    setCurrentUserData(user);
     setUsername(user.Username || "");
     setFirstName(user.FirstName || "");
     setLastName(user.LastName || "");
     setRole(user.role || "user");
+    setIsActive(user.active !== false); // Default to true if not specified
     setPassword(""); // Don't populate password for existing users
     setOpenDialog(true);
   };
@@ -127,6 +135,33 @@ const AdminUsers = () => {
   const handleDelete = (user: User) => {
     setUserToDelete(user);
     setOpenDeleteDialog(true);
+  };
+  
+  const handleDeactivate = async (user: User) => {
+    try {
+      const { error } = await supabase
+        .from('UserMST')
+        .update({ active: false })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setUsers(users.map(u => 
+        u.id === user.id ? { ...u, active: false } : u
+      ));
+      
+      toast({
+        title: "User deactivated",
+        description: "The user has been successfully deactivated",
+      });
+    } catch (error) {
+      console.error('Error deactivating user:', error);
+      toast({
+        title: "Deactivation failed",
+        description: "There was a problem deactivating the user",
+        variant: "destructive"
+      });
+    }
   };
 
   const confirmDelete = async () => {
@@ -170,7 +205,8 @@ const AdminUsers = () => {
         Username: username,
         FirstName: firstName || null,
         LastName: lastName || null,
-        role: role || "user"
+        role: role || "user",
+        active: isActive
       };
 
       // Only include password for new users or if it was changed
@@ -195,17 +231,17 @@ const AdminUsers = () => {
           title: "User added",
           description: "New user has been successfully added",
         });
-      } else if (currentUser) {
+      } else if (currentUserData) {
         // Update existing user
         const { error } = await supabase
           .from('UserMST')
           .update(userData)
-          .eq('id', currentUser.id);
+          .eq('id', currentUserData.id);
 
         if (error) throw error;
 
         setUsers(users.map(user => 
-          user.id === currentUser.id 
+          user.id === currentUserData.id 
             ? { ...user, ...userData } 
             : user
         ));
@@ -253,12 +289,13 @@ const AdminUsers = () => {
                       <TableHead>First Name</TableHead>
                       <TableHead>Last Name</TableHead>
                       <TableHead>Role</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {users.map((user) => (
-                      <TableRow key={user.id}>
+                      <TableRow key={user.id} className={user.active === false ? "opacity-60" : ""}>
                         <TableCell className="font-medium">{user.Username}</TableCell>
                         <TableCell>{user.FirstName}</TableCell>
                         <TableCell>{user.LastName}</TableCell>
@@ -270,6 +307,12 @@ const AdminUsers = () => {
                             {user.role || 'user'}
                           </span>
                         </TableCell>
+                        <TableCell>
+                          <span className={`px-3 py-1 text-xs font-medium rounded-full 
+                            ${user.active === false ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                            {user.active === false ? 'Inactive' : 'Active'}
+                          </span>
+                        </TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button 
                             variant="outline" 
@@ -278,13 +321,24 @@ const AdminUsers = () => {
                           >
                             <Edit className="h-4 w-4 mr-1" /> Edit
                           </Button>
-                          <Button 
-                            variant="destructive" 
-                            size="sm" 
-                            onClick={() => handleDelete(user)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" /> Delete
-                          </Button>
+                          {isSuperAdmin ? (
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              onClick={() => handleDelete(user)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" /> Delete
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              onClick={() => handleDeactivate(user)}
+                              disabled={user.active === false}
+                            >
+                              <XCircle className="h-4 w-4 mr-1" /> Deactivate
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -357,6 +411,23 @@ const AdminUsers = () => {
                         {option.label}
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">
+                  Status
+                </Label>
+                <Select
+                  value={isActive ? "active" : "inactive"}
+                  onValueChange={(value) => setIsActive(value === "active")}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
