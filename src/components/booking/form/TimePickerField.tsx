@@ -1,8 +1,9 @@
 
 import { useFormContext } from "react-hook-form";
-import { BookingFormValues, timeSlots } from "./FormSchema";
+import { BookingFormValues, timeSlots, requiredFields } from "./FormSchema";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Asterisk } from "lucide-react";
 
 const TimePickerField = () => {
   const form = useFormContext<BookingFormValues>();
@@ -13,7 +14,10 @@ const TimePickerField = () => {
       name="time"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Preferred Time</FormLabel>
+          <FormLabel className="flex items-center gap-1">
+            Preferred Time
+            {requiredFields.time && <Asterisk className="h-3 w-3 text-red-500" />}
+          </FormLabel>
           <Select
             onValueChange={field.onChange}
             defaultValue={field.value}

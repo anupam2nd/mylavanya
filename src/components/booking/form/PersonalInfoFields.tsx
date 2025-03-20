@@ -1,8 +1,9 @@
 
 import { useFormContext } from "react-hook-form";
-import { BookingFormValues } from "./FormSchema";
+import { BookingFormValues, requiredFields } from "./FormSchema";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Asterisk } from "lucide-react";
 
 const PersonalInfoFields = () => {
   const form = useFormContext<BookingFormValues>();
@@ -14,7 +15,10 @@ const PersonalInfoFields = () => {
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Full Name</FormLabel>
+            <FormLabel className="flex items-center gap-1">
+              Full Name
+              {requiredFields.name && <Asterisk className="h-3 w-3 text-red-500" />}
+            </FormLabel>
             <FormControl>
               <Input placeholder="Enter your full name" {...field} />
             </FormControl>
@@ -29,7 +33,10 @@ const PersonalInfoFields = () => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="flex items-center gap-1">
+                Email
+                {requiredFields.email && <Asterisk className="h-3 w-3 text-red-500" />}
+              </FormLabel>
               <FormControl>
                 <Input type="email" placeholder="you@example.com" {...field} />
               </FormControl>
@@ -43,7 +50,10 @@ const PersonalInfoFields = () => {
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Phone Number</FormLabel>
+              <FormLabel className="flex items-center gap-1">
+                Phone Number
+                {requiredFields.phone && <Asterisk className="h-3 w-3 text-red-500" />}
+              </FormLabel>
               <FormControl>
                 <Input placeholder="Enter your phone number" {...field} />
               </FormControl>

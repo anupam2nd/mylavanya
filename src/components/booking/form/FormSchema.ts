@@ -32,3 +32,13 @@ export interface BookingFormProps {
   onCancel?: () => void;
   onSuccess?: () => void;
 }
+
+// Field required status information for UI rendering
+export const requiredFields = {
+  name: true,
+  email: true,
+  phone: true,
+  date: true,
+  time: true,
+  notes: false
+};
