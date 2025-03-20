@@ -9,6 +9,7 @@ import RecordsTable from "@/components/admin/table-browser/RecordsTable";
 import DeleteRecordDialog from "@/components/admin/table-browser/DeleteRecordDialog";
 import { useTableData } from "@/components/admin/table-browser/useTableData";
 import { useColumnDefinitions } from "@/components/admin/table-browser/useColumnDefinitions";
+import { TableName } from "@/components/admin/editors/tableDataService";
 
 const TableBrowser = () => {
   // State for the editor dialog
@@ -107,7 +108,7 @@ const TableBrowser = () => {
         {/* Table Editor Dialog */}
         {selectedTable && (
           <TableEditor
-            tableName={selectedTable}
+            tableName={selectedTable as TableName}
             recordId={selectedRecord}
             columns={columnDefinitions}
             open={openDialog}

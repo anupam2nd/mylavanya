@@ -1,4 +1,6 @@
 
+import { TableName } from "./tableDataService";
+
 export interface TableColumnDefinition {
   name: string;
   type: 'text' | 'number' | 'boolean' | 'date' | 'textarea' | 'select';
@@ -7,7 +9,7 @@ export interface TableColumnDefinition {
 }
 
 export interface TableEditorProps {
-  tableName: string;
+  tableName: string | TableName;
   recordId: number | null;
   columns: TableColumnDefinition[];
   open: boolean;

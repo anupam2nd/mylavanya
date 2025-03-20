@@ -19,7 +19,7 @@ import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import { FormFieldInput } from "./FormFields";
 import { createDynamicSchema } from "./schemaUtils";
-import { fetchRecordById, updateRecord, insertRecord } from "./tableDataService";
+import { fetchRecordById, updateRecord, insertRecord, TableName } from "./tableDataService";
 import { TableEditorProps } from "./types";
 import { z } from "zod";
 
@@ -54,7 +54,8 @@ const TableEditorDialog: React.FC<TableEditorProps> = ({
       
       try {
         setLoading(true);
-        const data = await fetchRecordById(tableName, recordId);
+        // Type assertion needed for tableName
+        const data = await fetchRecordById(tableName as TableName, recordId);
         
         if (data) {
           // Transform data to match form fields
@@ -95,7 +96,7 @@ const TableEditorDialog: React.FC<TableEditorProps> = ({
       // Process the insert or update using RPC or direct query with type casting
       if (recordId) {
         // Update existing record
-        await updateRecord(tableName, recordId, submissionData);
+        await updateRecord(tableName as TableName, recordId, submissionData);
         
         toast({
           title: "Record updated",
@@ -103,7 +104,7 @@ const TableEditorDialog: React.FC<TableEditorProps> = ({
         });
       } else {
         // Create new record
-        await insertRecord(tableName, submissionData);
+        await insertRecord(tableName as TableName, submissionData);
         
         toast({
           title: "Record created",

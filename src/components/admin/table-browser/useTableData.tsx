@@ -2,9 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
-// Define valid table names type based on Supabase database schema
-type TableName = "BookMST" | "PriceMST" | "statusmst" | "UserMST";
+import { TableName } from "@/components/admin/editors/tableDataService";
 
 export const useTableData = () => {
   const { toast } = useToast();
@@ -86,7 +84,19 @@ export const useTableData = () => {
           // Fallback to raw query
           console.error('Could not fetch columns using RPC:', error);
           
-          // For TypeScript safety, use proper type assertion
+          // For TypeScript safety, validate the table name
+          if (!isValidTableName(selectedTable)) {
+            console.error(`Invalid table name: ${selectedTable}`);
+            toast({
+              title: "Invalid table",
+              description: `Table "${selectedTable}" is not accessible`,
+              variant: "destructive"
+            });
+            setLoading(false);
+            return;
+          }
+          
+          // Use typed table name for the query
           const { data: columnsData, error: columnsError } = await supabase
             .from(selectedTable as TableName)
             .select('*')
@@ -135,6 +145,11 @@ export const useTableData = () => {
     fetchTableColumns();
   }, [selectedTable]);
 
+  // Helper function to validate table names
+  const isValidTableName = (name: string): name is TableName => {
+    return ["BookMST", "PriceMST", "statusmst", "UserMST"].includes(name);
+  };
+
   // Fetch records for the selected table
   const fetchRecords = async () => {
     if (!selectedTable) return;
@@ -142,7 +157,13 @@ export const useTableData = () => {
     try {
       setLoading(true);
       
-      // Use proper type assertion for dynamic table names
+      if (!isValidTableName(selectedTable)) {
+        console.error(`Invalid table name: ${selectedTable}`);
+        setLoading(false);
+        return;
+      }
+      
+      // Use validated table name
       const { data, error } = await supabase
         .from(selectedTable as TableName)
         .select('*')
@@ -165,10 +186,15 @@ export const useTableData = () => {
 
   // Delete a record
   const deleteRecord = async (recordId: number) => {
-    if (!selectedTable) return;
+    if (!selectedTable) return false;
 
     try {
-      // Use proper type assertion for dynamic table name
+      if (!isValidTableName(selectedTable)) {
+        console.error(`Invalid table name: ${selectedTable}`);
+        return false;
+      }
+      
+      // Use validated table name
       const { error } = await supabase
         .from(selectedTable as TableName)
         .delete()
