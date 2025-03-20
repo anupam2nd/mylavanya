@@ -1,8 +1,12 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { TableName } from "@/components/admin/editors/tableDataService";
+import { 
+  fetchDatabaseTables, 
+  fetchTableColumns, 
+  fetchTableRecords,
+  deleteTableRecord 
+} from "./api/tableFetchers";
 
 export const useTableData = () => {
   const { toast } = useToast();
@@ -14,46 +18,18 @@ export const useTableData = () => {
 
   // Fetch available tables
   useEffect(() => {
-    const fetchTables = async () => {
+    const loadTables = async () => {
       try {
         setLoading(true);
-        // Use a direct SQL query to get table information
-        const { data, error } = await supabase.rpc('get_user_tables');
-
-        if (error) {
-          // Fallback to raw query if RPC doesn't exist
-          const { data: rawData, error: rawError } = await supabase.rpc('get_tables');
-          
-          if (rawError) {
-            console.error('Could not fetch tables:', rawError);
-            toast({
-              title: "Failed to load tables",
-              description: "Could not fetch database tables",
-              variant: "destructive"
-            });
-            setLoading(false);
-            return;
-          }
-          
-          const userTables = rawData || [];
-          setTables(userTables);
-          
-          // Select first table by default if none selected
-          if (userTables.length > 0 && !selectedTable) {
-            setSelectedTable(userTables[0]);
-          }
-        } else {
-          // Filter out system tables
-          const userTables = data || [];
-          setTables(userTables);
-          
-          // Select first table by default if none selected
-          if (userTables.length > 0 && !selectedTable) {
-            setSelectedTable(userTables[0]);
-          }
+        const userTables = await fetchDatabaseTables();
+        
+        setTables(userTables);
+        
+        // Select first table by default if none selected
+        if (userTables.length > 0 && !selectedTable) {
+          setSelectedTable(userTables[0]);
         }
       } catch (error) {
-        console.error('Error fetching tables:', error);
         toast({
           title: "Failed to load tables",
           description: "Could not fetch database tables",
@@ -64,77 +40,26 @@ export const useTableData = () => {
       }
     };
 
-    fetchTables();
+    loadTables();
   }, [toast, selectedTable]);
 
   // Fetch table columns when a table is selected
   useEffect(() => {
-    const fetchTableColumns = async () => {
+    const loadTableColumns = async () => {
       if (!selectedTable) return;
       
       try {
         setLoading(true);
         
-        // Get column information using RPC
-        const { data, error } = await supabase.rpc('get_table_columns', {
-          p_table_name: selectedTable
-        });
-
-        if (error) {
-          // Fallback to raw query
-          console.error('Could not fetch columns using RPC:', error);
-          
-          // For TypeScript safety, validate the table name
-          if (!isValidTableName(selectedTable)) {
-            console.error(`Invalid table name: ${selectedTable}`);
-            toast({
-              title: "Invalid table",
-              description: `Table "${selectedTable}" is not accessible`,
-              variant: "destructive"
-            });
-            setLoading(false);
-            return;
-          }
-          
-          // Use typed table name for the query
-          const { data: columnsData, error: columnsError } = await supabase
-            .from(selectedTable as TableName)
-            .select('*')
-            .limit(0);
-            
-          if (columnsError) {
-            console.error(`Error fetching columns for ${selectedTable}:`, columnsError);
-            toast({
-              title: "Failed to load table structure",
-              description: `Could not fetch columns for ${selectedTable}`,
-              variant: "destructive"
-            });
-            setLoading(false);
-            return;
-          }
-          
-          // Derive columns from the returned object structure
-          if (columnsData) {
-            const derivedColumns = columnsData.length > 0 
-              ? Object.keys(columnsData[0]).map(column_name => ({
-                  column_name,
-                  data_type: typeof columnsData[0][column_name],
-                  is_nullable: 'YES'
-                }))
-              : [];
-            setColumns(derivedColumns);
-          }
-        } else {
-          setColumns(data || []);
-        }
+        const columnsData = await fetchTableColumns(selectedTable);
+        setColumns(columnsData);
         
         // Fetch records after getting columns
         await fetchRecords();
-      } catch (error) {
-        console.error(`Error fetching columns for ${selectedTable}:`, error);
+      } catch (error: any) {
         toast({
           title: "Failed to load table structure",
-          description: `Could not fetch columns for ${selectedTable}`,
+          description: error.message || `Could not fetch columns for ${selectedTable}`,
           variant: "destructive"
         });
       } finally {
@@ -142,13 +67,8 @@ export const useTableData = () => {
       }
     };
 
-    fetchTableColumns();
+    loadTableColumns();
   }, [selectedTable]);
-
-  // Helper function to validate table names
-  const isValidTableName = (name: string): name is TableName => {
-    return ["BookMST", "PriceMST", "statusmst", "UserMST"].includes(name);
-  };
 
   // Fetch records for the selected table
   const fetchRecords = async () => {
@@ -157,23 +77,9 @@ export const useTableData = () => {
     try {
       setLoading(true);
       
-      if (!isValidTableName(selectedTable)) {
-        console.error(`Invalid table name: ${selectedTable}`);
-        setLoading(false);
-        return;
-      }
-      
-      // Use validated table name
-      const { data, error } = await supabase
-        .from(selectedTable as TableName)
-        .select('*')
-        .order('id', { ascending: true });
-
-      if (error) throw error;
-      
-      setRecords(data || []);
+      const tableRecords = await fetchTableRecords(selectedTable);
+      setRecords(tableRecords);
     } catch (error) {
-      console.error(`Error fetching records from ${selectedTable}:`, error);
       toast({
         title: "Failed to load records",
         description: `Could not fetch data from ${selectedTable}`,
@@ -189,30 +95,22 @@ export const useTableData = () => {
     if (!selectedTable) return false;
 
     try {
-      if (!isValidTableName(selectedTable)) {
-        console.error(`Invalid table name: ${selectedTable}`);
-        return false;
+      const success = await deleteTableRecord(selectedTable, recordId);
+      
+      if (success) {
+        // Remove the deleted record from the local state
+        setRecords(records.filter(record => record.id !== recordId));
+        
+        toast({
+          title: "Record deleted",
+          description: "The record has been successfully removed",
+        });
+      } else {
+        throw new Error("Deletion failed");
       }
       
-      // Use validated table name
-      const { error } = await supabase
-        .from(selectedTable as TableName)
-        .delete()
-        .eq('id', recordId);
-
-      if (error) throw error;
-
-      // Remove the deleted record from the local state
-      setRecords(records.filter(record => record.id !== recordId));
-      
-      toast({
-        title: "Record deleted",
-        description: "The record has been successfully removed",
-      });
-      
-      return true;
+      return success;
     } catch (error) {
-      console.error('Error deleting record:', error);
       toast({
         title: "Deletion failed",
         description: "There was a problem deleting the record",
