@@ -37,23 +37,13 @@ export const fetchTableColumns = async (tableName: string) => {
     
     // Derive columns from the returned object structure
     if (data) {
-      // If no data returned, try to get columns through reflection API
-      const reflection = await supabase.rpc('get_table_columns', { 
-        p_table_name: tableName 
-      });
-      
-      if (reflection.data && reflection.data.length > 0) {
-        return reflection.data;
-      }
-      
-      // Fall back to extracting from sample data
-      return data.length > 0 
-        ? Object.keys(data[0]).map(column_name => ({
-            column_name,
-            data_type: typeof data[0][column_name],
-            is_nullable: 'YES'
-          }))
-        : [];
+      // If no data is available, try to extract column names from the table structure
+      // This fallback approach is needed for empty tables
+      return Object.keys(data[0] || {}).map(column_name => ({
+        column_name,
+        data_type: typeof (data[0] || {})[column_name],
+        is_nullable: 'YES'
+      }));
     }
     return [];
   } catch (error) {

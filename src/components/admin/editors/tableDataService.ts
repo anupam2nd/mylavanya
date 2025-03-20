@@ -1,13 +1,11 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { GenericTable } from "./types";
 
 // Define valid table names type based on Supabase database schema
 export type TableName = "BookMST" | "PriceMST" | "statusmst" | "UserMST";
 
 export const fetchRecordById = async (tableName: TableName, recordId: number) => {
   try {
-    // Use rpc to get around TypeScript limitations for dynamic table names
     const { data, error } = await supabase
       .from(tableName)
       .select('*')
