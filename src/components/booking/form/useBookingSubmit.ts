@@ -5,21 +5,7 @@ import { BookingFormValues } from "./FormSchema";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
-interface UseBookingSubmitProps {
-  serviceId: number;
-  serviceName: string;
-  servicePrice?: number;
-  onSuccess?: () => void;
-  onCancel?: () => void;
-}
-
-export const useBookingSubmit = ({
-  serviceId,
-  serviceName,
-  servicePrice,
-  onSuccess,
-  onCancel
-}: UseBookingSubmitProps) => {
+export const useBookingSubmit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
 
@@ -64,44 +50,46 @@ export const useBookingSubmit = ({
       const bookingRef = await generateBookingReference(bookingDate);
       setBookingReference(bookingRef);
       
-      console.log("Submitting booking:", {
-        Product: serviceId,
-        Purpose: serviceName,
-        Phone_no: parseInt(data.phone), 
-        Booking_date: format(data.date, "yyyy-MM-dd"),
-        booking_time: data.time,
-        Status: "pending",
-        price: servicePrice,
-        Booking_NO: bookingRef
+      console.log("Submitting booking for multiple services:", {
+        services: data.selectedServices,
+        bookingRef,
+        date: format(data.date, "yyyy-MM-dd"),
+        time: data.time,
+        phone: data.phone
       });
       
-      const { error } = await supabase.from("BookMST").insert({
-        Product: serviceId,
-        Purpose: serviceName,
-        Phone_no: parseInt(data.phone),
-        Booking_date: format(data.date, "yyyy-MM-dd"),
-        booking_time: data.time,
-        Status: "pending",
-        price: servicePrice,
-        Booking_NO: bookingRef
+      // Insert multiple bookings with the same booking reference number
+      const bookingPromises = data.selectedServices.map(service => {
+        return supabase.from("BookMST").insert({
+          Product: service.id,
+          Purpose: service.name,
+          Phone_no: parseInt(data.phone),
+          Booking_date: format(data.date, "yyyy-MM-dd"),
+          booking_time: data.time,
+          Status: "pending",
+          price: service.price,
+          Booking_NO: bookingRef
+        });
       });
-
-      if (error) {
-        console.error("Supabase booking error:", error);
-        throw error;
+      
+      const results = await Promise.all(bookingPromises);
+      
+      // Check if any insertions failed
+      const errors = results.filter(result => result.error);
+      
+      if (errors.length > 0) {
+        console.error("Supabase booking errors:", errors);
+        throw new Error("Failed to create some bookings");
       }
 
+      // Calculate total price
+      const totalPrice = data.selectedServices.reduce((sum, service) => sum + service.price, 0);
+      
       toast({
         title: "Booking Successful!",
-        description: `Your appointment for ${serviceName} has been scheduled. Your booking reference number is ${bookingRef}. Please note it down for future reference.`,
+        description: `Your appointment has been scheduled. Your booking reference number is ${bookingRef}. Total amount: ₹${totalPrice.toFixed(2)}`,
         duration: 10000,
       });
-      
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        onCancel && onCancel();
-      }
       
       return { success: true, bookingRef };
     } catch (error) {

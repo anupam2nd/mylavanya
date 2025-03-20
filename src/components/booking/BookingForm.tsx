@@ -9,14 +9,19 @@ import DatePickerField from "./form/DatePickerField";
 import TimePickerField from "./form/TimePickerField";
 import NotesField from "./form/NotesField";
 import FormActions from "./form/FormActions";
+import ServiceSelectionField from "./form/ServiceSelectionField";
 import { useBookingSubmit } from "./form/useBookingSubmit";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 
 const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess }: BookingFormProps) => {
   const [bookingCompleted, setBookingCompleted] = useState(false);
   const [bookingRef, setBookingRef] = useState<string | null>(null);
+
+  // Prepare initial selected service if provided as prop
+  const initialSelectedService = serviceId && serviceName && servicePrice 
+    ? { id: serviceId, name: serviceName, price: servicePrice }
+    : undefined;
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
@@ -25,16 +30,11 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess
       email: "",
       phone: "",
       notes: "",
+      selectedServices: initialSelectedService ? [initialSelectedService] : []
     },
   });
 
-  const { isSubmitting, submitBooking } = useBookingSubmit({
-    serviceId,
-    serviceName,
-    servicePrice,
-    onCancel,
-    onSuccess
-  });
+  const { isSubmitting, submitBooking } = useBookingSubmit();
 
   const onSubmit = async (data: BookingFormValues) => {
     const result = await submitBooking(data);
@@ -70,14 +70,10 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess
 
   return (
     <div className="bg-white rounded-lg p-6">
-      {servicePrice && (
-        <div className="mb-4 text-center">
-          <p className="text-lg font-medium">Price: ₹{servicePrice.toFixed(2)}</p>
-        </div>
-      )}
-      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <ServiceSelectionField initialSelectedService={initialSelectedService} />
+
           <PersonalInfoFields />
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

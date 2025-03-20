@@ -15,6 +15,11 @@ export const bookingFormSchema = z.object({
     required_error: "Please select a time slot",
   }),
   notes: z.string().optional(),
+  selectedServices: z.array(z.object({
+    id: z.number(),
+    name: z.string(),
+    price: z.number()
+  })).min(1, "Please select at least one service"),
 });
 
 export type BookingFormValues = z.infer<typeof bookingFormSchema>;
@@ -26,11 +31,16 @@ export const timeSlots = [
 ];
 
 export interface BookingFormProps {
-  serviceId: number;
-  serviceName: string;
+  serviceId?: number;
+  serviceName?: string;
   servicePrice?: number; 
   onCancel?: () => void;
   onSuccess?: () => void;
+  initialSelectedService?: {
+    id: number;
+    name: string;
+    price: number;
+  };
 }
 
 // Field required status information for UI rendering
@@ -40,5 +50,6 @@ export const requiredFields = {
   phone: true,
   date: true,
   time: true,
-  notes: false
+  notes: false,
+  selectedServices: true
 };

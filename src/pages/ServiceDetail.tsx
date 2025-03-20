@@ -1,18 +1,9 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Calendar as CalendarIcon, Clock } from "lucide-react";
-import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ButtonCustom } from "@/components/ui/button-custom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { ButtonCustom } from "@/components/ui/button-custom";
 import BookingForm from "@/components/booking/BookingForm";
 import { toast } from "@/hooks/use-toast";
 
@@ -138,15 +129,24 @@ const ServiceDetail = () => {
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
               <h2 className="text-lg font-semibold mb-3 text-center">Book This Service</h2>
               
-              {!showBookingForm ? <ButtonCustom variant="primary-gradient" className="w-full" size="lg" onClick={() => setShowBookingForm(true)}>
+              {!showBookingForm ? (
+                <ButtonCustom 
+                  variant="primary-gradient" 
+                  className="w-full" 
+                  size="lg" 
+                  onClick={() => setShowBookingForm(true)}
+                >
                   Book Now
-                </ButtonCustom> : <BookingForm 
+                </ButtonCustom>
+              ) : (
+                <BookingForm 
                   serviceId={service.prod_id} 
                   serviceName={service.ProductName} 
                   servicePrice={service.Price} 
                   onCancel={() => setShowBookingForm(false)}
                   onSuccess={handleBookingSuccess}
-                />}
+                />
+              )}
               
               <div className="border-t mt-6 pt-6">
                 <h3 className="font-medium text-center mb-4">Need Help?</h3>
