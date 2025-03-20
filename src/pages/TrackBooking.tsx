@@ -28,6 +28,7 @@ interface BookingDetails {
   Status: string;
   price: number;
   ProductName: string;
+  Qty: number; // Added Qty field
 }
 
 const TrackBooking = () => {
@@ -210,8 +211,16 @@ const TrackBooking = () => {
                         <p className="font-medium">{bookingDetails.Phone_no}</p>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-500">Amount Paid</p>
+                        <p className="text-sm font-medium text-gray-500">Quantity</p>
+                        <p className="font-medium">{bookingDetails.Qty || 1}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Unit Price</p>
                         <p className="font-medium">₹{bookingDetails.price?.toFixed(2) || '0.00'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Total Amount</p>
+                        <p className="font-medium">₹{((bookingDetails.Qty || 1) * bookingDetails.price)?.toFixed(2) || '0.00'}</p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-500">Booking Date</p>
