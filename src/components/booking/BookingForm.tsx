@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { bookingFormSchema, type BookingFormProps, type BookingFormValues } from "./form/FormSchema";
 import PersonalInfoFields from "./form/PersonalInfoFields";
+import AddressFields from "./form/AddressFields";
 import DatePickerField from "./form/DatePickerField";
 import TimePickerField from "./form/TimePickerField";
 import NotesField from "./form/NotesField";
@@ -29,6 +30,8 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess
       name: "",
       email: "",
       phone: "",
+      address: "",
+      pincode: "",
       notes: "",
       selectedServices: initialSelectedService ? [initialSelectedService] : []
     },
@@ -75,6 +78,7 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess
           <ServiceSelectionField initialSelectedService={initialSelectedService} />
 
           <PersonalInfoFields />
+          <AddressFields />
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DatePickerField />

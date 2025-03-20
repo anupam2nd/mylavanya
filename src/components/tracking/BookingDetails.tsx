@@ -19,6 +19,9 @@ export interface BookingData {
   price: number;
   ProductName: string;
   Qty: number;
+  Address?: string;
+  Pincode?: number;
+  name?: string;
 }
 
 const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
@@ -85,6 +88,12 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
         </div>
         <h2 class="print-title">Booking Details</h2>
         <div class="detail-grid">
+          ${firstBooking.name ? `
+          <div class="detail-item">
+            <div class="detail-label">Name</div>
+            <div class="detail-value">${firstBooking.name}</div>
+          </div>
+          ` : ''}
           <div class="detail-item">
             <div class="detail-label">Phone</div>
             <div class="detail-value">${firstBooking.Phone_no}</div>
@@ -103,6 +112,18 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
               <span class="status ${getStatusClass(firstBooking.Status)}">${firstBooking.Status?.toUpperCase() || 'PENDING'}</span>
             </div>
           </div>
+          ${firstBooking.Address ? `
+          <div class="detail-item">
+            <div class="detail-label">Address</div>
+            <div class="detail-value">${firstBooking.Address}</div>
+          </div>
+          ` : ''}
+          ${firstBooking.Pincode ? `
+          <div class="detail-item">
+            <div class="detail-label">Pincode</div>
+            <div class="detail-value">${firstBooking.Pincode}</div>
+          </div>
+          ` : ''}
         </div>
         
         <h3>Services</h3>
@@ -158,22 +179,47 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
             <p className="text-sm font-medium text-gray-500">Booking Reference</p>
             <p className="text-xl font-bold text-red-600">{firstBooking.Booking_NO}</p>
           </div>
+          
+          {firstBooking.name && (
+            <div>
+              <p className="text-sm font-medium text-gray-500">Name</p>
+              <p className="font-medium">{firstBooking.name}</p>
+            </div>
+          )}
+          
           <div>
             <p className="text-sm font-medium text-gray-500">Phone</p>
             <p className="font-medium">{firstBooking.Phone_no}</p>
           </div>
+          
           <div>
             <p className="text-sm font-medium text-gray-500">Status</p>
             <StatusBadge status={firstBooking.Status || 'pending'} />
           </div>
+          
           <div>
             <p className="text-sm font-medium text-gray-500">Booking Date</p>
             <p className="font-medium">{firstBooking.Booking_date}</p>
           </div>
+          
           <div>
             <p className="text-sm font-medium text-gray-500">Booking Time</p>
             <p className="font-medium">{firstBooking.booking_time}</p>
           </div>
+          
+          {firstBooking.Address && (
+            <div className="col-span-2">
+              <p className="text-sm font-medium text-gray-500">Address</p>
+              <p className="font-medium">{firstBooking.Address}</p>
+            </div>
+          )}
+          
+          {firstBooking.Pincode && (
+            <div>
+              <p className="text-sm font-medium text-gray-500">Pincode</p>
+              <p className="font-medium">{firstBooking.Pincode}</p>
+            </div>
+          )}
           
           <div className="col-span-2 mt-4 border-t pt-4">
             <p className="text-sm font-medium text-gray-500 mb-3">Services</p>

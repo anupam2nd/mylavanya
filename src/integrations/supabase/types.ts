@@ -11,12 +11,14 @@ export type Database = {
     Tables: {
       BookMST: {
         Row: {
+          Address: string | null
           Booking_date: string
           Booking_NO: string | null
           booking_time: string
           created_at: string | null
           id: number
           Phone_no: number
+          Pincode: number | null
           price: number | null
           Product: number | null
           Purpose: string
@@ -24,12 +26,14 @@ export type Database = {
           Status: string | null
         }
         Insert: {
+          Address?: string | null
           Booking_date: string
           Booking_NO?: string | null
           booking_time: string
           created_at?: string | null
           id?: number
           Phone_no: number
+          Pincode?: number | null
           price?: number | null
           Product?: number | null
           Purpose: string
@@ -37,12 +41,14 @@ export type Database = {
           Status?: string | null
         }
         Update: {
+          Address?: string | null
           Booking_date?: string
           Booking_NO?: string | null
           booking_time?: string
           created_at?: string | null
           id?: number
           Phone_no?: number
+          Pincode?: number | null
           price?: number | null
           Product?: number | null
           Purpose?: string

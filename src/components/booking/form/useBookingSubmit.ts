@@ -50,12 +50,14 @@ export const useBookingSubmit = () => {
       const bookingRef = await generateBookingReference(bookingDate);
       setBookingReference(bookingRef);
       
-      console.log("Submitting booking for multiple services with quantities:", {
+      console.log("Submitting booking with address details:", {
         services: data.selectedServices,
         bookingRef,
         date: format(data.date, "yyyy-MM-dd"),
         time: data.time,
-        phone: data.phone
+        phone: data.phone,
+        address: data.address,
+        pincode: data.pincode
       });
       
       // Insert multiple bookings with the same booking reference number
@@ -69,7 +71,10 @@ export const useBookingSubmit = () => {
           Status: "pending",
           price: service.price,
           Booking_NO: bookingRef,
-          Qty: service.quantity || 1
+          Qty: service.quantity || 1,
+          Address: data.address,
+          Pincode: parseInt(data.pincode),
+          name: data.name
         });
       });
       

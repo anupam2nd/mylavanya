@@ -8,6 +8,11 @@ export const bookingFormSchema = z.object({
     .min(10, "Phone number must be exactly 10 digits")
     .max(10, "Phone number must be exactly 10 digits")
     .regex(/^[6-9]\d{9}$/, "Please enter a valid Indian mobile number"),
+  address: z.string().min(5, "Address must be at least 5 characters").max(200, "Address cannot exceed 200 characters"),
+  pincode: z.string()
+    .min(6, "Pincode must be exactly 6 digits")
+    .max(6, "Pincode must be exactly 6 digits")
+    .regex(/^\d{6}$/, "Please enter a valid Indian pincode"),
   date: z.date({
     required_error: "Please select a date",
   }),
@@ -50,6 +55,8 @@ export const requiredFields = {
   name: true,
   email: true,
   phone: true,
+  address: true,
+  pincode: true,
   date: true,
   time: true,
   notes: false,
