@@ -63,10 +63,13 @@ export const useBookingSubmit = () => {
       
       // Insert multiple bookings with the same booking reference number
       const bookingPromises = data.selectedServices.map(service => {
+        // Clean the phone number to ensure it's only digits
+        const phoneNumber = data.phone.replace(/\D/g, '');
+        
         return supabase.from("BookMST").insert({
           Product: service.id,
           Purpose: service.name,
-          Phone_no: parseInt(data.phone.replace(/\D/g, '')),
+          Phone_no: parseInt(phoneNumber),
           Booking_date: format(data.date, "yyyy-MM-dd"),
           booking_time: data.time,
           Status: "pending",
@@ -85,7 +88,7 @@ export const useBookingSubmit = () => {
       const errors = results.filter(result => result.error);
       
       if (errors.length > 0) {
-        console.error("Supabase booking errors:", errors);
+        console.error("Supabase booking errors:", errors.map(e => e.error));
         throw new Error("Failed to create some bookings");
       }
 
