@@ -1,8 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// Define valid table names as a simple string literal union type
-// This prevents excessive type instantiation depth errors
+// Define valid table names explicitly to avoid recursive type issues
 export type TableName = "BookMST" | "PriceMST" | "statusmst" | "UserMST";
 
 export const fetchRecordById = async (tableName: TableName, recordId: number) => {
