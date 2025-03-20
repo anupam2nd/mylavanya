@@ -14,33 +14,39 @@ export type Database = {
           Booking_date: string
           Booking_NO: string | null
           booking_time: string
+          created_at: string | null
           id: number
           Phone_no: number
           price: number | null
           Product: number | null
           Purpose: string
+          Qty: number | null
           Status: string | null
         }
         Insert: {
           Booking_date: string
           Booking_NO?: string | null
           booking_time: string
+          created_at?: string | null
           id?: number
           Phone_no: number
           price?: number | null
           Product?: number | null
           Purpose: string
+          Qty?: number | null
           Status?: string | null
         }
         Update: {
           Booking_date?: string
           Booking_NO?: string | null
           booking_time?: string
+          created_at?: string | null
           id?: number
           Phone_no?: number
           price?: number | null
           Product?: number | null
           Purpose?: string
+          Qty?: number | null
           Status?: string | null
         }
         Relationships: []

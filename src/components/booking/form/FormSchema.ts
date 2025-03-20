@@ -18,7 +18,8 @@ export const bookingFormSchema = z.object({
   selectedServices: z.array(z.object({
     id: z.number(),
     name: z.string(),
-    price: z.number()
+    price: z.number(),
+    quantity: z.number().min(1, "Quantity must be at least 1").default(1)
   })).min(1, "Please select at least one service"),
 });
 
@@ -40,6 +41,7 @@ export interface BookingFormProps {
     id: number;
     name: string;
     price: number;
+    quantity?: number;
   };
 }
 

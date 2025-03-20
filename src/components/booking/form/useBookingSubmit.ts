@@ -50,7 +50,7 @@ export const useBookingSubmit = () => {
       const bookingRef = await generateBookingReference(bookingDate);
       setBookingReference(bookingRef);
       
-      console.log("Submitting booking for multiple services:", {
+      console.log("Submitting booking for multiple services with quantities:", {
         services: data.selectedServices,
         bookingRef,
         date: format(data.date, "yyyy-MM-dd"),
@@ -68,7 +68,8 @@ export const useBookingSubmit = () => {
           booking_time: data.time,
           Status: "pending",
           price: service.price,
-          Booking_NO: bookingRef
+          Booking_NO: bookingRef,
+          Qty: service.quantity || 1
         });
       });
       
@@ -82,8 +83,9 @@ export const useBookingSubmit = () => {
         throw new Error("Failed to create some bookings");
       }
 
-      // Calculate total price
-      const totalPrice = data.selectedServices.reduce((sum, service) => sum + service.price, 0);
+      // Calculate total price including quantities
+      const totalPrice = data.selectedServices.reduce((sum, service) => 
+        sum + (service.price * (service.quantity || 1)), 0);
       
       toast({
         title: "Booking Successful!",

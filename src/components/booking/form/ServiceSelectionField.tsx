@@ -4,12 +4,13 @@ import { useFormContext } from "react-hook-form";
 import { BookingFormValues } from "./FormSchema";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Check, Trash2, PlusCircle, Asterisk } from "lucide-react";
+import { Check, Trash2, PlusCircle, Asterisk, Plus, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 
 interface Service {
   prod_id: number;
@@ -17,7 +18,7 @@ interface Service {
   Price: number;
 }
 
-const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedService?: { id: number; name: string; price: number } }) => {
+const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedService?: { id: number; name: string; price: number; quantity?: number } }) => {
   const form = useFormContext<BookingFormValues>();
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +55,12 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
   // Initialize with the initial selected service if provided
   useEffect(() => {
     if (initialSelectedService && !form.getValues("selectedServices")) {
-      form.setValue("selectedServices", [initialSelectedService]);
+      form.setValue("selectedServices", [{
+        id: initialSelectedService.id,
+        name: initialSelectedService.name,
+        price: initialSelectedService.price,
+        quantity: initialSelectedService.quantity || 1
+      }]);
     }
   }, [initialSelectedService, form]);
   
@@ -67,7 +73,8 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
         {
           id: service.prod_id,
           name: service.ProductName || `Service ${service.prod_id}`,
-          price: service.Price
+          price: service.Price,
+          quantity: 1
         }
       ]);
     }
@@ -80,13 +87,25 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
       currentServices.filter(s => s.id !== serviceId)
     );
   };
+
+  const updateQuantity = (serviceId: number, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    
+    const currentServices = form.getValues("selectedServices") || [];
+    const updatedServices = currentServices.map(service => 
+      service.id === serviceId ? { ...service, quantity: newQuantity } : service
+    );
+    
+    form.setValue("selectedServices", updatedServices);
+  };
   
   const isServiceSelected = (serviceId: number) => {
     return selectedServices.some(s => s.id === serviceId);
   };
   
-  // Calculate total price
-  const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
+  // Calculate total price including quantities
+  const totalPrice = selectedServices.reduce((sum, service) => 
+    sum + (service.price * (service.quantity || 1)), 0);
   
   return (
     <FormField
@@ -115,18 +134,47 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
                         key={service.id}
                         className="flex items-center justify-between bg-white p-2 rounded-md border"
                       >
-                        <div>
+                        <div className="flex-grow">
                           <p className="font-medium text-sm">{service.name}</p>
-                          <p className="text-sm text-gray-500">₹{service.price.toFixed(2)}</p>
+                          <p className="text-sm text-gray-500">₹{service.price.toFixed(2)} × {service.quantity || 1} = ₹{((service.price * (service.quantity || 1))).toFixed(2)}</p>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveService(service.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-gray-500" />
-                        </Button>
+                        <div className="flex items-center space-x-1">
+                          <div className="flex items-center mr-2 border rounded-md">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 rounded-r-none"
+                              onClick={() => updateQuantity(service.id, (service.quantity || 1) - 1)}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <Input
+                              type="number"
+                              value={service.quantity || 1}
+                              onChange={(e) => updateQuantity(service.id, parseInt(e.target.value) || 1)}
+                              className="h-8 w-12 text-center border-0 rounded-none"
+                              min={1}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 rounded-l-none"
+                              onClick={() => updateQuantity(service.id, (service.quantity || 1) + 1)}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveService(service.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-gray-500" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
