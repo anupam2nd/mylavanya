@@ -7,8 +7,7 @@ import HowItWorks from "@/components/sections/HowItWorks";
 import Testimonials from "@/components/sections/Testimonials";
 import BookingBanner from "@/components/sections/BookingBanner";
 import AuthModal from "@/components/auth/AuthModal";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import MainLayout from "@/components/layout/MainLayout";
 
 const Index = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -18,25 +17,21 @@ const Index = () => {
   console.log("Index page rendering");
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow">
-        <Hero 
-          onBookNow={() => navigate("/services")}
-          onLogin={() => setIsAuthModalOpen(true)}
-        />
-        <ServiceList featured={true} />
-        <HowItWorks />
-        <BookingBanner onBookNow={() => navigate("/services")} />
-        <Testimonials />
-      </main>
-      <Footer />
+    <MainLayout>
+      <Hero 
+        onBookNow={() => navigate("/services")}
+        onLogin={() => setIsAuthModalOpen(true)}
+      />
+      <ServiceList featured={true} />
+      <HowItWorks />
+      <BookingBanner onBookNow={() => navigate("/services")} />
+      <Testimonials />
       
       <AuthModal 
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
       />
-    </div>
+    </MainLayout>
   );
 };
 
