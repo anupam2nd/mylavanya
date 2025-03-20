@@ -65,6 +65,7 @@ export type Database = {
       }
       PriceMST: {
         Row: {
+          active: boolean
           created_at: string
           Description: string | null
           Price: number
@@ -73,6 +74,7 @@ export type Database = {
           Services: string
         }
         Insert: {
+          active?: boolean
           created_at?: string
           Description?: string | null
           Price: number
@@ -81,6 +83,7 @@ export type Database = {
           Services?: string
         }
         Update: {
+          active?: boolean
           created_at?: string
           Description?: string | null
           Price?: number

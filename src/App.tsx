@@ -23,6 +23,7 @@ import UserDashboard from "./pages/user/UserDashboard";
 import UserBookings from "./pages/user/UserBookings";
 import Profile from "./pages/user/Profile";
 import Settings from "./pages/user/Settings";
+import TableBrowser from "./pages/admin/TableBrowser";
 
 // Log to confirm App is being loaded
 console.log("App component rendering");
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/admin/services" element={<AdminServices />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/status" element={<AdminStatus />} />
+            <Route path="/admin/table-browser" element={<TableBrowser />} />
             
             {/* User Routes */}
             <Route path="/user/dashboard" element={<UserDashboard />} />
