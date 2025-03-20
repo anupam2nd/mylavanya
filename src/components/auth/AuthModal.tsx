@@ -32,10 +32,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     try {
       console.log("Attempting login with:", loginData.email);
       // Explicitly convert email to lowercase for consistent matching
+      const email = loginData.email.trim().toLowerCase();
+      
       const { data, error } = await supabase
         .from('UserMST')
         .select('id, Username, role')
-        .ilike('Username', loginData.email.trim().toLowerCase())
+        .ilike('Username', email)
         .eq('password', loginData.password)
         .maybeSingle();
       
@@ -90,19 +92,28 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       // Convert email to lowercase for consistency
       const email = registerData.email.trim().toLowerCase();
       
+      console.log("Attempting to register:", email);
+      
       // Check if user already exists
-      const { data: existingUser } = await supabase
+      const { data: existingUsers, error: checkError } = await supabase
         .from('UserMST')
         .select('Username')
-        .ilike('Username', email)
-        .single();
+        .ilike('Username', email);
       
-      if (existingUser) {
+      console.log("Check for existing user:", existingUsers, checkError);
+      
+      if (checkError) {
+        console.error("Error checking existing user:", checkError);
+        throw new Error('Error checking if user exists');
+      }
+      
+      if (existingUsers && existingUsers.length > 0) {
+        console.log("User already exists:", existingUsers);
         throw new Error('User already exists');
       }
       
       // Insert new user with default 'user' role
-      const { data, error } = await supabase
+      const { data, error: insertError } = await supabase
         .from('UserMST')
         .insert([
           { 
@@ -115,7 +126,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         ])
         .select();
       
-      if (error) throw error;
+      console.log("Insert result:", data, insertError);
+      
+      if (insertError) {
+        console.error("Error inserting new user:", insertError);
+        throw insertError;
+      }
       
       toast({
         title: "Registration successful",
