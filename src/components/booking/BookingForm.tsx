@@ -47,18 +47,18 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess
 
   if (bookingCompleted && bookingRef) {
     return (
-      <div className="bg-white rounded-lg p-6 text-center">
-        <CheckCircle2 className="mx-auto h-14 w-14 text-green-500 mb-4" />
-        <h3 className="text-xl font-bold mb-4">Booking Confirmed!</h3>
-        <Alert className="mb-6 bg-green-50 border-green-200">
-          <AlertTitle className="text-gray-800 text-lg">Your Booking Reference</AlertTitle>
-          <AlertDescription className="text-3xl font-bold text-red-600 my-2">
-            {bookingRef}
-          </AlertDescription>
-        </Alert>
-        <p className="text-gray-700 mb-6">
-          Please save this reference number for any future inquiries about your appointment.
-        </p>
+      <div className="fixed top-10 left-0 right-0 w-full max-w-md mx-auto z-50 bg-white rounded-lg p-6 shadow-lg text-center">
+        <CheckCircle2 className="mx-auto h-16 w-16 text-green-500 mb-4" />
+        <h3 className="text-2xl font-bold mb-4">Booking Confirmed!</h3>
+        
+        <div className="mb-8">
+          <h4 className="text-lg font-semibold text-gray-800 mb-2">Your Booking Reference</h4>
+          <p className="text-4xl font-bold text-red-600 mb-2">{bookingRef}</p>
+          <p className="text-gray-700">
+            Please save this reference number for future inquiries.
+          </p>
+        </div>
+        
         <Button onClick={onCancel} className="w-full">
           Done
         </Button>
