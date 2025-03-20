@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, User, ShoppingBag } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { cn } from "@/lib/utils";
 import AuthModal from "../auth/AuthModal";
+import NavTrackingButton from "../ui/NavTrackingButton";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -20,7 +20,6 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {
@@ -34,7 +33,6 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
   
-  // Close mobile menu when changing routes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
@@ -54,12 +52,10 @@ export default function Navbar() {
     >
       <div className="container-custom">
         <div className="flex items-center justify-between">
-          {/* Logo */}
           <Link to="/" className="flex items-center">
             <span className="text-2xl font-serif font-bold">My<span className="text-primary">Lavanya</span></span>
           </Link>
           
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link 
@@ -75,7 +71,6 @@ export default function Navbar() {
             ))}
           </nav>
           
-          {/* Call to action buttons */}
           <div className="hidden md:flex items-center space-x-3">
             <ButtonCustom 
               variant="ghost" 
@@ -85,6 +80,8 @@ export default function Navbar() {
             >
               <ShoppingBag size={20} />
             </ButtonCustom>
+            
+            <NavTrackingButton />
             
             <ButtonCustom 
               variant="outline" 
@@ -103,7 +100,6 @@ export default function Navbar() {
             </ButtonCustom>
           </div>
           
-          {/* Mobile menu button */}
           <div className="flex items-center md:hidden">
             <ButtonCustom
               variant="ghost"
@@ -117,7 +113,6 @@ export default function Navbar() {
         </div>
       </div>
       
-      {/* Mobile Navigation */}
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-lg shadow-md pt-4 pb-6 px-4 animate-slide-down border-t">
           <nav className="flex flex-col space-y-4">
@@ -135,6 +130,12 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
+            <Link 
+              to="/track-booking"
+              className="py-2 px-3 rounded-md transition-colors hover:bg-muted flex items-center"
+            >
+              <span>Track Booking</span>
+            </Link>
             <div className="pt-2 space-y-3">
               <ButtonCustom 
                 variant="outline" 
@@ -160,7 +161,6 @@ export default function Navbar() {
         </div>
       )}
       
-      {/* Auth Modal */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 

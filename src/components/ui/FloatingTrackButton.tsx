@@ -10,7 +10,7 @@ const FloatingTrackButton = () => {
       aria-label="Track Booking"
     >
       <FileText className="h-5 w-5" />
-      <span className="ml-2 hidden md:inline">Track Booking</span>
+      <span className="ml-2 hidden md:inline font-medium">Track Booking</span>
     </Link>
   );
 };
