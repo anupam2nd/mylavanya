@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -9,6 +8,7 @@ import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
 import BookingFilters from "@/components/admin/bookings/BookingFilters";
 import BookingsTable from "@/components/admin/bookings/BookingsTable";
 import EditBookingDialog from "@/components/admin/bookings/EditBookingDialog";
+import { EditBookingFormValues } from "@/components/admin/bookings/EditBookingFormSchema";
 
 interface Booking {
   id: number;
@@ -31,20 +31,15 @@ const AdminBookings = () => {
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
-  const [editDate, setEditDate] = useState<Date | undefined>(undefined);
-  const [editTime, setEditTime] = useState<string>("");
-  const [editStatus, setEditStatus] = useState<string>("");
   const [openDialog, setOpenDialog] = useState(false);
   const [statusOptions, setStatusOptions] = useState<{status_code: string; status_name: string}[]>([]);
   
-  // Filters
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showDateFilter, setShowDateFilter] = useState(false);
 
-  // Fetch status options from database
   useEffect(() => {
     const fetchStatusOptions = async () => {
       try {
@@ -62,7 +57,6 @@ const AdminBookings = () => {
     fetchStatusOptions();
   }, []);
 
-  // Fetch all bookings
   useEffect(() => {
     const fetchBookings = async () => {
       try {
@@ -90,11 +84,9 @@ const AdminBookings = () => {
     fetchBookings();
   }, [toast]);
 
-  // Apply filters
   useEffect(() => {
     let result = [...bookings];
     
-    // Apply date range filter
     if (startDate && endDate) {
       result = result.filter(booking => {
         const bookingDate = new Date(booking.Booking_date);
@@ -105,12 +97,10 @@ const AdminBookings = () => {
       });
     }
     
-    // Apply status filter
     if (statusFilter) {
       result = result.filter(booking => booking.Status === statusFilter);
     }
     
-    // Apply search query (on booking reference, name, email)
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
       result = result.filter(booking => 
@@ -126,20 +116,17 @@ const AdminBookings = () => {
 
   const handleEditClick = (booking: Booking) => {
     setEditBooking(booking);
-    setEditDate(booking.Booking_date ? new Date(booking.Booking_date) : undefined);
-    setEditTime(booking.booking_time?.substring(0, 5) || "");
-    setEditStatus(booking.Status || "");
     setOpenDialog(true);
   };
 
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = async (values: EditBookingFormValues) => {
     if (!editBooking) return;
 
     try {
       const updates = {
-        Booking_date: editDate ? format(editDate, 'yyyy-MM-dd') : editBooking.Booking_date,
-        booking_time: editTime,
-        Status: editStatus
+        Booking_date: values.date ? format(values.date, 'yyyy-MM-dd') : editBooking.Booking_date,
+        booking_time: values.time,
+        Status: values.status
       };
 
       const { error } = await supabase
@@ -149,7 +136,6 @@ const AdminBookings = () => {
 
       if (error) throw error;
 
-      // Update local state
       setBookings(bookings.map(booking => 
         booking.id === editBooking.id 
           ? { ...booking, ...updates } 
@@ -214,12 +200,6 @@ const AdminBookings = () => {
           openDialog={openDialog}
           setOpenDialog={setOpenDialog}
           editBooking={editBooking}
-          editDate={editDate}
-          setEditDate={setEditDate}
-          editTime={editTime}
-          setEditTime={setEditTime}
-          editStatus={editStatus}
-          setEditStatus={setEditStatus}
           handleSaveChanges={handleSaveChanges}
           statusOptions={statusOptions}
         />
