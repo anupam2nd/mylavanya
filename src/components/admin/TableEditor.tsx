@@ -127,16 +127,38 @@ const TableEditor: React.FC<TableEditorProps> = ({
       
       try {
         setLoading(true);
+        // Use rpc to get around TypeScript limitations for dynamic table names
         const { data, error } = await supabase
-          .from(tableName)
-          .select('*')
-          .eq('id', recordId)
+          .rpc('get_record_by_id', { 
+            p_table_name: tableName,
+            p_record_id: recordId
+          })
           .single();
           
-        if (error) throw error;
-        
-        if (data) {
-          // Transform data to match form fields
+        if (error) {
+          // Fallback to direct query if RPC doesn't exist
+          const { data: directData, error: directError } = await supabase
+            .from(tableName as any)
+            .select('*')
+            .eq('id', recordId)
+            .single();
+            
+          if (directError) throw directError;
+          
+          if (directData) {
+            // Transform data to match form fields
+            const formData: any = {};
+            
+            columns.forEach((column) => {
+              if (column.name in directData) {
+                formData[column.name] = directData[column.name];
+              }
+            });
+            
+            form.reset(formData);
+          }
+        } else if (data) {
+          // Transform data from RPC to match form fields
           const formData: any = {};
           
           columns.forEach((column) => {
@@ -171,15 +193,30 @@ const TableEditor: React.FC<TableEditorProps> = ({
       // Clean up values for submission
       const submissionData: any = { ...values };
       
-      // Process the insert or update
+      // Process the insert or update using RPC or direct query with type casting
       if (recordId) {
         // Update existing record
-        const { error } = await supabase
-          .from(tableName)
-          .update(submissionData)
-          .eq('id', recordId);
+        try {
+          // Try RPC first
+          const { error } = await supabase.rpc('update_record', {
+            p_table_name: tableName,
+            p_record_id: recordId,
+            p_record_data: submissionData
+          });
           
-        if (error) throw error;
+          if (error) {
+            // Fall back to direct query if RPC doesn't exist
+            const { error: directError } = await supabase
+              .from(tableName as any)
+              .update(submissionData)
+              .eq('id', recordId);
+              
+            if (directError) throw directError;
+          }
+        } catch (updateError) {
+          console.error('Update failed:', updateError);
+          throw updateError;
+        }
         
         toast({
           title: "Record updated",
@@ -187,11 +224,25 @@ const TableEditor: React.FC<TableEditorProps> = ({
         });
       } else {
         // Create new record
-        const { error } = await supabase
-          .from(tableName)
-          .insert([submissionData]);
+        try {
+          // Try RPC first
+          const { error } = await supabase.rpc('insert_record', {
+            p_table_name: tableName,
+            p_record_data: submissionData
+          });
           
-        if (error) throw error;
+          if (error) {
+            // Fall back to direct query if RPC doesn't exist
+            const { error: directError } = await supabase
+              .from(tableName as any)
+              .insert([submissionData]);
+              
+            if (directError) throw directError;
+          }
+        } catch (insertError) {
+          console.error('Insert failed:', insertError);
+          throw insertError;
+        }
         
         toast({
           title: "Record created",

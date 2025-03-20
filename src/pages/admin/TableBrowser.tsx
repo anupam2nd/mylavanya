@@ -52,25 +52,40 @@ const TableBrowser = () => {
     const fetchTables = async () => {
       try {
         setLoading(true);
-        // Get list of tables from Supabase
-        const { data, error } = await supabase
-          .from('information_schema.tables')
-          .select('table_name')
-          .eq('table_schema', 'public');
+        // Use a direct SQL query to get table information
+        const { data, error } = await supabase.rpc('get_user_tables');
 
-        if (error) throw error;
-        
-        // Filter out system tables
-        const userTables = data
-          ?.map(t => t.table_name)
-          .filter(name => !name.startsWith('_'))
-          .sort() || [];
+        if (error) {
+          // Fallback to raw query if RPC doesn't exist
+          const { data: rawData, error: rawError } = await supabase.rpc('get_tables');
           
-        setTables(userTables);
-        
-        // Select first table by default if none selected
-        if (userTables.length > 0 && !selectedTable) {
-          setSelectedTable(userTables[0]);
+          if (rawError) {
+            console.error('Could not fetch tables:', rawError);
+            toast({
+              title: "Failed to load tables",
+              description: "Could not fetch database tables",
+              variant: "destructive"
+            });
+            setLoading(false);
+            return;
+          }
+          
+          const userTables = rawData || [];
+          setTables(userTables);
+          
+          // Select first table by default if none selected
+          if (userTables.length > 0 && !selectedTable) {
+            setSelectedTable(userTables[0]);
+          }
+        } else {
+          // Filter out system tables
+          const userTables = data || [];
+          setTables(userTables);
+          
+          // Select first table by default if none selected
+          if (userTables.length > 0 && !selectedTable) {
+            setSelectedTable(userTables[0]);
+          }
         }
       } catch (error) {
         console.error('Error fetching tables:', error);
@@ -95,16 +110,46 @@ const TableBrowser = () => {
       try {
         setLoading(true);
         
-        // Get column information
-        const { data, error } = await supabase
-          .from('information_schema.columns')
-          .select('column_name, data_type, is_nullable')
-          .eq('table_schema', 'public')
-          .eq('table_name', selectedTable);
+        // Get column information using RPC
+        const { data, error } = await supabase.rpc('get_table_columns', {
+          p_table_name: selectedTable
+        });
 
-        if (error) throw error;
-        
-        setColumns(data || []);
+        if (error) {
+          // Fallback to raw query
+          console.error('Could not fetch columns using RPC:', error);
+          
+          // For TypeScript safety, we'll use a simpler approach with any type
+          const { data: columnsData, error: columnsError } = await supabase
+            .from(selectedTable as any)
+            .select('*')
+            .limit(0);
+            
+          if (columnsError) {
+            console.error(`Error fetching columns for ${selectedTable}:`, columnsError);
+            toast({
+              title: "Failed to load table structure",
+              description: `Could not fetch columns for ${selectedTable}`,
+              variant: "destructive"
+            });
+            setLoading(false);
+            return;
+          }
+          
+          // Derive columns from the returned object structure
+          if (columnsData) {
+            const derivedColumns = columnsData.length > 0 
+              ? Object.keys(columnsData[0]).map(column_name => ({
+                  column_name,
+                  data_type: typeof columnsData[0][column_name],
+                  is_nullable: 'YES'
+                }))
+              : [];
+            setColumns(derivedColumns);
+          }
+        } else {
+          setColumns(data || []);
+        }
         
         // Fetch records after getting columns
         await fetchRecords();
@@ -131,7 +176,7 @@ const TableBrowser = () => {
       setLoading(true);
       
       const { data, error } = await supabase
-        .from(selectedTable)
+        .from(selectedTable as any)
         .select('*')
         .order('id', { ascending: true });
 
@@ -182,7 +227,7 @@ const TableBrowser = () => {
 
     try {
       const { error } = await supabase
-        .from(selectedTable)
+        .from(selectedTable as any)
         .delete()
         .eq('id', recordToDelete);
 
@@ -214,13 +259,13 @@ const TableBrowser = () => {
       // Determine field type based on the PostgreSQL data type
       let fieldType: 'text' | 'number' | 'boolean' | 'date' | 'textarea' | 'select' = 'text';
       
-      if (col.data_type.includes('int') || col.data_type === 'numeric') {
+      if (col.data_type && (col.data_type.includes('int') || col.data_type === 'numeric')) {
         fieldType = 'number';
       } else if (col.data_type === 'boolean') {
         fieldType = 'boolean';
-      } else if (col.data_type.includes('text')) {
+      } else if (col.data_type && col.data_type.includes('text')) {
         fieldType = 'textarea';
-      } else if (col.data_type.includes('date')) {
+      } else if (col.data_type && col.data_type.includes('date')) {
         fieldType = 'date';
       }
       
@@ -369,7 +414,7 @@ const renderTableCell = (value: any, dataType: string) => {
     return value ? 'Yes' : 'No';
   }
   
-  if (dataType.includes('timestamp') || dataType.includes('date')) {
+  if (dataType && (dataType.includes('timestamp') || dataType.includes('date'))) {
     try {
       return new Date(value).toLocaleString();
     } catch (e) {
