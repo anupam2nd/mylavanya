@@ -38,6 +38,8 @@ const TrackBooking = () => {
         return;
       }
 
+      console.log("Raw booking data:", bookingsData);
+
       // Get all service details for the bookings
       const servicePromises = bookingsData.map(booking => 
         supabase
@@ -57,6 +59,7 @@ const TrackBooking = () => {
         };
       });
 
+      console.log("Detailed bookings:", detailedBookings);
       setBookingDetails(detailedBookings);
 
     } catch (error) {
