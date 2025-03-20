@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { useRef } from "react";
 import BookingHeader from "./BookingHeader";
@@ -23,7 +22,7 @@ export interface BookingData {
   Qty: number;
   Address?: string;
   Pincode?: number;
-  name?: string;
+  Name?: string;
 }
 
 const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
@@ -31,10 +30,8 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
 
   if (!bookingDetails || bookingDetails.length === 0) return null;
 
-  // All bookings have the same reference, date, phone, etc. - just different services
   const firstBooking = bookingDetails[0];
   
-  // Calculate total price for all services
   const totalAmount = bookingDetails.reduce((sum, booking) => 
     sum + (booking.price * (booking.Qty || 1)), 0);
 
@@ -70,7 +67,6 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
       </style>
     `;
 
-    // Get status class based on booking status
     const getStatusClass = (status: string) => {
       switch (status.toLowerCase()) {
         case 'completed': return 'status-completed';
@@ -81,7 +77,6 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
       }
     };
 
-    // Create print-specific HTML
     const printHTML = `
       ${printStyles}
       <div class="print-container">
@@ -90,10 +85,10 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
         </div>
         <h2 class="print-title">Booking Details</h2>
         <div class="detail-grid">
-          ${firstBooking.name ? `
+          ${firstBooking.Name ? `
           <div class="detail-item">
             <div class="detail-label">Name</div>
-            <div class="detail-value">${firstBooking.name}</div>
+            <div class="detail-value">${firstBooking.Name}</div>
           </div>
           ` : ''}
           <div class="detail-item">
@@ -151,13 +146,10 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
       </div>
     `;
 
-    // Replace the document content with our print-specific HTML
     document.body.innerHTML = printHTML;
     
-    // Trigger the print dialog
     window.print();
     
-    // Restore the original document content
     document.body.innerHTML = originalContents;
   };
 
