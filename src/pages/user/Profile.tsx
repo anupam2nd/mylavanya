@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
-  const { user, updateUserProfile } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -29,7 +29,7 @@ const Profile = () => {
         const { data, error } = await supabase
           .from('UserMST')
           .select('FirstName, LastName, Username')
-          .eq('id', user.id)
+          .eq('id', Number(user.id))
           .single();
           
         if (error) {
