@@ -116,6 +116,7 @@ export type Database = {
       }
       UserMST: {
         Row: {
+          active: boolean
           FirstName: string | null
           id: number
           LastName: string | null
@@ -124,6 +125,7 @@ export type Database = {
           Username: string | null
         }
         Insert: {
+          active?: boolean
           FirstName?: string | null
           id?: number
           LastName?: string | null
@@ -132,6 +134,7 @@ export type Database = {
           Username?: string | null
         }
         Update: {
+          active?: boolean
           FirstName?: string | null
           id?: number
           LastName?: string | null

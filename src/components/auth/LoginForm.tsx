@@ -30,7 +30,7 @@ export default function LoginForm({ onSwitchTab }: LoginFormProps) {
       
       const { data, error } = await supabase
         .from('UserMST')
-        .select('id, Username, role')
+        .select('id, Username, role, active')
         .ilike('Username', email)
         .eq('password', loginData.password)
         .maybeSingle();
@@ -44,6 +44,11 @@ export default function LoginForm({ onSwitchTab }: LoginFormProps) {
       
       if (!data) {
         throw new Error('Invalid credentials');
+      }
+      
+      // Check if user is active
+      if (!data.active) {
+        throw new Error('Account is inactive. Please contact an administrator.');
       }
       
       // Login using the context function
@@ -69,7 +74,7 @@ export default function LoginForm({ onSwitchTab }: LoginFormProps) {
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: "Invalid email or password. Please try again.",
+        description: error instanceof Error ? error.message : "Invalid email or password. Please try again.",
       });
     } finally {
       setIsLoading(false);

@@ -51,7 +51,7 @@ interface User {
   FirstName: string | null;
   LastName: string | null;
   role: string | null;
-  active?: boolean;
+  active: boolean;
 }
 
 const AdminUsers = () => {
@@ -127,7 +127,7 @@ const AdminUsers = () => {
     setFirstName(user.FirstName || "");
     setLastName(user.LastName || "");
     setRole(user.role || "user");
-    setIsActive(user.active !== false); // Default to true if not specified
+    setIsActive(user.active);
     setPassword(""); // Don't populate password for existing users
     setOpenDialog(true);
   };
@@ -139,23 +139,16 @@ const AdminUsers = () => {
   
   const handleDeactivate = async (user: User) => {
     try {
-      // Since 'active' field doesn't exist in UserMST, we'll modify the role instead
-      // to indicate deactivation (e.g., append "-inactive" to the role)
-      const currentRole = user.role || 'user';
-      const updatedRole = currentRole.endsWith('-inactive') 
-        ? currentRole 
-        : `${currentRole}-inactive`;
-      
       const { error } = await supabase
         .from('UserMST')
-        .update({ role: updatedRole })
+        .update({ active: false })
         .eq('id', user.id);
 
       if (error) throw error;
 
       // Update local state
       setUsers(users.map(u => 
-        u.id === user.id ? { ...u, role: updatedRole, active: false } : u
+        u.id === user.id ? { ...u, active: false } : u
       ));
       
       toast({
@@ -209,12 +202,12 @@ const AdminUsers = () => {
         throw new Error("Password is required for new users");
       }
 
-      // Create userData object without the 'active' field since it doesn't exist in the database
-      const userData: any = {
+      const userData = {
         Username: username,
         FirstName: firstName || null,
         LastName: lastName || null,
-        role: role || "user"
+        role: role || "user",
+        active: isActive
       };
 
       // Only include password for new users or if it was changed
@@ -232,9 +225,7 @@ const AdminUsers = () => {
         if (error) throw error;
         
         if (data && data.length > 0) {
-          // Add the virtual 'active' property for our UI
-          const newUser = { ...data[0], active: true };
-          setUsers([...users, newUser]);
+          setUsers([...users, data[0]]);
         }
         
         toast({
@@ -250,11 +241,10 @@ const AdminUsers = () => {
 
         if (error) throw error;
 
-        // Update our local state with the active status based on the role
+        // Update our local state
         const updatedUser = { 
           ...currentUserData, 
-          ...userData,
-          active: !userData.role.includes('-inactive')
+          ...userData
         };
         
         setUsers(users.map(user => 
@@ -276,15 +266,6 @@ const AdminUsers = () => {
         variant: "destructive"
       });
     }
-  };
-
-  // Helper function to determine if a user is active based on their role
-  const isUserActive = (user: User) => {
-    if (user.active !== undefined) {
-      return user.active;
-    }
-    // If the active property isn't set, check if the role ends with '-inactive'
-    return user.role ? !user.role.endsWith('-inactive') : true;
   };
 
   return (
@@ -319,7 +300,7 @@ const AdminUsers = () => {
                   </TableHeader>
                   <TableBody>
                     {users.map((user) => (
-                      <TableRow key={user.id} className={!isUserActive(user) ? "opacity-60" : ""}>
+                      <TableRow key={user.id} className={!user.active ? "opacity-60" : ""}>
                         <TableCell className="font-medium">{user.Username}</TableCell>
                         <TableCell>{user.FirstName}</TableCell>
                         <TableCell>{user.LastName}</TableCell>
@@ -328,13 +309,13 @@ const AdminUsers = () => {
                             ${user.role?.includes('superadmin') ? 'bg-purple-100 text-purple-800' : 
                               user.role?.includes('admin') ? 'bg-blue-100 text-blue-800' : 
                               'bg-green-100 text-green-800'}`}>
-                            {user.role?.replace('-inactive', '') || 'user'}
+                            {user.role || 'user'}
                           </span>
                         </TableCell>
                         <TableCell>
                           <span className={`px-3 py-1 text-xs font-medium rounded-full 
-                            ${!isUserActive(user) ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                            {!isUserActive(user) ? 'Inactive' : 'Active'}
+                            ${!user.active ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                            {user.active ? 'Active' : 'Inactive'}
                           </span>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
@@ -358,7 +339,7 @@ const AdminUsers = () => {
                               variant="destructive" 
                               size="sm" 
                               onClick={() => handleDeactivate(user)}
-                              disabled={!isUserActive(user)}
+                              disabled={!user.active}
                             >
                               <XCircle className="h-4 w-4 mr-1" /> Deactivate
                             </Button>
