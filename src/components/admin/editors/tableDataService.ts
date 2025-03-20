@@ -10,21 +10,40 @@ type QueryResponse = {
   error: any;
 };
 
-export const fetchRecordById = async (tableName: TableName, recordId: number) => {
+export const fetchRecordById = async <T = any>(
+  tableName: TableName, 
+  recordId: number
+): Promise<T | null> => {
   try {
-    const response: QueryResponse = await supabase
+    const { data, error } = await supabase
       .from(tableName)
       .select('*')
       .eq('id', recordId)
       .single();
-    
-    if (response.error) throw response.error;
-    return response.data;
+
+    if (error) throw error;
+    return data as T | null;
   } catch (error) {
     console.error(`Error fetching ${tableName} record:`, error);
     throw error;
   }
 };
+
+// export const fetchRecordById = async (tableName: TableName, recordId: number) => {
+//   try {
+//     const response: QueryResponse = await supabase
+//       .from(tableName)
+//       .select('*')
+//       .eq('id', recordId)
+//       .single();
+    
+//     if (response.error) throw response.error;
+//     return response.data;
+//   } catch (error) {
+//     console.error(`Error fetching ${tableName} record:`, error);
+//     throw error;
+//   }
+// };
 
 export const updateRecord = async (tableName: TableName, recordId: number, submissionData: any) => {
   try {
