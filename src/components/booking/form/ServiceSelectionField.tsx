@@ -33,6 +33,7 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
         const { data, error } = await supabase
           .from('PriceMST')
           .select('prod_id, ProductName, Price')
+          .eq('active', true) // Only fetch active services
           .order('ProductName');
           
         if (error) {
