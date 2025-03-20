@@ -32,7 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import TableEditor from "@/components/admin/TableEditor";
+import TableEditor, { TableColumnDefinition } from "@/components/admin/TableEditor";
 
 // Create a type for generic table operations
 type GenericTable = {
