@@ -1,5 +1,6 @@
 
 import { Card } from "@/components/ui/card";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 export interface BookingDetailsProps {
   bookingDetails: BookingData | null;
@@ -63,12 +64,7 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
           </div>
           <div className="col-span-2">
             <p className="text-sm font-medium text-gray-500">Status</p>
-            <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-              ${bookingDetails.Status === 'completed' ? 'bg-green-100 text-green-800' : 
-                bookingDetails.Status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                'bg-yellow-100 text-yellow-800'}`}>
-              {bookingDetails.Status?.toUpperCase() || 'PENDING'}
-            </div>
+            <StatusBadge status={bookingDetails.Status || 'pending'} />
           </div>
         </div>
       </div>
