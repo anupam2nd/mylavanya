@@ -79,8 +79,8 @@ export const useBookingSubmit = () => {
           Qty: service.quantity || 1,
           Address: data.address,
           Pincode: parseInt(data.pincode),
-          Name: data.name,
-          email: data.email // Adding the email field to the submission
+          name: data.name, // Using lowercase "name" as per database schema
+          email: data.email // Using lowercase "email" as per database schema
         });
       });
       
