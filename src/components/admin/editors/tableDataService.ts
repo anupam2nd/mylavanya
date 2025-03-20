@@ -20,7 +20,7 @@ export const fetchRecordById = async (
       .maybeSingle();
 
     if (error) throw error;
-    return data as TableRecord;
+    return data;
   } catch (error) {
     console.error(`Error fetching ${tableName} record:`, error);
     throw error;
