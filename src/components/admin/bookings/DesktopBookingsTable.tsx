@@ -1,7 +1,7 @@
 
 import React from "react";
 import { format } from "date-fns";
-import { Edit, Trash2, XCircle } from "lucide-react";
+import { Edit, Archive, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Booking } from "@/hooks/useBookings";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -12,26 +12,22 @@ interface DesktopBookingsTableProps {
   bookings: Booking[];
   handleEditClick: (booking: Booking) => void;
   isDeactivateMode: boolean;
+  onArchive?: (booking: Booking) => void;
 }
 
 export const DesktopBookingsTable: React.FC<DesktopBookingsTableProps> = ({ 
   bookings, 
   handleEditClick, 
-  isDeactivateMode 
+  isDeactivateMode,
+  onArchive
 }) => {
   const { user } = useAuth();
   const canEdit = user && ['user', 'admin', 'superadmin'].includes(user.role);
 
   const handleDeactivate = (booking: Booking) => {
-    // For now, this is just a placeholder. The actual deactivation logic
-    // will be implemented when we connect this to the API
-    console.log("Deactivate booking:", booking.id);
-    // In a real implementation, we would set the status to 'inactive' or similar
-  };
-
-  const handleDelete = (booking: Booking) => {
-    // For superadmin only - placeholder for delete functionality
-    console.log("Delete booking:", booking.id);
+    if (onArchive) {
+      onArchive(booking);
+    }
   };
 
   return (
@@ -82,23 +78,21 @@ export const DesktopBookingsTable: React.FC<DesktopBookingsTableProps> = ({
                     </Button>
                   )}
                   
-                  {isDeactivateMode ? (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeactivate(booking)}
-                    >
-                      <XCircle className="h-4 w-4 mr-1" /> Deactivate
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(booking)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" /> Delete
-                    </Button>
-                  )}
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDeactivate(booking)}
+                  >
+                    {user?.role === 'superadmin' ? (
+                      <>
+                        <Archive className="h-4 w-4 mr-1" /> Archive
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 mr-1" /> Deactivate
+                      </>
+                    )}
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>

@@ -9,12 +9,14 @@ import { useAuth } from "@/context/AuthContext";
 interface BookingsTableProps {
   filteredBookings: Booking[];
   handleEditClick: (booking: Booking) => void;
+  handleArchive?: (booking: Booking) => void;
   loading: boolean;
 }
 
 const BookingsTable: React.FC<BookingsTableProps> = ({
   filteredBookings,
   handleEditClick,
+  handleArchive,
   loading
 }) => {
   const isMobile = useIsMobile();
@@ -45,6 +47,7 @@ const BookingsTable: React.FC<BookingsTableProps> = ({
             booking={booking}
             handleEditClick={handleEditClick}
             isDeactivateMode={isDeactivateMode}
+            onArchive={handleArchive}
           />
         ))}
       </div>
@@ -57,6 +60,7 @@ const BookingsTable: React.FC<BookingsTableProps> = ({
       bookings={filteredBookings} 
       handleEditClick={handleEditClick}
       isDeactivateMode={isDeactivateMode}
+      onArchive={handleArchive}
     />
   );
 };

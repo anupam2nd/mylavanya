@@ -1,7 +1,8 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, XCircle } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 interface RecordActionsProps {
   recordId: number;
@@ -10,6 +11,9 @@ interface RecordActionsProps {
 }
 
 const RecordActions: React.FC<RecordActionsProps> = ({ recordId, onEdit, onDelete }) => {
+  const { user } = useAuth();
+  const isSuperadmin = user?.role === 'superadmin';
+  
   return (
     <div className="text-right space-x-2">
       <Button 
@@ -24,7 +28,15 @@ const RecordActions: React.FC<RecordActionsProps> = ({ recordId, onEdit, onDelet
         size="sm" 
         onClick={() => onDelete(recordId)}
       >
-        <Trash2 className="h-4 w-4 mr-1" /> Delete
+        {isSuperadmin ? (
+          <>
+            <Trash2 className="h-4 w-4 mr-1" /> Delete
+          </>
+        ) : (
+          <>
+            <XCircle className="h-4 w-4 mr-1" /> Deactivate
+          </>
+        )}
       </Button>
     </div>
   );

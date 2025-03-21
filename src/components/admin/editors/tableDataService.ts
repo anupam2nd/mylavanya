@@ -53,3 +53,29 @@ export const insertRecord = async (tableName: TableName, submissionData: any) =>
     throw insertError;
   }
 };
+
+// Add archive function for BookMST
+export const archiveRecord = async (tableName: TableName, recordId: number) => {
+  try {
+    // For BookMST, set Status to 'archived'
+    if (tableName === 'BookMST') {
+      const { error } = await supabase
+        .from(tableName)
+        .update({ Status: 'archived' })
+        .eq('id', recordId);
+          
+      if (error) throw error;
+    } else {
+      // For other tables, deactivate them by setting active to false if column exists
+      const { error } = await supabase
+        .from(tableName)
+        .update({ active: false })
+        .eq('id', recordId);
+          
+      if (error) throw error;
+    }
+  } catch (archiveError) {
+    console.error('Archive/Deactivate failed:', archiveError);
+    throw archiveError;
+  }
+};

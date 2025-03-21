@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -9,8 +10,12 @@ import { useBookings } from "@/hooks/useBookings";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
 import { useBookingFilters } from "@/hooks/useBookingFilters";
 import { useBookingEdit } from "@/hooks/useBookingEdit";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Booking } from "@/hooks/useBookings";
 
 const AdminBookings = () => {
+  const { toast } = useToast();
   const { bookings, setBookings, loading } = useBookings();
   const { statusOptions } = useStatusOptions();
   const {
@@ -25,6 +30,8 @@ const AdminBookings = () => {
     setSearchQuery,
     showDateFilter,
     setShowDateFilter,
+    dateFilterType,
+    setDateFilterType,
     clearFilters
   } = useBookingFilters(bookings);
 
@@ -35,9 +42,39 @@ const AdminBookings = () => {
     handleEditClick,
     handleSaveChanges
   } = useBookingEdit(bookings, setBookings);
+  
+  const handleArchive = async (booking: Booking) => {
+    try {
+      const { error } = await supabase
+        .from('BookMST')
+        .update({ Status: 'archived' })
+        .eq('id', booking.id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setBookings(bookings.map(b => 
+        b.id === booking.id 
+          ? { ...b, Status: 'archived' } 
+          : b
+      ));
+      
+      toast({
+        title: "Booking archived",
+        description: "The booking has been archived successfully",
+      });
+    } catch (error) {
+      console.error('Error archiving booking:', error);
+      toast({
+        title: "Archive failed",
+        description: "There was a problem archiving the booking",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
-    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+    <ProtectedRoute allowedRoles={["admin", "superadmin", "user"]}>
       <DashboardLayout title="Manage Bookings">
         <Card>
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
@@ -55,12 +92,15 @@ const AdminBookings = () => {
               statusOptions={statusOptions}
               showDateFilter={showDateFilter}
               setShowDateFilter={setShowDateFilter}
+              dateFilterType={dateFilterType}
+              setDateFilterType={setDateFilterType}
             />
           </CardHeader>
           <CardContent>
             <BookingsTable
               filteredBookings={filteredBookings}
               handleEditClick={handleEditClick}
+              handleArchive={handleArchive}
               loading={loading}
             />
           </CardContent>
