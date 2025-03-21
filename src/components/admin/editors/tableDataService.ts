@@ -4,10 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 // Define valid table names explicitly to avoid recursive type issues
 export type TableName = "BookMST" | "PriceMST" | "statusmst" | "UserMST";
 
-// Use Record<string, any> for a generic table record type
+// Use simple Record type for table records to avoid deep type instantiation
 export type TableRecord = Record<string, any>;
 
-// Simplify the return type to avoid excessive type instantiation
 export const fetchRecordById = async (
   tableName: TableName, 
   recordId: number

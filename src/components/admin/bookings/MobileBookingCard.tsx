@@ -14,22 +14,26 @@ interface MobileBookingCardProps {
   booking: Booking;
   handleEditClick: (booking: Booking) => void;
   isDeactivateMode: boolean;
+  onArchive?: (booking: Booking) => void;
 }
 
 export const MobileBookingCard: React.FC<MobileBookingCardProps> = ({ 
   booking, 
   handleEditClick,
-  isDeactivateMode
+  isDeactivateMode,
+  onArchive
 }) => {
   const [expanded, setExpanded] = useState(false);
   const { user } = useAuth();
   const canEdit = user && ['user', 'admin', 'superadmin'].includes(user.role);
 
   const handleDeactivate = (booking: Booking) => {
-    // For now, this is just a placeholder. The actual deactivation logic
-    // will be implemented when we connect this to the API
-    console.log("Deactivate booking:", booking.id);
-    // In a real implementation, we would set the status to 'inactive' or similar
+    if (onArchive) {
+      onArchive(booking);
+    } else {
+      // Fallback behavior if onArchive is not provided
+      console.log("Deactivate booking:", booking.id);
+    }
   };
 
   const handleDelete = (booking: Booking) => {

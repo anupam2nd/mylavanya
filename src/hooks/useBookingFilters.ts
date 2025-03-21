@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { isAfter, isBefore, startOfDay, endOfDay, parseISO } from "date-fns";
 import { Booking } from "./useBookings";
@@ -17,15 +16,17 @@ export const useBookingFilters = (bookings: Booking[]) => {
     
     if (startDate && endDate) {
       result = result.filter(booking => {
-        const dateField = dateFilterType === 'booking_date' 
-          ? booking.Booking_date 
-          : booking.created_at;
+        let dateField: string | null = null;
+        
+        if (dateFilterType === 'booking_date') {
+          dateField = booking.Booking_date;
+        } else if (dateFilterType === 'created_at' && 'created_at' in booking) {
+          dateField = booking.created_at as string;
+        }
         
         if (!dateField) return true;
         
-        const bookingDate = typeof dateField === 'string' 
-          ? parseISO(dateField) 
-          : new Date(dateField);
+        const bookingDate = parseISO(dateField);
         
         return (
           isAfter(bookingDate, startOfDay(startDate)) && 

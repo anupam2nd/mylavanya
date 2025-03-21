@@ -17,6 +17,7 @@ export const editBookingFormSchema = z.object({
   phone: z.string().optional(),
   purpose: z.string().optional(),
   price: z.number().optional(),
+  created_at: z.string().optional(),
 });
 
 export type EditBookingFormValues = z.infer<typeof editBookingFormSchema>;
