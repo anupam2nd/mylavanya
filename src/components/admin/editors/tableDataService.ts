@@ -1,16 +1,14 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// Define valid table names explicitly to avoid recursive type issues
+// Define valid table names explicitly
 export type TableName = "BookMST" | "PriceMST" | "statusmst" | "UserMST";
 
-// Use simple Record type for table records to avoid deep type instantiation
-export type TableRecord = Record<string, any>;
-
+// Simplified fetch function that avoids complex type instantiation
 export const fetchRecordById = async (
   tableName: TableName, 
   recordId: number
-): Promise<TableRecord | null> => {
+): Promise<any> => {
   try {
     const { data, error } = await supabase
       .from(tableName)
@@ -26,7 +24,7 @@ export const fetchRecordById = async (
   }
 };
 
-export const updateRecord = async (tableName: TableName, recordId: number, submissionData: any) => {
+export const updateRecord = async (tableName: TableName, recordId: number, submissionData: any): Promise<void> => {
   try {
     const { error } = await supabase
       .from(tableName)
@@ -40,7 +38,7 @@ export const updateRecord = async (tableName: TableName, recordId: number, submi
   }
 };
 
-export const insertRecord = async (tableName: TableName, submissionData: any) => {
+export const insertRecord = async (tableName: TableName, submissionData: any): Promise<void> => {
   try {
     const { error } = await supabase
       .from(tableName)
@@ -54,7 +52,7 @@ export const insertRecord = async (tableName: TableName, submissionData: any) =>
 };
 
 // Add archive function for BookMST
-export const archiveRecord = async (tableName: TableName, recordId: number) => {
+export const archiveRecord = async (tableName: TableName, recordId: number): Promise<void> => {
   try {
     // For BookMST, set Status to 'archived'
     if (tableName === 'BookMST') {
