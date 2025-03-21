@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Define valid table names explicitly
 export type TableName = "BookMST" | "PriceMST" | "statusmst" | "UserMST";
 
-// Simplified fetch function that avoids complex type instantiation
+// Simplified fetch function that returns any type
 export const fetchRecordById = async (
   tableName: TableName, 
   recordId: number
@@ -24,7 +24,11 @@ export const fetchRecordById = async (
   }
 };
 
-export const updateRecord = async (tableName: TableName, recordId: number, submissionData: any): Promise<void> => {
+export const updateRecord = async (
+  tableName: TableName, 
+  recordId: number, 
+  submissionData: any
+): Promise<void> => {
   try {
     const { error } = await supabase
       .from(tableName)
@@ -38,7 +42,10 @@ export const updateRecord = async (tableName: TableName, recordId: number, submi
   }
 };
 
-export const insertRecord = async (tableName: TableName, submissionData: any): Promise<void> => {
+export const insertRecord = async (
+  tableName: TableName, 
+  submissionData: any
+): Promise<void> => {
   try {
     const { error } = await supabase
       .from(tableName)
@@ -52,7 +59,10 @@ export const insertRecord = async (tableName: TableName, submissionData: any): P
 };
 
 // Add archive function for BookMST
-export const archiveRecord = async (tableName: TableName, recordId: number): Promise<void> => {
+export const archiveRecord = async (
+  tableName: TableName, 
+  recordId: number
+): Promise<void> => {
   try {
     // For BookMST, set Status to 'archived'
     if (tableName === 'BookMST') {
