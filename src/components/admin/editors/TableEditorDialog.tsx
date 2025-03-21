@@ -19,7 +19,7 @@ import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import { FormFieldInput } from "./FormFields";
 import { createDynamicSchema } from "./schemaUtils";
-import { fetchRecordById, updateRecord, insertRecord, TableName, TableRecord } from "./tableDataService";
+import { fetchRecordById, updateRecord, insertRecord, TableName } from "./tableDataService";
 import { TableEditorProps } from "./types";
 import { z } from "zod";
 
