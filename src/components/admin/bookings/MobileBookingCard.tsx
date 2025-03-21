@@ -1,157 +1,81 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { format } from "date-fns";
-import { Edit, ChevronDown, ChevronUp, Trash2, XCircle } from "lucide-react";
+import { Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Booking } from "@/hooks/useBookings";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { BookingDrawerContent } from "./BookingDrawerContent";
-import { useAuth } from "@/context/AuthContext";
 
 interface MobileBookingCardProps {
   booking: Booking;
   handleEditClick: (booking: Booking) => void;
-  isDeactivateMode: boolean;
-  onArchive?: (booking: Booking) => void;
 }
 
-export const MobileBookingCard: React.FC<MobileBookingCardProps> = ({ 
-  booking, 
+export const MobileBookingCard: React.FC<MobileBookingCardProps> = ({
+  booking,
   handleEditClick,
-  isDeactivateMode,
-  onArchive
 }) => {
-  const [expanded, setExpanded] = useState(false);
-  const { user } = useAuth();
-  const canEdit = user && ['user', 'admin', 'superadmin'].includes(user.role);
-
-  const handleDeactivate = (booking: Booking) => {
-    if (onArchive) {
-      onArchive(booking);
-    } else {
-      // Fallback behavior if onArchive is not provided
-      console.log("Deactivate booking:", booking.id);
-    }
-  };
-
-  const handleDelete = (booking: Booking) => {
-    // For superadmin only - placeholder for delete functionality
-    console.log("Delete booking:", booking.id);
-  };
-
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-0">
-        <div className="flex justify-between items-center p-4 border-b">
-          <div className="flex flex-col">
-            <div className="flex items-center space-x-2">
-              <span className="font-medium">{booking.Booking_NO}</span>
-              <StatusBadge status={booking.Status || 'pending'} />
-            </div>
-            <span className="text-sm text-muted-foreground">
-              {booking.name}
-            </span>
-          </div>
-          <div className="text-right">
-            <div className="text-lg font-semibold">₹{booking.price}</div>
-            <div className="text-xs text-muted-foreground">
-              {booking.Booking_date ? format(new Date(booking.Booking_date), 'MMM dd, yyyy') : '—'}
-            </div>
-          </div>
+    <div 
+      key={booking.id} 
+      className="bg-card rounded-lg shadow-sm border p-4 space-y-3"
+    >
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="font-medium text-sm">{booking.Booking_NO}</p>
+          <h4 className="font-medium">{booking.name}</h4>
+          <p className="text-xs text-muted-foreground">{booking.email}</p>
         </div>
+        <StatusBadge status={booking.Status || 'pending'} />
+      </div>
+      
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <div>
+          <p className="text-muted-foreground text-xs">Date</p>
+          <p>{booking.Booking_date ? format(new Date(booking.Booking_date), 'MMM dd, yyyy') : 'N/A'}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground text-xs">Time</p>
+          <p>{booking.booking_time ? booking.booking_time.substring(0, 5) : 'N/A'}</p>
+        </div>
+        <div className="col-span-2">
+          <p className="text-muted-foreground text-xs">Service</p>
+          <p>{booking.Purpose}</p>
+        </div>
+      </div>
 
-        {expanded && (
-          <div className="p-4 border-b space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <p className="text-muted-foreground text-xs">Service</p>
-                <p className="text-sm">{booking.Purpose}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Time</p>
-                <p className="text-sm">
-                  {booking.booking_time ? booking.booking_time.substring(0, 5) : '—'}
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Customer</p>
-                <p className="text-sm">{booking.name}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Phone</p>
-                <p className="text-sm">{booking.Phone_no}</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </CardContent>
-      <CardFooter className="flex justify-between py-2 px-4 bg-gray-50">
-        <Button
-          variant="ghost"
+      <div className="flex justify-between items-center pt-2">
+        <Drawer>
+          <DrawerTrigger asChild>
+            <Button variant="ghost" size="sm" className="text-xs h-8 px-2">
+              View Details
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>Booking Details</DrawerTitle>
+            </DrawerHeader>
+            <BookingDrawerContent booking={booking} handleEditClick={handleEditClick} />
+          </DrawerContent>
+        </Drawer>
+        
+        <Button 
+          variant="outline" 
           size="sm"
-          onClick={() => setExpanded(!expanded)}
+          className="h-8" 
+          onClick={() => handleEditClick(booking)}
         >
-          {expanded ? (
-            <>
-              <ChevronUp className="h-4 w-4 mr-1" /> Less
-            </>
-          ) : (
-            <>
-              <ChevronDown className="h-4 w-4 mr-1" /> More
-            </>
-          )}
+          <Edit className="h-4 w-4 mr-1" /> Edit
         </Button>
-        <div className="flex space-x-2">
-          <Drawer>
-            <DrawerTrigger asChild>
-              <Button variant="outline" size="sm">
-                View
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent>
-              <div className="max-w-md mx-auto">
-                <div className="p-4 border-b">
-                  <h2 className="text-lg font-semibold">Booking Details</h2>
-                </div>
-                <BookingDrawerContent
-                  booking={booking}
-                  handleEditClick={handleEditClick}
-                />
-              </div>
-            </DrawerContent>
-          </Drawer>
-
-          {canEdit && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleEditClick(booking)}
-            >
-              <Edit className="h-4 w-4 mr-1" /> Edit
-            </Button>
-          )}
-
-          {isDeactivateMode ? (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => handleDeactivate(booking)}
-            >
-              <XCircle className="h-4 w-4 mr-1" /> Deactivate
-            </Button>
-          ) : (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => handleDelete(booking)}
-            >
-              <Trash2 className="h-4 w-4 mr-1" /> Delete
-            </Button>
-          )}
-        </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 };

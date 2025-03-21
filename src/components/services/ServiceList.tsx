@@ -19,7 +19,6 @@ interface Service {
   Description: string | null;
   created_at?: string;
   Services: string;
-  active: boolean;
 }
 
 const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => {
@@ -39,10 +38,9 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
         // Create a query to the PriceMST table
         let query = supabase
           .from('PriceMST')
-          .select('*') // Select all columns to make sure we get everything
-          .eq('active', true); // Only fetch active services
+          .select('*'); // Select all columns to make sure we get everything
 
-        console.log('query', query);
+          console.log('query',query)
         // Apply category filter if provided and relevant column exists
         if (categoryFilter && categoryFilter !== 'all') {
           // This is a placeholder - if you have a category column in your table,

@@ -19,12 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 
 interface BookingFiltersProps {
   searchQuery: string;
@@ -39,8 +33,6 @@ interface BookingFiltersProps {
   statusOptions: { status_code: string; status_name: string }[];
   showDateFilter: boolean;
   setShowDateFilter: (show: boolean) => void;
-  dateFilterType: 'booking_date' | 'created_at';
-  setDateFilterType: (type: 'booking_date' | 'created_at') => void;
 }
 
 const BookingFilters: React.FC<BookingFiltersProps> = ({
@@ -56,8 +48,6 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
   statusOptions,
   showDateFilter,
   setShowDateFilter,
-  dateFilterType,
-  setDateFilterType,
 }) => {
   return (
     <div className="flex items-center space-x-2">
@@ -79,131 +69,63 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
         </PopoverTrigger>
         <PopoverContent className="w-80" align="end">
           <div className="grid gap-4">
-            <Tabs defaultValue="booking_date" onValueChange={(value) => setDateFilterType(value as 'booking_date' | 'created_at')}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="booking_date">Booking Date</TabsTrigger>
-                <TabsTrigger value="created_at">Created Date</TabsTrigger>
-              </TabsList>
-              <TabsContent value="booking_date" className="space-y-4">
-                <div className="space-y-2">
-                  <h4 className="font-medium leading-none">Booking Date Range</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex flex-col space-y-1">
-                      <Label htmlFor="start-date">Start Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            id="start-date"
-                            variant={"outline"}
-                            className={cn(
-                              "justify-start text-left font-normal",
-                              !startDate && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {startDate ? format(startDate, "MMM dd, yyyy") : <span>Pick date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={startDate}
-                            onSelect={setStartDate}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div className="flex flex-col space-y-1">
-                      <Label htmlFor="end-date">End Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            id="end-date"
-                            variant={"outline"}
-                            className={cn(
-                              "justify-start text-left font-normal",
-                              !endDate && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {endDate ? format(endDate, "MMM dd, yyyy") : <span>Pick date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={endDate}
-                            onSelect={setEndDate}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
+            <div className="space-y-2">
+              <h4 className="font-medium leading-none">Date Range</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col space-y-1">
+                  <Label htmlFor="start-date">Start Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="start-date"
+                        variant={"outline"}
+                        className={cn(
+                          "justify-start text-left font-normal",
+                          !startDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {startDate ? format(startDate, "MMM dd, yyyy") : <span>Pick date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={startDate}
+                        onSelect={setStartDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
-              </TabsContent>
-              <TabsContent value="created_at" className="space-y-4">
-                <div className="space-y-2">
-                  <h4 className="font-medium leading-none">Created Date Range</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex flex-col space-y-1">
-                      <Label htmlFor="start-date">Start Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            id="start-date"
-                            variant={"outline"}
-                            className={cn(
-                              "justify-start text-left font-normal",
-                              !startDate && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {startDate ? format(startDate, "MMM dd, yyyy") : <span>Pick date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={startDate}
-                            onSelect={setStartDate}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div className="flex flex-col space-y-1">
-                      <Label htmlFor="end-date">End Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            id="end-date"
-                            variant={"outline"}
-                            className={cn(
-                              "justify-start text-left font-normal",
-                              !endDate && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {endDate ? format(endDate, "MMM dd, yyyy") : <span>Pick date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={endDate}
-                            onSelect={setEndDate}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
+                <div className="flex flex-col space-y-1">
+                  <Label htmlFor="end-date">End Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="end-date"
+                        variant={"outline"}
+                        className={cn(
+                          "justify-start text-left font-normal",
+                          !endDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {endDate ? format(endDate, "MMM dd, yyyy") : <span>Pick date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={endDate}
+                        onSelect={setEndDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
-              </TabsContent>
-            </Tabs>
-            
+              </div>
+            </div>
             <div className="space-y-2">
               <h4 className="font-medium leading-none">Status</h4>
               <Select

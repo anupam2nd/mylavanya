@@ -5,26 +5,75 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import UsersTable from "@/components/admin/users/UsersTable";
-import UserFormDialog from "@/components/admin/users/UserFormDialog";
-import DeleteUserDialog from "@/components/admin/users/DeleteUserDialog";
-import { User } from "@/components/admin/users/types";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Edit, Plus, Trash2, UserCog } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+interface User {
+  id: number;
+  Username: string | null;
+  FirstName: string | null;
+  LastName: string | null;
+  role: string | null;
+}
 
 const AdminUsers = () => {
   const { toast } = useToast();
-  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
-  const [currentUserData, setCurrentUserData] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   
-  const isSuperAdmin = currentUser?.role === 'superadmin';
+  // Form state
+  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState("");
+  const [password, setPassword] = useState("");
+  
+  const roleOptions = [
+    { value: "user", label: "User" },
+    { value: "admin", label: "Admin" },
+    { value: "superadmin", label: "Super Admin" }
+  ];
 
   // Fetch users
   useEffect(() => {
@@ -55,13 +104,23 @@ const AdminUsers = () => {
 
   const handleAddNew = () => {
     setIsNewUser(true);
-    setCurrentUserData(null);
+    setCurrentUser(null);
+    setUsername("");
+    setFirstName("");
+    setLastName("");
+    setRole("user");
+    setPassword("");
     setOpenDialog(true);
   };
 
   const handleEdit = (user: User) => {
     setIsNewUser(false);
-    setCurrentUserData(user);
+    setCurrentUser(user);
+    setUsername(user.Username || "");
+    setFirstName(user.FirstName || "");
+    setLastName(user.LastName || "");
+    setRole(user.role || "user");
+    setPassword(""); // Don't populate password for existing users
     setOpenDialog(true);
   };
 
@@ -97,11 +156,74 @@ const AdminUsers = () => {
     }
   };
 
-  const handleUserSaved = (updatedUser: User) => {
-    if (isNewUser) {
-      setUsers([...users, updatedUser]);
-    } else {
-      setUsers(users.map(user => user.id === updatedUser.id ? updatedUser : user));
+  const handleSave = async () => {
+    try {
+      if (!username) {
+        throw new Error("Username is required");
+      }
+
+      if (isNewUser && !password) {
+        throw new Error("Password is required for new users");
+      }
+
+      const userData: any = {
+        Username: username,
+        FirstName: firstName || null,
+        LastName: lastName || null,
+        role: role || "user"
+      };
+
+      // Only include password for new users or if it was changed
+      if (password) {
+        userData.password = password;
+      }
+
+      if (isNewUser) {
+        // Add new user
+        const { data, error } = await supabase
+          .from('UserMST')
+          .insert([userData])
+          .select();
+
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          setUsers([...users, data[0]]);
+        }
+        
+        toast({
+          title: "User added",
+          description: "New user has been successfully added",
+        });
+      } else if (currentUser) {
+        // Update existing user
+        const { error } = await supabase
+          .from('UserMST')
+          .update(userData)
+          .eq('id', currentUser.id);
+
+        if (error) throw error;
+
+        setUsers(users.map(user => 
+          user.id === currentUser.id 
+            ? { ...user, ...userData } 
+            : user
+        ));
+        
+        toast({
+          title: "User updated",
+          description: "User has been successfully updated",
+        });
+      }
+
+      setOpenDialog(false);
+    } catch (error) {
+      console.error('Error saving user:', error);
+      toast({
+        title: "Save failed",
+        description: error instanceof Error ? error.message : "There was a problem saving the user",
+        variant: "destructive"
+      });
     }
   };
 
@@ -123,33 +245,161 @@ const AdminUsers = () => {
                 No users available. Add a new user to get started.
               </p>
             ) : (
-              <UsersTable 
-                users={users}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onUsersChange={setUsers}
-                isSuperAdmin={isSuperAdmin}
-              />
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Username</TableHead>
+                      <TableHead>First Name</TableHead>
+                      <TableHead>Last Name</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">{user.Username}</TableCell>
+                        <TableCell>{user.FirstName}</TableCell>
+                        <TableCell>{user.LastName}</TableCell>
+                        <TableCell>
+                          <span className={`px-3 py-1 text-xs font-medium rounded-full 
+                            ${user.role === 'superadmin' ? 'bg-purple-100 text-purple-800' : 
+                              user.role === 'admin' ? 'bg-blue-100 text-blue-800' : 
+                              'bg-green-100 text-green-800'}`}>
+                            {user.role || 'user'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleEdit(user)}
+                          >
+                            <Edit className="h-4 w-4 mr-1" /> Edit
+                          </Button>
+                          <Button 
+                            variant="destructive" 
+                            size="sm" 
+                            onClick={() => handleDelete(user)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" /> Delete
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>
 
         {/* User Form Dialog */}
-        <UserFormDialog
-          open={openDialog}
-          onOpenChange={setOpenDialog}
-          currentUserData={currentUserData}
-          isNewUser={isNewUser}
-          onUserSaved={handleUserSaved}
-        />
+        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>{isNewUser ? "Add New User" : "Edit User"}</DialogTitle>
+              <DialogDescription>
+                {isNewUser 
+                  ? "Add a new user to the system." 
+                  : "Make changes to the existing user."}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="username" className="text-right">
+                  Username
+                </Label>
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="first-name" className="text-right">
+                  First Name
+                </Label>
+                <Input
+                  id="first-name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="last-name" className="text-right">
+                  Last Name
+                </Label>
+                <Input
+                  id="last-name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="role" className="text-right">
+                  Role
+                </Label>
+                <Select
+                  value={role}
+                  onValueChange={setRole}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roleOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="password" className="text-right">
+                  {isNewUser ? "Password" : "New Password"}
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="col-span-3"
+                  placeholder={isNewUser ? "Required" : "Leave blank to keep current"}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" onClick={handleSave}>
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Delete Confirmation Dialog */}
-        <DeleteUserDialog
-          open={openDeleteDialog}
-          onOpenChange={setOpenDeleteDialog}
-          onConfirm={confirmDelete}
-          user={userToDelete}
-        />
+        <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the 
+                user and all related data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DashboardLayout>
     </ProtectedRoute>
   );

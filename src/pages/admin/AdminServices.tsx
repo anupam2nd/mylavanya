@@ -23,9 +23,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit, Plus, Trash2, Power } from "lucide-react";
+import { Edit, Plus, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,7 +37,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 
 interface Service {
   prod_id: number;
@@ -44,7 +44,6 @@ interface Service {
   ProductName: string | null;
   Description: string | null;
   Price: number;
-  active?: boolean;
 }
 
 const AdminServices = () => {
@@ -62,9 +61,6 @@ const AdminServices = () => {
   const [productName, setProductName] = useState("");
   const [serviceDescription, setServiceDescription] = useState("");
   const [servicePrice, setServicePrice] = useState("");
-  const [serviceActive, setServiceActive] = useState(true);
-  const [openDeactivateDialog, setOpenDeactivateDialog] = useState(false);
-  const [serviceToToggle, setServiceToToggle] = useState<Service | null>(null);
 
   // Fetch services
   useEffect(() => {
@@ -100,7 +96,6 @@ const AdminServices = () => {
     setProductName("");
     setServiceDescription("");
     setServicePrice("");
-    setServiceActive(true);
     setOpenDialog(true);
   };
 
@@ -111,52 +106,12 @@ const AdminServices = () => {
     setProductName(service.ProductName || "");
     setServiceDescription(service.Description || "");
     setServicePrice(service.Price.toString());
-    setServiceActive(service.active !== false);
     setOpenDialog(true);
   };
 
   const handleDelete = (service: Service) => {
     setServiceToDelete(service);
     setOpenDeleteDialog(true);
-  };
-
-  const handleToggleActive = (service: Service) => {
-    setServiceToToggle(service);
-    setOpenDeactivateDialog(true);
-  };
-
-  const confirmToggleActive = async () => {
-    if (!serviceToToggle) return;
-
-    try {
-      const newActiveState = !(serviceToToggle.active !== false);
-      
-      const { error } = await supabase
-        .from('PriceMST')
-        .update({ active: newActiveState })
-        .eq('prod_id', serviceToToggle.prod_id);
-
-      if (error) throw error;
-
-      setServices(services.map(service => 
-        service.prod_id === serviceToToggle.prod_id 
-          ? { ...service, active: newActiveState } 
-          : service
-      ));
-      
-      toast({
-        title: newActiveState ? "Service activated" : "Service deactivated",
-        description: `The service has been successfully ${newActiveState ? 'activated' : 'deactivated'}`,
-      });
-      setOpenDeactivateDialog(false);
-    } catch (error) {
-      console.error('Error toggling service status:', error);
-      toast({
-        title: "Action failed",
-        description: "There was a problem updating the service status",
-        variant: "destructive"
-      });
-    }
   };
 
   const confirmDelete = async () => {
@@ -198,8 +153,7 @@ const AdminServices = () => {
         Services: serviceName,
         ProductName: productName || null,
         Description: serviceDescription || null,
-        Price: priceValue,
-        active: serviceActive
+        Price: priceValue
       };
 
       if (isNewService) {
@@ -277,26 +231,18 @@ const AdminServices = () => {
                       <TableHead>Product Name</TableHead>
                       <TableHead>Description</TableHead>
                       <TableHead>Price</TableHead>
-                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {services.map((service) => (
-                      <TableRow key={service.prod_id} className={service.active === false ? "opacity-70" : ""}>
+                      <TableRow key={service.prod_id}>
                         <TableCell className="font-medium">{service.Services}</TableCell>
                         <TableCell>{service.ProductName}</TableCell>
                         <TableCell className="max-w-md truncate">
                           {service.Description}
                         </TableCell>
                         <TableCell>₹{service.Price}</TableCell>
-                        <TableCell>
-                          {service.active === false ? (
-                            <Badge variant="destructive">Inactive</Badge>
-                          ) : (
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Active</Badge>
-                          )}
-                        </TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button 
                             variant="outline" 
@@ -304,14 +250,6 @@ const AdminServices = () => {
                             onClick={() => handleEdit(service)}
                           >
                             <Edit className="h-4 w-4 mr-1" /> Edit
-                          </Button>
-                          <Button 
-                            variant={service.active === false ? "outline" : "secondary"}
-                            size="sm" 
-                            onClick={() => handleToggleActive(service)}
-                          >
-                            <Power className="h-4 w-4 mr-1" /> 
-                            {service.active === false ? "Activate" : "Deactivate"}
                           </Button>
                           <Button 
                             variant="destructive" 
@@ -388,28 +326,6 @@ const AdminServices = () => {
                   rows={3}
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="service-active" className="text-right">
-                  Status
-                </Label>
-                <div className="col-span-3 flex items-center">
-                  <Button
-                    type="button"
-                    variant={serviceActive ? "default" : "outline"}
-                    className="mr-2"
-                    onClick={() => setServiceActive(true)}
-                  >
-                    Active
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={!serviceActive ? "default" : "outline"}
-                    onClick={() => setServiceActive(false)}
-                  >
-                    Inactive
-                  </Button>
-                </div>
-              </div>
             </div>
             <DialogFooter>
               <Button type="submit" onClick={handleSave}>
@@ -433,30 +349,6 @@ const AdminServices = () => {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
                 Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Deactivate Confirmation Dialog */}
-        <AlertDialog open={openDeactivateDialog} onOpenChange={setOpenDeactivateDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                {serviceToToggle?.active === false 
-                  ? "Activate Service" 
-                  : "Deactivate Service"}
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                {serviceToToggle?.active === false 
-                  ? "This will make the service visible to customers again. Are you sure?" 
-                  : "This will hide the service from customers. Existing bookings won't be affected. Are you sure?"}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmToggleActive}>
-                {serviceToToggle?.active === false ? "Activate" : "Deactivate"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

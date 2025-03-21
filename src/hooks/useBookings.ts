@@ -16,7 +16,6 @@ export interface Booking {
   price: number;
   Address?: string;
   Pincode?: number;
-  created_at?: string;
 }
 
 export const useBookings = () => {

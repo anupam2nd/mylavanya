@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { isAfter, isBefore, startOfDay, endOfDay, parseISO } from "date-fns";
+import { isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
 import { Booking } from "./useBookings";
 
 export const useBookingFilters = (bookings: Booking[]) => {
@@ -9,25 +10,13 @@ export const useBookingFilters = (bookings: Booking[]) => {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showDateFilter, setShowDateFilter] = useState(false);
-  const [dateFilterType, setDateFilterType] = useState<'booking_date' | 'created_at'>('booking_date');
 
   useEffect(() => {
     let result = [...bookings];
     
     if (startDate && endDate) {
       result = result.filter(booking => {
-        let dateField: string | null = null;
-        
-        if (dateFilterType === 'booking_date') {
-          dateField = booking.Booking_date;
-        } else if (dateFilterType === 'created_at' && 'created_at' in booking) {
-          dateField = booking.created_at as string;
-        }
-        
-        if (!dateField) return true;
-        
-        const bookingDate = parseISO(dateField);
-        
+        const bookingDate = new Date(booking.Booking_date);
         return (
           isAfter(bookingDate, startOfDay(startDate)) && 
           isBefore(bookingDate, endOfDay(endDate))
@@ -50,7 +39,7 @@ export const useBookingFilters = (bookings: Booking[]) => {
     }
     
     setFilteredBookings(result);
-  }, [bookings, startDate, endDate, statusFilter, searchQuery, dateFilterType]);
+  }, [bookings, startDate, endDate, statusFilter, searchQuery]);
 
   const clearFilters = () => {
     setStartDate(undefined);
@@ -72,8 +61,6 @@ export const useBookingFilters = (bookings: Booking[]) => {
     setSearchQuery,
     showDateFilter,
     setShowDateFilter,
-    dateFilterType,
-    setDateFilterType,
     clearFilters
   };
 };

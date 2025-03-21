@@ -65,7 +65,6 @@ export type Database = {
       }
       PriceMST: {
         Row: {
-          active: boolean
           created_at: string
           Description: string | null
           Price: number
@@ -74,7 +73,6 @@ export type Database = {
           Services: string
         }
         Insert: {
-          active?: boolean
           created_at?: string
           Description?: string | null
           Price: number
@@ -83,7 +81,6 @@ export type Database = {
           Services?: string
         }
         Update: {
-          active?: boolean
           created_at?: string
           Description?: string | null
           Price?: number
@@ -119,7 +116,6 @@ export type Database = {
       }
       UserMST: {
         Row: {
-          active: boolean
           FirstName: string | null
           id: number
           LastName: string | null
@@ -128,7 +124,6 @@ export type Database = {
           Username: string | null
         }
         Insert: {
-          active?: boolean
           FirstName?: string | null
           id?: number
           LastName?: string | null
@@ -137,7 +132,6 @@ export type Database = {
           Username?: string | null
         }
         Update: {
-          active?: boolean
           FirstName?: string | null
           id?: number
           LastName?: string | null
