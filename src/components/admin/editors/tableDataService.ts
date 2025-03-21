@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 // Define valid table names explicitly
 export type TableName = "BookMST" | "PriceMST" | "statusmst" | "UserMST";
 
-// Simplified fetch function that returns any type
 export const fetchRecordById = async (
   tableName: TableName, 
   recordId: number
@@ -27,7 +26,7 @@ export const fetchRecordById = async (
 export const updateRecord = async (
   tableName: TableName, 
   recordId: number, 
-  submissionData: any
+  submissionData: Record<string, unknown>
 ): Promise<void> => {
   try {
     const { error } = await supabase
@@ -44,7 +43,7 @@ export const updateRecord = async (
 
 export const insertRecord = async (
   tableName: TableName, 
-  submissionData: any
+  submissionData: Record<string, unknown>
 ): Promise<void> => {
   try {
     const { error } = await supabase
