@@ -9,7 +9,7 @@ export const useBookingFilters = (bookings: Booking[]) => {
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [filterDateType, setFilterDateType] = useState<FilterDateType>("booking");
@@ -33,7 +33,7 @@ export const useBookingFilters = (bookings: Booking[]) => {
       });
     }
     
-    if (statusFilter) {
+    if (statusFilter && statusFilter !== "all") {
       result = result.filter(booking => booking.Status === statusFilter);
     }
     
@@ -53,10 +53,9 @@ export const useBookingFilters = (bookings: Booking[]) => {
   const clearFilters = () => {
     setStartDate(undefined);
     setEndDate(undefined);
-    setStatusFilter("");
+    setStatusFilter("all");
     setSearchQuery("");
     setFilterDateType("booking");
-    setFilteredBookings(bookings);
   };
 
   return {

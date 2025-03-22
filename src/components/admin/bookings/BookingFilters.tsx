@@ -159,7 +159,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
                   {statusOptions && statusOptions.map((option) => (
                     <SelectItem key={option.status_code} value={option.status_code}>
                       {option.status_name}
