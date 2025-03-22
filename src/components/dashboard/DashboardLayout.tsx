@@ -78,11 +78,19 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
           )}
 
           {isSuperAdmin && (
-            <Link to="/admin/users"
-              className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-              <Users className="w-5 h-5 mr-3" />
-              <span>Users</span>
-            </Link>
+            <>
+              <Link to="/admin/users"
+                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <Users className="w-5 h-5 mr-3" />
+                <span>Users</span>
+              </Link>
+              
+              <Link to="/admin/status"
+                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <List className="w-5 h-5 mr-3" />
+                <span>Status Management</span>
+              </Link>
+            </>
           )}
 
           <div className="pt-4 mt-4 border-t border-gray-200">
