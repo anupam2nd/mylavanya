@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, User, ShoppingBag } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { cn } from "@/lib/utils";
 import AuthModal from "../auth/AuthModal";
@@ -72,15 +73,6 @@ export default function Navbar() {
           </nav>
           
           <div className="hidden md:flex items-center space-x-3">
-            <ButtonCustom 
-              variant="ghost" 
-              size="icon"
-              className="rounded-full"
-              aria-label="Shopping cart"
-            >
-              <ShoppingBag size={20} />
-            </ButtonCustom>
-            
             <NavTrackingButton />
             
             <ButtonCustom 
