@@ -12,6 +12,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Switch } from "@/components/ui/switch";
 
 const formSchema = z.object({
   status_code: z.string().min(1, "Status code is required"),
@@ -95,28 +96,34 @@ const StatusList = ({ statuses, onUpdate, isSuperAdmin = false }: StatusListProp
     if (!statusToDeactivate) return;
 
     try {
+      const newActiveState = !statusToDeactivate.active;
       const { error } = await supabase
         .from('statusmst')
-        .update({ active: false })
+        .update({ active: newActiveState })
         .eq('status_code', statusToDeactivate.status_code);
 
       if (error) throw error;
 
       toast({
-        title: "Status deactivated",
-        description: `Status "${statusToDeactivate.status_name}" has been deactivated`,
+        title: newActiveState ? "Status activated" : "Status deactivated",
+        description: `Status "${statusToDeactivate.status_name}" has been ${newActiveState ? "activated" : "deactivated"}`,
       });
       
       setIsDeactivateDialogOpen(false);
       onUpdate();
     } catch (error) {
-      console.error('Error deactivating status:', error);
+      console.error('Error updating status active state:', error);
       toast({
         title: "Error",
-        description: "Failed to deactivate the status",
+        description: "Failed to update the status",
         variant: "destructive",
       });
     }
+  };
+
+  const toggleStatus = async (status: StatusOption) => {
+    setStatusToDeactivate(status);
+    setIsDeactivateDialogOpen(true);
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -160,6 +167,7 @@ const StatusList = ({ statuses, onUpdate, isSuperAdmin = false }: StatusListProp
               <TableHead>Status Code</TableHead>
               <TableHead>Status Name</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -170,13 +178,20 @@ const StatusList = ({ statuses, onUpdate, isSuperAdmin = false }: StatusListProp
                 <TableCell>{status.status_name}</TableCell>
                 <TableCell>{status.description || "-"}</TableCell>
                 <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <Switch 
+                      checked={status.active} 
+                      onCheckedChange={() => toggleStatus(status)}
+                    />
+                    <span className={status.active ? "text-green-600" : "text-red-600"}>
+                      {status.active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
                   <div className="flex space-x-2">
                     <Button variant="outline" size="sm" onClick={() => handleEdit(status)}>
                       <Edit className="h-4 w-4" />
-                    </Button>
-                    
-                    <Button variant="outline" size="sm" onClick={() => handleDeactivate(status)}>
-                      <Power className="h-4 w-4" />
                     </Button>
                     
                     {isSuperAdmin && (
@@ -283,14 +298,16 @@ const StatusList = ({ statuses, onUpdate, isSuperAdmin = false }: StatusListProp
         </DialogContent>
       </Dialog>
 
-      {/* Deactivate Confirmation Dialog */}
+      {/* Activate/Deactivate Confirmation Dialog */}
       <Dialog open={isDeactivateDialogOpen} onOpenChange={setIsDeactivateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Deactivate</DialogTitle>
+            <DialogTitle>
+              {statusToDeactivate?.active ? "Confirm Deactivate" : "Confirm Activate"}
+            </DialogTitle>
           </DialogHeader>
           <p>
-            Are you sure you want to deactivate the status "{statusToDeactivate?.status_name}"?
+            Are you sure you want to {statusToDeactivate?.active ? "deactivate" : "activate"} the status "{statusToDeactivate?.status_name}"?
           </p>
           <DialogFooter>
             <Button 
@@ -304,7 +321,7 @@ const StatusList = ({ statuses, onUpdate, isSuperAdmin = false }: StatusListProp
               type="button" 
               onClick={confirmDeactivate}
             >
-              Deactivate
+              {statusToDeactivate?.active ? "Deactivate" : "Activate"}
             </Button>
           </DialogFooter>
         </DialogContent>
