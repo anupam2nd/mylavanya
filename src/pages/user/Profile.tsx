@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +29,7 @@ const Profile = () => {
       try {
         const { data, error } = await supabase
           .from('UserMST')
-          .select('FirstName, LastName, Username')
+          .select('FirstName, LastName, Username, PhoneNo')
           .eq('id', Number(user.id))
           .single();
           
@@ -42,7 +43,7 @@ const Profile = () => {
             ...prev,
             firstName: data.FirstName || "",
             lastName: data.LastName || "",
-            phone: data.Username || "" // Using Username field for phone as per current schema
+            phone: data.PhoneNo?.toString() || "" // Now using PhoneNo field
           }));
         }
       } catch (error) {
@@ -84,7 +85,8 @@ const Profile = () => {
           id: Number(user.id),
           FirstName: formData.firstName,
           LastName: formData.lastName,
-          Username: formData.phone // Using Username field for phone as per current schema
+          PhoneNo: formData.phone ? Number(formData.phone) : null, // Now using PhoneNo field instead of Username
+          Username: user.email // Keep email in Username field
         });
         
       if (error) throw error;

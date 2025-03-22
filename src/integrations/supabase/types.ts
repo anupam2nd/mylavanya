@@ -127,6 +127,7 @@ export type Database = {
           id: number
           LastName: string | null
           password: string | null
+          PhoneNo: number | null
           role: string | null
           Username: string | null
         }
@@ -136,6 +137,7 @@ export type Database = {
           id?: number
           LastName?: string | null
           password?: string | null
+          PhoneNo?: number | null
           role?: string | null
           Username?: string | null
         }
@@ -145,6 +147,7 @@ export type Database = {
           id?: number
           LastName?: string | null
           password?: string | null
+          PhoneNo?: number | null
           role?: string | null
           Username?: string | null
         }
