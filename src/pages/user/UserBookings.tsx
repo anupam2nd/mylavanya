@@ -45,18 +45,15 @@ const UserBookings = () => {
     clearFilters
   } = useBookingFilters(bookings);
 
-  // Fetch user bookings
+  // Fetch all bookings instead of just the user's bookings
   useEffect(() => {
     const fetchBookings = async () => {
-      if (!user?.email) return;
-
       try {
         setLoading(true);
-        console.log("Fetching bookings for user:", user.email);
+        console.log("Fetching all bookings for coordinator");
         const { data, error } = await supabase
           .from('BookMST')
           .select('*')
-          .eq('email', user.email)
           .order('Booking_date', { ascending: false });
 
         if (error) {
@@ -79,7 +76,7 @@ const UserBookings = () => {
     };
 
     fetchBookings();
-  }, [user, toast]);
+  }, [toast]);
 
   const handleEditClick = (booking: Booking) => {
     setEditBooking(booking);
@@ -106,7 +103,7 @@ const UserBookings = () => {
 
       toast({
         title: "Booking updated",
-        description: "Your booking has been successfully updated",
+        description: "The booking has been successfully updated",
       });
 
       setOpenDialog(false);
@@ -114,61 +111,42 @@ const UserBookings = () => {
       console.error('Error updating booking:', error);
       toast({
         title: "Update failed",
-        description: "There was a problem updating your booking",
+        description: "There was a problem updating the booking",
         variant: "destructive"
       });
     }
   };
 
-  // Render an empty state with a button to create a new booking
-  const EmptyState = () => (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="bg-slate-50 rounded-full p-4 mb-4">
-        <PlusCircle className="h-12 w-12 text-slate-300" />
-      </div>
-      <h3 className="text-xl font-semibold mb-2">No bookings yet</h3>
-      <p className="text-slate-500 mb-6 max-w-md">
-        You haven't made any bookings yet. Book a service to see your appointments here.
-      </p>
-      <Link to="/services">
-        <Button size="lg" className="gap-2">
-          <PlusCircle className="h-4 w-4" />
-          Book a Service
-        </Button>
-      </Link>
-    </div>
-  );
-
   return (
     <ProtectedRoute>
-      <DashboardLayout title="My Bookings">
+      <DashboardLayout title="Booking Management">
         <Card>
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
-            <CardTitle>Your Bookings</CardTitle>
-            {bookings.length > 0 && (
-              <BookingFilters
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                startDate={startDate}
-                setStartDate={setStartDate}
-                endDate={endDate}
-                setEndDate={setEndDate}
-                statusFilter={statusFilter}
-                setStatusFilter={setStatusFilter}
-                clearFilters={clearFilters}
-                statusOptions={statusOptions}
-                showDateFilter={showDateFilter}
-                setShowDateFilter={setShowDateFilter}
-                filterDateType={filterDateType}
-                setFilterDateType={setFilterDateType}
-              />
-            )}
+            <CardTitle>All Bookings</CardTitle>
+            <BookingFilters
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              startDate={startDate}
+              setStartDate={setStartDate}
+              endDate={endDate}
+              setEndDate={setEndDate}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              clearFilters={clearFilters}
+              statusOptions={statusOptions}
+              showDateFilter={showDateFilter}
+              setShowDateFilter={setShowDateFilter}
+              filterDateType={filterDateType}
+              setFilterDateType={setFilterDateType}
+            />
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="p-8 flex justify-center items-center">Loading...</div>
             ) : bookings.length === 0 ? (
-              <EmptyState />
+              <div className="p-8 text-center">
+                <p className="text-muted-foreground">No bookings found in the system.</p>
+              </div>
             ) : (
               <BookingsList 
                 bookings={filteredBookings} 
