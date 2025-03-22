@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -44,6 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ExportButton } from "@/components/ui/export-button";
 
 interface Service {
   prod_id: number;
@@ -68,19 +68,25 @@ const AdminServices = () => {
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const [serviceToDeactivate, setServiceToDeactivate] = useState<Service | null>(null);
   
-  // New filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("all");
   
   const isSuperAdmin = user?.role === 'superadmin';
   
-  // Form state
   const [serviceName, setServiceName] = useState("");
   const [productName, setProductName] = useState("");
   const [serviceDescription, setServiceDescription] = useState("");
   const [servicePrice, setServicePrice] = useState("");
 
-  // Fetch services
+  const serviceHeaders = {
+    prod_id: 'ID',
+    Services: 'Service Name',
+    ProductName: 'Product Name',
+    Description: 'Description',
+    Price: 'Price',
+    active: 'Status'
+  };
+
   useEffect(() => {
     const fetchServices = async () => {
       try {
@@ -108,11 +114,9 @@ const AdminServices = () => {
     fetchServices();
   }, [toast]);
 
-  // Filter services based on search query and active filter
   useEffect(() => {
     let result = [...services];
     
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -123,7 +127,6 @@ const AdminServices = () => {
       );
     }
     
-    // Filter by active status
     if (activeFilter !== "all") {
       const isActive = activeFilter === "active";
       result = result.filter(service => service.active === isActive);
@@ -244,7 +247,6 @@ const AdminServices = () => {
       };
 
       if (isNewService) {
-        // Add new service
         const { data, error } = await supabase
           .from('PriceMST')
           .insert([serviceData])
@@ -261,7 +263,6 @@ const AdminServices = () => {
           description: "New service has been successfully added",
         });
       } else if (currentService) {
-        // Update existing service
         const { error } = await supabase
           .from('PriceMST')
           .update(serviceData)
@@ -296,14 +297,21 @@ const AdminServices = () => {
     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
       <DashboardLayout title="Manage Services">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
             <CardTitle>Service Management</CardTitle>
-            <Button onClick={handleAddNew}>
-              <Plus className="mr-2 h-4 w-4" /> Add New Service
-            </Button>
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <ExportButton
+                data={filteredServices}
+                filename="services"
+                headers={serviceHeaders}
+                buttonText="Export Services"
+              />
+              <Button onClick={handleAddNew}>
+                <Plus className="mr-2 h-4 w-4" /> Add New Service
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            {/* Filter Controls */}
             <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -335,6 +343,10 @@ const AdminServices = () => {
                 <X className="mr-2 h-4 w-4" />
                 Clear Filters
               </Button>
+            </div>
+
+            <div className="mb-4 text-sm text-muted-foreground">
+              Showing {filteredServices.length} of {services.length} services
             </div>
 
             {loading ? (
@@ -410,7 +422,6 @@ const AdminServices = () => {
           </CardContent>
         </Card>
 
-        {/* Service Form Dialog */}
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
@@ -477,7 +488,6 @@ const AdminServices = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog - Only for Superadmins */}
         <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -496,7 +506,6 @@ const AdminServices = () => {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Deactivate Confirmation Dialog */}
         <AlertDialog open={openDeactivateDialog} onOpenChange={setOpenDeactivateDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>

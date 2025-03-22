@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -43,6 +42,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/context/AuthContext";
+import { ExportButton } from "@/components/ui/export-button";
 
 interface User {
   id: number;
@@ -67,14 +67,12 @@ const AdminUsers = () => {
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [userToDeactivate, setUserToDeactivate] = useState<User | null>(null);
   
-  // New filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [activeFilter, setActiveFilter] = useState<string>("all");
   
   const isSuperAdmin = user?.role === 'superadmin';
   
-  // Form state
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -87,7 +85,15 @@ const AdminUsers = () => {
     { value: "superadmin", label: "Super Admin" }
   ];
 
-  // Fetch users
+  const userHeaders = {
+    id: 'ID',
+    Username: 'Username',
+    FirstName: 'First Name',
+    LastName: 'Last Name',
+    role: 'Role',
+    active: 'Status'
+  };
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -115,11 +121,9 @@ const AdminUsers = () => {
     fetchUsers();
   }, [toast]);
 
-  // Filter users based on search query and filters
   useEffect(() => {
     let result = [...users];
     
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -130,12 +134,10 @@ const AdminUsers = () => {
       );
     }
     
-    // Filter by role
     if (roleFilter !== "all") {
       result = result.filter(user => user.role === roleFilter);
     }
     
-    // Filter by active status
     if (activeFilter !== "all") {
       const isActive = activeFilter === "active";
       result = result.filter(user => user.active === isActive);
@@ -260,13 +262,11 @@ const AdminUsers = () => {
         active: true
       };
 
-      // Only include password for new users or if it was changed
       if (password) {
         userData.password = password;
       }
 
       if (isNewUser) {
-        // Add new user
         const { data, error } = await supabase
           .from('UserMST')
           .insert([userData])
@@ -283,7 +283,6 @@ const AdminUsers = () => {
           description: "New user has been successfully added",
         });
       } else if (currentUser) {
-        // Update existing user
         const { error } = await supabase
           .from('UserMST')
           .update(userData)
@@ -318,14 +317,21 @@ const AdminUsers = () => {
     <ProtectedRoute allowedRoles={["superadmin"]}>
       <DashboardLayout title="User Management">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
             <CardTitle>User Management</CardTitle>
-            <Button onClick={handleAddNew}>
-              <Plus className="mr-2 h-4 w-4" /> Add New User
-            </Button>
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <ExportButton
+                data={filteredUsers}
+                filename="users"
+                headers={userHeaders}
+                buttonText="Export Users"
+              />
+              <Button onClick={handleAddNew}>
+                <Plus className="mr-2 h-4 w-4" /> Add New User
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            {/* Filter Controls */}
             <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -371,6 +377,10 @@ const AdminUsers = () => {
                 <X className="mr-2 h-4 w-4" />
                 Clear Filters
               </Button>
+            </div>
+
+            <div className="mb-4 text-sm text-muted-foreground">
+              Showing {filteredUsers.length} of {users.length} users
             </div>
 
             {loading ? (
@@ -451,7 +461,6 @@ const AdminUsers = () => {
           </CardContent>
         </Card>
 
-        {/* User Form Dialog */}
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
@@ -538,7 +547,6 @@ const AdminUsers = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog - Only for Superadmins */}
         <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -557,7 +565,6 @@ const AdminUsers = () => {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Deactivate Confirmation Dialog */}
         <AlertDialog open={openDeactivateDialog} onOpenChange={setOpenDeactivateDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
