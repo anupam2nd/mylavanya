@@ -14,10 +14,6 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-interface LoginFormProps {
-  onSwitchTab: () => void;
-}
-
 const passwordSchema = z.string()
   .min(8, "Password must be at least 8 characters")
   .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
@@ -33,7 +29,7 @@ const resetFormSchema = z.object({
   path: ["confirmPassword"]
 });
 
-export default function LoginForm({ onSwitchTab }: LoginFormProps) {
+export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const navigate = useNavigate();

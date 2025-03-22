@@ -22,7 +22,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         />
         
         <div className="p-6">
-          <LoginForm onSwitchTab={() => {}} />
+          <LoginForm />
         </div>
         
         <div className="p-6 pt-2 border-t">
