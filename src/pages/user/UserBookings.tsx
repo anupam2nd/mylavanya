@@ -49,13 +49,19 @@ const UserBookings = () => {
 
       try {
         setLoading(true);
+        console.log("Fetching bookings for user:", user.email);
         const { data, error } = await supabase
           .from('BookMST')
           .select('*')
           .eq('email', user.email)
           .order('Booking_date', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching bookings:', error);
+          throw error;
+        }
+        
+        console.log("Bookings fetched:", data?.length || 0);
         setBookings(data || []);
       } catch (error) {
         console.error('Error fetching bookings:', error);

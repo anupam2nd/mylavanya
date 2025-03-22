@@ -32,7 +32,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
     }
   }
 
-  // If authenticated and authorized, render the children
+  // If authenticated and authorized (or no specific roles required), render the children
   return <>{children}</>;
 };
 
