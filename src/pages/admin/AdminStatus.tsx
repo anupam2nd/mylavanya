@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import StatusList from "@/components/admin/status/StatusList";
@@ -13,6 +13,7 @@ const AdminStatus = () => {
   const { toast } = useToast();
   const [statuses, setStatuses] = useState<StatusOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const fetchStatuses = async () => {
     try {
@@ -44,24 +45,35 @@ const AdminStatus = () => {
   return (
     <ProtectedRoute allowedRoles={['superadmin']}>
       <DashboardLayout title="Status Management">
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>Status List</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="p-8 flex justify-center items-center">Loading...</div>
-              ) : (
-                <StatusList statuses={statuses} onUpdate={fetchStatuses} />
-              )}
-            </CardContent>
-          </Card>
-          
-          <div className="md:col-span-2">
-            <AddStatusForm onStatusAdded={fetchStatuses} />
-          </div>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+            <CardTitle>Status List</CardTitle>
+            <div>
+              <button 
+                onClick={() => setShowAddForm(!showAddForm)} 
+                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+              >
+                {showAddForm ? 'Hide Form' : 'Add New Status'}
+              </button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {showAddForm && (
+              <div className="mb-6 p-4 border rounded-md bg-gray-50">
+                <AddStatusForm onStatusAdded={() => {
+                  fetchStatuses();
+                  setShowAddForm(false);
+                }} />
+              </div>
+            )}
+            
+            {loading ? (
+              <div className="p-8 flex justify-center items-center">Loading...</div>
+            ) : (
+              <StatusList statuses={statuses} onUpdate={fetchStatuses} />
+            )}
+          </CardContent>
+        </Card>
       </DashboardLayout>
     </ProtectedRoute>
   );
