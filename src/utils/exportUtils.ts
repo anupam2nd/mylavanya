@@ -7,7 +7,7 @@
  */
 export const convertToCSV = <T extends Record<string, any>>(
   data: T[],
-  headers?: Record<keyof T, string>
+  headers?: Partial<Record<keyof T, string>>
 ): string => {
   if (data.length === 0) return '';
   
@@ -70,7 +70,7 @@ export const downloadFile = (
 export const exportToCSV = <T extends Record<string, any>>(
   data: T[],
   fileName: string,
-  headers?: Record<keyof T, string>
+  headers?: Partial<Record<keyof T, string>>
 ): void => {
   const csvContent = convertToCSV(data, headers);
   downloadFile(csvContent, fileName);

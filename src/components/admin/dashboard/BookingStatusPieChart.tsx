@@ -105,8 +105,8 @@ export const BookingStatusPieChart = ({
     return statusItem ? statusItem.bookings : [];
   }, [selectedStatus, statusData]);
   
-  // Export headers for the CSV - fixed to include only specific fields that exist in Booking
-  const bookingExportHeaders = {
+  // Export headers for the CSV - using Partial to indicate we're only including a subset of fields
+  const bookingExportHeaders: Partial<Record<keyof Booking, string>> = {
     Booking_NO: "Booking Number",
     name: "Customer Name",
     email: "Email",

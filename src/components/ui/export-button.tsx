@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 interface ExportButtonProps<T extends Record<string, any>> {
   data: T[];
   filename: string;
-  headers?: Record<keyof T, string>;
+  headers?: Partial<Record<keyof T, string>>;
   buttonText?: string;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
 }
