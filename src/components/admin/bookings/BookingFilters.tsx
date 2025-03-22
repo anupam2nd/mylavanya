@@ -1,10 +1,10 @@
 
 import React from "react";
-import { Search, Calendar as CalendarIcon } from "lucide-react";
+import { Search, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import {
@@ -108,16 +108,17 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                           !startDate && "text-muted-foreground"
                         )}
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        <Calendar className="mr-2 h-4 w-4" />
                         {startDate ? format(startDate, "MMM dd, yyyy") : <span>Pick date</span>}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                      <Calendar
+                      <CalendarComponent
                         mode="single"
                         selected={startDate}
                         onSelect={setStartDate}
                         initialFocus
+                        className="p-3 pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
@@ -134,16 +135,17 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                           !endDate && "text-muted-foreground"
                         )}
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        <Calendar className="mr-2 h-4 w-4" />
                         {endDate ? format(endDate, "MMM dd, yyyy") : <span>Pick date</span>}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                      <Calendar
+                      <CalendarComponent
                         mode="single"
                         selected={endDate}
                         onSelect={setEndDate}
                         initialFocus
+                        className="p-3 pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
