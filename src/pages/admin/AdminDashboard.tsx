@@ -101,7 +101,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Chart Filters */}
-        <div className="mt-6">
+        <div className="mt-6 mb-6">
           <ChartFilters
             startDate={startDate}
             setStartDate={setStartDate}
@@ -112,18 +112,20 @@ const AdminDashboard = () => {
           />
         </div>
 
-        {/* Main Dashboard Layout with proper spacing */}
-        <div className="space-y-6 mt-6">
-          {/* Monthly Bookings Chart with fixed height */}
-          <MonthlyBookingsChart 
-            bookings={bookings} 
-            loading={loading}
-            startDate={appliedStartDate}
-            endDate={appliedEndDate}
-          />
+        {/* Main Dashboard Layout with proper spacing and margins */}
+        <div className="flex flex-col space-y-10">
+          {/* Monthly Bookings Chart with reduced height and margin bottom */}
+          <div>
+            <MonthlyBookingsChart 
+              bookings={bookings} 
+              loading={loading}
+              startDate={appliedStartDate}
+              endDate={appliedEndDate}
+            />
+          </div>
 
           {/* Pie Charts in a grid with proper spacing */}
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+          <div className="grid gap-8 grid-cols-1 md:grid-cols-2">
             {/* Booking Status Pie Chart based on booking date */}
             <BookingStatusPieChart 
               bookings={bookings} 

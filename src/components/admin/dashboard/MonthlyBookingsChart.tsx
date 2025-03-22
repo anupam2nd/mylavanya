@@ -81,7 +81,7 @@ export const MonthlyBookingsChart = ({
           <CardTitle>Monthly Bookings</CardTitle>
           <CardDescription>Loading statistics...</CardDescription>
         </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center">
+        <CardContent className="h-[200px] flex items-center justify-center">
           <p className="text-muted-foreground">Loading chart data...</p>
         </CardContent>
       </Card>
@@ -103,8 +103,8 @@ export const MonthlyBookingsChart = ({
         />
       </CardHeader>
       <CardContent>
-        {/* Fixed height to prevent oversizing */}
-        <div className="h-[250px]">
+        {/* Reduced height to prevent overlapping */}
+        <div className="h-[200px]">
           <ChartContainer config={chartConfig}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -121,15 +121,25 @@ export const MonthlyBookingsChart = ({
                   dataKey="name" 
                   tick={{ fontSize: 12 }} // Smaller font size for x-axis labels
                   dy={8} // Adjust distance of labels from axis
+                  angle={-45} // Angle the labels to prevent overlap
+                  textAnchor="end" // Align angled text properly
                 />
                 <YAxis 
                   tick={{ fontSize: 12 }} // Smaller font size for y-axis labels
                 />
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '0.5rem',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                  formatter={(value) => [`${value} bookings`, 'Bookings']}
+                />
                 <Bar 
                   dataKey="count" 
                   name="Bookings" 
-                  fill="var(--color-bookings)" 
+                  fill="#8B5CF6" // Using a purple that matches the pie chart in the image
                   radius={[4, 4, 0, 0]} 
                 />
               </BarChart>
