@@ -1,35 +1,60 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBookings } from "@/hooks/useBookings";
-import BookingStatsPieChart from "@/components/admin/dashboard/BookingStatsPieChart"; 
+import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPieChart";
+import MonthlyBookingsChart from "@/components/admin/dashboard/MonthlyBookingsChart"; 
+import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-
-// Sample data for the dashboard
-const recentBookingsData = [
-  { name: "Jan", count: 12 },
-  { name: "Feb", count: 18 },
-  { name: "Mar", count: 24 },
-  { name: "Apr", count: 32 },
-  { name: "May", count: 28 },
-  { name: "Jun", count: 34 },
-];
-
-// Chart config for consistent styling - adding dark theme
-const chartConfig = {
-  bookings: { 
-    theme: { 
-      light: "#6366f1",
-      dark: "#818cf8"
-    } 
-  },
-};
+import { parseISO, subDays } from "date-fns";
 
 const AdminDashboard = () => {
   const { bookings, loading } = useBookings();
+  
+  // Initialize with last 30 days as default
+  const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
+  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+  
+  // Track if filters have been applied
+  const [filtersApplied, setFiltersApplied] = useState(false);
+  
+  // For displaying the filter state
+  const [appliedStartDate, setAppliedStartDate] = useState<Date | undefined>(startDate);
+  const [appliedEndDate, setAppliedEndDate] = useState<Date | undefined>(endDate);
+  
+  // Apply filters action
+  const applyFilters = () => {
+    setAppliedStartDate(startDate);
+    setAppliedEndDate(endDate);
+    setFiltersApplied(true);
+  };
+  
+  // Reset filters action
+  const resetFilters = () => {
+    const defaultStart = subDays(new Date(), 30);
+    const defaultEnd = new Date();
+    
+    setStartDate(defaultStart);
+    setEndDate(defaultEnd);
+    setAppliedStartDate(defaultStart);
+    setAppliedEndDate(defaultEnd);
+    setFiltersApplied(false);
+  };
+  
+  // Calculate recent bookings for the card
+  const recentBookings = useMemo(() => {
+    const thirtyDaysAgo = subDays(new Date(), 30);
+    return bookings.filter(booking => {
+      const date = booking.Booking_date ? parseISO(booking.Booking_date) : null;
+      return date && date >= thirtyDaysAgo;
+    }).length;
+  }, [bookings]);
+  
+  // Calculate awaiting confirmation bookings
+  const awaitingConfirmation = useMemo(() => {
+    return bookings.filter(booking => booking.Status === "P").length;
+  }, [bookings]);
 
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
@@ -52,15 +77,7 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {loading ? '...' : 
-                  bookings.filter(booking => {
-                    // Get bookings from the last 30 days
-                    const date = new Date(booking.Booking_date);
-                    const now = new Date();
-                    const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
-                    return date >= thirtyDaysAgo;
-                  }).length
-                }
+                {loading ? '...' : recentBookings}
               </div>
               <p className="text-xs text-muted-foreground">
                 Last 30 days
@@ -73,9 +90,7 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {loading ? '...' : 
-                  bookings.filter(booking => booking.Status === "P").length
-                }
+                {loading ? '...' : awaitingConfirmation}
               </div>
               <p className="text-xs text-muted-foreground">
                 Bookings requiring your action
@@ -84,40 +99,50 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        <div className="grid gap-6 mt-6 md:grid-cols-2">
-          {/* Booking Stats Pie Chart */}
-          <BookingStatsPieChart bookings={bookings} loading={loading} />
+        {/* Chart Filters */}
+        <div className="mt-6">
+          <ChartFilters
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
+            applyFilters={applyFilters}
+            resetFilters={resetFilters}
+          />
+        </div>
 
-          {/* Monthly Bookings Bar Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Monthly Bookings</CardTitle>
-              <CardDescription>Number of bookings per month</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ChartContainer config={chartConfig}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={recentBookingsData}
-                      margin={{
-                        top: 5,
-                        right: 30,
-                        left: 20,
-                        bottom: 5,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="var(--color-bookings)" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Monthly Bookings Chart */}
+        <div className="mt-2">
+          <MonthlyBookingsChart 
+            bookings={bookings} 
+            loading={loading}
+            startDate={appliedStartDate}
+            endDate={appliedEndDate}
+          />
+        </div>
+
+        <div className="grid gap-6 mt-6 md:grid-cols-2">
+          {/* Booking Status Pie Chart based on booking date */}
+          <BookingStatusPieChart 
+            bookings={bookings} 
+            loading={loading} 
+            startDate={appliedStartDate}
+            endDate={appliedEndDate}
+            title="Status by Booking Date"
+            description="Distribution based on when services are scheduled"
+            filterField="Booking_date"
+          />
+
+          {/* Booking Status Pie Chart based on creation date */}
+          <BookingStatusPieChart 
+            bookings={bookings} 
+            loading={loading}
+            startDate={appliedStartDate}
+            endDate={appliedEndDate}
+            title="Status by Creation Date"
+            description="Distribution based on when bookings were created"
+            filterField="created_at"
+          />
         </div>
       </DashboardLayout>
     </ProtectedRoute>
