@@ -4,7 +4,6 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBookings } from "@/hooks/useBookings";
 import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPieChart";
-import MonthlyBookingsChart from "@/components/admin/dashboard/MonthlyBookingsChart"; 
 import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { parseISO, subDays } from "date-fns";
@@ -112,42 +111,29 @@ const AdminDashboard = () => {
           />
         </div>
 
-        {/* Main Dashboard Layout with improved spacing and margins */}
-        <div className="flex flex-col space-y-16">
-          {/* Monthly Bookings Chart with reduced height */}
-          <div>
-            <MonthlyBookingsChart 
-              bookings={bookings} 
-              loading={loading}
-              startDate={appliedStartDate}
-              endDate={appliedEndDate}
-            />
-          </div>
+        {/* Main Dashboard Layout - removed Monthly Bookings Chart */}
+        <div className="grid gap-8 grid-cols-1 md:grid-cols-2">
+          {/* Booking Status Pie Chart based on booking date */}
+          <BookingStatusPieChart 
+            bookings={bookings} 
+            loading={loading} 
+            startDate={appliedStartDate}
+            endDate={appliedEndDate}
+            title="Status by Booking Date"
+            description="Distribution based on when services are scheduled"
+            filterField="Booking_date"
+          />
 
-          {/* Pie Charts in a grid with proper spacing */}
-          <div className="grid gap-8 grid-cols-1 md:grid-cols-2 mt-4">
-            {/* Booking Status Pie Chart based on booking date */}
-            <BookingStatusPieChart 
-              bookings={bookings} 
-              loading={loading} 
-              startDate={appliedStartDate}
-              endDate={appliedEndDate}
-              title="Status by Booking Date"
-              description="Distribution based on when services are scheduled"
-              filterField="Booking_date"
-            />
-
-            {/* Booking Status Pie Chart based on creation date */}
-            <BookingStatusPieChart 
-              bookings={bookings} 
-              loading={loading}
-              startDate={appliedStartDate}
-              endDate={appliedEndDate}
-              title="Status by Creation Date"
-              description="Distribution based on when bookings were created"
-              filterField="created_at"
-            />
-          </div>
+          {/* Booking Status Pie Chart based on creation date */}
+          <BookingStatusPieChart 
+            bookings={bookings} 
+            loading={loading}
+            startDate={appliedStartDate}
+            endDate={appliedEndDate}
+            title="Status by Creation Date"
+            description="Distribution based on when bookings were created"
+            filterField="created_at"
+          />
         </div>
       </DashboardLayout>
     </ProtectedRoute>
