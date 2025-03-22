@@ -41,6 +41,7 @@ const Profile = () => {
         if (data) {
           setFormData(prev => ({
             ...prev,
+            email: user?.email || "", // Ensure email is properly set from auth context
             firstName: data.FirstName || "",
             lastName: data.LastName || "",
             phone: data.PhoneNo?.toString() || "" // Now using PhoneNo field
@@ -52,7 +53,7 @@ const Profile = () => {
     };
     
     fetchProfileData();
-  }, [user?.id]);
+  }, [user?.id, user?.email]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -121,7 +122,7 @@ const Profile = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email">UserID/Email Address</Label>
                   <Input 
                     id="email"
                     name="email"
