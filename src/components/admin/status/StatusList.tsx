@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -23,9 +24,10 @@ type FormValues = z.infer<typeof formSchema>;
 interface StatusListProps {
   statuses: StatusOption[];
   onUpdate: () => void;
+  isSuperAdmin?: boolean;
 }
 
-const StatusList = ({ statuses, onUpdate }: StatusListProps) => {
+const StatusList = ({ statuses, onUpdate, isSuperAdmin = false }: StatusListProps) => {
   const { toast } = useToast();
   const [editStatus, setEditStatus] = useState<StatusOption | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -172,12 +174,16 @@ const StatusList = ({ statuses, onUpdate }: StatusListProps) => {
                     <Button variant="outline" size="sm" onClick={() => handleEdit(status)}>
                       <Edit className="h-4 w-4" />
                     </Button>
+                    
                     <Button variant="outline" size="sm" onClick={() => handleDeactivate(status)}>
                       <Power className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleDelete(status)}>
-                      <Trash className="h-4 w-4" />
-                    </Button>
+                    
+                    {isSuperAdmin && (
+                      <Button variant="outline" size="sm" onClick={() => handleDelete(status)}>
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -248,7 +254,7 @@ const StatusList = ({ statuses, onUpdate }: StatusListProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog - Only for Superadmin */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>

@@ -23,10 +23,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import { Edit, Plus, Trash2, Power } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useAuth } from "@/context/AuthContext";
 
 interface Service {
   prod_id: number;
@@ -44,17 +44,23 @@ interface Service {
   ProductName: string | null;
   Description: string | null;
   Price: number;
+  active?: boolean;
 }
 
 const AdminServices = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openDeactivateDialog, setOpenDeactivateDialog] = useState(false);
   const [isNewService, setIsNewService] = useState(false);
   const [currentService, setCurrentService] = useState<Service | null>(null);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
+  const [serviceToDeactivate, setServiceToDeactivate] = useState<Service | null>(null);
+  
+  const isSuperAdmin = user?.role === 'superadmin';
   
   // Form state
   const [serviceName, setServiceName] = useState("");
@@ -114,6 +120,11 @@ const AdminServices = () => {
     setOpenDeleteDialog(true);
   };
 
+  const handleDeactivate = (service: Service) => {
+    setServiceToDeactivate(service);
+    setOpenDeactivateDialog(true);
+  };
+
   const confirmDelete = async () => {
     if (!serviceToDelete) return;
 
@@ -141,6 +152,39 @@ const AdminServices = () => {
     }
   };
 
+  const confirmDeactivate = async () => {
+    if (!serviceToDeactivate) return;
+
+    try {
+      const { error } = await supabase
+        .from('PriceMST')
+        .update({ active: false })
+        .eq('prod_id', serviceToDeactivate.prod_id);
+
+      if (error) throw error;
+
+      setServices(services.map(service => 
+        service.prod_id === serviceToDeactivate.prod_id 
+          ? { ...service, active: false } 
+          : service
+      ));
+      
+      toast({
+        title: "Service deactivated",
+        description: `Service "${serviceToDeactivate.Services}" has been deactivated`,
+      });
+      
+      setOpenDeactivateDialog(false);
+    } catch (error) {
+      console.error('Error deactivating service:', error);
+      toast({
+        title: "Error",
+        description: "Failed to deactivate the service",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSave = async () => {
     try {
       const priceValue = parseInt(servicePrice);
@@ -153,7 +197,8 @@ const AdminServices = () => {
         Services: serviceName,
         ProductName: productName || null,
         Description: serviceDescription || null,
-        Price: priceValue
+        Price: priceValue,
+        active: true
       };
 
       if (isNewService) {
@@ -251,13 +296,24 @@ const AdminServices = () => {
                           >
                             <Edit className="h-4 w-4 mr-1" /> Edit
                           </Button>
+                          
                           <Button 
-                            variant="destructive" 
-                            size="sm" 
-                            onClick={() => handleDelete(service)}
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDeactivate(service)}
                           >
-                            <Trash2 className="h-4 w-4 mr-1" /> Delete
+                            <Power className="h-4 w-4 mr-1" /> Deactivate
                           </Button>
+                          
+                          {isSuperAdmin && (
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              onClick={() => handleDelete(service)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" /> Delete
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -335,7 +391,7 @@ const AdminServices = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
+        {/* Delete Confirmation Dialog - Only for Superadmins */}
         <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -349,6 +405,24 @@ const AdminServices = () => {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
                 Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Deactivate Confirmation Dialog */}
+        <AlertDialog open={openDeactivateDialog} onOpenChange={setOpenDeactivateDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deactivation</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to deactivate this service? Deactivated services won't be visible to users.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDeactivate}>
+                Deactivate
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

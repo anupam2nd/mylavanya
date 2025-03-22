@@ -8,12 +8,15 @@ import { useToast } from "@/hooks/use-toast";
 import StatusList from "@/components/admin/status/StatusList";
 import AddStatusForm from "@/components/admin/status/AddStatusForm";
 import { StatusOption } from "@/hooks/useStatusOptions";
+import { useAuth } from "@/context/AuthContext";
 
 const AdminStatus = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [statuses, setStatuses] = useState<StatusOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const isSuperAdmin = user?.role === 'superadmin';
 
   const fetchStatuses = async () => {
     try {
@@ -70,7 +73,11 @@ const AdminStatus = () => {
             {loading ? (
               <div className="p-8 flex justify-center items-center">Loading...</div>
             ) : (
-              <StatusList statuses={statuses} onUpdate={fetchStatuses} />
+              <StatusList 
+                statuses={statuses} 
+                onUpdate={fetchStatuses} 
+                isSuperAdmin={isSuperAdmin} 
+              />
             )}
           </CardContent>
         </Card>

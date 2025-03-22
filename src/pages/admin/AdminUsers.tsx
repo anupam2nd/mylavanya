@@ -23,7 +23,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { 
   Select,
@@ -32,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit, Plus, Trash2, UserCog } from "lucide-react";
+import { Edit, Plus, Trash2, Power } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +42,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useAuth } from "@/context/AuthContext";
 
 interface User {
   id: number;
@@ -50,17 +50,23 @@ interface User {
   FirstName: string | null;
   LastName: string | null;
   role: string | null;
+  active?: boolean;
 }
 
 const AdminUsers = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openDeactivateDialog, setOpenDeactivateDialog] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userToDeactivate, setUserToDeactivate] = useState<User | null>(null);
+  
+  const isSuperAdmin = user?.role === 'superadmin';
   
   // Form state
   const [username, setUsername] = useState("");
@@ -129,6 +135,11 @@ const AdminUsers = () => {
     setOpenDeleteDialog(true);
   };
 
+  const handleDeactivate = (user: User) => {
+    setUserToDeactivate(user);
+    setOpenDeactivateDialog(true);
+  };
+
   const confirmDelete = async () => {
     if (!userToDelete) return;
 
@@ -156,6 +167,39 @@ const AdminUsers = () => {
     }
   };
 
+  const confirmDeactivate = async () => {
+    if (!userToDeactivate) return;
+
+    try {
+      const { error } = await supabase
+        .from('UserMST')
+        .update({ active: false })
+        .eq('id', userToDeactivate.id);
+
+      if (error) throw error;
+
+      setUsers(users.map(user => 
+        user.id === userToDeactivate.id 
+          ? { ...user, active: false } 
+          : user
+      ));
+      
+      toast({
+        title: "User deactivated",
+        description: `User "${userToDeactivate.Username}" has been deactivated`,
+      });
+      
+      setOpenDeactivateDialog(false);
+    } catch (error) {
+      console.error('Error deactivating user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to deactivate the user",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSave = async () => {
     try {
       if (!username) {
@@ -170,7 +214,8 @@ const AdminUsers = () => {
         Username: username,
         FirstName: firstName || null,
         LastName: lastName || null,
-        role: role || "user"
+        role: role || "user",
+        active: true
       };
 
       // Only include password for new users or if it was changed
@@ -278,13 +323,24 @@ const AdminUsers = () => {
                           >
                             <Edit className="h-4 w-4 mr-1" /> Edit
                           </Button>
+                          
                           <Button 
-                            variant="destructive" 
-                            size="sm" 
-                            onClick={() => handleDelete(user)}
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDeactivate(user)}
                           >
-                            <Trash2 className="h-4 w-4 mr-1" /> Delete
+                            <Power className="h-4 w-4 mr-1" /> Deactivate
                           </Button>
+                          
+                          {isSuperAdmin && (
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              onClick={() => handleDelete(user)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" /> Delete
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -382,7 +438,7 @@ const AdminUsers = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
+        {/* Delete Confirmation Dialog - Only for Superadmins */}
         <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -396,6 +452,24 @@ const AdminUsers = () => {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
                 Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Deactivate Confirmation Dialog */}
+        <AlertDialog open={openDeactivateDialog} onOpenChange={setOpenDeactivateDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deactivation</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to deactivate this user? Their account will be disabled.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDeactivate}>
+                Deactivate
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
