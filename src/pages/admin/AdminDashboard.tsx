@@ -1,13 +1,18 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader } from "lucide-react";
 
 const AdminDashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [activeServices, setActiveServices] = useState<number>(0);
+  const [totalBookings, setTotalBookings] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -20,6 +25,39 @@ const AdminDashboard = () => {
       navigate("/user/dashboard");
     }
   }, [isAuthenticated, user, navigate]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!isAuthenticated) return;
+      
+      setLoading(true);
+      try {
+        // Fetch active services count
+        const { count: serviceCount, error: serviceError } = await supabase
+          .from('PriceMST')
+          .select('*', { count: 'exact', head: true })
+          .eq('active', true);
+          
+        if (serviceError) throw serviceError;
+        
+        // Fetch total bookings count
+        const { count: bookingCount, error: bookingError } = await supabase
+          .from('BookMST')
+          .select('*', { count: 'exact', head: true });
+          
+        if (bookingError) throw bookingError;
+        
+        setActiveServices(serviceCount || 0);
+        setTotalBookings(bookingCount || 0);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [isAuthenticated]);
 
   if (!isAuthenticated || !user) {
     return null; // Prevent flash of content before redirect
@@ -38,10 +76,19 @@ const AdminDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
-              <p className="text-xs text-muted-foreground">
-                Manage all bookings
-              </p>
+              {loading ? (
+                <div className="flex items-center h-6 space-x-2">
+                  <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
+                  <span className="text-muted-foreground text-sm">Loading...</span>
+                </div>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{totalBookings}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Manage all bookings
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </Link>
@@ -54,10 +101,21 @@ const AdminDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">2</div>
-              <p className="text-xs text-muted-foreground">
-                Bridal & Event Makeup
-              </p>
+              {loading ? (
+                <div className="flex items-center h-6 space-x-2">
+                  <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
+                  <span className="text-muted-foreground text-sm">Loading...</span>
+                </div>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{activeServices}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {activeServices > 0 
+                      ? `${activeServices} active service${activeServices !== 1 ? 's' : ''}`
+                      : "No active services"}
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </Link>

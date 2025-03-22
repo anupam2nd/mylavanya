@@ -1,13 +1,17 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader } from "lucide-react";
 
 const UserDashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [userBookings, setUserBookings] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -15,6 +19,31 @@ const UserDashboard = () => {
       return;
     }
   }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!isAuthenticated || !user?.email) return;
+      
+      setLoading(true);
+      try {
+        // Fetch user's bookings count
+        const { count, error } = await supabase
+          .from('BookMST')
+          .select('*', { count: 'exact', head: true })
+          .eq('email', user.email);
+          
+        if (error) throw error;
+        
+        setUserBookings(count || 0);
+      } catch (error) {
+        console.error("Error fetching user bookings:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, [isAuthenticated, user]);
 
   if (!isAuthenticated || !user) {
     return null; // Prevent flash of content before redirect
@@ -31,10 +60,21 @@ const UserDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
-              <p className="text-xs text-muted-foreground">
-                View your bookings
-              </p>
+              {loading ? (
+                <div className="flex items-center h-6 space-x-2">
+                  <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
+                  <span className="text-muted-foreground text-sm">Loading...</span>
+                </div>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{userBookings}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {userBookings > 0 
+                      ? `View your ${userBookings} booking${userBookings !== 1 ? 's' : ''}`
+                      : "No bookings yet"}
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </Link>
