@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,7 +55,19 @@ const Profile = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // If it's the phone field, strip the prefix for storage but keep it for display
+    if (name === 'phone') {
+      // Remove any non-digit characters for processing
+      const digitsOnly = value.replace(/\D/g, '');
+      
+      // If it starts with India's code (91), remove it for storage
+      const phoneNumber = digitsOnly.startsWith('91') ? digitsOnly.substring(2) : digitsOnly;
+      
+      setFormData(prev => ({ ...prev, [name]: phoneNumber }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,6 +105,9 @@ const Profile = () => {
     }
   };
 
+  // Format phone number for display with India's ISD code
+  const displayPhoneNumber = formData.phone ? `+91 ${formData.phone}` : '';
+
   return (
     <ProtectedRoute>
       <DashboardLayout title="Profile">
@@ -105,7 +119,7 @@ const Profile = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Email Address</Label>
                   <Input 
                     id="email"
                     name="email"
@@ -142,13 +156,20 @@ const Profile = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input 
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="Enter your phone number"
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                      +91
+                    </div>
+                    <Input 
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="pl-12"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Include your 10-digit phone number without the country code</p>
                 </div>
 
                 <Button type="submit" disabled={isLoading}>
