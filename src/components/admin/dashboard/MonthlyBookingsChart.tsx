@@ -103,23 +103,35 @@ export const MonthlyBookingsChart = ({
         />
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
+        {/* Fixed height to prevent oversizing */}
+        <div className="h-[250px]">
           <ChartContainer config={chartConfig}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={monthlyData}
                 margin={{
                   top: 5,
-                  right: 30,
+                  right: 20,
                   left: 20,
-                  bottom: 5,
+                  bottom: 25, // Add more bottom margin for x-axis labels
                 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="name" />
-                <YAxis />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fontSize: 12 }} // Smaller font size for x-axis labels
+                  dy={8} // Adjust distance of labels from axis
+                />
+                <YAxis 
+                  tick={{ fontSize: 12 }} // Smaller font size for y-axis labels
+                />
                 <Tooltip />
-                <Bar dataKey="count" name="Bookings" fill="var(--color-bookings)" radius={[4, 4, 0, 0]} />
+                <Bar 
+                  dataKey="count" 
+                  name="Bookings" 
+                  fill="var(--color-bookings)" 
+                  radius={[4, 4, 0, 0]} 
+                />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>

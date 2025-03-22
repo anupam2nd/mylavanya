@@ -59,6 +59,7 @@ const AdminDashboard = () => {
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
       <DashboardLayout title="Dashboard">
+        {/* Summary Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -111,38 +112,40 @@ const AdminDashboard = () => {
           />
         </div>
 
-        {/* Monthly Bookings Chart */}
-        <div className="mt-2">
+        {/* Main Dashboard Layout with proper spacing */}
+        <div className="space-y-6 mt-6">
+          {/* Monthly Bookings Chart with fixed height */}
           <MonthlyBookingsChart 
             bookings={bookings} 
             loading={loading}
             startDate={appliedStartDate}
             endDate={appliedEndDate}
           />
-        </div>
 
-        <div className="grid gap-6 mt-6 md:grid-cols-2">
-          {/* Booking Status Pie Chart based on booking date */}
-          <BookingStatusPieChart 
-            bookings={bookings} 
-            loading={loading} 
-            startDate={appliedStartDate}
-            endDate={appliedEndDate}
-            title="Status by Booking Date"
-            description="Distribution based on when services are scheduled"
-            filterField="Booking_date"
-          />
+          {/* Pie Charts in a grid with proper spacing */}
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+            {/* Booking Status Pie Chart based on booking date */}
+            <BookingStatusPieChart 
+              bookings={bookings} 
+              loading={loading} 
+              startDate={appliedStartDate}
+              endDate={appliedEndDate}
+              title="Status by Booking Date"
+              description="Distribution based on when services are scheduled"
+              filterField="Booking_date"
+            />
 
-          {/* Booking Status Pie Chart based on creation date */}
-          <BookingStatusPieChart 
-            bookings={bookings} 
-            loading={loading}
-            startDate={appliedStartDate}
-            endDate={appliedEndDate}
-            title="Status by Creation Date"
-            description="Distribution based on when bookings were created"
-            filterField="created_at"
-          />
+            {/* Booking Status Pie Chart based on creation date */}
+            <BookingStatusPieChart 
+              bookings={bookings} 
+              loading={loading}
+              startDate={appliedStartDate}
+              endDate={appliedEndDate}
+              title="Status by Creation Date"
+              description="Distribution based on when bookings were created"
+              filterField="created_at"
+            />
+          </div>
         </div>
       </DashboardLayout>
     </ProtectedRoute>
