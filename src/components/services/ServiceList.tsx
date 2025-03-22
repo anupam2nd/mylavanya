@@ -19,6 +19,7 @@ interface Service {
   Description: string | null;
   created_at?: string;
   Services: string;
+  active: boolean;
 }
 
 const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => {
@@ -33,14 +34,16 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
       setError(null);
       
       try {
-        console.log("Fetching services with filter:", categoryFilter);
+        console.log("Fetching active services with filter:", categoryFilter);
         
-        // Create a query to the PriceMST table
+        // Create a query to the PriceMST table and filter for active services only
         let query = supabase
           .from('PriceMST')
-          .select('*'); // Select all columns to make sure we get everything
+          .select('*')
+          .eq('active', true); // Only fetch active services
 
-          console.log('query',query)
+        console.log('query', query);
+        
         // Apply category filter if provided and relevant column exists
         if (categoryFilter && categoryFilter !== 'all') {
           // This is a placeholder - if you have a category column in your table,
@@ -62,10 +65,10 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
         }
         
         // Add detailed logging to debug the issue
-        console.log("Services fetched raw data:", data);
+        console.log("Active services fetched raw data:", data);
         
         if (!data || data.length === 0) {
-          console.log("No services found in the PriceMST table. Check your Supabase data.");
+          console.log("No active services found in the PriceMST table. Check your Supabase data.");
           // Instead of setting an error, we'll just set services to an empty array
           setServices([]);
         } else {
@@ -134,10 +137,9 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
           </div>
         ) : (
           <div className="text-center py-12 bg-gray-50 rounded-lg shadow-sm">
-            <p className="text-lg text-gray-600">No services available</p>
+            <p className="text-lg text-gray-600">No active services available</p>
             <p className="text-sm text-gray-500 mt-2">
-              The PriceMST table might be empty or there might be an issue accessing the data.
-              Please check your Supabase database.
+              Check if there are active services in the PriceMST table.
             </p>
           </div>
         )}

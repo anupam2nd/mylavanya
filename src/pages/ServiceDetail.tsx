@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,7 +29,15 @@ const ServiceDetail = () => {
         if (isNaN(serviceIdNumber)) {
           throw new Error("Invalid service ID");
         }
-        const { data, error } = await supabase.from('PriceMST').select('*').eq('prod_id', serviceIdNumber).single();
+        
+        // Query for an active service with the specified ID
+        const { data, error } = await supabase
+          .from('PriceMST')
+          .select('*')
+          .eq('prod_id', serviceIdNumber)
+          .eq('active', true) // Only fetch active services
+          .single();
+          
         if (error) {
           console.error("Supabase error:", error);
           throw error;
@@ -39,10 +46,10 @@ const ServiceDetail = () => {
         setService(data);
       } catch (error) {
         console.error("Error fetching service details:", error);
-        setError("Could not load service details");
+        setError("Could not load service details or the service may be inactive");
         toast({
           title: "Error",
-          description: "Could not load service details",
+          description: "Could not load service details or the service may be inactive",
           variant: "destructive"
         });
       } finally {
@@ -91,8 +98,8 @@ const ServiceDetail = () => {
           <Button variant="ghost" onClick={() => navigate("/services")} className="mb-4">
             ← Back to Services
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">{service.ProductName}</h1>
-          <p className="text-lg font-medium text-primary mt-1">₹{service.Price.toFixed(2)}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{service?.ProductName}</h1>
+          <p className="text-lg font-medium text-primary mt-1">₹{service?.Price.toFixed(2)}</p>
         </div>
       </div>
       
@@ -101,12 +108,12 @@ const ServiceDetail = () => {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="h-64 sm:h-80 bg-gray-200">
-                <img alt={service.ProductName} className="w-full h-full object-cover" src="/lovable-uploads/d9a82f47-9bdb-4fc4-93d0-5fbcff7b79ed.jpg" />
+                <img alt={service?.ProductName} className="w-full h-full object-cover" src="/lovable-uploads/d9a82f47-9bdb-4fc4-93d0-5fbcff7b79ed.jpg" />
               </div>
               <div className="p-6">
                 <h2 className="text-2xl font-semibold mb-4">Service Description</h2>
                 <p className="text-gray-600 mb-6">
-                  {service.Description || "Professional beauty service tailored for weddings and special occasions. Our expert team uses premium products to ensure you look your best on your special day."}
+                  {service?.Description || "Professional beauty service tailored for weddings and special occasions. Our expert team uses premium products to ensure you look your best on your special day."}
                 </p>
                 
                 <h3 className="text-xl font-medium mb-3">What's Included</h3>
