@@ -12,6 +12,9 @@ import BookingFilters from "@/components/admin/bookings/BookingFilters";
 import { useBookingFilters } from "@/hooks/useBookingFilters";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
 import { Booking } from "@/hooks/useBookings";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const UserBookings = () => {
   const { user } = useAuth();
@@ -117,35 +120,62 @@ const UserBookings = () => {
     }
   };
 
+  // Render an empty state with a button to create a new booking
+  const EmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="bg-slate-50 rounded-full p-4 mb-4">
+        <PlusCircle className="h-12 w-12 text-slate-300" />
+      </div>
+      <h3 className="text-xl font-semibold mb-2">No bookings yet</h3>
+      <p className="text-slate-500 mb-6 max-w-md">
+        You haven't made any bookings yet. Book a service to see your appointments here.
+      </p>
+      <Link to="/services">
+        <Button size="lg" className="gap-2">
+          <PlusCircle className="h-4 w-4" />
+          Book a Service
+        </Button>
+      </Link>
+    </div>
+  );
+
   return (
     <ProtectedRoute>
       <DashboardLayout title="My Bookings">
         <Card>
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
             <CardTitle>Your Bookings</CardTitle>
-            <BookingFilters
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              startDate={startDate}
-              setStartDate={setStartDate}
-              endDate={endDate}
-              setEndDate={setEndDate}
-              statusFilter={statusFilter}
-              setStatusFilter={setStatusFilter}
-              clearFilters={clearFilters}
-              statusOptions={statusOptions}
-              showDateFilter={showDateFilter}
-              setShowDateFilter={setShowDateFilter}
-              filterDateType={filterDateType}
-              setFilterDateType={setFilterDateType}
-            />
+            {bookings.length > 0 && (
+              <BookingFilters
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                clearFilters={clearFilters}
+                statusOptions={statusOptions}
+                showDateFilter={showDateFilter}
+                setShowDateFilter={setShowDateFilter}
+                filterDateType={filterDateType}
+                setFilterDateType={setFilterDateType}
+              />
+            )}
           </CardHeader>
           <CardContent>
-            <BookingsList 
-              bookings={filteredBookings} 
-              loading={loading} 
-              onEditClick={handleEditClick} 
-            />
+            {loading ? (
+              <div className="p-8 flex justify-center items-center">Loading...</div>
+            ) : bookings.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <BookingsList 
+                bookings={filteredBookings} 
+                loading={loading} 
+                onEditClick={handleEditClick} 
+              />
+            )}
           </CardContent>
         </Card>
 
