@@ -44,6 +44,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ExportButton } from "@/components/ui/export-button";
+import { Switch } from "@/components/ui/switch";
 
 interface Service {
   prod_id: number;
@@ -201,33 +202,39 @@ const AdminServices = () => {
     if (!serviceToDeactivate) return;
 
     try {
+      const newActiveState = !serviceToDeactivate.active;
       const { error } = await supabase
         .from('PriceMST')
-        .update({ active: false })
+        .update({ active: newActiveState })
         .eq('prod_id', serviceToDeactivate.prod_id);
 
       if (error) throw error;
 
       setServices(services.map(service => 
         service.prod_id === serviceToDeactivate.prod_id 
-          ? { ...service, active: false } 
+          ? { ...service, active: newActiveState } 
           : service
       ));
       
       toast({
-        title: "Service deactivated",
-        description: `Service "${serviceToDeactivate.Services}" has been deactivated`,
+        title: newActiveState ? "Service activated" : "Service deactivated",
+        description: `Service "${serviceToDeactivate.Services}" has been ${newActiveState ? "activated" : "deactivated"}`,
       });
       
       setOpenDeactivateDialog(false);
     } catch (error) {
-      console.error('Error deactivating service:', error);
+      console.error('Error updating service active state:', error);
       toast({
         title: "Error",
-        description: "Failed to deactivate the service",
+        description: "Failed to update the service",
         variant: "destructive",
       });
     }
+  };
+
+  const toggleStatus = (service: Service) => {
+    setServiceToDeactivate(service);
+    setOpenDeactivateDialog(true);
   };
 
   const handleSave = async () => {
@@ -378,11 +385,15 @@ const AdminServices = () => {
                         </TableCell>
                         <TableCell>₹{service.Price}</TableCell>
                         <TableCell>
-                          <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                            service.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            {service.active ? 'Active' : 'Inactive'}
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <Switch 
+                              checked={service.active} 
+                              onCheckedChange={() => toggleStatus(service)}
+                            />
+                            <span className={service.active ? "text-green-600" : "text-red-600"}>
+                              {service.active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button 
@@ -392,16 +403,6 @@ const AdminServices = () => {
                           >
                             <Edit className="h-4 w-4 mr-1" /> Edit
                           </Button>
-                          
-                          {service.active && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleDeactivate(service)}
-                            >
-                              <Power className="h-4 w-4 mr-1" /> Deactivate
-                            </Button>
-                          )}
                           
                           {isSuperAdmin && (
                             <Button 
@@ -509,15 +510,20 @@ const AdminServices = () => {
         <AlertDialog open={openDeactivateDialog} onOpenChange={setOpenDeactivateDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Deactivation</AlertDialogTitle>
+              <AlertDialogTitle>
+                {serviceToDeactivate?.active ? "Confirm Deactivation" : "Confirm Activation"}
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to deactivate this service? Deactivated services won't be visible to users.
+                Are you sure you want to {serviceToDeactivate?.active ? "deactivate" : "activate"} this service? 
+                {serviceToDeactivate?.active 
+                  ? " Deactivated services won't be visible to users."
+                  : " Activated services will be visible to users."}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDeactivate}>
-                Deactivate
+                {serviceToDeactivate?.active ? "Deactivate" : "Activate"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/context/AuthContext";
 import { ExportButton } from "@/components/ui/export-button";
+import { Switch } from "@/components/ui/switch";
 
 interface User {
   id: number;
@@ -215,33 +216,39 @@ const AdminUsers = () => {
     if (!userToDeactivate) return;
 
     try {
+      const newActiveState = !userToDeactivate.active;
       const { error } = await supabase
         .from('UserMST')
-        .update({ active: false })
+        .update({ active: newActiveState })
         .eq('id', userToDeactivate.id);
 
       if (error) throw error;
 
       setUsers(users.map(user => 
         user.id === userToDeactivate.id 
-          ? { ...user, active: false } 
+          ? { ...user, active: newActiveState } 
           : user
       ));
       
       toast({
-        title: "User deactivated",
-        description: `User "${userToDeactivate.Username}" has been deactivated`,
+        title: newActiveState ? "User activated" : "User deactivated",
+        description: `User "${userToDeactivate.Username}" has been ${newActiveState ? "activated" : "deactivated"}`,
       });
       
       setOpenDeactivateDialog(false);
     } catch (error) {
-      console.error('Error deactivating user:', error);
+      console.error('Error updating user active state:', error);
       toast({
         title: "Error",
-        description: "Failed to deactivate the user",
+        description: "Failed to update the user",
         variant: "destructive",
       });
     }
+  };
+
+  const toggleStatus = (user: User) => {
+    setUserToDeactivate(user);
+    setOpenDeactivateDialog(true);
   };
 
   const handleSave = async () => {
@@ -417,11 +424,15 @@ const AdminUsers = () => {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                            user.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            {user.active ? 'Active' : 'Inactive'}
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <Switch 
+                              checked={user.active} 
+                              onCheckedChange={() => toggleStatus(user)}
+                            />
+                            <span className={user.active ? "text-green-600" : "text-red-600"}>
+                              {user.active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button 
@@ -431,16 +442,6 @@ const AdminUsers = () => {
                           >
                             <Edit className="h-4 w-4 mr-1" /> Edit
                           </Button>
-                          
-                          {user.active && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleDeactivate(user)}
-                            >
-                              <Power className="h-4 w-4 mr-1" /> Deactivate
-                            </Button>
-                          )}
                           
                           {isSuperAdmin && (
                             <Button 
@@ -568,15 +569,20 @@ const AdminUsers = () => {
         <AlertDialog open={openDeactivateDialog} onOpenChange={setOpenDeactivateDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Deactivation</AlertDialogTitle>
+              <AlertDialogTitle>
+                {userToDeactivate?.active ? "Confirm Deactivation" : "Confirm Activation"}
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to deactivate this user? Their account will be disabled.
+                Are you sure you want to {userToDeactivate?.active ? "deactivate" : "activate"} this user? 
+                {userToDeactivate?.active 
+                  ? " Their account will be disabled."
+                  : " Their account will be enabled."}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDeactivate}>
-                Deactivate
+                {userToDeactivate?.active ? "Deactivate" : "Activate"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -587,3 +593,4 @@ const AdminUsers = () => {
 };
 
 export default AdminUsers;
+
