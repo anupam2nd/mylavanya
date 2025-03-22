@@ -9,7 +9,7 @@ import StatusList from "@/components/admin/status/StatusList";
 import AddStatusForm from "@/components/admin/status/AddStatusForm";
 import { StatusOption } from "@/hooks/useStatusOptions";
 import { useAuth } from "@/context/AuthContext";
-import { Search, X } from "lucide-react";
+import { Search, X, Download, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { 
@@ -19,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { exportToCSV } from "@/utils/exportUtils";
+import { format } from "date-fns";
 
 const AdminStatus = () => {
   const { toast } = useToast();
@@ -89,6 +91,38 @@ const AdminStatus = () => {
     setSearchQuery("");
     setActiveFilter("all");
   };
+  
+  // Export current filtered data to CSV
+  const handleExportCSV = () => {
+    try {
+      // Custom headers for better readability
+      const headers = {
+        status_code: 'Status Code',
+        status_name: 'Status Name',
+        description: 'Description',
+        active: 'Active',
+        id: 'ID'
+      };
+      
+      // Generate timestamp for the filename
+      const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm');
+      const fileName = `statuses_export_${timestamp}.csv`;
+      
+      exportToCSV(filteredStatuses, fileName, headers);
+      
+      toast({
+        title: "Export successful",
+        description: "Your report has been downloaded",
+      });
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      toast({
+        title: "Export failed",
+        description: "There was a problem creating your report",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <ProtectedRoute allowedRoles={['superadmin']}>
@@ -96,7 +130,16 @@ const AdminStatus = () => {
         <Card>
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
             <CardTitle>Status List</CardTitle>
-            <div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline"
+                onClick={handleExportCSV}
+                className="flex items-center"
+                disabled={filteredStatuses.length === 0}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export CSV
+              </Button>
               <button 
                 onClick={() => setShowAddForm(!showAddForm)} 
                 className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
@@ -130,7 +173,8 @@ const AdminStatus = () => {
                 value={activeFilter}
                 onValueChange={setActiveFilter}
               >
-                <SelectTrigger>
+                <SelectTrigger className="flex items-center">
+                  <Filter className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -156,11 +200,16 @@ const AdminStatus = () => {
                 No statuses match your filters. Try adjusting your search criteria.
               </p>
             ) : (
-              <StatusList 
-                statuses={filteredStatuses} 
-                onUpdate={fetchStatuses} 
-                isSuperAdmin={isSuperAdmin} 
-              />
+              <>
+                <div className="mb-4 text-sm text-muted-foreground">
+                  Showing {filteredStatuses.length} of {statuses.length} statuses
+                </div>
+                <StatusList 
+                  statuses={filteredStatuses} 
+                  onUpdate={fetchStatuses} 
+                  isSuperAdmin={isSuperAdmin} 
+                />
+              </>
             )}
           </CardContent>
         </Card>
