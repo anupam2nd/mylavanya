@@ -31,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit, Plus, Trash2, Power } from "lucide-react";
+import { Edit, Plus, Trash2, Power, Search, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,6 +57,7 @@ const AdminUsers = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -65,6 +66,11 @@ const AdminUsers = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [userToDeactivate, setUserToDeactivate] = useState<User | null>(null);
+  
+  // New filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [activeFilter, setActiveFilter] = useState<string>("all");
   
   const isSuperAdmin = user?.role === 'superadmin';
   
@@ -93,6 +99,7 @@ const AdminUsers = () => {
 
         if (error) throw error;
         setUsers(data || []);
+        setFilteredUsers(data || []);
       } catch (error) {
         console.error('Error fetching users:', error);
         toast({
@@ -107,6 +114,41 @@ const AdminUsers = () => {
 
     fetchUsers();
   }, [toast]);
+
+  // Filter users based on search query and filters
+  useEffect(() => {
+    let result = [...users];
+    
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        user => 
+          (user.Username && user.Username.toLowerCase().includes(query)) ||
+          (user.FirstName && user.FirstName.toLowerCase().includes(query)) ||
+          (user.LastName && user.LastName.toLowerCase().includes(query))
+      );
+    }
+    
+    // Filter by role
+    if (roleFilter !== "all") {
+      result = result.filter(user => user.role === roleFilter);
+    }
+    
+    // Filter by active status
+    if (activeFilter !== "all") {
+      const isActive = activeFilter === "active";
+      result = result.filter(user => user.active === isActive);
+    }
+    
+    setFilteredUsers(result);
+  }, [users, searchQuery, roleFilter, activeFilter]);
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setRoleFilter("all");
+    setActiveFilter("all");
+  };
 
   const handleAddNew = () => {
     setIsNewUser(true);
@@ -283,11 +325,59 @@ const AdminUsers = () => {
             </Button>
           </CardHeader>
           <CardContent>
+            {/* Filter Controls */}
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search users..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+              <Select
+                value={roleFilter}
+                onValueChange={setRoleFilter}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="user">Users</SelectItem>
+                  <SelectItem value="admin">Admins</SelectItem>
+                  <SelectItem value="superadmin">Super Admins</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={activeFilter}
+                onValueChange={setActiveFilter}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="active">Active Users</SelectItem>
+                  <SelectItem value="inactive">Inactive Users</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                variant="outline" 
+                onClick={clearFilters}
+                className="flex items-center"
+              >
+                <X className="mr-2 h-4 w-4" />
+                Clear Filters
+              </Button>
+            </div>
+
             {loading ? (
               <div className="flex justify-center p-4">Loading users...</div>
-            ) : users.length === 0 ? (
-              <p className="text-muted-foreground">
-                No users available. Add a new user to get started.
+            ) : filteredUsers.length === 0 ? (
+              <p className="text-muted-foreground py-4 text-center">
+                No users match your filters. Try adjusting your search criteria.
               </p>
             ) : (
               <div className="overflow-x-auto">
@@ -298,11 +388,12 @@ const AdminUsers = () => {
                       <TableHead>First Name</TableHead>
                       <TableHead>Last Name</TableHead>
                       <TableHead>Role</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((user) => (
+                    {filteredUsers.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.Username}</TableCell>
                         <TableCell>{user.FirstName}</TableCell>
@@ -315,6 +406,13 @@ const AdminUsers = () => {
                             {user.role || 'user'}
                           </span>
                         </TableCell>
+                        <TableCell>
+                          <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                            user.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {user.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button 
                             variant="outline" 
@@ -324,13 +422,15 @@ const AdminUsers = () => {
                             <Edit className="h-4 w-4 mr-1" /> Edit
                           </Button>
                           
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDeactivate(user)}
-                          >
-                            <Power className="h-4 w-4 mr-1" /> Deactivate
-                          </Button>
+                          {user.active && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDeactivate(user)}
+                            >
+                              <Power className="h-4 w-4 mr-1" /> Deactivate
+                            </Button>
+                          )}
                           
                           {isSuperAdmin && (
                             <Button 

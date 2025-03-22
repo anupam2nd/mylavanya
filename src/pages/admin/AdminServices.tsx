@@ -25,7 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit, Plus, Trash2, Power } from "lucide-react";
+import { Edit, Plus, Trash2, Power, Search, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +37,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/context/AuthContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Service {
   prod_id: number;
@@ -51,6 +58,7 @@ const AdminServices = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
+  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -59,6 +67,10 @@ const AdminServices = () => {
   const [currentService, setCurrentService] = useState<Service | null>(null);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const [serviceToDeactivate, setServiceToDeactivate] = useState<Service | null>(null);
+  
+  // New filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<string>("all");
   
   const isSuperAdmin = user?.role === 'superadmin';
   
@@ -80,6 +92,7 @@ const AdminServices = () => {
 
         if (error) throw error;
         setServices(data || []);
+        setFilteredServices(data || []);
       } catch (error) {
         console.error('Error fetching services:', error);
         toast({
@@ -94,6 +107,35 @@ const AdminServices = () => {
 
     fetchServices();
   }, [toast]);
+
+  // Filter services based on search query and active filter
+  useEffect(() => {
+    let result = [...services];
+    
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        service => 
+          service.Services.toLowerCase().includes(query) ||
+          (service.ProductName && service.ProductName.toLowerCase().includes(query)) ||
+          (service.Description && service.Description.toLowerCase().includes(query))
+      );
+    }
+    
+    // Filter by active status
+    if (activeFilter !== "all") {
+      const isActive = activeFilter === "active";
+      result = result.filter(service => service.active === isActive);
+    }
+    
+    setFilteredServices(result);
+  }, [services, searchQuery, activeFilter]);
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setActiveFilter("all");
+  };
 
   const handleAddNew = () => {
     setIsNewService(true);
@@ -261,11 +303,45 @@ const AdminServices = () => {
             </Button>
           </CardHeader>
           <CardContent>
+            {/* Filter Controls */}
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search services..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+              <Select
+                value={activeFilter}
+                onValueChange={setActiveFilter}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Services</SelectItem>
+                  <SelectItem value="active">Active Services</SelectItem>
+                  <SelectItem value="inactive">Inactive Services</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                variant="outline" 
+                onClick={clearFilters}
+                className="flex items-center"
+              >
+                <X className="mr-2 h-4 w-4" />
+                Clear Filters
+              </Button>
+            </div>
+
             {loading ? (
               <div className="flex justify-center p-4">Loading services...</div>
-            ) : services.length === 0 ? (
-              <p className="text-muted-foreground">
-                No services available. Add a new service to get started.
+            ) : filteredServices.length === 0 ? (
+              <p className="text-muted-foreground py-4 text-center">
+                No services match your filters. Try adjusting your search criteria.
               </p>
             ) : (
               <div className="overflow-x-auto">
@@ -276,11 +352,12 @@ const AdminServices = () => {
                       <TableHead>Product Name</TableHead>
                       <TableHead>Description</TableHead>
                       <TableHead>Price</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {services.map((service) => (
+                    {filteredServices.map((service) => (
                       <TableRow key={service.prod_id}>
                         <TableCell className="font-medium">{service.Services}</TableCell>
                         <TableCell>{service.ProductName}</TableCell>
@@ -288,6 +365,13 @@ const AdminServices = () => {
                           {service.Description}
                         </TableCell>
                         <TableCell>₹{service.Price}</TableCell>
+                        <TableCell>
+                          <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                            service.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {service.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button 
                             variant="outline" 
@@ -297,13 +381,15 @@ const AdminServices = () => {
                             <Edit className="h-4 w-4 mr-1" /> Edit
                           </Button>
                           
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDeactivate(service)}
-                          >
-                            <Power className="h-4 w-4 mr-1" /> Deactivate
-                          </Button>
+                          {service.active && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDeactivate(service)}
+                            >
+                              <Power className="h-4 w-4 mr-1" /> Deactivate
+                            </Button>
+                          )}
                           
                           {isSuperAdmin && (
                             <Button 

@@ -9,14 +9,29 @@ import StatusList from "@/components/admin/status/StatusList";
 import AddStatusForm from "@/components/admin/status/AddStatusForm";
 import { StatusOption } from "@/hooks/useStatusOptions";
 import { useAuth } from "@/context/AuthContext";
+import { Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const AdminStatus = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [statuses, setStatuses] = useState<StatusOption[]>([]);
+  const [filteredStatuses, setFilteredStatuses] = useState<StatusOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const isSuperAdmin = user?.role === 'superadmin';
+  
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<string>("all");
 
   const fetchStatuses = async () => {
     try {
@@ -29,6 +44,7 @@ const AdminStatus = () => {
       if (error) throw error;
       
       setStatuses(data || []);
+      setFilteredStatuses(data || []);
     } catch (error) {
       console.error('Error fetching statuses:', error);
       toast({
@@ -44,6 +60,35 @@ const AdminStatus = () => {
   useEffect(() => {
     fetchStatuses();
   }, []);
+  
+  // Filter statuses based on search query and active filter
+  useEffect(() => {
+    let result = [...statuses];
+    
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        status => 
+          status.status_code.toLowerCase().includes(query) ||
+          status.status_name.toLowerCase().includes(query) ||
+          (status.description && status.description.toLowerCase().includes(query))
+      );
+    }
+    
+    // Filter by active status
+    if (activeFilter !== "all") {
+      const isActive = activeFilter === "active";
+      result = result.filter(status => status.active === isActive);
+    }
+    
+    setFilteredStatuses(result);
+  }, [statuses, searchQuery, activeFilter]);
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setActiveFilter("all");
+  };
 
   return (
     <ProtectedRoute allowedRoles={['superadmin']}>
@@ -70,11 +115,49 @@ const AdminStatus = () => {
               </div>
             )}
             
+            {/* Filter Controls */}
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search status codes or names..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+              <Select
+                value={activeFilter}
+                onValueChange={setActiveFilter}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="active">Active Statuses</SelectItem>
+                  <SelectItem value="inactive">Inactive Statuses</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                variant="outline" 
+                onClick={clearFilters}
+                className="flex items-center"
+              >
+                <X className="mr-2 h-4 w-4" />
+                Clear Filters
+              </Button>
+            </div>
+            
             {loading ? (
               <div className="p-8 flex justify-center items-center">Loading...</div>
+            ) : filteredStatuses.length === 0 ? (
+              <p className="text-muted-foreground py-4 text-center">
+                No statuses match your filters. Try adjusting your search criteria.
+              </p>
             ) : (
               <StatusList 
-                statuses={statuses} 
+                statuses={filteredStatuses} 
                 onUpdate={fetchStatuses} 
                 isSuperAdmin={isSuperAdmin} 
               />
