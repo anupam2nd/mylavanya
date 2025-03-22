@@ -28,7 +28,12 @@ export const BookingStatsPieChart = ({ bookings, loading }: BookingStatsPieChart
   const COLORS = ['#4f46e5', '#06b6d4', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6'];
   
   const chartConfig = {
-    status: { theme: { light: "#6366f1" } }
+    status: { 
+      theme: { 
+        light: "#6366f1",
+        dark: "#818cf8" 
+      } 
+    }
   };
   
   if (loading) {

@@ -18,9 +18,14 @@ const recentBookingsData = [
   { name: "Jun", count: 34 },
 ];
 
-// Chart config for consistent styling
+// Chart config for consistent styling - adding dark theme
 const chartConfig = {
-  bookings: { theme: { light: "#6366f1" } },
+  bookings: { 
+    theme: { 
+      light: "#6366f1",
+      dark: "#818cf8"
+    } 
+  },
 };
 
 const AdminDashboard = () => {
