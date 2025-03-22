@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,7 +100,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Chart Filters */}
-        <div className="mt-6 mb-6">
+        <div className="mt-6 mb-8">
           <ChartFilters
             startDate={startDate}
             setStartDate={setStartDate}
@@ -112,9 +111,9 @@ const AdminDashboard = () => {
           />
         </div>
 
-        {/* Main Dashboard Layout with proper spacing and margins */}
-        <div className="flex flex-col space-y-10">
-          {/* Monthly Bookings Chart with reduced height and margin bottom */}
+        {/* Main Dashboard Layout with improved spacing and margins */}
+        <div className="flex flex-col space-y-16">
+          {/* Monthly Bookings Chart with reduced height */}
           <div>
             <MonthlyBookingsChart 
               bookings={bookings} 
@@ -125,7 +124,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* Pie Charts in a grid with proper spacing */}
-          <div className="grid gap-8 grid-cols-1 md:grid-cols-2">
+          <div className="grid gap-8 grid-cols-1 md:grid-cols-2 mt-4">
             {/* Booking Status Pie Chart based on booking date */}
             <BookingStatusPieChart 
               bookings={bookings} 

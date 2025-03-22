@@ -81,7 +81,7 @@ export const MonthlyBookingsChart = ({
           <CardTitle>Monthly Bookings</CardTitle>
           <CardDescription>Loading statistics...</CardDescription>
         </CardHeader>
-        <CardContent className="h-[200px] flex items-center justify-center">
+        <CardContent className="h-[180px] flex items-center justify-center">
           <p className="text-muted-foreground">Loading chart data...</p>
         </CardContent>
       </Card>
@@ -103,8 +103,8 @@ export const MonthlyBookingsChart = ({
         />
       </CardHeader>
       <CardContent>
-        {/* Reduced height to prevent overlapping */}
-        <div className="h-[200px]">
+        {/* Further reduced height to prevent overlapping */}
+        <div className="h-[180px]">
           <ChartContainer config={chartConfig}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -113,19 +113,20 @@ export const MonthlyBookingsChart = ({
                   top: 5,
                   right: 20,
                   left: 20,
-                  bottom: 25, // Add more bottom margin for x-axis labels
+                  bottom: 30, // Increased bottom margin for x-axis labels
                 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                 <XAxis 
                   dataKey="name" 
-                  tick={{ fontSize: 12 }} // Smaller font size for x-axis labels
-                  dy={8} // Adjust distance of labels from axis
-                  angle={-45} // Angle the labels to prevent overlap
-                  textAnchor="end" // Align angled text properly
+                  tick={{ fontSize: 11 }} // Smaller font for labels
+                  dy={5} // Reduced distance from axis
+                  angle={-45} // Angle the labels
+                  textAnchor="end" // Align angled text
+                  height={30} // Control the height of x-axis
                 />
                 <YAxis 
-                  tick={{ fontSize: 12 }} // Smaller font size for y-axis labels
+                  tick={{ fontSize: 11 }} // Smaller font size for y-axis labels
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -139,7 +140,7 @@ export const MonthlyBookingsChart = ({
                 <Bar 
                   dataKey="count" 
                   name="Bookings" 
-                  fill="#8B5CF6" // Using a purple that matches the pie chart in the image
+                  fill="#8B5CF6" // Purple that matches the pie chart
                   radius={[4, 4, 0, 0]} 
                 />
               </BarChart>
