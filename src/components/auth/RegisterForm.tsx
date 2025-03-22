@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -110,7 +111,9 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="email-register">Email</Label>
+        <Label htmlFor="email-register">
+          Email <span className="text-xs text-muted-foreground">(This will be your login ID)</span>
+        </Label>
         <Input 
           id="email-register" 
           type="email" 
