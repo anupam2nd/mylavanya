@@ -80,10 +80,26 @@ const UserDashboard = () => {
           <CardContent>
             <p>This is your user dashboard. From here you can:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
-              <li>Make new bookings</li>
-              <li>View your booking history</li>
-              <li>Manage your profile</li>
-              <li>Contact customer support</li>
+              <li>
+                <Link to="/services" className="text-blue-600 hover:underline">
+                  Make new bookings
+                </Link>
+              </li>
+              <li>
+                <Link to="/user/bookings" className="text-blue-600 hover:underline">
+                  View your booking history
+                </Link>
+              </li>
+              <li>
+                <Link to="/profile" className="text-blue-600 hover:underline">
+                  Manage your profile
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-blue-600 hover:underline">
+                  Contact customer support
+                </Link>
+              </li>
             </ul>
           </CardContent>
         </Card>

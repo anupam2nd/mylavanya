@@ -107,10 +107,28 @@ const AdminDashboard = () => {
           <CardContent>
             <p>This is your admin dashboard. From here you can manage:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
-              <li>Bookings and appointments</li>
-              <li>Services and pricing</li>
-              <li>Users and staff</li>
-              <li>Reports and analytics</li>
+              <li>
+                <Link to="/admin/bookings" className="text-blue-600 hover:underline">
+                  Bookings and appointments
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/services" className="text-blue-600 hover:underline">
+                  Services and pricing
+                </Link>
+              </li>
+              {isSuperAdmin && (
+                <li>
+                  <Link to="/admin/users" className="text-blue-600 hover:underline">
+                    Users and staff
+                  </Link>
+                </li>
+              )}
+              <li>
+                <Link to="/admin/bookings" className="text-blue-600 hover:underline">
+                  Reports and analytics
+                </Link>
+              </li>
             </ul>
           </CardContent>
         </Card>
