@@ -12,6 +12,8 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [activeServices, setActiveServices] = useState<number>(0);
   const [totalBookings, setTotalBookings] = useState<number>(0);
+  const [activeUsers, setActiveUsers] = useState<number>(0);
+  const [activeStatuses, setActiveStatuses] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -47,8 +49,26 @@ const AdminDashboard = () => {
           
         if (bookingError) throw bookingError;
         
+        // Fetch active users count
+        const { count: userCount, error: userError } = await supabase
+          .from('UserMST')
+          .select('*', { count: 'exact', head: true })
+          .eq('active', true);
+          
+        if (userError) throw userError;
+        
+        // Fetch active statuses count
+        const { count: statusCount, error: statusError } = await supabase
+          .from('statusmst')
+          .select('*', { count: 'exact', head: true })
+          .eq('active', true);
+          
+        if (statusError) throw statusError;
+        
         setActiveServices(serviceCount || 0);
         setTotalBookings(bookingCount || 0);
+        setActiveUsers(userCount || 0);
+        setActiveStatuses(statusCount || 0);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
@@ -129,10 +149,21 @@ const AdminDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">Users</div>
-                <p className="text-xs text-muted-foreground">
-                  Manage system users
-                </p>
+                {loading ? (
+                  <div className="flex items-center h-6 space-x-2">
+                    <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <span className="text-muted-foreground text-sm">Loading...</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold">{activeUsers}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {activeUsers > 0 
+                        ? `${activeUsers} active user${activeUsers !== 1 ? 's' : ''}`
+                        : "No active users"}
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
           </Link>
@@ -147,10 +178,21 @@ const AdminDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">Status</div>
-                <p className="text-xs text-muted-foreground">
-                  Manage system statuses
-                </p>
+                {loading ? (
+                  <div className="flex items-center h-6 space-x-2">
+                    <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <span className="text-muted-foreground text-sm">Loading...</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold">{activeStatuses}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {activeStatuses > 0 
+                        ? `${activeStatuses} active status${activeStatuses !== 1 ? 'es' : ''}`
+                        : "No active statuses"}
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
           </Link>
@@ -179,6 +221,13 @@ const AdminDashboard = () => {
                 <li>
                   <Link to="/admin/users" className="text-blue-600 hover:underline">
                     Users and staff
+                  </Link>
+                </li>
+              )}
+              {isSuperAdmin && (
+                <li>
+                  <Link to="/admin/status" className="text-blue-600 hover:underline">
+                    Status management
                   </Link>
                 </li>
               )}
