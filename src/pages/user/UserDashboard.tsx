@@ -11,6 +11,7 @@ const UserDashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [userBookings, setUserBookings] = useState<number>(0);
+  const [availableServices, setAvailableServices] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -27,16 +28,25 @@ const UserDashboard = () => {
       setLoading(true);
       try {
         // Fetch user's bookings count
-        const { count, error } = await supabase
+        const { count: bookingCount, error: bookingError } = await supabase
           .from('BookMST')
           .select('*', { count: 'exact', head: true })
           .eq('email', user.email);
           
-        if (error) throw error;
+        if (bookingError) throw bookingError;
         
-        setUserBookings(count || 0);
+        // Fetch available services count
+        const { count: serviceCount, error: serviceError } = await supabase
+          .from('PriceMST')
+          .select('*', { count: 'exact', head: true })
+          .eq('active', true);
+          
+        if (serviceError) throw serviceError;
+        
+        setUserBookings(bookingCount || 0);
+        setAvailableServices(serviceCount || 0);
       } catch (error) {
-        console.error("Error fetching user bookings:", error);
+        console.error("Error fetching user data:", error);
       } finally {
         setLoading(false);
       }
@@ -87,10 +97,21 @@ const UserDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">Book</div>
-              <p className="text-xs text-muted-foreground">
-                Browse available services
-              </p>
+              {loading ? (
+                <div className="flex items-center h-6 space-x-2">
+                  <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
+                  <span className="text-muted-foreground text-sm">Loading...</span>
+                </div>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{availableServices}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {availableServices > 0 
+                      ? `${availableServices} available service${availableServices !== 1 ? 's' : ''}`
+                      : "No services available"}
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </Link>
