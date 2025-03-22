@@ -19,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FilterDateType } from "@/hooks/useBookingFilters";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface BookingFiltersProps {
   searchQuery: string;
@@ -33,6 +35,8 @@ interface BookingFiltersProps {
   statusOptions: { status_code: string; status_name: string }[];
   showDateFilter: boolean;
   setShowDateFilter: (show: boolean) => void;
+  filterDateType: FilterDateType;
+  setFilterDateType: (type: FilterDateType) => void;
 }
 
 const BookingFilters: React.FC<BookingFiltersProps> = ({
@@ -48,6 +52,8 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
   statusOptions,
   showDateFilter,
   setShowDateFilter,
+  filterDateType,
+  setFilterDateType,
 }) => {
   return (
     <div className="flex items-center space-x-2">
@@ -69,6 +75,23 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
         </PopoverTrigger>
         <PopoverContent className="w-80" align="end">
           <div className="grid gap-4">
+            <div className="space-y-2">
+              <h4 className="font-medium leading-none">Filter Date By</h4>
+              <RadioGroup 
+                value={filterDateType}
+                onValueChange={(value) => setFilterDateType(value as FilterDateType)}
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="booking" id="booking-date" />
+                  <Label htmlFor="booking-date">Booking Date</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="creation" id="creation-date" />
+                  <Label htmlFor="creation-date">Creation Date</Label>
+                </div>
+              </RadioGroup>
+            </div>
             <div className="space-y-2">
               <h4 className="font-medium leading-none">Date Range</h4>
               <div className="grid grid-cols-2 gap-2">

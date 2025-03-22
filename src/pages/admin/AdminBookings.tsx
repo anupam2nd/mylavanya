@@ -25,6 +25,8 @@ const AdminBookings = () => {
     setSearchQuery,
     showDateFilter,
     setShowDateFilter,
+    filterDateType,
+    setFilterDateType,
     clearFilters
   } = useBookingFilters(bookings);
 
@@ -55,6 +57,8 @@ const AdminBookings = () => {
               statusOptions={statusOptions}
               showDateFilter={showDateFilter}
               setShowDateFilter={setShowDateFilter}
+              filterDateType={filterDateType}
+              setFilterDateType={setFilterDateType}
             />
           </CardHeader>
           <CardContent>
