@@ -95,6 +95,7 @@ export type Database = {
       }
       statusmst: {
         Row: {
+          active: boolean
           created_at: string
           description: string | null
           id: number
@@ -102,6 +103,7 @@ export type Database = {
           status_name: string
         }
         Insert: {
+          active?: boolean
           created_at?: string
           description?: string | null
           id?: number
@@ -109,6 +111,7 @@ export type Database = {
           status_name: string
         }
         Update: {
+          active?: boolean
           created_at?: string
           description?: string | null
           id?: number

@@ -6,7 +6,7 @@ export interface StatusOption {
   status_code: string;
   status_name: string;
   description?: string;
-  active?: boolean;
+  active: boolean;
 }
 
 export const useStatusOptions = () => {

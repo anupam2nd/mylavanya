@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -94,8 +93,6 @@ const StatusList = ({ statuses, onUpdate }: StatusListProps) => {
     if (!statusToDeactivate) return;
 
     try {
-      // Update the status to set it as inactive
-      // Note: You would need to add an 'active' column to your statusmst table
       const { error } = await supabase
         .from('statusmst')
         .update({ active: false })
@@ -123,7 +120,6 @@ const StatusList = ({ statuses, onUpdate }: StatusListProps) => {
   const onSubmit = async (values: FormValues) => {
     try {
       if (editStatus) {
-        // Update existing status
         const { error } = await supabase
           .from('statusmst')
           .update({

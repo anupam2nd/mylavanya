@@ -39,7 +39,7 @@ const AdminStatus = () => {
 
   useEffect(() => {
     fetchStatuses();
-  }, [toast]);
+  }, []);
 
   return (
     <ProtectedRoute allowedRoles={['superadmin']}>
