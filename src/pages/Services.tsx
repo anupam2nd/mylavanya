@@ -1,18 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Filter } from "lucide-react";
 import ServiceList from "@/components/services/ServiceList";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
@@ -30,10 +19,6 @@ const Services = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const navigate = useNavigate();
 
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value);
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -48,41 +33,6 @@ const Services = () => {
         </div>
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-between items-center mb-6">
-            <div className="font-medium">
-              {selectedCategory === "all" ? "All Services" : `Category: ${categories.find(c => c.id === selectedCategory)?.name || selectedCategory}`}
-            </div>
-            
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Filter size={16} />
-                  <span className="hidden sm:inline-block">Filter</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Filter Services</SheetTitle>
-                </SheetHeader>
-                <div className="py-6">
-                  <h3 className="font-medium mb-4">Categories</h3>
-                  <RadioGroup 
-                    value={selectedCategory} 
-                    onValueChange={handleCategoryChange}
-                    className="space-y-2"
-                  >
-                    {categories.map((category) => (
-                      <div key={category.id} className="flex items-center space-x-2">
-                        <RadioGroupItem value={category.id} id={`category-${category.id}`} />
-                        <Label htmlFor={`category-${category.id}`}>{category.name}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-          
           <ServiceList categoryFilter={selectedCategory !== "all" ? selectedCategory : undefined} />
         </div>
       </div>

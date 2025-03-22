@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Search, Filter, CalendarIcon } from "lucide-react";
+import { Search } from "lucide-react";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -66,13 +65,14 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
           className="pl-8"
         />
       </div>
+      <Button 
+        variant="outline" 
+        onClick={() => setShowDateFilter(true)}
+        className="flex items-center gap-1"
+      >
+        Advanced Filters
+      </Button>
       <Popover open={showDateFilter} onOpenChange={setShowDateFilter}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="flex items-center gap-1">
-            <Filter className="h-4 w-4" />
-            Filters
-          </Button>
-        </PopoverTrigger>
         <PopoverContent className="w-80" align="end">
           <div className="grid gap-4">
             <div className="space-y-2">
