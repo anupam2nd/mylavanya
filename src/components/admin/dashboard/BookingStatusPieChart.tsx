@@ -105,7 +105,7 @@ export const BookingStatusPieChart = ({
     return statusItem ? statusItem.bookings : [];
   }, [selectedStatus, statusData]);
   
-  // Export headers for the CSV
+  // Export headers for the CSV - fixed to include only specific fields that exist in Booking
   const bookingExportHeaders = {
     Booking_NO: "Booking Number",
     name: "Customer Name",
