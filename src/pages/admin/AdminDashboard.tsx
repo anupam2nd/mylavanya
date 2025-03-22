@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
@@ -25,48 +25,78 @@ const AdminDashboard = () => {
     return null; // Prevent flash of content before redirect
   }
 
+  const isSuperAdmin = user.role === 'superadmin';
+
   return (
     <DashboardLayout title="Admin Dashboard">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Bookings
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">
-              No bookings yet
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Services
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2</div>
-            <p className="text-xs text-muted-foreground">
-              Bridal & Event Makeup
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Admin</div>
-            <p className="text-xs text-muted-foreground">
-              Welcome to your dashboard
-            </p>
-          </CardContent>
-        </Card>
+        <Link to="/admin/bookings">
+          <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Bookings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground">
+                Manage all bookings
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+        
+        <Link to="/admin/services">
+          <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Active Services
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">2</div>
+              <p className="text-xs text-muted-foreground">
+                Bridal & Event Makeup
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+        
+        {isSuperAdmin && (
+          <Link to="/admin/users">
+            <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  User Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Users</div>
+                <p className="text-xs text-muted-foreground">
+                  Manage system users
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+        
+        {isSuperAdmin && (
+          <Link to="/admin/status">
+            <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Status Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Status</div>
+                <p className="text-xs text-muted-foreground">
+                  Manage system statuses
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
       </div>
       
       <div className="mt-6">
