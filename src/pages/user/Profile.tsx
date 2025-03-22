@@ -16,7 +16,8 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: user?.email || "",
-    name: "",
+    firstName: "",
+    lastName: "",
     phone: ""
   });
 
@@ -40,7 +41,8 @@ const Profile = () => {
         if (data) {
           setFormData(prev => ({
             ...prev,
-            name: data.FirstName || "",
+            firstName: data.FirstName || "",
+            lastName: data.LastName || "",
             phone: data.Username || "" // Using Username field for phone as per current schema
           }));
         }
@@ -69,7 +71,8 @@ const Profile = () => {
         .from('UserMST')
         .upsert({
           id: Number(user.id),
-          FirstName: formData.name,
+          FirstName: formData.firstName,
+          LastName: formData.lastName,
           Username: formData.phone // Using Username field for phone as per current schema
         });
         
@@ -108,21 +111,33 @@ const Profile = () => {
                     name="email"
                     type="email" 
                     value={formData.email}
-                    onChange={handleChange}
                     disabled
                   />
                   <p className="text-xs text-muted-foreground">Email cannot be changed</p>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input 
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter your full name"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input 
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      placeholder="Enter your first name"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input 
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      placeholder="Enter your last name"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
