@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,14 +46,13 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         throw new Error('User already exists');
       }
       
-      // Insert new user with default 'user' role
+      // Insert new user WITHOUT specifying a role
       const { data, error: insertError } = await supabase
         .from('UserMST')
         .insert([
           { 
             Username: email,
             password: registerData.password,
-            role: 'user',
             FirstName: registerData.firstName, 
             LastName: registerData.lastName
           }
