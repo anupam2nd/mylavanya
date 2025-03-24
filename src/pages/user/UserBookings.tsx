@@ -7,6 +7,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import BookingsList from "@/components/user/bookings/BookingsList";
+import AdminBookingsList from "@/components/user/bookings/AdminBookingsList";
 import EditBookingDialog from "@/components/user/bookings/EditBookingDialog";
 import BookingFilters from "@/components/admin/bookings/BookingFilters";
 import { useBookingFilters } from "@/hooks/useBookingFilters";
@@ -180,7 +181,7 @@ const UserBookings = () => {
                 <div className="mb-4 text-sm text-muted-foreground">
                   Showing {filteredBookings.length} of {bookings.length} bookings
                 </div>
-                <BookingsList 
+                <AdminBookingsList 
                   bookings={filteredBookings} 
                   loading={loading} 
                   onEditClick={handleEditClick} 

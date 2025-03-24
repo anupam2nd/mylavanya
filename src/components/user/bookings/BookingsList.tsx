@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,11 +10,12 @@ import { BookingData } from "@/components/tracking/BookingDetails";
 import UserBookingFilters from './UserBookingFilters';
 import { useBookingFilters } from '@/hooks/useBookingFilters';
 import { useStatusOptions } from '@/hooks/useStatusOptions';
+import { Booking } from '@/hooks/useBookings';
 
 const BookingsList = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [bookings, setBookings] = useState<BookingData[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -37,10 +39,21 @@ const BookingsList = () => {
 
         if (error) throw error;
 
-        // Transform the data to match the BookingData interface
+        // Transform the data to match the Booking interface
         const transformedData = data?.map(booking => ({
-          ...booking,
-          ProductName: booking.Purpose // Use Purpose as ProductName since it's required
+          id: booking.id,
+          Booking_NO: booking.Booking_NO || '',
+          name: booking.name || '',
+          email: booking.email || '',
+          Phone_no: booking.Phone_no,
+          Booking_date: booking.Booking_date,
+          booking_time: booking.booking_time,
+          Purpose: booking.Purpose,
+          Status: booking.Status || '',
+          price: booking.price || 0,
+          Address: booking.Address,
+          Pincode: booking.Pincode,
+          created_at: booking.created_at
         })) || [];
 
         setBookings(transformedData);
@@ -72,8 +85,6 @@ const BookingsList = () => {
     setFilterDateType,
     clearFilters
   } = useBookingFilters(bookings);
-  
-  // Replace any occurrences of 'bookings' with 'filteredBookings' in the existing component
   
   return (
     <div className="space-y-6">
