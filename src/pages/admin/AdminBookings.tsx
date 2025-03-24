@@ -58,11 +58,6 @@ const AdminBookings = () => {
     created_at: 'Created At'
   };
 
-  // Remove this separate function as we'll use the filter button in BookingFilters component
-  // const handleFilterButtonClick = () => {
-  //   setShowDateFilter(true);
-  // };
-
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
       <DashboardLayout title="Manage Bookings">

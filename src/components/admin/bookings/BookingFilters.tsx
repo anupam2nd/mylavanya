@@ -70,7 +70,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
         <PopoverTrigger asChild>
           <Button 
             variant="outline" 
-            className="flex items-center gap-1 w-full sm:w-auto bg-pink-50 text-pink-600 hover:bg-pink-100"
+            className="flex items-center gap-1 w-full sm:w-auto bg-pink-50 text-pink-600 hover:bg-pink-100 border-pink-200"
           >
             <Filter className="h-4 w-4 mr-1" />
             {startDate && endDate ? (
