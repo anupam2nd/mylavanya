@@ -3,7 +3,6 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import BookingFilters from "@/components/admin/bookings/BookingFilters";
-import BookingsTable from "@/components/admin/bookings/BookingsTable";
 import EditBookingDialog from "@/components/admin/bookings/EditBookingDialog";
 import { useBookings } from "@/hooks/useBookings";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
@@ -59,9 +58,10 @@ const AdminBookings = () => {
     created_at: 'Created At'
   };
 
-  const handleFilterButtonClick = () => {
-    setShowDateFilter(true);
-  };
+  // Remove this separate function as we'll use the filter button in BookingFilters component
+  // const handleFilterButtonClick = () => {
+  //   setShowDateFilter(true);
+  // };
 
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
@@ -102,7 +102,6 @@ const AdminBookings = () => {
               bookings={filteredBookings}
               loading={loading}
               onEditClick={handleEditClick}
-              onFilterClick={handleFilterButtonClick}
             />
           </CardContent>
         </Card>

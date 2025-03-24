@@ -2,17 +2,16 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Edit, Filter } from "lucide-react";
+import { Calendar, Clock, Edit } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 
 interface BookingsListProps {
   bookings: Booking[];
   loading: boolean;
   onEditClick: (booking: Booking) => void;
-  onFilterClick?: () => void;
 }
 
-const BookingsList = ({ bookings, loading, onEditClick, onFilterClick }: BookingsListProps) => {
+const BookingsList = ({ bookings, loading, onEditClick }: BookingsListProps) => {
   if (loading) {
     return (
       <div className="p-8 flex justify-center items-center">
@@ -31,16 +30,6 @@ const BookingsList = ({ bookings, loading, onEditClick, onFilterClick }: Booking
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end mb-4">
-        <Button 
-          onClick={onFilterClick}
-          variant="outline"
-          className="flex items-center gap-2 bg-pink-50 text-pink-600 hover:bg-pink-100"
-        >
-          <Filter className="h-4 w-4" />
-          <span>Filter Bookings</span>
-        </Button>
-      </div>
       <div className="overflow-x-auto">
         <table className="w-full whitespace-nowrap">
           <thead>

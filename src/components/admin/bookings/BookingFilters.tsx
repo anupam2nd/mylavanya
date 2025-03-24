@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Search, Calendar } from "lucide-react";
+import { Search, Calendar, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -66,22 +66,23 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
           className="pl-8"
         />
       </div>
-      <Button 
-        variant="outline" 
-        onClick={() => setShowDateFilter(true)}
-        className="flex items-center gap-1 w-full sm:w-auto"
-      >
-        <Calendar className="h-4 w-4 mr-1" />
-        {startDate && endDate ? (
-          <span className="text-xs">
-            {format(startDate, "MMM dd")} - {format(endDate, "MMM dd")}
-          </span>
-        ) : (
-          "Filter Bookings"
-        )}
-      </Button>
       <Popover open={showDateFilter} onOpenChange={setShowDateFilter}>
-        <PopoverContent className="w-80" align="end">
+        <PopoverTrigger asChild>
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-1 w-full sm:w-auto bg-pink-50 text-pink-600 hover:bg-pink-100"
+          >
+            <Filter className="h-4 w-4 mr-1" />
+            {startDate && endDate ? (
+              <span className="text-xs">
+                {format(startDate, "MMM dd")} - {format(endDate, "MMM dd")}
+              </span>
+            ) : (
+              "Filter Bookings"
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 z-50 bg-white shadow-md" align="end">
           <div className="grid gap-4">
             <div className="space-y-2">
               <h4 className="font-medium leading-none">Filter Date By</h4>
@@ -119,7 +120,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         {startDate ? format(startDate, "MMM dd, yyyy") : <span>Pick date</span>}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
                       <CalendarComponent
                         mode="single"
                         selected={startDate}
@@ -146,7 +147,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                         {endDate ? format(endDate, "MMM dd, yyyy") : <span>Pick date</span>}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
                       <CalendarComponent
                         mode="single"
                         selected={endDate}
@@ -168,7 +169,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white z-50">
                   <SelectItem value="all">All Statuses</SelectItem>
                   {statusOptions && statusOptions.map((option) => (
                     <SelectItem key={option.status_code} value={option.status_code}>
