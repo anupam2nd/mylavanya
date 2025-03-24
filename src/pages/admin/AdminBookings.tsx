@@ -10,6 +10,7 @@ import { useStatusOptions } from "@/hooks/useStatusOptions";
 import { useBookingFilters } from "@/hooks/useBookingFilters";
 import { useBookingEdit } from "@/hooks/useBookingEdit";
 import { ExportButton } from "@/components/ui/export-button";
+import AdminBookingsList from "@/components/user/bookings/AdminBookingsList";
 
 const AdminBookings = () => {
   const { bookings, setBookings, loading } = useBookings();
@@ -58,6 +59,10 @@ const AdminBookings = () => {
     created_at: 'Created At'
   };
 
+  const handleFilterButtonClick = () => {
+    setShowDateFilter(true);
+  };
+
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
       <DashboardLayout title="Manage Bookings">
@@ -93,10 +98,11 @@ const AdminBookings = () => {
             <div className="mb-4 text-sm text-muted-foreground">
               Showing {filteredBookings.length} of {bookings.length} bookings
             </div>
-            <BookingsTable
-              filteredBookings={filteredBookings}
-              handleEditClick={handleEditClick}
+            <AdminBookingsList
+              bookings={filteredBookings}
               loading={loading}
+              onEditClick={handleEditClick}
+              onFilterClick={handleFilterButtonClick}
             />
           </CardContent>
         </Card>
