@@ -8,10 +8,13 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { BookingData } from "@/components/tracking/BookingDetails";
+import { subDays } from "date-fns";
 
 const UserDashboard = () => {
   const { user } = useAuth();
   const [bookings, setBookings] = useState<BookingData[]>([]);
+  const [recentBookings, setRecentBookings] = useState<number>(0);
+  const [pendingBookings, setPendingBookings] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -20,12 +23,12 @@ const UserDashboard = () => {
       if (!user) return;
 
       try {
+        // Get all bookings for the user
         const { data, error } = await supabase
           .from('BookMST')
           .select('*')
           .eq('email', user.email)
-          .order('Booking_date', { ascending: false })
-          .limit(5);
+          .order('Booking_date', { ascending: false });
 
         if (error) throw error;
         
@@ -36,6 +39,20 @@ const UserDashboard = () => {
         })) || [];
         
         setBookings(transformedData);
+        
+        // Calculate recent bookings (last 30 days)
+        const thirtyDaysAgo = subDays(new Date(), 30);
+        const recentCount = transformedData.filter(booking => {
+          const bookingDate = new Date(booking.Booking_date);
+          return bookingDate >= thirtyDaysAgo;
+        }).length;
+        setRecentBookings(recentCount);
+        
+        // Calculate pending bookings (awaiting confirmation)
+        const pendingCount = transformedData.filter(booking => 
+          booking.Status === 'pending'
+        ).length;
+        setPendingBookings(pendingCount);
       } catch (error) {
         console.error('Error fetching bookings:', error);
       } finally {
@@ -65,38 +82,37 @@ const UserDashboard = () => {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium">
                 Total Bookings
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{bookings.length}</div>
+              <p className="text-sm text-muted-foreground">All time booking records</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Active Bookings
+              <CardTitle className="text-sm font-medium">
+                Recent Bookings
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">
-                {bookings.filter(b => b.Status !== 'done' && b.Status !== 'cancelled').length}
-              </div>
+              <div className="text-3xl font-bold">{recentBookings}</div>
+              <p className="text-sm text-muted-foreground">Last 30 days</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Completed Services
+              <CardTitle className="text-sm font-medium">
+                Awaiting Confirmation
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">
-                {bookings.filter(b => b.Status === 'done').length}
-              </div>
+              <div className="text-3xl font-bold">{pendingBookings}</div>
+              <p className="text-sm text-muted-foreground">Bookings requiring your action</p>
             </CardContent>
           </Card>
         </div>
@@ -117,9 +133,9 @@ const UserDashboard = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {bookings.map((booking) => (
+                {bookings.slice(0, 5).map((booking) => (
                   <div 
-                    key={booking.Booking_NO} // Use Booking_NO as a key instead of id
+                    key={booking.Booking_NO} 
                     className="flex items-start justify-between p-4 border rounded-lg"
                   >
                     <div className="space-y-1">

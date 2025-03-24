@@ -6,12 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader } from "lucide-react";
+import { subDays } from "date-fns";
 
 const UserDashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [userBookings, setUserBookings] = useState<number>(0);
-  const [availableServices, setAvailableServices] = useState<number>(0);
+  const [totalBookings, setTotalBookings] = useState<number>(0);
+  const [recentBookings, setRecentBookings] = useState<number>(0);
+  const [pendingBookings, setPendingBookings] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -27,24 +29,30 @@ const UserDashboard = () => {
       
       setLoading(true);
       try {
-        // Fetch user's bookings count
-        const { count: bookingCount, error: bookingError } = await supabase
+        // Fetch all user's bookings
+        const { data: bookings, error: bookingError } = await supabase
           .from('BookMST')
-          .select('*', { count: 'exact', head: true })
+          .select('*')
           .eq('email', user.email);
           
         if (bookingError) throw bookingError;
         
-        // Fetch available services count
-        const { count: serviceCount, error: serviceError } = await supabase
-          .from('PriceMST')
-          .select('*', { count: 'exact', head: true })
-          .eq('active', true);
-          
-        if (serviceError) throw serviceError;
+        setTotalBookings(bookings?.length || 0);
         
-        setUserBookings(bookingCount || 0);
-        setAvailableServices(serviceCount || 0);
+        // Recent bookings (last 30 days)
+        const thirtyDaysAgo = subDays(new Date(), 30);
+        const recentCount = bookings?.filter(booking => {
+          const bookingDate = new Date(booking.Booking_date);
+          return bookingDate >= thirtyDaysAgo;
+        }).length || 0;
+        setRecentBookings(recentCount);
+        
+        // Pending bookings (awaiting confirmation)
+        const pendingCount = bookings?.filter(booking => 
+          booking.Status === 'pending'
+        ).length || 0;
+        setPendingBookings(pendingCount);
+        
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -61,76 +69,72 @@ const UserDashboard = () => {
 
   return (
     <DashboardLayout title="Your Dashboard">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Link to="/user/bookings">
-          <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                My Bookings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center h-6 space-x-2">
-                  <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
-                  <span className="text-muted-foreground text-sm">Loading...</span>
-                </div>
-              ) : (
-                <>
-                  <div className="text-2xl font-bold">{userBookings}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {userBookings > 0 
-                      ? `View your ${userBookings} booking${userBookings !== 1 ? 's' : ''}`
-                      : "No bookings yet"}
-                  </p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </Link>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="transition-colors">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Bookings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center h-6 space-x-2">
+                <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <>
+                <div className="text-3xl font-bold">{totalBookings}</div>
+                <p className="text-sm text-muted-foreground">
+                  All time booking records
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
         
-        <Link to="/services">
-          <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Services
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center h-6 space-x-2">
-                  <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
-                  <span className="text-muted-foreground text-sm">Loading...</span>
-                </div>
-              ) : (
-                <>
-                  <div className="text-2xl font-bold">{availableServices}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {availableServices > 0 
-                      ? `${availableServices} available service${availableServices !== 1 ? 's' : ''}`
-                      : "No services available"}
-                  </p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </Link>
+        <Card className="transition-colors">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Recent Bookings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center h-6 space-x-2">
+                <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <>
+                <div className="text-3xl font-bold">{recentBookings}</div>
+                <p className="text-sm text-muted-foreground">
+                  Last 30 days
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
         
-        <Link to="/profile">
-          <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                My Profile
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">Profile</div>
-              <p className="text-xs text-muted-foreground">
-                Manage your account
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
+        <Card className="transition-colors">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Awaiting Confirmation
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center h-6 space-x-2">
+                <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <>
+                <div className="text-3xl font-bold">{pendingBookings}</div>
+                <p className="text-sm text-muted-foreground">
+                  Bookings requiring your action
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
       
       <div className="mt-6">

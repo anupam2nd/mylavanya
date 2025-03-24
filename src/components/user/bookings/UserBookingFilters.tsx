@@ -22,7 +22,7 @@ import {
 import { FilterDateType } from "@/hooks/useBookingFilters";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-interface BookingFiltersProps {
+interface UserBookingFiltersProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   startDate: Date | undefined;
@@ -39,7 +39,7 @@ interface BookingFiltersProps {
   setFilterDateType: (type: FilterDateType) => void;
 }
 
-const BookingFilters: React.FC<BookingFiltersProps> = ({
+const UserBookingFilters: React.FC<UserBookingFiltersProps> = ({
   searchQuery,
   setSearchQuery,
   startDate,
@@ -60,7 +60,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
       <div className="relative w-full sm:w-64">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search bookings..."
+          placeholder="Search your bookings..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-8"
@@ -200,4 +200,4 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
   );
 };
 
-export default BookingFilters;
+export default UserBookingFilters;
