@@ -82,7 +82,7 @@ export default function Contact() {
                       <Mail size={22} className="text-primary mr-4 mt-1" />
                       <div>
                         <h3 className="font-medium">Email Address</h3>
-                        <p className="text-muted-foreground">contactus@mylavanya.com</p>
+                        <p className="text-muted-foreground">contactus@lavanya.com</p>
                       </div>
                     </div>
                   </div>

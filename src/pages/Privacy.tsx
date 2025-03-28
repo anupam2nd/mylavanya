@@ -1,4 +1,3 @@
-
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 
@@ -18,7 +17,7 @@ export default function Privacy() {
                 </p>
                 
                 <p className="mb-6">
-                  At MyLavanya, we respect your privacy and are committed to protecting your personal data. This privacy policy will inform you how we look after your personal data when you visit our website and tell you about your privacy rights and how the law protects you.
+                  At Lavanya, we respect your privacy and are committed to protecting your personal data. This privacy policy will inform you how we look after your personal data when you visit our website and tell you about your privacy rights and how the law protects you.
                 </p>
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">Information We Collect</h2>
@@ -68,7 +67,7 @@ export default function Privacy() {
                   If you have any questions about this privacy policy or our privacy practices, please contact us at:
                 </p>
                 <p className="mt-4">
-                  <strong>Email:</strong> contactus@mylavanya.com<br />
+                  <strong>Email:</strong> contactus@lavanya.com<br />
                   <strong>Phone:</strong> +91 9230967221<br />
                   <strong>Address:</strong> DN 30 SALT LAKE CITY SEC V, KOLKATA 700091
                 </p>

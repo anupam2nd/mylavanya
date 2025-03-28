@@ -1,4 +1,3 @@
-
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 
@@ -18,7 +17,7 @@ export default function Terms() {
                 </p>
                 
                 <p className="mb-6">
-                  Please read these terms of service carefully before using the MyLavanya website or booking our services. By accessing or using our service, you agree to be bound by these terms.
+                  Please read these terms of service carefully before using the Lavanya website or booking our services. By accessing or using our service, you agree to be bound by these terms.
                 </p>
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">1. Acceptance of Terms</h2>
@@ -28,7 +27,7 @@ export default function Terms() {
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">2. Service Description</h2>
                 <p>
-                  MyLavanya provides beauty services for special events including but not limited to weddings, parties, and other occasions. Our services are subject to availability and may vary based on location, time, and specific requirements.
+                  Lavanya provides beauty services for special events including but not limited to weddings, parties, and other occasions. Our services are subject to availability and may vary based on location, time, and specific requirements.
                 </p>
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">3. Booking and Cancellation</h2>
@@ -51,7 +50,7 @@ export default function Terms() {
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">5. Intellectual Property</h2>
                 <p>
-                  The content, organization, graphics, design, compilation, and other matters related to the MyLavanya website are protected under applicable copyrights, trademarks, and other proprietary rights. The copying, redistribution, use, or publication by you of any such matters or any part of the website is strictly prohibited without our express prior written permission.
+                  The content, organization, graphics, design, compilation, and other matters related to the Lavanya website are protected under applicable copyrights, trademarks, and other proprietary rights. The copying, redistribution, use, or publication by you of any such matters or any part of the website is strictly prohibited without our express prior written permission.
                 </p>
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">6. User Conduct</h2>
@@ -61,7 +60,7 @@ export default function Terms() {
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">7. Limitation of Liability</h2>
                 <p>
-                  MyLavanya shall not be liable for any direct, indirect, incidental, special, or consequential damages that result from the use of, or the inability to use, our services or any information provided on our website.
+                  Lavanya shall not be liable for any direct, indirect, incidental, special, or consequential damages that result from the use of, or the inability to use, our services or any information provided on our website.
                 </p>
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">8. Governing Law</h2>
@@ -79,7 +78,7 @@ export default function Terms() {
                   If you have any questions about these Terms of Service, please contact us at:
                 </p>
                 <p className="mt-4">
-                  <strong>Email:</strong> contactus@mylavanya.com<br />
+                  <strong>Email:</strong> contactus@lavanya.com<br />
                   <strong>Phone:</strong> +91 9230967221<br />
                   <strong>Address:</strong> DN 30 SALT LAKE CITY SEC V, KOLKATA 700091
                 </p>
