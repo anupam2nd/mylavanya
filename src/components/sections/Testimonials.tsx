@@ -8,6 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import AvatarUpload from "@/components/testimonials/AvatarUpload";
 
 // Create an easily customizable testimonials array
 // This can be edited directly or replaced with data from an API or CMS
@@ -66,6 +67,17 @@ const testimonials = [
 
 const Testimonials = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [localTestimonials, setLocalTestimonials] = useState(testimonials);
+
+  const handleImageChange = (id: number, newImageUrl: string) => {
+    setLocalTestimonials(prevTestimonials =>
+      prevTestimonials.map(testimonial =>
+        testimonial.id === id
+          ? { ...testimonial, image: newImageUrl }
+          : testimonial
+      )
+    );
+  };
 
   return (
     <div className="py-24 bg-white">
@@ -93,7 +105,7 @@ const Testimonials = () => {
             }}
           >
             <CarouselContent>
-              {testimonials.map((testimonial, index) => (
+              {localTestimonials.map((testimonial, index) => (
                 <CarouselItem key={testimonial.id} className="md:basis-1/2 lg:basis-1/3">
                   <div 
                     className={`
@@ -120,14 +132,11 @@ const Testimonials = () => {
                     
                     <div className="flex items-center">
                       <div className="h-12 w-12 rounded-full overflow-hidden mr-4 bg-gray-100">
-                        <img 
-                          src={testimonial.image} 
-                          alt={testimonial.name} 
-                          className="w-full h-full object-cover" 
-                          onError={(e) => {
-                            // Fallback for image loading errors
-                            e.currentTarget.src = "/placeholder.svg";
-                          }}
+                        <AvatarUpload
+                          initialImage={testimonial.image}
+                          name={testimonial.name}
+                          onImageChange={(imageUrl) => handleImageChange(testimonial.id, imageUrl)}
+                          size="md"
                         />
                       </div>
                       <div>
@@ -145,7 +154,7 @@ const Testimonials = () => {
 
           {/* Testimonial indicators */}
           <div className="flex justify-center mt-8 space-x-2">
-            {testimonials.map((_, index) => (
+            {localTestimonials.map((_, index) => (
               <button
                 key={index}
                 className={`h-3 w-3 rounded-full transition-colors ${
