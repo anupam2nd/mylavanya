@@ -17,7 +17,7 @@ const Index = () => {
   console.log("Index page rendering");
 
   return (
-    <MainLayout>
+    <MainLayout showAnnouncement={true}>
       <Hero 
         onBookNow={() => navigate("/services")}
         onLogin={() => setIsAuthModalOpen(true)}
