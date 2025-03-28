@@ -4,10 +4,11 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { parseISO, subDays } from "date-fns";
+import { parseISO, subDays, format } from "date-fns";
 import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPieChart";
 import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import { Booking } from "@/hooks/useBookings";
+import { toast } from "sonner";
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -37,8 +38,13 @@ const UserDashboard = () => {
           .eq('email', user.email)
           .order('Booking_date', { ascending: false });
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching bookings:', error);
+          toast.error("Failed to load your bookings");
+          throw error;
+        }
         
+        console.log("User bookings loaded:", data?.length || 0);
         setBookings(data || []);
       } catch (error) {
         console.error('Error fetching bookings:', error);
@@ -55,6 +61,7 @@ const UserDashboard = () => {
     setAppliedStartDate(startDate);
     setAppliedEndDate(endDate);
     setFiltersApplied(true);
+    toast.success(`Filtering data from ${startDate ? format(startDate, 'MMM dd, yyyy') : ''} to ${endDate ? format(endDate, 'MMM dd, yyyy') : ''}`);
   };
   
   // Reset filters action
@@ -67,9 +74,10 @@ const UserDashboard = () => {
     setAppliedStartDate(defaultStart);
     setAppliedEndDate(defaultEnd);
     setFiltersApplied(false);
+    toast.info("Filters have been reset");
   };
   
-  // Calculate recent bookings for the card
+  // Calculate recent bookings for the card (last 30 days)
   const recentBookings = useMemo(() => {
     const thirtyDaysAgo = subDays(new Date(), 30);
     return bookings.filter(booking => {
@@ -83,6 +91,11 @@ const UserDashboard = () => {
     return bookings.filter(booking => booking.Status === "pending").length;
   }, [bookings]);
 
+  // Calculate confirmed bookings
+  const confirmedBookings = useMemo(() => {
+    return bookings.filter(booking => booking.Status === "confirmed").length;
+  }, [bookings]);
+
   return (
     <DashboardLayout title="Dashboard">
       {/* Summary Cards */}
@@ -92,9 +105,9 @@ const UserDashboard = () => {
             <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{bookings.length}</div>
+            <div className="text-2xl font-bold">{loading ? '...' : bookings.length}</div>
             <p className="text-xs text-muted-foreground">
-              All time booking records
+              All your booking records
             </p>
           </CardContent>
         </Card>
@@ -113,14 +126,14 @@ const UserDashboard = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Awaiting Confirmation</CardTitle>
+            <CardTitle className="text-sm font-medium">Confirmed Bookings</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {loading ? '...' : awaitingConfirmation}
+              {loading ? '...' : confirmedBookings}
             </div>
             <p className="text-xs text-muted-foreground">
-              Bookings requiring your action
+              Services confirmed to be delivered
             </p>
           </CardContent>
         </Card>
