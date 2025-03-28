@@ -148,15 +148,18 @@ const ServiceDetail = () => {
           </Button>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div>
-              <div className="flex items-center space-x-3 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">{service.ProductName}</h1>
-                <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+              {/* Updated order: Services, Subservice, Product Name */}
+              {service.Services && (
+                <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm inline-block mb-1">
                   {service.Services}
                 </span>
-              </div>
-              {service.Subservice && (
-                <p className="text-gray-600 mt-1">{service.Subservice}</p>
               )}
+              
+              {service.Subservice && (
+                <p className="text-gray-600 mt-1 mb-1">{service.Subservice}</p>
+              )}
+              
+              <h1 className="text-3xl font-bold text-gray-900">{service.ProductName}</h1>
             </div>
             <div className="mt-4 md:mt-0 bg-white/80 px-4 py-2 rounded-lg shadow-sm">
               {hasDiscount ? (
