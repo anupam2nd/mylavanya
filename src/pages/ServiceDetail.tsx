@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,20 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import BookingForm from "@/components/booking/BookingForm";
 import { toast } from "@/hooks/use-toast";
 
-// Helper function to get image based on service ID or name
 const getServiceImage = (serviceId: number, serviceName: string | null) => {
-  // Map different services to different images based on ID or name
   switch(serviceId) {
     case 1: 
-      return "/lovable-uploads/d9a82f47-9bdb-4fc4-93d0-5fbcff7b79ed.jpg"; // Bridal Makeup
+      return "/lovable-uploads/d9a82f47-9bdb-4fc4-93d0-5fbcff7b79ed.jpg";
     case 2:
-      return "/lovable-uploads/1167ac24-9ba6-4ffb-9110-6d3d68d873e7.png"; // Event Makeup
+      return "/lovable-uploads/1167ac24-9ba6-4ffb-9110-6d3d68d873e7.png";
     case 3:
-      return "/lovable-uploads/0b9c4ec6-8c62-4d2f-a9b8-bfcf1f87fabd.jpg"; // Hair Styling
+      return "/lovable-uploads/0b9c4ec6-8c62-4d2f-a9b8-bfcf1f87fabd.jpg";
     case 4:
-      return "/lovable-uploads/e1283d7b-c007-46fc-98c6-f102af72e922.png"; // Nail Art
+      return "/lovable-uploads/e1283d7b-c007-46fc-98c6-f102af72e922.png";
     default:
-      // Fallback image or determine based on name
       if (serviceName && serviceName.toLowerCase().includes("bridal")) {
         return "/lovable-uploads/d9a82f47-9bdb-4fc4-93d0-5fbcff7b79ed.jpg";
       } else if (serviceName && serviceName.toLowerCase().includes("event")) {
@@ -31,7 +27,7 @@ const getServiceImage = (serviceId: number, serviceName: string | null) => {
       } else if (serviceName && serviceName.toLowerCase().includes("nail")) {
         return "/lovable-uploads/e1283d7b-c007-46fc-98c6-f102af72e922.png";
       }
-      return "/placeholder.svg"; // Default fallback
+      return "/placeholder.svg";
   }
 };
 
@@ -50,7 +46,6 @@ const ServiceDetail = () => {
         setError(null);
         console.log("Fetching service with ID:", serviceId);
 
-        // Convert serviceId to number
         if (!serviceId) {
           throw new Error("Service ID is required");
         }
@@ -59,12 +54,11 @@ const ServiceDetail = () => {
           throw new Error("Invalid service ID");
         }
         
-        // Query for an active service with the specified ID
         const { data, error } = await supabase
           .from('PriceMST')
           .select('*')
           .eq('prod_id', serviceIdNumber)
-          .eq('active', true) // Only fetch active services
+          .eq('active', true)
           .single();
           
         if (error) {
@@ -92,14 +86,11 @@ const ServiceDetail = () => {
 
   const handleBookingSuccess = () => {
     setShowBookingForm(false);
-    // We don't need to do anything else here as the form component now displays the success state
   };
 
-  // Calculate the final price if discount exists
   const calculateFinalPrice = () => {
     if (!service) return { finalPrice: 0, hasDiscount: false };
     
-    // Use NetPayable if provided, otherwise calculate from Price and Discount
     const finalPrice = service.NetPayable !== null && service.NetPayable !== undefined
       ? service.NetPayable
       : service.Discount
@@ -149,7 +140,6 @@ const ServiceDetail = () => {
           </Button>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div>
-              {/* Updated order: Product Name, Subservice, Services */}
               <h1 className="text-3xl font-bold text-gray-900">
                 {service.ProductName}
               </h1>
