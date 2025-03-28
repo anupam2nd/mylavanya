@@ -14,6 +14,7 @@ const UserDashboard = () => {
   const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Initialize with last 30 days as default
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
@@ -31,7 +32,9 @@ const UserDashboard = () => {
       if (!user) return;
       
       setLoading(true);
+      setError(null);
       try {
+        console.log("Fetching bookings for user:", user.email);
         const { data, error } = await supabase
           .from('BookMST')
           .select('*')
@@ -40,14 +43,21 @@ const UserDashboard = () => {
           
         if (error) {
           console.error('Error fetching bookings:', error);
+          setError("Failed to load your bookings");
           toast.error("Failed to load your bookings");
-          throw error;
+          return;
         }
         
         console.log("User bookings loaded:", data?.length || 0);
+        if (data) {
+          console.log("Sample booking data:", data[0]);
+        }
+        
         setBookings(data || []);
       } catch (error) {
-        console.error('Error fetching bookings:', error);
+        console.error('Error in bookings fetch:', error);
+        setError("An unexpected error occurred");
+        toast.error("An unexpected error occurred");
       } finally {
         setLoading(false);
       }
@@ -107,7 +117,7 @@ const UserDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">{loading ? '...' : bookings.length}</div>
             <p className="text-xs text-muted-foreground">
-              All your booking records
+              All time booking records
             </p>
           </CardContent>
         </Card>
@@ -126,18 +136,26 @@ const UserDashboard = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Confirmed Bookings</CardTitle>
+            <CardTitle className="text-sm font-medium">Awaiting Confirmation</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {loading ? '...' : confirmedBookings}
+              {loading ? '...' : awaitingConfirmation}
             </div>
             <p className="text-xs text-muted-foreground">
-              Services confirmed to be delivered
+              Bookings requiring your action
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-700">
+          <p>{error}</p>
+          <p className="text-sm mt-2">Please try refreshing the page or contact support if the problem persists.</p>
+        </div>
+      )}
 
       {/* Chart Filters */}
       <div className="mt-6 mb-8">
