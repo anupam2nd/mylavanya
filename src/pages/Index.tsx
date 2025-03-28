@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Hero from "@/components/sections/Hero";
-import ServiceList from "@/components/services/ServiceList";
 import HowItWorks from "@/components/sections/HowItWorks";
 import Testimonials from "@/components/sections/Testimonials";
 import BookingBanner from "@/components/sections/BookingBanner";
@@ -22,7 +21,6 @@ const Index = () => {
         onBookNow={() => navigate("/services")}
         onLogin={() => setIsAuthModalOpen(true)}
       />
-      <ServiceList featured={true} />
       <HowItWorks />
       <BookingBanner onBookNow={() => navigate("/services")} />
       <Testimonials />

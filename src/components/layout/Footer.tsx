@@ -1,5 +1,6 @@
+
 import { Link } from "react-router-dom";
-import { Instagram, Facebook, Twitter, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
+import { Instagram, Facebook, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -20,9 +21,6 @@ export default function Footer() {
               </a>
               <a href="#" className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" aria-label="Facebook">
                 <Facebook size={18} />
-              </a>
-              <a href="#" className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" aria-label="Twitter">
-                <Twitter size={18} />
               </a>
             </div>
           </div>
@@ -70,9 +68,9 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="mailto:hello@glowbeauty.com" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
+                <a href="mailto:contactus@lavanya.com" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
                   <Mail size={18} className="mr-3 text-primary" />
-                  <span>contactus@mylavanya.com</span>
+                  <span>contactus@lavanya.com</span>
                 </a>
               </li>
             </ul>
