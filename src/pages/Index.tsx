@@ -24,8 +24,7 @@ const Index = () => {
       <Hero 
         onBookNow={() => navigate("/services")}
         onLogin={() => setIsAuthModalOpen(true)}
-        // You can change the heroImage prop here to use a different image
-        // heroImage="/path/to/your/new/image.jpg"
+        heroImage="/lovable-uploads/0b9c4ec6-8c62-4d2f-a9b8-bfcf1f87fabd.jpg"
       />
       <ServiceList featured={true} />
       <HowItWorks />
