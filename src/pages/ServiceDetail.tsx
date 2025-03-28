@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
+import { Badge } from "@/components/ui/badge";
 import BookingForm from "@/components/booking/BookingForm";
 import { toast } from "@/hooks/use-toast";
 
@@ -148,18 +149,20 @@ const ServiceDetail = () => {
           </Button>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div>
-              {/* Updated order: Services, Subservice, Product Name */}
-              {service.Services && (
-                <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm inline-block mb-1">
-                  {service.Services}
-                </span>
-              )}
+              {/* Updated order: Product Name, Subservice, Services */}
+              <h1 className="text-3xl font-bold text-gray-900">
+                {service.ProductName}
+              </h1>
               
               {service.Subservice && (
-                <p className="text-gray-600 mt-1 mb-1">{service.Subservice}</p>
+                <p className="text-gray-600 mt-1">{service.Subservice}</p>
               )}
               
-              <h1 className="text-3xl font-bold text-gray-900">{service.ProductName}</h1>
+              {service.Services && (
+                <Badge variant="outline" className="bg-pink-100 text-pink-500 border-pink-200 mt-2">
+                  {service.Services}
+                </Badge>
+              )}
             </div>
             <div className="mt-4 md:mt-0 bg-white/80 px-4 py-2 rounded-lg shadow-sm">
               {hasDiscount ? (
