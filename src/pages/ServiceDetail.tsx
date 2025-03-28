@@ -5,25 +5,19 @@ import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import BookingForm from "@/components/booking/BookingForm";
 import { toast } from "@/hooks/use-toast";
+import { StatusBadge } from "@/components/ui/status-badge";
 
-// Helper function to get image based on service ID or name
 const getServiceImage = (serviceId: number, serviceName: string | null) => {
-  // Map different services to different images based on ID or name
   switch (serviceId) {
     case 1:
       return "/lovable-uploads/d9a82f47-9bdb-4fc4-93d0-5fbcff7b79ed.jpg";
-    // Bridal Makeup
     case 2:
       return "/lovable-uploads/1167ac24-9ba6-4ffb-9110-6d3d68d873e7.png";
-    // Event Makeup
     case 3:
       return "/lovable-uploads/0b9c4ec6-8c62-4d2f-a9b8-bfcf1f87fabd.jpg";
-    // Hair Styling
     case 4:
       return "/lovable-uploads/e1283d7b-c007-46fc-98c6-f102af72e922.png";
-    // Nail Art
     default:
-      // Fallback image or determine based on name
       if (serviceName && serviceName.toLowerCase().includes("bridal")) {
         return "/lovable-uploads/d9a82f47-9bdb-4fc4-93d0-5fbcff7b79ed.jpg";
       } else if (serviceName && serviceName.toLowerCase().includes("event")) {
@@ -34,20 +28,17 @@ const getServiceImage = (serviceId: number, serviceName: string | null) => {
         return "/lovable-uploads/e1283d7b-c007-46fc-98c6-f102af72e922.png";
       }
       return "/placeholder.svg";
-    // Default fallback
   }
 };
+
 const ServiceDetail = () => {
-  const {
-    serviceId
-  } = useParams<{
-    serviceId: string;
-  }>();
+  const { serviceId } = useParams<{ serviceId: string; }>();
   const navigate = useNavigate();
   const [service, setService] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
+
   useEffect(() => {
     const fetchServiceDetails = async () => {
       try {
@@ -55,7 +46,6 @@ const ServiceDetail = () => {
         setError(null);
         console.log("Fetching service with ID:", serviceId);
 
-        // Convert serviceId to number
         if (!serviceId) {
           throw new Error("Service ID is required");
         }
@@ -64,12 +54,10 @@ const ServiceDetail = () => {
           throw new Error("Invalid service ID");
         }
 
-        // Query for an active service with the specified ID
         const {
           data,
           error
-        } = await supabase.from('PriceMST').select('*').eq('prod_id', serviceIdNumber).eq('active', true) // Only fetch active services
-        .single();
+        } = await supabase.from('PriceMST').select('*').eq('prod_id', serviceIdNumber).eq('active', true).single();
         if (error) {
           console.error("Supabase error:", error);
           throw error;
@@ -88,19 +76,22 @@ const ServiceDetail = () => {
         setLoading(false);
       }
     };
+    
     if (serviceId) {
       fetchServiceDetails();
     }
   }, [serviceId]);
+
   const handleBookingSuccess = () => {
     setShowBookingForm(false);
-    // We don't need to do anything else here as the form component now displays the success state
   };
+
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>;
   }
+
   if (error) {
     return <div className="container mx-auto px-4 py-16 text-center">
         <h2 className="text-2xl font-medium mb-4">Error Loading Service</h2>
@@ -110,6 +101,7 @@ const ServiceDetail = () => {
         </Button>
       </div>;
   }
+
   if (!service) {
     return <div className="container mx-auto px-4 py-16 text-center">
         <h2 className="text-2xl font-medium mb-4">Service not found</h2>
@@ -119,15 +111,31 @@ const ServiceDetail = () => {
         </Button>
       </div>;
   }
+
+  const serviceParts = service?.ProductName?.split(' ') || [];
+  const serviceCategory = serviceParts[0] || '';
+  const subService = serviceParts[1] || '';
+  const productName = serviceParts.slice(2).join(' ') || '';
+
   const serviceImage = getServiceImage(service.prod_id, service.ProductName);
+
   return <div className="min-h-screen bg-gray-50 pb-16">
       <div className="bg-gradient-to-r from-violet-100 to-purple-50 py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <Button variant="ghost" onClick={() => navigate("/services")} className="mb-4">
             ← Back to Services
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">{service?.ProductName}</h1>
-          <p className="text-lg font-medium text-primary mt-1">₹{service?.Price.toFixed(2)}</p>
+          
+          <div className="flex flex-col space-y-2">
+            <div>
+              <StatusBadge status="processing" className="text-lg font-bold px-4 py-2 bg-primary/20 text-primary">
+                {serviceCategory} {subService}
+              </StatusBadge>
+            </div>
+            <div className="text-xl font-medium text-gray-700">{subService}</div>
+            <div className="text-base text-gray-500">{productName}</div>
+            <p className="text-lg font-medium text-primary mt-1">₹{service?.Price.toFixed(2)}</p>
+          </div>
         </div>
       </div>
       
@@ -181,4 +189,5 @@ const ServiceDetail = () => {
       </div>
     </div>;
 };
+
 export default ServiceDetail;
