@@ -27,7 +27,14 @@ import Settings from "./pages/user/Settings";
 // Log to confirm App is being loaded
 console.log("App component rendering");
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

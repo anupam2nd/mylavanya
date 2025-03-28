@@ -28,13 +28,17 @@ const UserDashboard = () => {
   const [appliedEndDate, setAppliedEndDate] = useState<Date | undefined>(endDate);
   
   useEffect(() => {
+    console.log("UserDashboard mounting, checking for user:", user);
     const fetchBookings = async () => {
-      if (!user) return;
+      if (!user) {
+        console.log("No user found, skipping fetch");
+        return;
+      }
       
       setLoading(true);
       setError(null);
       try {
-        console.log("Fetching bookings for user:", user.email);
+        console.log(`Fetching bookings for user: ${user.email} with role: ${user.role}`);
         const { data, error } = await supabase
           .from('BookMST')
           .select('*')
@@ -48,10 +52,8 @@ const UserDashboard = () => {
           return;
         }
         
-        console.log("User bookings loaded:", data?.length || 0);
-        if (data) {
-          console.log("Sample booking data:", data[0]);
-        }
+        console.log(`User bookings loaded: ${data?.length || 0}`);
+        console.log("First booking in result:", data && data.length > 0 ? JSON.stringify(data[0]) : "No bookings found");
         
         setBookings(data || []);
       } catch (error) {
@@ -91,8 +93,9 @@ const UserDashboard = () => {
   const recentBookings = useMemo(() => {
     const thirtyDaysAgo = subDays(new Date(), 30);
     return bookings.filter(booking => {
-      const date = booking.Booking_date ? parseISO(booking.Booking_date) : null;
-      return date && date >= thirtyDaysAgo;
+      if (!booking.Booking_date) return false;
+      const date = parseISO(booking.Booking_date);
+      return date >= thirtyDaysAgo;
     }).length;
   }, [bookings]);
   
@@ -105,6 +108,15 @@ const UserDashboard = () => {
   const confirmedBookings = useMemo(() => {
     return bookings.filter(booking => booking.Status === "confirmed").length;
   }, [bookings]);
+
+  console.log("Dashboard state:", { 
+    bookingsCount: bookings.length, 
+    recentBookings,
+    awaitingConfirmation, 
+    isLoading: loading,
+    error,
+    user: user?.email
+  });
 
   return (
     <DashboardLayout title="Dashboard">
