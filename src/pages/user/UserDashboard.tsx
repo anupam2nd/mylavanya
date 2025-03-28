@@ -1,23 +1,29 @@
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Calendar, Clock, Users } from "lucide-react";
 import { parseISO, subDays } from "date-fns";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPieChart";
+import ChartFilters from "@/components/admin/dashboard/ChartFilters";
+import { Booking } from "@/hooks/useBookings";
 
 const UserDashboard = () => {
-  const { user, isAuthenticated } = useAuth();
-  const [bookings, setBookings] = useState([]);
+  const { user } = useAuth();
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Initialize with last 30 days as default
-  const [startDate, setStartDate] = useState(subDays(new Date(), 30));
-  const [endDate, setEndDate] = useState(new Date());
+  const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
+  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+  
+  // Track if filters have been applied
+  const [filtersApplied, setFiltersApplied] = useState(false);
+  
+  // For displaying the filter state
+  const [appliedStartDate, setAppliedStartDate] = useState<Date | undefined>(startDate);
+  const [appliedEndDate, setAppliedEndDate] = useState<Date | undefined>(endDate);
   
   useEffect(() => {
     const fetchBookings = async () => {
@@ -43,6 +49,25 @@ const UserDashboard = () => {
     
     fetchBookings();
   }, [user]);
+  
+  // Apply filters action
+  const applyFilters = () => {
+    setAppliedStartDate(startDate);
+    setAppliedEndDate(endDate);
+    setFiltersApplied(true);
+  };
+  
+  // Reset filters action
+  const resetFilters = () => {
+    const defaultStart = subDays(new Date(), 30);
+    const defaultEnd = new Date();
+    
+    setStartDate(defaultStart);
+    setEndDate(defaultEnd);
+    setAppliedStartDate(defaultStart);
+    setAppliedEndDate(defaultEnd);
+    setFiltersApplied(false);
+  };
   
   // Calculate recent bookings for the card
   const recentBookings = useMemo(() => {
@@ -101,96 +126,41 @@ const UserDashboard = () => {
         </Card>
       </div>
 
-      {/* Recent Bookings Table */}
-      <div className="mt-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Recent Bookings</CardTitle>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/user/bookings">View All</Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex justify-center p-4">Loading bookings...</div>
-            ) : bookings.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
-                No bookings found. Book your first service now!
-              </p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-3 px-4 font-medium">Date</th>
-                      <th className="text-left py-3 px-4 font-medium">Time</th>
-                      <th className="text-left py-3 px-4 font-medium">Service</th>
-                      <th className="text-left py-3 px-4 font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bookings.slice(0, 5).map((booking) => (
-                      <tr key={booking.id} className="border-b hover:bg-muted/50">
-                        <td className="py-3 px-4">
-                          <div className="flex items-center">
-                            <Calendar className="w-4 h-4 mr-1 text-muted-foreground" />
-                            {booking.Booking_date}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center">
-                            <Clock className="w-4 h-4 mr-1 text-muted-foreground" />
-                            {booking.booking_time}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">{booking.Purpose}</td>
-                        <td className="py-3 px-4">
-                          <div className={`px-3 py-1 text-xs font-medium rounded-full inline-block
-                            ${booking.Status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                              booking.Status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                                booking.Status === 'beautician_assigned' ? 'bg-purple-100 text-purple-800' :
-                                  booking.Status === 'done' ? 'bg-green-100 text-green-800' :
-                                    'bg-red-100 text-red-800'}`}>
-                            {booking.Status?.toUpperCase() || 'PENDING'}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Chart Filters */}
+      <div className="mt-6 mb-8">
+        <ChartFilters
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+          applyFilters={applyFilters}
+          resetFilters={resetFilters}
+        />
       </div>
 
-      {/* Quick Links */}
-      <div className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Link to="/services" className="flex items-center p-3 border rounded-lg hover:bg-muted transition-colors">
-                <Calendar className="h-5 w-5 mr-3 text-primary" />
-                <span>Book a new service</span>
-              </Link>
-              <Link to="/track-booking" className="flex items-center p-3 border rounded-lg hover:bg-muted transition-colors">
-                <BarChart className="h-5 w-5 mr-3 text-primary" />
-                <span>Track your booking</span>
-              </Link>
-              <Link to="/profile" className="flex items-center p-3 border rounded-lg hover:bg-muted transition-colors">
-                <Users className="h-5 w-5 mr-3 text-primary" />
-                <span>Edit your profile</span>
-              </Link>
-              <Link to="/contact" className="flex items-center p-3 border rounded-lg hover:bg-muted transition-colors">
-                <Clock className="h-5 w-5 mr-3 text-primary" />
-                <span>Contact support</span>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Main Dashboard Layout with Pie Charts */}
+      <div className="grid gap-8 grid-cols-1 md:grid-cols-2">
+        {/* Booking Status Pie Chart based on booking date */}
+        <BookingStatusPieChart 
+          bookings={bookings} 
+          loading={loading} 
+          startDate={appliedStartDate}
+          endDate={appliedEndDate}
+          title="Status by Booking Date"
+          description="Distribution based on when services are scheduled"
+          filterField="Booking_date"
+        />
+
+        {/* Booking Status Pie Chart based on creation date */}
+        <BookingStatusPieChart 
+          bookings={bookings} 
+          loading={loading}
+          startDate={appliedStartDate}
+          endDate={appliedEndDate}
+          title="Status by Creation Date"
+          description="Distribution based on when bookings were created"
+          filterField="created_at"
+        />
       </div>
     </DashboardLayout>
   );
