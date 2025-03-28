@@ -18,7 +18,8 @@ const testimonials = [
     role: "Bride",
     content: "The makeup artist was amazing! My wedding day look was perfect and lasted all day and night. Highly recommend their services.",
     rating: 5,
-    image: "/placeholder.svg" // Replace with actual image path when available
+    // Use Unsplash images for better quality testimonial photos
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&h=256&q=80"
   },
   {
     id: 2,
@@ -26,7 +27,7 @@ const testimonials = [
     role: "Event Organizer",
     content: "We hired their team for a corporate event. The service was professional and everyone looked great. Will definitely book again.",
     rating: 5,
-    image: "/placeholder.svg" // Replace with actual image path when available
+    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&h=256&q=80"
   },
   {
     id: 3,
@@ -34,9 +35,34 @@ const testimonials = [
     role: "Birthday Girl",
     content: "Booked for my birthday party. The hairstylist was creative and gave me exactly what I wanted. The team was punctual and professional.",
     rating: 4,
-    image: "/placeholder.svg" // Replace with actual image path when available
+    image: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&h=256&q=80"
   },
 ];
+
+/*
+  INSTRUCTIONS FOR CUSTOMIZING TESTIMONIALS:
+  
+  1. To edit testimonials, simply update the testimonials array above
+  2. For each testimonial, you can modify:
+     - name: The person's name
+     - role: Their role or title
+     - content: The testimonial text
+     - rating: A number from 1-5
+     - image: URL to their profile photo (recommended size: 256x256)
+  
+  3. To add a new testimonial, copy an existing object and change the values
+     Make sure to give it a unique ID
+  
+  Example:
+  {
+    id: 4,
+    name: "Alex Wong",
+    role: "Regular Client",
+    content: "I've been using Lavanya's services for years. Always satisfied!",
+    rating: 5,
+    image: "https://example.com/alex-photo.jpg"
+  }
+*/
 
 const Testimonials = () => {
   const [activeIndex, setActiveIndex] = useState(0);
