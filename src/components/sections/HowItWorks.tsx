@@ -1,7 +1,9 @@
+
 import { CheckCircle, CalendarDays, Star, UserCircle } from "lucide-react";
+
 const steps = [{
   title: "Browse Services",
-  description: "Explore our range of professional beauty services",
+  description: "Explore our wide ranges of professional Makeup & Beauty services.",
   icon: CheckCircle
 }, {
   title: "Book Appointment",
@@ -16,8 +18,10 @@ const steps = [{
   description: "Let us know about your experience",
   icon: UserCircle
 }];
+
 const HowItWorks = () => {
-  return <div className="py-24 bg-gradient-to-b from-background to-accent/10">
+  return (
+    <div className="py-24 bg-gradient-to-b from-background to-accent/10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <p className="text-primary font-medium mb-3">Simple Process</p>
@@ -29,7 +33,8 @@ const HowItWorks = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {steps.map((step, index) => <div key={index} className="bg-white p-8 rounded-2xl shadow-card hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+          {steps.map((step, index) => (
+            <div key={index} className="bg-white p-8 rounded-2xl shadow-card hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
               <div className="relative mb-6">
                 <div className="absolute inset-0 bg-primary/10 rounded-full blur-md"></div>
                 <div className="relative h-16 w-16 rounded-full flex items-center justify-center bg-secondary text-primary">
@@ -40,10 +45,13 @@ const HowItWorks = () => {
                 </div>
               </div>
               <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
-              <p className="change the writing of this particular text box with \"Explore our wide ranges of professional Makeup & Beauty services.\"">{step.description}</p>
-            </div>)}
+              <p className="text-muted-foreground">{step.description}</p>
+            </div>
+          ))}
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default HowItWorks;
