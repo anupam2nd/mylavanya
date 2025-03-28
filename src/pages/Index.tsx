@@ -17,7 +17,10 @@ const Index = () => {
   console.log("Index page rendering");
 
   return (
-    <MainLayout showAnnouncement={true}>
+    <MainLayout 
+      showAnnouncement={true}
+      announcementBackgroundImage="/lovable-uploads/d9a82f47-9bdb-4fc4-93d0-5fbcff7b79ed.jpg"
+    >
       <Hero 
         onBookNow={() => navigate("/services")}
         onLogin={() => setIsAuthModalOpen(true)}
