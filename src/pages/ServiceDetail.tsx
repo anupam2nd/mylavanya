@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +7,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 import { Badge } from "@/components/ui/badge";
 import BookingForm from "@/components/booking/BookingForm";
 import { toast } from "@/hooks/use-toast";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 const getServiceImage = (serviceId: number, serviceName: string | null) => {
   switch(serviceId) {
@@ -139,20 +141,21 @@ const ServiceDetail = () => {
             ← Back to Services
           </Button>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {service.ProductName}
-              </h1>
-              
-              {service.Subservice && (
-                <p className="text-gray-600 mt-1">{service.Subservice}</p>
-              )}
-              
+            <div className="space-y-3">
+              {/* Order: Services (as badge), Subservice, ProductName */}
               {service.Services && (
-                <Badge variant="outline" className="bg-pink-100 text-pink-500 border-pink-200 mt-2">
+                <Badge variant="outline" className="bg-pink-100 text-pink-500 border-pink-200">
                   {service.Services}
                 </Badge>
               )}
+              
+              {service.Subservice && (
+                <p className="text-lg font-medium text-gray-700">{service.Subservice}</p>
+              )}
+              
+              <h1 className="text-3xl font-bold text-gray-900">
+                {service.ProductName}
+              </h1>
             </div>
             <div className="mt-4 md:mt-0 bg-white/80 px-4 py-2 rounded-lg shadow-sm">
               {hasDiscount ? (
