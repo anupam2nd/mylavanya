@@ -1,13 +1,13 @@
-
 import { useState } from "react";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Phone, MapPin } from "lucide-react";
-
 export default function Contact() {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -15,24 +15,25 @@ export default function Contact() {
     message: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value
+    } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate form submission
     setTimeout(() => {
       toast({
         title: "Message sent!",
-        description: "We'll get back to you as soon as possible.",
+        description: "We'll get back to you as soon as possible."
       });
       setFormData({
         name: "",
@@ -43,9 +44,7 @@ export default function Contact() {
       setIsSubmitting(false);
     }, 1000);
   };
-
-  return (
-    <>
+  return <>
       <Navbar />
       <main className="pt-24 pb-16">
         <div className="container-custom">
@@ -82,7 +81,7 @@ export default function Contact() {
                       <Mail size={22} className="text-primary mr-4 mt-1" />
                       <div>
                         <h3 className="font-medium">Email Address</h3>
-                        <p className="text-muted-foreground">contactus@lavanya.com</p>
+                        <p className="text-muted-foreground">contactus@mylavanya.com</p>
                       </div>
                     </div>
                   </div>
@@ -112,61 +111,25 @@ export default function Contact() {
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium mb-1">Your Name</label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        className="w-full rounded-md border border-input px-4 py-2 bg-background"
-                      />
+                      <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className="w-full rounded-md border border-input px-4 py-2 bg-background" />
                     </div>
                     
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium mb-1">Email Address</label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        className="w-full rounded-md border border-input px-4 py-2 bg-background"
-                      />
+                      <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required className="w-full rounded-md border border-input px-4 py-2 bg-background" />
                     </div>
                     
                     <div>
                       <label htmlFor="phone" className="block text-sm font-medium mb-1">Phone Number</label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className="w-full rounded-md border border-input px-4 py-2 bg-background"
-                      />
+                      <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} className="w-full rounded-md border border-input px-4 py-2 bg-background" />
                     </div>
                     
                     <div>
                       <label htmlFor="message" className="block text-sm font-medium mb-1">Your Message</label>
-                      <textarea
-                        id="message"
-                        name="message"
-                        value={formData.message}
-                        onChange={handleChange}
-                        required
-                        rows={5}
-                        className="w-full rounded-md border border-input px-4 py-2 bg-background"
-                      ></textarea>
+                      <textarea id="message" name="message" value={formData.message} onChange={handleChange} required rows={5} className="w-full rounded-md border border-input px-4 py-2 bg-background"></textarea>
                     </div>
                     
-                    <ButtonCustom 
-                      type="submit" 
-                      variant="primary-gradient" 
-                      className="w-full"
-                      disabled={isSubmitting}
-                    >
+                    <ButtonCustom type="submit" variant="primary-gradient" className="w-full" disabled={isSubmitting}>
                       {isSubmitting ? "Sending..." : "Send Message"}
                     </ButtonCustom>
                   </form>
@@ -177,6 +140,5 @@ export default function Contact() {
         </div>
       </main>
       <Footer />
-    </>
-  );
+    </>;
 }
