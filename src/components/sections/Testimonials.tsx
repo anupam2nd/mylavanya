@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Star, Quote } from "lucide-react";
+import { Star, Quote, Edit2, Check } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -9,6 +9,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import AvatarUpload from "@/components/testimonials/AvatarUpload";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 // Create an easily customizable testimonials array
 // This can be edited directly or replaced with data from an API or CMS
@@ -65,9 +67,15 @@ const testimonials = [
   }
 */
 
+interface EditingState {
+  id: number | null;
+  field: 'name' | 'role' | 'content' | null;
+}
+
 const Testimonials = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [localTestimonials, setLocalTestimonials] = useState(testimonials);
+  const [editing, setEditing] = useState<EditingState>({ id: null, field: null });
   
   // Check if we're in the Lovable editor environment
   // This is a simple way to detect if we're in the editor vs. deployed site
@@ -83,6 +91,34 @@ const Testimonials = () => {
           : testimonial
       )
     );
+  };
+
+  const handleTextChange = (id: number, field: 'name' | 'role' | 'content', value: string) => {
+    setLocalTestimonials(prevTestimonials =>
+      prevTestimonials.map(testimonial =>
+        testimonial.id === id
+          ? { ...testimonial, [field]: value }
+          : testimonial
+      )
+    );
+  };
+
+  const handleRatingChange = (id: number, newRating: number) => {
+    setLocalTestimonials(prevTestimonials =>
+      prevTestimonials.map(testimonial =>
+        testimonial.id === id
+          ? { ...testimonial, rating: newRating }
+          : testimonial
+      )
+    );
+  };
+
+  const startEditing = (id: number, field: 'name' | 'role' | 'content') => {
+    setEditing({ id, field });
+  };
+
+  const stopEditing = () => {
+    setEditing({ id: null, field: null });
   };
 
   return (
@@ -107,6 +143,8 @@ const Testimonials = () => {
             setApi={(api) => {
               api?.on("select", () => {
                 setActiveIndex(api.selectedScrollSnap());
+                // Stop editing when carousel slides
+                stopEditing();
               });
             }}
           >
@@ -122,7 +160,35 @@ const Testimonials = () => {
                   >
                     <div className="mb-6 relative">
                       <Quote className="text-accent-foreground/10 absolute -top-2 -left-2" size={40} />
-                      <p className="text-muted-foreground relative z-10">{testimonial.content}</p>
+                      
+                      {isInLovableEditor && editing.id === testimonial.id && editing.field === 'content' ? (
+                        <div className="relative z-10">
+                          <Textarea
+                            value={testimonial.content}
+                            onChange={(e) => handleTextChange(testimonial.id, 'content', e.target.value)}
+                            className="min-h-[100px] text-foreground"
+                            autoFocus
+                          />
+                          <button 
+                            onClick={stopEditing}
+                            className="absolute top-2 right-2 bg-primary text-white p-1 rounded-full"
+                          >
+                            <Check size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="relative z-10 group">
+                          <p className="text-muted-foreground">{testimonial.content}</p>
+                          {isInLovableEditor && (
+                            <button 
+                              onClick={() => startEditing(testimonial.id, 'content')}
+                              className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-muted p-1 rounded-md"
+                            >
+                              <Edit2 size={12} />
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex items-center mb-4">
@@ -131,7 +197,8 @@ const Testimonials = () => {
                           key={i}
                           className={`h-4 w-4 ${
                             i < testimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                          }`}
+                          } ${isInLovableEditor ? "cursor-pointer" : ""}`}
+                          onClick={() => isInLovableEditor && handleRatingChange(testimonial.id, i + 1)}
                         />
                       ))}
                     </div>
@@ -147,8 +214,63 @@ const Testimonials = () => {
                         />
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">{testimonial.name}</p>
-                        <p className="text-sm text-primary">{testimonial.role}</p>
+                        {isInLovableEditor && editing.id === testimonial.id && editing.field === 'name' ? (
+                          <div className="relative">
+                            <Input
+                              value={testimonial.name}
+                              onChange={(e) => handleTextChange(testimonial.id, 'name', e.target.value)}
+                              className="py-0 h-7 text-foreground font-medium"
+                              autoFocus
+                            />
+                            <button 
+                              onClick={stopEditing}
+                              className="absolute top-1 right-2 bg-primary text-white p-0.5 rounded-full"
+                            >
+                              <Check size={12} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="relative group">
+                            <p className="font-medium text-foreground">{testimonial.name}</p>
+                            {isInLovableEditor && (
+                              <button 
+                                onClick={() => startEditing(testimonial.id, 'name')}
+                                className="absolute top-0 right-[-20px] opacity-0 group-hover:opacity-100 transition-opacity bg-muted p-0.5 rounded-md"
+                              >
+                                <Edit2 size={10} />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        
+                        {isInLovableEditor && editing.id === testimonial.id && editing.field === 'role' ? (
+                          <div className="relative">
+                            <Input
+                              value={testimonial.role}
+                              onChange={(e) => handleTextChange(testimonial.id, 'role', e.target.value)}
+                              className="py-0 h-6 text-sm text-primary"
+                              autoFocus
+                            />
+                            <button 
+                              onClick={stopEditing}
+                              className="absolute top-1 right-2 bg-primary text-white p-0.5 rounded-full"
+                            >
+                              <Check size={12} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="relative group">
+                            <p className="text-sm text-primary">{testimonial.role}</p>
+                            {isInLovableEditor && (
+                              <button 
+                                onClick={() => startEditing(testimonial.id, 'role')}
+                                className="absolute top-0 right-[-20px] opacity-0 group-hover:opacity-100 transition-opacity bg-muted p-0.5 rounded-md"
+                              >
+                                <Edit2 size={10} />
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
