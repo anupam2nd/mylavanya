@@ -68,6 +68,12 @@ const testimonials = [
 const Testimonials = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [localTestimonials, setLocalTestimonials] = useState(testimonials);
+  
+  // Check if we're in the Lovable editor environment
+  // This is a simple way to detect if we're in the editor vs. deployed site
+  const isInLovableEditor = window.location.hostname.includes('lovable.dev') || 
+                            window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1';
 
   const handleImageChange = (id: number, newImageUrl: string) => {
     setLocalTestimonials(prevTestimonials =>
@@ -137,6 +143,7 @@ const Testimonials = () => {
                           name={testimonial.name}
                           onImageChange={(imageUrl) => handleImageChange(testimonial.id, imageUrl)}
                           size="md"
+                          editable={isInLovableEditor}
                         />
                       </div>
                       <div>

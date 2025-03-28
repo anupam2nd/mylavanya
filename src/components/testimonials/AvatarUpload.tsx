@@ -10,13 +10,15 @@ interface AvatarUploadProps {
   name: string;
   onImageChange: (imageUrl: string) => void;
   size?: "sm" | "md" | "lg";
+  editable?: boolean;
 }
 
 const AvatarUpload = ({ 
   initialImage, 
   name, 
   onImageChange, 
-  size = "md" 
+  size = "md",
+  editable = false
 }: AvatarUploadProps) => {
   const [imageUrl, setImageUrl] = useState<string>(initialImage || "");
   const { toast } = useToast();
@@ -72,19 +74,23 @@ const AvatarUpload = ({
             </AvatarFallback>
           )}
         </Avatar>
-        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
-          <label htmlFor={`avatar-upload-${name}`} className="text-xs text-white cursor-pointer font-medium w-full h-full flex items-center justify-center">
-            Change
-          </label>
-        </div>
+        {editable && (
+          <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
+            <label htmlFor={`avatar-upload-${name}`} className="text-xs text-white cursor-pointer font-medium w-full h-full flex items-center justify-center">
+              Change
+            </label>
+          </div>
+        )}
       </div>
-      <Input 
-        id={`avatar-upload-${name}`}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleFileChange}
-      />
+      {editable && (
+        <Input 
+          id={`avatar-upload-${name}`}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+      )}
     </div>
   );
 };
