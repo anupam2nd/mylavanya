@@ -1,17 +1,12 @@
-
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
-
 interface HeroProps {
   onBookNow: () => void;
   onLogin: () => void;
-  heroImage?: string; // Added prop for customizable hero image
 }
-
 const Hero = ({
   onBookNow,
-  onLogin,
-  heroImage = "/lovable-uploads/25ad58d4-efa9-46a1-a5b9-e3dfcec4e593.png" // Default image as fallback
+  onLogin
 }: HeroProps) => {
   return <div className="relative bg-gradient-to-b from-secondary/30 to-background pt-28 pb-24 sm:pt-32 sm:pb-32 overflow-hidden">
       {/* Background decorative elements */}
@@ -21,16 +16,9 @@ const Hero = ({
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8 text-center lg:text-left max-w-2xl mx-auto lg:mx-0">
-            <div className="relative inline-block">
-              <img 
-                src={heroImage} 
-                alt="Beauty Services Banner" 
-                className="rounded-full w-64 h-64 object-cover mx-auto lg:mx-0 mb-4"
-              />
-              <div className="absolute bottom-0 left-0 right-0 inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-sm mb-2">
-                <Sparkles size={16} className="mr-2" />
-                <span>Premium Beauty Services</span>
-              </div>
+            <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-sm mb-2 animate-bounce-soft">
+              <Sparkles size={16} className="mr-2" />
+              <span>Premium Beauty Services</span>
             </div>
             
             <h1 className="font-display font-bold tracking-tight">
@@ -73,5 +61,4 @@ const Hero = ({
       </div>
     </div>;
 };
-
 export default Hero;
