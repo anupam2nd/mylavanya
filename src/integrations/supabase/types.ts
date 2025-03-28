@@ -68,28 +68,37 @@ export type Database = {
           active: boolean
           created_at: string
           Description: string | null
+          Discount: number | null
+          NetPayable: number | null
           Price: number
           prod_id: number
           ProductName: string | null
           Services: string
+          Subservice: string | null
         }
         Insert: {
           active?: boolean
           created_at?: string
           Description?: string | null
+          Discount?: number | null
+          NetPayable?: number | null
           Price: number
           prod_id?: number
           ProductName?: string | null
           Services?: string
+          Subservice?: string | null
         }
         Update: {
           active?: boolean
           created_at?: string
           Description?: string | null
+          Discount?: number | null
+          NetPayable?: number | null
           Price?: number
           prod_id?: number
           ProductName?: string | null
           Services?: string
+          Subservice?: string | null
         }
         Relationships: []
       }

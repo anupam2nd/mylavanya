@@ -20,6 +20,9 @@ interface Service {
   created_at?: string;
   Services: string;
   active: boolean;
+  Discount: number | null;
+  Subservice: string | null;
+  NetPayable: number | null;
 }
 
 const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => {
@@ -129,7 +132,11 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
                   prodid: service.prod_id,
                   pname: service.ProductName || "Unnamed Service",
                   pprice: service.Price,
-                  pdesc: service.Description
+                  pdesc: service.Description,
+                  discount: service.Discount,
+                  netPayable: service.NetPayable,
+                  services: service.Services,
+                  subservice: service.Subservice
                 }}
                 onClick={() => handleServiceClick(service.prod_id)}
               />

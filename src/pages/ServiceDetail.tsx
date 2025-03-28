@@ -94,6 +94,24 @@ const ServiceDetail = () => {
     // We don't need to do anything else here as the form component now displays the success state
   };
 
+  // Calculate the final price if discount exists
+  const calculateFinalPrice = () => {
+    if (!service) return { finalPrice: 0, hasDiscount: false };
+    
+    // Use NetPayable if provided, otherwise calculate from Price and Discount
+    const finalPrice = service.NetPayable !== null && service.NetPayable !== undefined
+      ? service.NetPayable
+      : service.Discount
+        ? service.Price - (service.Price * service.Discount / 100)
+        : service.Price;
+        
+    const hasDiscount = service.Discount > 0;
+    
+    return { finalPrice, hasDiscount };
+  };
+  
+  const { finalPrice, hasDiscount } = calculateFinalPrice();
+
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -128,8 +146,34 @@ const ServiceDetail = () => {
           <Button variant="ghost" onClick={() => navigate("/services")} className="mb-4">
             ← Back to Services
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">{service?.ProductName}</h1>
-          <p className="text-lg font-medium text-primary mt-1">₹{service?.Price.toFixed(2)}</p>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+              <div className="flex items-center space-x-3 mb-2">
+                <h1 className="text-3xl font-bold text-gray-900">{service.ProductName}</h1>
+                <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                  {service.Services}
+                </span>
+              </div>
+              {service.Subservice && (
+                <p className="text-gray-600 mt-1">{service.Subservice}</p>
+              )}
+            </div>
+            <div className="mt-4 md:mt-0 bg-white/80 px-4 py-2 rounded-lg shadow-sm">
+              {hasDiscount ? (
+                <div className="flex flex-col items-end">
+                  <div className="flex items-center space-x-2">
+                    <span className="line-through text-gray-500">₹{service.Price.toFixed(2)}</span>
+                    <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-medium">
+                      {service.Discount}% OFF
+                    </span>
+                  </div>
+                  <p className="text-xl font-medium text-primary mt-1">₹{finalPrice.toFixed(2)}</p>
+                </div>
+              ) : (
+                <p className="text-xl font-medium text-primary">₹{service.Price.toFixed(2)}</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
       
@@ -139,7 +183,7 @@ const ServiceDetail = () => {
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="h-64 sm:h-80 bg-gray-200">
                 <img 
-                  alt={service?.ProductName} 
+                  alt={service.ProductName} 
                   className="w-full h-full object-cover" 
                   src={serviceImage} 
                 />
@@ -147,7 +191,7 @@ const ServiceDetail = () => {
               <div className="p-6">
                 <h2 className="text-2xl font-semibold mb-4">Service Description</h2>
                 <p className="text-gray-600 mb-6">
-                  {service?.Description || "Professional beauty service tailored for weddings and special occasions. Our expert team uses premium products to ensure you look your best on your special day."}
+                  {service.Description || "Professional beauty service tailored for weddings and special occasions. Our expert team uses premium products to ensure you look your best on your special day."}
                 </p>
                 
                 <h3 className="text-xl font-medium mb-3">What's Included</h3>
@@ -183,7 +227,7 @@ const ServiceDetail = () => {
                 <BookingForm 
                   serviceId={service.prod_id} 
                   serviceName={service.ProductName} 
-                  servicePrice={service.Price} 
+                  servicePrice={hasDiscount ? finalPrice : service.Price} 
                   onCancel={() => setShowBookingForm(false)}
                   onSuccess={handleBookingSuccess}
                 />

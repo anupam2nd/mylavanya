@@ -8,6 +8,10 @@ interface ServiceCardProps {
     pname: string;
     pprice: number;
     pdesc?: string | null;
+    discount?: number | null;
+    netPayable?: number | null;
+    services?: string;
+    subservice?: string | null;
   };
   onClick: () => void;
 }
@@ -45,6 +49,13 @@ const ServiceCard = ({
 }: ServiceCardProps) => {
   const serviceImage = getServiceImage(service.prodid, service.pname);
   
+  // Calculate netPayable if not provided but discount is available
+  const finalPrice = service.netPayable !== null && service.netPayable !== undefined 
+    ? service.netPayable 
+    : service.discount 
+      ? service.pprice - (service.pprice * service.discount / 100) 
+      : service.pprice;
+  
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
       <div className="h-48 bg-gray-200">
@@ -55,8 +66,35 @@ const ServiceCard = ({
         />
       </div>
       <CardContent className="p-4">
-        <h3 className="font-semibold text-lg truncate mb-1">{service.pname}</h3>
-        <p className="text-primary font-medium">₹{service.pprice.toFixed(2)}</p>
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-semibold text-lg truncate">{service.pname}</h3>
+          {service.services && (
+            <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+              {service.services}
+            </span>
+          )}
+        </div>
+        
+        {service.subservice && (
+          <div className="text-sm text-gray-600 mb-1">
+            {service.subservice}
+          </div>
+        )}
+        
+        <div className="mt-2">
+          {service.discount ? (
+            <div className="flex items-center space-x-2">
+              <span className="line-through text-gray-500">₹{service.pprice.toFixed(2)}</span>
+              <span className="text-primary font-medium">₹{finalPrice.toFixed(2)}</span>
+              <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded">
+                {service.discount}% OFF
+              </span>
+            </div>
+          ) : (
+            <p className="text-primary font-medium">₹{service.pprice.toFixed(2)}</p>
+          )}
+        </div>
+        
         <p className="text-gray-600 text-sm mt-2 line-clamp-2">
           {service.pdesc || "Professional beauty service for your special occasions"}
         </p>

@@ -29,6 +29,22 @@ const Services = () => {
             <p className="mt-2 text-lg text-gray-600">
               Professional beauty services for weddings and special events
             </p>
+            
+            {/* Category filters */}
+            <div className="mt-6 flex flex-wrap gap-2">
+              {categories.map(category => (
+                <button
+                  key={category.id}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
+                    ${selectedCategory === category.id 
+                      ? 'bg-primary text-white shadow-sm' 
+                      : 'bg-white/70 text-gray-700 hover:bg-white'}`}
+                  onClick={() => setSelectedCategory(category.id)}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         
