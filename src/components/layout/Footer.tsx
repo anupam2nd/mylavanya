@@ -69,7 +69,7 @@ export default function Footer() {
               <li>
                 <a href="mailto:contactus@lavanya.com" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
                   <Mail size={18} className="mr-3 text-primary" />
-                  <span>contactus@lavanya.com</span>
+                  <span>contactus@mylavanya.com</span>
                 </a>
               </li>
             </ul>
