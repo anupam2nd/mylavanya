@@ -66,20 +66,22 @@ const ServiceCard = ({
         />
       </div>
       <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-semibold text-lg truncate">{service.pname}</h3>
+        {/* Updated header order: Services, Subservice, ProductName */}
+        <div className="mb-3">
           {service.services && (
-            <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+            <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full block mb-1 inline-block">
               {service.services}
             </span>
           )}
+          
+          {service.subservice && (
+            <div className="text-sm text-gray-600 mb-1">
+              {service.subservice}
+            </div>
+          )}
+          
+          <h3 className="font-semibold text-lg truncate">{service.pname}</h3>
         </div>
-        
-        {service.subservice && (
-          <div className="text-sm text-gray-600 mb-1">
-            {service.subservice}
-          </div>
-        )}
         
         <div className="mt-2">
           {service.discount ? (
