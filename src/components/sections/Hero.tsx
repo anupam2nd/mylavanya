@@ -5,11 +5,13 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 interface HeroProps {
   onBookNow: () => void;
   onLogin: () => void;
+  heroImage?: string; // Added prop for customizable hero image
 }
 
 const Hero = ({
   onBookNow,
-  onLogin
+  onLogin,
+  heroImage = "/lovable-uploads/25ad58d4-efa9-46a1-a5b9-e3dfcec4e593.png" // Default image as fallback
 }: HeroProps) => {
   return <div className="relative bg-gradient-to-b from-secondary/30 to-background pt-28 pb-24 sm:pt-32 sm:pb-32 overflow-hidden">
       {/* Background decorative elements */}
@@ -21,7 +23,7 @@ const Hero = ({
           <div className="space-y-8 text-center lg:text-left max-w-2xl mx-auto lg:mx-0">
             <div className="relative inline-block">
               <img 
-                src="/lovable-uploads/25ad58d4-efa9-46a1-a5b9-e3dfcec4e593.png" 
+                src={heroImage} 
                 alt="Beauty Services Banner" 
                 className="rounded-full w-64 h-64 object-cover mx-auto lg:mx-0 mb-4"
               />
