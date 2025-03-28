@@ -61,7 +61,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start text-muted-foreground">
                 <MapPin size={18} className="mr-3 text-primary shrink-0 mt-1" />
-                <span className="text-base font-medium">DN 30 SALT LAKE CITY SEC V KOLKATA 700091</span>
+                <span className="text-base font-medium">DN 30  SEC V SALT LAKE CITY KOLKATA 700091</span>
               </li>
               <li>
                 <a href="tel:+1234567890" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
