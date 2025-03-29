@@ -14,6 +14,7 @@ interface Service {
   Subservice?: string;
   Assignedto?: string;
   AssignedBY?: string;
+  ArtistId?: number; // Added ArtistId field
 }
 
 interface ServicesListProps {
@@ -72,21 +73,21 @@ const ServicesList = ({ services }: ServicesListProps) => {
     fetchDescriptions();
   }, [services]);
 
-  // Fetch artist information
+  // Fetch artist information using ArtistId
   useEffect(() => {
     const fetchArtistInfo = async () => {
       try {
         // Get all assigned artist IDs
         const artistIds = services
-          .map(service => service.Assignedto)
-          .filter(id => id); // Filter out undefined or null values
+          .map(service => service.ArtistId)
+          .filter(id => id !== null && id !== undefined); // Filter out undefined or null values
         
         if (artistIds.length === 0) return;
         
         const { data, error } = await supabase
           .from("ArtistMST")
-          .select("ArtistID, ArtistFirstName, ArtistLastName, ArtistPhno")
-          .in("ArtistID", artistIds);
+          .select("ArtistId, ArtistFirstName, ArtistLastName, ArtistPhno")
+          .in("ArtistId", artistIds);
           
         if (error) {
           console.error("Error fetching artist info:", error);
@@ -95,8 +96,8 @@ const ServicesList = ({ services }: ServicesListProps) => {
         
         const artistInfoMap: {[key: string]: ArtistInfo} = {};
         data.forEach(artist => {
-          if (artist.ArtistID) {
-            artistInfoMap[artist.ArtistID] = {
+          if (artist.ArtistId) {
+            artistInfoMap[artist.ArtistId] = {
               ArtistFirstName: artist.ArtistFirstName,
               ArtistLastName: artist.ArtistLastName,
               ArtistPhno: artist.ArtistPhno
@@ -156,7 +157,7 @@ const ServicesList = ({ services }: ServicesListProps) => {
   };
 
   // Get artist full name
-  const getArtistName = (artistId: string | undefined) => {
+  const getArtistName = (artistId: number | undefined) => {
     if (!artistId || !artistInfo[artistId]) return "Not assigned";
     
     const artist = artistInfo[artistId];
@@ -178,9 +179,12 @@ const ServicesList = ({ services }: ServicesListProps) => {
           const formattedName = formatServiceName(service);
           const hasDiscount = service.originalPrice && service.originalPrice > service.price;
           const description = descriptions[service.ProductName] || "No description available";
-          const artistName = getArtistName(service.Assignedto);
-          const maskedPhone = service.Assignedto ? 
-            maskPhoneNumber(artistInfo[service.Assignedto]?.ArtistPhno) : "Not assigned";
+          const artistName = getArtistName(service.ArtistId);
+          
+          // Get artist phone using ArtistId
+          const artistPhone = service.ArtistId ? 
+            artistInfo[service.ArtistId]?.ArtistPhno : null;
+          const maskedPhone = maskPhoneNumber(artistPhone);
           
           return (
             <Collapsible 

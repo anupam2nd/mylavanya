@@ -30,6 +30,7 @@ export interface BookingData {
   Subservice?: string;
   Assignedto?: string;
   AssignedBY?: string;
+  ArtistId?: number; // Added ArtistId field
 }
 
 const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {

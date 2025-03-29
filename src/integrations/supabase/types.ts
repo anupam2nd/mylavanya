@@ -12,42 +12,46 @@ export type Database = {
       ArtistMST: {
         Row: {
           Active: boolean | null
+          ArtistEmpCode: string | null
           ArtistFirstName: string | null
           Artistgrp: string | null
-          ArtistID: string | null
+          ArtistId: number
           ArtistLastName: string | null
           ArtistPhno: number | null
           ArtistRating: number | null
           created_at: string
-          id: number
+          Source: string | null
         }
         Insert: {
           Active?: boolean | null
+          ArtistEmpCode?: string | null
           ArtistFirstName?: string | null
           Artistgrp?: string | null
-          ArtistID?: string | null
+          ArtistId?: number
           ArtistLastName?: string | null
           ArtistPhno?: number | null
           ArtistRating?: number | null
           created_at?: string
-          id?: number
+          Source?: string | null
         }
         Update: {
           Active?: boolean | null
+          ArtistEmpCode?: string | null
           ArtistFirstName?: string | null
           Artistgrp?: string | null
-          ArtistID?: string | null
+          ArtistId?: number
           ArtistLastName?: string | null
           ArtistPhno?: number | null
           ArtistRating?: number | null
           created_at?: string
-          id?: number
+          Source?: string | null
         }
         Relationships: []
       }
       BookMST: {
         Row: {
           Address: string | null
+          ArtistId: number | null
           AssignedBY: string | null
           Assignedto: string | null
           AssingnedON: string | null
@@ -72,6 +76,7 @@ export type Database = {
         }
         Insert: {
           Address?: string | null
+          ArtistId?: number | null
           AssignedBY?: string | null
           Assignedto?: string | null
           AssingnedON?: string | null
@@ -96,6 +101,7 @@ export type Database = {
         }
         Update: {
           Address?: string | null
+          ArtistId?: number | null
           AssignedBY?: string | null
           Assignedto?: string | null
           AssingnedON?: string | null

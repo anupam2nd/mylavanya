@@ -49,6 +49,7 @@ const TrackBooking = () => {
           Services: booking.ServiceName || "General Service",
           Subservice: booking.SubService || "Standard",
           ProductName: booking.ProductName || "Unknown Service",
+          ArtistId: booking.ArtistId // Ensure ArtistId is included
         };
       });
 
