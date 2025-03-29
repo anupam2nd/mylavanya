@@ -15,7 +15,7 @@ interface Service {
   Assignedto?: string;
   AssignedBY?: string;
   ArtistId?: number;
-  jobno?: number; // Added jobno field
+  jobno?: number;
 }
 
 interface ServicesListProps {
@@ -168,14 +168,14 @@ const ServicesList = ({ services }: ServicesListProps) => {
     return firstName + (lastName ? ` ${lastName}` : "");
   };
 
-  // Generate service ID from job number or index
-  const getServiceId = (service: Service, index: number) => {
-    // If jobno is available, use it as the service ID
+  // Generate service ID from job number
+  const getServiceId = (service: Service) => {
+    // Format as JOB-XXX with leading zeros
     if (service.jobno) {
       return `JOB-${service.jobno.toString().padStart(3, '0')}`;
     }
-    // Fallback to index-based ID if jobno is not available
-    return `SVC-${(1000 + index).toString()}`;
+    // Fallback if jobno is not available (shouldn't happen with current implementation)
+    return "JOB-000";
   };
 
   return (
@@ -197,8 +197,8 @@ const ServicesList = ({ services }: ServicesListProps) => {
             artistInfo[service.ArtistId]?.ArtistPhno : null;
           const maskedPhone = maskPhoneNumber(artistPhone);
           
-          // Get service ID using job number or index
-          const serviceId = getServiceId(service, index);
+          // Get service ID using job number
+          const serviceId = getServiceId(service);
           
           return (
             <Collapsible 
@@ -216,7 +216,13 @@ const ServicesList = ({ services }: ServicesListProps) => {
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-center">
-                    <p className="font-medium text-foreground">{formattedName}</p>
+                    <div>
+                      <p className="font-medium text-foreground">{formattedName}</p>
+                      <div className="mt-1">
+                        <p className="text-xs text-gray-500">Service ID</p>
+                        <p className="text-sm font-medium text-primary">{serviceId}</p>
+                      </div>
+                    </div>
                     <CollapsibleTrigger asChild>
                       <button className="p-1 rounded-full hover:bg-white/50 transition-colors">
                         {isExpanded ? 
@@ -268,10 +274,6 @@ const ServicesList = ({ services }: ServicesListProps) => {
                 <div className="bg-white/70 rounded-md p-3">
                   <h4 className="font-medium text-sm mb-2">Service Details</h4>
                   <dl className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <dt className="text-xs text-gray-500">Service ID</dt>
-                      <dd className="font-medium">{serviceId}</dd>
-                    </div>
                     <div>
                       <dt className="text-xs text-gray-500">Category</dt>
                       <dd className="font-medium">
