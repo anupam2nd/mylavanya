@@ -9,10 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ArtistMST: {
+        Row: {
+          Active: boolean | null
+          ArtistFirstName: string | null
+          Artistgrp: string | null
+          ArtistID: string | null
+          ArtistLastName: string | null
+          ArtistPhno: number | null
+          ArtistRating: number | null
+          created_at: string
+          id: number
+        }
+        Insert: {
+          Active?: boolean | null
+          ArtistFirstName?: string | null
+          Artistgrp?: string | null
+          ArtistID?: string | null
+          ArtistLastName?: string | null
+          ArtistPhno?: number | null
+          ArtistRating?: number | null
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          Active?: boolean | null
+          ArtistFirstName?: string | null
+          Artistgrp?: string | null
+          ArtistID?: string | null
+          ArtistLastName?: string | null
+          ArtistPhno?: number | null
+          ArtistRating?: number | null
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
       BookMST: {
         Row: {
           Address: string | null
+          AssignedBY: string | null
           Assignedto: string | null
+          AssingnedON: string | null
           Booking_date: string
           Booking_NO: string | null
           booking_time: string
@@ -24,14 +62,19 @@ export type Database = {
           Pincode: number | null
           price: number | null
           Product: number | null
+          ProductName: string | null
           Purpose: string
           Qty: number | null
+          ServiceName: string | null
           Status: string | null
           StatusUpdated: string | null
+          SubService: string | null
         }
         Insert: {
           Address?: string | null
+          AssignedBY?: string | null
           Assignedto?: string | null
+          AssingnedON?: string | null
           Booking_date: string
           Booking_NO?: string | null
           booking_time: string
@@ -43,14 +86,19 @@ export type Database = {
           Pincode?: number | null
           price?: number | null
           Product?: number | null
+          ProductName?: string | null
           Purpose: string
           Qty?: number | null
+          ServiceName?: string | null
           Status?: string | null
           StatusUpdated?: string | null
+          SubService?: string | null
         }
         Update: {
           Address?: string | null
+          AssignedBY?: string | null
           Assignedto?: string | null
+          AssingnedON?: string | null
           Booking_date?: string
           Booking_NO?: string | null
           booking_time?: string
@@ -62,10 +110,13 @@ export type Database = {
           Pincode?: number | null
           price?: number | null
           Product?: number | null
+          ProductName?: string | null
           Purpose?: string
           Qty?: number | null
+          ServiceName?: string | null
           Status?: string | null
           StatusUpdated?: string | null
+          SubService?: string | null
         }
         Relationships: []
       }

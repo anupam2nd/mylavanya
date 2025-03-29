@@ -64,8 +64,26 @@ export const useBookingSubmit = () => {
         name: data.name
       });
       
+      // Get service details for each selected service
+      const serviceDetailsPromises = data.selectedServices.map(async (service) => {
+        const { data: serviceData } = await supabase
+          .from("PriceMST")
+          .select("Services, Subservice, ProductName")
+          .eq("prod_id", service.id)
+          .single();
+          
+        return {
+          ...service,
+          serviceName: serviceData?.Services || "",
+          subService: serviceData?.Subservice || "",
+          productName: serviceData?.ProductName || ""
+        };
+      });
+      
+      const servicesWithDetails = await Promise.all(serviceDetailsPromises);
+      
       // Insert multiple bookings with the same booking reference number
-      const bookingPromises = data.selectedServices.map(service => {
+      const bookingPromises = servicesWithDetails.map(service => {
         // Clean the phone number to ensure it's only digits
         const phoneNumber = data.phone.replace(/\D/g, '');
         
@@ -81,8 +99,11 @@ export const useBookingSubmit = () => {
           Qty: service.quantity || 1,
           Address: data.address,
           Pincode: parseInt(data.pincode),
-          name: data.name, // Using lowercase "name" as per database schema
-          email: data.email // Using lowercase "email" as per database schema
+          name: data.name,
+          email: data.email,
+          ServiceName: service.serviceName,
+          SubService: service.subService,
+          ProductName: service.productName
         });
       });
       
