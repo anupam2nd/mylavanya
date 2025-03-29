@@ -209,7 +209,7 @@ const EditBookingDialog = ({
       );
       
       if (selectedProduct) {
-        updates.Product = selectedProduct.prod_id;
+        updates.prod_id = selectedProduct.prod_id;
       }
     }
     
