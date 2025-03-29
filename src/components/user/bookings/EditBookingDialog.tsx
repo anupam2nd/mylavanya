@@ -36,6 +36,13 @@ interface ArtistOption {
   displayName: string;
 }
 
+interface ServiceOption {
+  prod_id: number;
+  ProductName: string;
+  Services: string;
+  Subservice: string;
+}
+
 interface EditBookingDialogProps {
   booking: Booking | null;
   open: boolean;
@@ -53,14 +60,21 @@ const EditBookingDialog = ({
   statusOptions,
   currentUser
 }: EditBookingDialogProps) => {
+  // Form state variables
   const [editDate, setEditDate] = useState<Date | undefined>(undefined);
   const [editTime, setEditTime] = useState<string>("");
   const [editStatus, setEditStatus] = useState<string>("");
   const [editAddress, setEditAddress] = useState<string>("");
   const [editPincode, setEditPincode] = useState<string>("");
   const [editArtist, setEditArtist] = useState<number | null>(null);
-  const [artistOptions, setArtistOptions] = useState<ArtistOption[]>([]);
   const [editQty, setEditQty] = useState<number>(1);
+  const [editService, setEditService] = useState<string>("");
+  const [editSubService, setEditSubService] = useState<string>("");
+  const [editProductName, setEditProductName] = useState<string>("");
+  
+  // Options for dropdowns
+  const [artistOptions, setArtistOptions] = useState<ArtistOption[]>([]);
+  const [serviceOptions, setServiceOptions] = useState<ServiceOption[]>([]);
 
   // Fetch artists from database
   useEffect(() => {
@@ -84,7 +98,23 @@ const EditBookingDialog = ({
       }
     };
 
+    const fetchServices = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('PriceMST')
+          .select('prod_id, ProductName, Services, Subservice')
+          .eq('active', true);
+
+        if (error) throw error;
+        
+        setServiceOptions(data || []);
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      }
+    };
+
     fetchArtists();
+    fetchServices();
   }, []);
 
   // Update form values when booking changes
@@ -97,8 +127,31 @@ const EditBookingDialog = ({
       setEditPincode(booking.Pincode?.toString() || "");
       setEditArtist(booking.ArtistId || null);
       setEditQty(booking.Qty || 1);
+      setEditService(booking.ServiceName || "");
+      setEditSubService(booking.SubService || "");
+      setEditProductName(booking.ProductName || "");
     }
   }, [booking]);
+
+  // Filter options for subservices based on selected service
+  const filteredSubServices = serviceOptions
+    .filter(option => option.Services === editService)
+    .map(option => option.Subservice)
+    .filter((value, index, self) => value && self.indexOf(value) === index);
+
+  // Filter options for products based on selected service and subservice
+  const filteredProducts = serviceOptions
+    .filter(option => 
+      option.Services === editService && 
+      (editSubService ? option.Subservice === editSubService : true)
+    )
+    .map(option => ({ id: option.prod_id, name: option.ProductName }))
+    .filter((value, index, self) => 
+      value.name && self.findIndex(item => item.name === value.name) === index
+    );
+
+  // Get unique service names for the dropdown
+  const uniqueServices = [...new Set(serviceOptions.map(option => option.Services))].filter(Boolean);
 
   // Check if status requires artist assignment
   const requiresArtist = (status: string) => {
@@ -135,6 +188,30 @@ const EditBookingDialog = ({
     
     if (editQty !== booking.Qty && editQty > 0) {
       updates.Qty = editQty;
+    }
+    
+    // Add service, subservice and product updates
+    if (editService !== booking.ServiceName) {
+      updates.ServiceName = editService;
+    }
+    
+    if (editSubService !== booking.SubService) {
+      updates.SubService = editSubService;
+    }
+    
+    if (editProductName !== booking.ProductName) {
+      updates.ProductName = editProductName;
+      
+      // Find and update the product ID if the product name changes
+      const selectedProduct = serviceOptions.find(
+        p => p.ProductName === editProductName && 
+             p.Services === editService && 
+             p.Subservice === editSubService
+      );
+      
+      if (selectedProduct) {
+        updates.Product = selectedProduct.prod_id;
+      }
     }
     
     // Handle artist assignment based on status
@@ -183,21 +260,77 @@ const EditBookingDialog = ({
                 </div>
               </div>
               
+              {/* Service Selection */}
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="service-name" className="text-right">
+                <Label htmlFor="service" className="text-right">
                   Service
                 </Label>
                 <div className="col-span-3">
-                  <Input
-                    id="service-name"
-                    value={[
-                      booking.ServiceName,
-                      booking.SubService,
-                      booking.ProductName
-                    ].filter(Boolean).join(' > ')}
-                    readOnly
-                    className="bg-muted"
-                  />
+                  <Select
+                    value={editService}
+                    onValueChange={setEditService}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select service" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueServices.map((service) => (
+                        <SelectItem key={service} value={service}>
+                          {service}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {/* Sub-service Selection */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="subservice" className="text-right">
+                  Sub Service
+                </Label>
+                <div className="col-span-3">
+                  <Select
+                    value={editSubService}
+                    onValueChange={setEditSubService}
+                    disabled={!editService}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select sub-service" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredSubServices.map((subService) => (
+                        <SelectItem key={subService} value={subService || ""}>
+                          {subService}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {/* Product Selection */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="product" className="text-right">
+                  Product
+                </Label>
+                <div className="col-span-3">
+                  <Select
+                    value={editProductName}
+                    onValueChange={setEditProductName}
+                    disabled={!editService}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredProducts.map((product) => (
+                        <SelectItem key={product.id} value={product.name || ""}>
+                          {product.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               
