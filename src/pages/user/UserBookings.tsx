@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +45,10 @@ const UserBookings = () => {
     setShowDateFilter,
     filterDateType,
     setFilterDateType,
+    sortDirection,
+    setSortDirection,
+    sortField,
+    setSortField,
     clearFilters
   } = useBookingFilters(bookings);
 
@@ -197,12 +202,18 @@ const UserBookings = () => {
                 setShowDateFilter={setShowDateFilter}
                 filterDateType={filterDateType}
                 setFilterDateType={setFilterDateType}
+                sortDirection={sortDirection}
+                setSortDirection={setSortDirection}
+                sortField={sortField}
+                setSortField={setSortField}
               />
             </div>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="p-8 flex justify-center items-center">Loading...</div>
+              <div className="p-8 flex justify-center items-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+              </div>
             ) : bookings.length === 0 ? (
               <div className="p-8 text-center">
                 <p className="text-muted-foreground">No bookings found in the system.</p>
@@ -211,6 +222,11 @@ const UserBookings = () => {
               <>
                 <div className="mb-4 text-sm text-muted-foreground">
                   Showing {filteredBookings.length} of {bookings.length} bookings
+                  {sortField && (
+                    <span className="ml-2">
+                      sorted by {sortField === "creation_date" ? "creation date" : "booking date"} ({sortDirection === "desc" ? "newest first" : "oldest first"})
+                    </span>
+                  )}
                 </div>
                 <AdminBookingsList 
                   bookings={filteredBookings} 

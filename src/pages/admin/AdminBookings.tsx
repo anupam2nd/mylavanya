@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +35,10 @@ const AdminBookings = () => {
     setShowDateFilter,
     filterDateType,
     setFilterDateType,
+    sortDirection,
+    setSortDirection,
+    sortField,
+    setSortField,
     clearFilters
   } = useBookingFilters(bookings);
 
@@ -149,12 +154,21 @@ const AdminBookings = () => {
                 setShowDateFilter={setShowDateFilter}
                 filterDateType={filterDateType}
                 setFilterDateType={setFilterDateType}
+                sortDirection={sortDirection}
+                setSortDirection={setSortDirection}
+                sortField={sortField}
+                setSortField={setSortField}
               />
             </div>
           </CardHeader>
           <CardContent>
             <div className="mb-4 text-sm text-muted-foreground">
               Showing {filteredBookings.length} of {bookings.length} bookings
+              {sortField && (
+                <span className="ml-2">
+                  sorted by {sortField === "creation_date" ? "creation date" : "booking date"} ({sortDirection === "desc" ? "newest first" : "oldest first"})
+                </span>
+              )}
             </div>
             <AdminBookingsList
               bookings={filteredBookings}
