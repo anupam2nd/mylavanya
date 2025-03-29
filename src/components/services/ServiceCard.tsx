@@ -69,7 +69,7 @@ const ServiceCard = ({
         {/* Updated header order: Services, Subservice, ProductName */}
         <div className="mb-3">
           {service.services && (
-            <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full block mb-1 inline-block">
+            <span className="bg-primary/10 text-primary text-sm px-3 py-1.5 rounded-full block mb-1 inline-block font-medium">
               {service.services}
             </span>
           )}
@@ -80,7 +80,7 @@ const ServiceCard = ({
             </div>
           )}
           
-          <h3 className="font-semibold text-lg truncate">{service.pname}</h3>
+          <h3 className="font-semibold text-base truncate">{service.pname}</h3>
         </div>
         
         <div className="mt-2">

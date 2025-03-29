@@ -12,6 +12,7 @@ export type Database = {
       BookMST: {
         Row: {
           Address: string | null
+          Assignedto: string | null
           Booking_date: string
           Booking_NO: string | null
           booking_time: string
@@ -26,9 +27,11 @@ export type Database = {
           Purpose: string
           Qty: number | null
           Status: string | null
+          StatusUpdated: string | null
         }
         Insert: {
           Address?: string | null
+          Assignedto?: string | null
           Booking_date: string
           Booking_NO?: string | null
           booking_time: string
@@ -43,9 +46,11 @@ export type Database = {
           Purpose: string
           Qty?: number | null
           Status?: string | null
+          StatusUpdated?: string | null
         }
         Update: {
           Address?: string | null
+          Assignedto?: string | null
           Booking_date?: string
           Booking_NO?: string | null
           booking_time?: string
@@ -60,6 +65,7 @@ export type Database = {
           Purpose?: string
           Qty?: number | null
           Status?: string | null
+          StatusUpdated?: string | null
         }
         Relationships: []
       }
