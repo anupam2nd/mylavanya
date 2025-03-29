@@ -1,8 +1,9 @@
 
 import { Package, Star, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Service {
   ProductName: string;
@@ -20,6 +21,7 @@ interface ServicesListProps {
 const ServicesList = ({ services }: ServicesListProps) => {
   // Track which services are expanded
   const [expandedServices, setExpandedServices] = useState<number[]>([]);
+  const [descriptions, setDescriptions] = useState<{[key: string]: string}>({});
 
   const toggleService = (index: number) => {
     setExpandedServices(prev => 
@@ -28,6 +30,38 @@ const ServicesList = ({ services }: ServicesListProps) => {
         : [...prev, index]
     );
   };
+
+  // Fetch descriptions from PriceMST
+  useEffect(() => {
+    const fetchDescriptions = async () => {
+      try {
+        const productNames = services.map(service => service.ProductName);
+        
+        if (productNames.length === 0) return;
+        
+        const { data, error } = await supabase
+          .from("PriceMST")
+          .select("ProductName, Description")
+          .in("ProductName", productNames);
+          
+        if (error) {
+          console.error("Error fetching descriptions:", error);
+          return;
+        }
+        
+        const descriptionsMap: {[key: string]: string} = {};
+        data.forEach(item => {
+          descriptionsMap[item.ProductName] = item.Description || "";
+        });
+        
+        setDescriptions(descriptionsMap);
+      } catch (error) {
+        console.error("Error in fetching descriptions:", error);
+      }
+    };
+    
+    fetchDescriptions();
+  }, [services]);
 
   // Format service name as "Services - Subservice - ProductName"
   const formatServiceName = (service: Service) => {
@@ -74,6 +108,7 @@ const ServicesList = ({ services }: ServicesListProps) => {
           const isExpanded = expandedServices.includes(index);
           const formattedName = formatServiceName(service);
           const hasDiscount = service.originalPrice && service.originalPrice > service.price;
+          const description = descriptions[service.ProductName] || "No description available";
           
           return (
             <Collapsible 
@@ -158,8 +193,7 @@ const ServicesList = ({ services }: ServicesListProps) => {
                     <div className="col-span-2 mt-2">
                       <dt className="text-xs text-gray-500">Description</dt>
                       <dd className="text-sm text-gray-600 mt-1">
-                        {formattedName} includes all standard features and benefits. 
-                        Our professional staff will ensure quality service delivery.
+                        {description}
                       </dd>
                     </div>
                   </dl>

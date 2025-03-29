@@ -40,22 +40,15 @@ const TrackBooking = () => {
 
       console.log("Raw booking data:", bookingsData);
 
-      // Get all service details for the bookings
-      const servicePromises = bookingsData.map(booking => 
-        supabase
-          .from("PriceMST")
-          .select("ProductName")
-          .eq("prod_id", booking.Product)
-          .single()
-      );
-
-      const serviceResults = await Promise.all(servicePromises);
-      
-      // Combine booking and service data
-      const detailedBookings = bookingsData.map((booking, index) => {
+      // The detailed bookings already contain the service information
+      // since we've added ServiceName, Subservice and ProductName to BookMST
+      const detailedBookings = bookingsData.map(booking => {
         return {
           ...booking,
-          ProductName: serviceResults[index].data?.ProductName || "Unknown Service",
+          // If the booking already has these fields, use them, otherwise use defaults
+          Services: booking.ServiceName || "General Service",
+          Subservice: booking.SubService || "Standard",
+          ProductName: booking.ProductName || "Unknown Service",
         };
       });
 
