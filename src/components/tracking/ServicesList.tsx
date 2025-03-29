@@ -1,5 +1,5 @@
 
-import { Package, Star, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Package, Star, CheckCircle, ChevronDown, ChevronUp, User, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -12,16 +12,25 @@ interface Service {
   originalPrice?: number;
   Services?: string;
   Subservice?: string;
+  Assignedto?: string;
+  AssignedBY?: string;
 }
 
 interface ServicesListProps {
   services: Service[];
 }
 
+interface ArtistInfo {
+  ArtistFirstName: string | null;
+  ArtistLastName: string | null;
+  ArtistPhno: number | null;
+}
+
 const ServicesList = ({ services }: ServicesListProps) => {
   // Track which services are expanded
   const [expandedServices, setExpandedServices] = useState<number[]>([]);
   const [descriptions, setDescriptions] = useState<{[key: string]: string}>({});
+  const [artistInfo, setArtistInfo] = useState<{[key: string]: ArtistInfo | null}>({});
 
   const toggleService = (index: number) => {
     setExpandedServices(prev => 
@@ -63,6 +72,47 @@ const ServicesList = ({ services }: ServicesListProps) => {
     fetchDescriptions();
   }, [services]);
 
+  // Fetch artist information
+  useEffect(() => {
+    const fetchArtistInfo = async () => {
+      try {
+        // Get all assigned artist IDs
+        const artistIds = services
+          .map(service => service.Assignedto)
+          .filter(id => id); // Filter out undefined or null values
+        
+        if (artistIds.length === 0) return;
+        
+        const { data, error } = await supabase
+          .from("ArtistMST")
+          .select("ArtistID, ArtistFirstName, ArtistLastName, ArtistPhno")
+          .in("ArtistID", artistIds);
+          
+        if (error) {
+          console.error("Error fetching artist info:", error);
+          return;
+        }
+        
+        const artistInfoMap: {[key: string]: ArtistInfo} = {};
+        data.forEach(artist => {
+          if (artist.ArtistID) {
+            artistInfoMap[artist.ArtistID] = {
+              ArtistFirstName: artist.ArtistFirstName,
+              ArtistLastName: artist.ArtistLastName,
+              ArtistPhno: artist.ArtistPhno
+            };
+          }
+        });
+        
+        setArtistInfo(artistInfoMap);
+      } catch (error) {
+        console.error("Error in fetching artist info:", error);
+      }
+    };
+    
+    fetchArtistInfo();
+  }, [services]);
+
   // Format service name as "Services - Subservice - ProductName"
   const formatServiceName = (service: Service) => {
     let parts = [];
@@ -97,6 +147,25 @@ const ServicesList = ({ services }: ServicesListProps) => {
     return colors[index % colors.length];
   };
 
+  // Mask phone number - show only last 4 digits
+  const maskPhoneNumber = (phone: number | null) => {
+    if (!phone) return "Not available";
+    const phoneStr = phone.toString();
+    if (phoneStr.length <= 4) return phoneStr;
+    return "XXXX-" + phoneStr.slice(-4);
+  };
+
+  // Get artist full name
+  const getArtistName = (artistId: string | undefined) => {
+    if (!artistId || !artistInfo[artistId]) return "Not assigned";
+    
+    const artist = artistInfo[artistId];
+    const firstName = artist?.ArtistFirstName || "";
+    const lastName = artist?.ArtistLastName || "";
+    
+    return firstName + (lastName ? ` ${lastName}` : "");
+  };
+
   return (
     <div className="col-span-2 mt-4 border-t pt-4">
       <p className="text-sm font-medium text-gray-500 mb-3 flex items-center">
@@ -109,6 +178,9 @@ const ServicesList = ({ services }: ServicesListProps) => {
           const formattedName = formatServiceName(service);
           const hasDiscount = service.originalPrice && service.originalPrice > service.price;
           const description = descriptions[service.ProductName] || "No description available";
+          const artistName = getArtistName(service.Assignedto);
+          const maskedPhone = service.Assignedto ? 
+            maskPhoneNumber(artistInfo[service.Assignedto]?.ArtistPhno) : "Not assigned";
           
           return (
             <Collapsible 
@@ -188,6 +260,20 @@ const ServicesList = ({ services }: ServicesListProps) => {
                         {service.Services || 
                           (formattedName.includes("Premium") ? "Premium" : 
                           formattedName.includes("Package") ? "Package" : "Standard")}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-gray-500">Assigned Artist</dt>
+                      <dd className="font-medium flex items-center">
+                        <User size={14} className="mr-1 text-primary opacity-70" />
+                        {artistName}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-gray-500">Artist Contact</dt>
+                      <dd className="font-medium flex items-center">
+                        <Phone size={14} className="mr-1 text-primary opacity-70" />
+                        {maskedPhone}
                       </dd>
                     </div>
                     <div className="col-span-2 mt-2">

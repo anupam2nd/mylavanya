@@ -28,6 +28,8 @@ export interface BookingData {
   id?: number;
   Services?: string;
   Subservice?: string;
+  Assignedto?: string;
+  AssignedBY?: string;
 }
 
 const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
