@@ -1,3 +1,4 @@
+
 import React from "react";
 import { format } from "date-fns";
 import { Clock, CalendarIcon } from "lucide-react";
@@ -87,6 +88,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   }, [editBooking, form]);
 
   const onSubmit = (data: EditBookingFormValues) => {
+    console.log("Submitting form data:", data);
     handleSaveChanges(data);
   };
 

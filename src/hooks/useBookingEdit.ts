@@ -20,19 +20,26 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
     if (!editBooking) return;
 
     try {
+      // Make sure we only include fields that actually exist in the database table
       const updates = {
         Booking_date: values.date ? format(values.date, 'yyyy-MM-dd') : editBooking.Booking_date,
         booking_time: values.time,
         Status: values.status
       };
 
+      console.log("Updating booking with id:", editBooking.id, "Updates:", updates);
+
       const { error } = await supabase
         .from('BookMST')
         .update(updates)
         .eq('id', editBooking.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error details:', error);
+        throw error;
+      }
 
+      // Update local state
       setBookings(bookings.map(booking => 
         booking.id === editBooking.id 
           ? { ...booking, ...updates } 
