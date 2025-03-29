@@ -21,7 +21,6 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
 
     try {
       // Make sure we only include fields that actually exist in the database table
-      // and avoid trying to update fields not in the BookMST table
       const updates = {
         Booking_date: values.date ? format(values.date, 'yyyy-MM-dd') : editBooking.Booking_date,
         booking_time: values.time,
@@ -40,7 +39,7 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
         throw error;
       }
 
-      // Update local state with the successfully updated values
+      // Update local state
       setBookings(bookings.map(booking => 
         booking.id === editBooking.id 
           ? { ...booking, ...updates } 
