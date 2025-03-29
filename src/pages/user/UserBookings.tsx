@@ -203,7 +203,7 @@ const UserBookings = () => {
           booking={editBooking}
           open={openDialog}
           onOpenChange={setOpenDialog}
-          onSave={(booking, updates) => {
+          onSave={async (booking, updates) => {
             // Convert normal updates structure to EditBookingFormValues
             const formValues = {
               date: updates.Booking_date ? new Date(updates.Booking_date) : undefined,
@@ -219,7 +219,7 @@ const UserBookings = () => {
               currentUser
             };
             
-            handleSaveChanges(formValues);
+            await handleSaveChanges(formValues);
           }}
           statusOptions={statusOptions}
           currentUser={currentUser}
