@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,17 +17,24 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ExportButton } from "@/components/ui/export-button";
+import { useBookingEdit } from "@/hooks/useBookingEdit";
 
 const UserBookings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editBooking, setEditBooking] = useState<Booking | null>(null);
-  const [openDialog, setOpenDialog] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ Username?: string } | null>(null);
   
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
+  
+  const {
+    editBooking,
+    openDialog,
+    setOpenDialog,
+    handleEditClick,
+    handleSaveChanges
+  } = useBookingEdit(bookings, setBookings);
   
   const {
     filteredBookings,
@@ -108,44 +116,6 @@ const UserBookings = () => {
 
     fetchBookings();
   }, [toast]);
-
-  const handleEditClick = (booking: Booking) => {
-    setEditBooking(booking);
-    setOpenDialog(true);
-  };
-
-  const handleSaveChanges = async (booking: Booking, updates: Partial<Booking>) => {
-    if (!booking) return;
-
-    try {
-      const { error } = await supabase
-        .from('BookMST')
-        .update(updates)
-        .eq('id', booking.id);
-
-      if (error) throw error;
-
-      setBookings(bookings.map(item => 
-        item.id === booking.id 
-          ? { ...item, ...updates } 
-          : item
-      ));
-
-      toast({
-        title: "Booking updated",
-        description: "The booking has been successfully updated",
-      });
-
-      setOpenDialog(false);
-    } catch (error) {
-      console.error('Error updating booking:', error);
-      toast({
-        title: "Update failed",
-        description: "There was a problem updating the booking",
-        variant: "destructive"
-      });
-    }
-  };
 
   const bookingHeaders = {
     id: 'ID',
@@ -233,7 +203,24 @@ const UserBookings = () => {
           booking={editBooking}
           open={openDialog}
           onOpenChange={setOpenDialog}
-          onSave={handleSaveChanges}
+          onSave={(booking, updates) => {
+            // Convert normal updates structure to EditBookingFormValues
+            const formValues = {
+              date: updates.Booking_date ? new Date(updates.Booking_date) : undefined,
+              time: updates.booking_time || "",
+              status: updates.Status || "",
+              service: updates.ServiceName || "",
+              subService: updates.SubService || "",
+              product: updates.ProductName || "",
+              quantity: updates.Qty || 1,
+              address: updates.Address || "",
+              pincode: updates.Pincode?.toString() || "",
+              artistId: updates.ArtistId || null,
+              currentUser
+            };
+            
+            handleSaveChanges(formValues);
+          }}
           statusOptions={statusOptions}
           currentUser={currentUser}
         />

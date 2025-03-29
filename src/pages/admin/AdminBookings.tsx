@@ -12,14 +12,21 @@ import { ExportButton } from "@/components/ui/export-button";
 import AdminBookingsList from "@/components/user/bookings/AdminBookingsList";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useBookingEdit } from "@/hooks/useBookingEdit";
 
 const AdminBookings = () => {
   const { toast } = useToast();
   const { bookings, setBookings, loading } = useBookings();
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
   const [currentUser, setCurrentUser] = useState<{ Username?: string } | null>(null);
-  const [editBooking, setEditBooking] = useState<Booking | null>(null);
-  const [openDialog, setOpenDialog] = useState(false);
+  
+  const {
+    editBooking,
+    openDialog,
+    setOpenDialog,
+    handleEditClick,
+    handleSaveChanges
+  } = useBookingEdit(bookings, setBookings);
   
   const {
     filteredBookings,
@@ -69,40 +76,6 @@ const AdminBookings = () => {
     
     fetchCurrentUser();
   }, []);
-
-  const handleEditClick = (booking: Booking) => {
-    setEditBooking(booking);
-    setOpenDialog(true);
-  };
-
-  const handleSaveChanges = async (booking: Booking, updates: Partial<Booking>) => {
-    try {
-      const { error } = await supabase
-        .from('BookMST')
-        .update(updates)
-        .eq('id', booking.id);
-
-      if (error) throw error;
-
-      setBookings(bookings.map(b => 
-        b.id === booking.id ? { ...b, ...updates } : b
-      ));
-
-      toast({
-        title: "Booking updated",
-        description: "The booking has been successfully updated",
-      });
-
-      setOpenDialog(false);
-    } catch (error) {
-      console.error('Error updating booking:', error);
-      toast({
-        title: "Update failed",
-        description: "There was a problem updating the booking",
-        variant: "destructive"
-      });
-    }
-  };
 
   const bookingHeaders = {
     id: 'ID',
@@ -182,7 +155,24 @@ const AdminBookings = () => {
           booking={editBooking}
           open={openDialog}
           onOpenChange={setOpenDialog}
-          onSave={handleSaveChanges}
+          onSave={(booking, updates) => {
+            // Convert normal updates structure to EditBookingFormValues
+            const formValues = {
+              date: updates.Booking_date ? new Date(updates.Booking_date) : undefined,
+              time: updates.booking_time || "",
+              status: updates.Status || "",
+              service: updates.ServiceName || "",
+              subService: updates.SubService || "",
+              product: updates.ProductName || "",
+              quantity: updates.Qty || 1,
+              address: updates.Address || "",
+              pincode: updates.Pincode?.toString() || "",
+              artistId: updates.ArtistId || null,
+              currentUser
+            };
+            
+            handleSaveChanges(formValues);
+          }}
           statusOptions={statusOptions}
           currentUser={currentUser}
         />
