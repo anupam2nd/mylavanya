@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import BookingFilters from "@/components/admin/bookings/BookingFilters";
 import EditBookingDialog from "@/components/user/bookings/EditBookingDialog";
-import { useBookings } from "@/hooks/useBookings";
+import { useBookings, Booking } from "@/hooks/useBookings";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
 import { useBookingFilters } from "@/hooks/useBookingFilters";
 import { ExportButton } from "@/components/ui/export-button";

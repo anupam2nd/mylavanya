@@ -25,6 +25,7 @@ const UserBookings = () => {
   const [loading, setLoading] = useState(true);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ Username?: string } | null>(null);
   
   // Get status options for the filter
   const { statusOptions } = useStatusOptions();
@@ -46,6 +47,31 @@ const UserBookings = () => {
     setFilterDateType,
     clearFilters
   } = useBookingFilters(bookings);
+
+  // Fetch the current user information
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const { data: authSession } = await supabase.auth.getSession();
+        
+        if (authSession?.session?.user?.id) {
+          const { data, error } = await supabase
+            .from('UserMST')
+            .select('Username, FirstName, LastName')
+            .eq('id', authSession.session.user.id)
+            .single();
+            
+          if (!error && data) {
+            setCurrentUser(data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+    
+    fetchCurrentUser();
+  }, []);
 
   // Fetch all bookings instead of just the user's bookings
   useEffect(() => {
@@ -85,22 +111,22 @@ const UserBookings = () => {
     setOpenDialog(true);
   };
 
-  const handleSaveChanges = async (updates: Partial<Booking>) => {
-    if (!editBooking) return;
+  const handleSaveChanges = async (booking: Booking, updates: Partial<Booking>) => {
+    if (!booking) return;
 
     try {
       const { error } = await supabase
         .from('BookMST')
         .update(updates)
-        .eq('id', editBooking.id);
+        .eq('id', booking.id);
 
       if (error) throw error;
 
       // Update local state
-      setBookings(bookings.map(booking => 
-        booking.id === editBooking.id 
-          ? { ...booking, ...updates } 
-          : booking
+      setBookings(bookings.map(item => 
+        item.id === booking.id 
+          ? { ...item, ...updates } 
+          : item
       ));
 
       toast({
@@ -196,6 +222,8 @@ const UserBookings = () => {
           open={openDialog}
           onOpenChange={setOpenDialog}
           onSave={handleSaveChanges}
+          statusOptions={statusOptions}
+          currentUser={currentUser}
         />
       </DashboardLayout>
     </ProtectedRoute>
