@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -59,7 +60,6 @@ const EditBookingDialog = ({
   statusOptions,
   currentUser
 }: EditBookingDialogProps) => {
-  // Form state variables
   const [editDate, setEditDate] = useState<Date | undefined>(undefined);
   const [editTime, setEditTime] = useState<string>("");
   const [editStatus, setEditStatus] = useState<string>("");
@@ -70,12 +70,10 @@ const EditBookingDialog = ({
   const [editService, setEditService] = useState<string>("");
   const [editSubService, setEditSubService] = useState<string>("");
   const [editProductName, setEditProductName] = useState<string>("");
-  
-  // Options for dropdowns
+
   const [artistOptions, setArtistOptions] = useState<ArtistOption[]>([]);
   const [serviceOptions, setServiceOptions] = useState<ServiceOption[]>([]);
 
-  // Fetch artists from database
   useEffect(() => {
     const fetchArtists = async () => {
       try {
@@ -116,7 +114,6 @@ const EditBookingDialog = ({
     fetchServices();
   }, []);
 
-  // Update form values when booking changes
   useEffect(() => {
     if (booking) {
       setEditDate(booking.Booking_date ? new Date(booking.Booking_date) : undefined);
@@ -132,13 +129,11 @@ const EditBookingDialog = ({
     }
   }, [booking]);
 
-  // Filter options for subservices based on selected service
   const filteredSubServices = serviceOptions
     .filter(option => option.Services === editService)
     .map(option => option.Subservice)
     .filter((value, index, self) => value && self.indexOf(value) === index);
 
-  // Filter options for products based on selected service and subservice
   const filteredProducts = serviceOptions
     .filter(option => 
       option.Services === editService && 
@@ -149,10 +144,8 @@ const EditBookingDialog = ({
       value.name && self.findIndex(item => item.name === value.name) === index
     );
 
-  // Get unique service names for the dropdown
   const uniqueServices = [...new Set(serviceOptions.map(option => option.Services))].filter(Boolean);
 
-  // Check if status requires artist assignment
   const requiresArtist = (status: string) => {
     const assignmentStatuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done'];
     return assignmentStatuses.includes(status);
@@ -161,7 +154,6 @@ const EditBookingDialog = ({
   const handleSaveChanges = async () => {
     if (!booking) return;
 
-    // Build updates object with only changed fields
     const updates: Partial<Booking> = {};
     
     if (editDate) {
@@ -189,7 +181,6 @@ const EditBookingDialog = ({
       updates.Qty = editQty;
     }
     
-    // Add service, subservice and product updates
     if (editService !== booking.ServiceName) {
       updates.ServiceName = editService;
     }
@@ -201,7 +192,6 @@ const EditBookingDialog = ({
     if (editProductName !== booking.ProductName) {
       updates.ProductName = editProductName;
       
-      // Find and update the product ID if the product name changes
       const selectedProduct = serviceOptions.find(
         p => p.ProductName === editProductName && 
              p.Services === editService && 
@@ -213,18 +203,15 @@ const EditBookingDialog = ({
       }
     }
     
-    // Handle artist assignment based on status
     if (requiresArtist(editStatus)) {
       if (editArtist) {
         updates.ArtistId = editArtist;
         
-        // Get artist name from options
         const selectedArtist = artistOptions.find(a => a.ArtistId === editArtist);
         if (selectedArtist) {
           updates.Assignedto = selectedArtist.displayName;
         }
         
-        // Set assigned by and timestamp
         updates.AssignedBY = currentUser?.Username || 'admin';
         updates.AssingnedON = new Date().toISOString();
       }
@@ -235,257 +222,258 @@ const EditBookingDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Edit Service Booking</DialogTitle>
           <DialogDescription>
             Make changes to the service booking details.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          {booking && (
-            <>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="job-no" className="text-right">
-                  Job Number
-                </Label>
-                <div className="col-span-3">
-                  <Input
-                    id="job-no"
-                    value={booking.jobno ? `JOB-${booking.jobno.toString().padStart(3, '0')}` : 'N/A'}
-                    readOnly
-                    className="bg-muted"
-                  />
-                </div>
-              </div>
-              
-              {/* Service Selection */}
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="service" className="text-right">
-                  Service
-                </Label>
-                <div className="col-span-3">
-                  <Select
-                    value={editService}
-                    onValueChange={setEditService}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {uniqueServices.map((service) => (
-                        <SelectItem key={service} value={service}>
-                          {service}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              {/* Sub-service Selection */}
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="subservice" className="text-right">
-                  Sub Service
-                </Label>
-                <div className="col-span-3">
-                  <Select
-                    value={editSubService}
-                    onValueChange={setEditSubService}
-                    disabled={!editService}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select sub-service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredSubServices.map((subService) => (
-                        <SelectItem key={subService} value={subService || ""}>
-                          {subService}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              {/* Product Selection */}
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="product" className="text-right">
-                  Product
-                </Label>
-                <div className="col-span-3">
-                  <Select
-                    value={editProductName}
-                    onValueChange={setEditProductName}
-                    disabled={!editService}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select product" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredProducts.map((product) => (
-                        <SelectItem key={product.id} value={product.name || ""}>
-                          {product.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="qty" className="text-right">
-                  Quantity
-                </Label>
-                <div className="col-span-3">
-                  <Input
-                    id="qty"
-                    type="number"
-                    min="1"
-                    value={editQty}
-                    onChange={(e) => setEditQty(parseInt(e.target.value, 10) || 1)}
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="address" className="text-right">
-                  Address
-                </Label>
-                <div className="col-span-3">
-                  <Textarea
-                    id="address"
-                    value={editAddress}
-                    onChange={(e) => setEditAddress(e.target.value)}
-                    className="resize-none"
-                    rows={2}
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="pincode" className="text-right">
-                  PIN Code
-                </Label>
-                <div className="col-span-3">
-                  <Input
-                    id="pincode"
-                    value={editPincode}
-                    onChange={(e) => setEditPincode(e.target.value.replace(/[^0-9]/g, ''))}
-                    maxLength={6}
-                  />
-                </div>
-              </div>
-            
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="booking-date" className="text-right">
-                  Date
-                </Label>
-                <div className="col-span-3">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !editDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {editDate ? format(editDate, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={editDate}
-                        onSelect={setEditDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="booking-time" className="text-right">
-                  Time
-                </Label>
-                <div className="col-span-3">
-                  <div className="flex items-center">
-                    <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+        
+        <ScrollArea className="max-h-[calc(90vh-8rem)]">
+          <div className="px-1 py-2">
+            {booking && (
+              <div className="grid gap-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="job-no" className="text-right">
+                    Job Number
+                  </Label>
+                  <div className="col-span-3">
                     <Input
-                      id="booking-time"
-                      type="time"
-                      value={editTime}
-                      onChange={(e) => setEditTime(e.target.value)}
+                      id="job-no"
+                      value={booking.jobno ? `JOB-${booking.jobno.toString().padStart(3, '0')}` : 'N/A'}
+                      readOnly
+                      className="bg-muted"
                     />
                   </div>
                 </div>
-              </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="service" className="text-right">
+                    Service
+                  </Label>
+                  <div className="col-span-3">
+                    <Select
+                      value={editService}
+                      onValueChange={setEditService}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select service" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {uniqueServices.map((service) => (
+                          <SelectItem key={service} value={service}>
+                            {service}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="subservice" className="text-right">
+                    Sub Service
+                  </Label>
+                  <div className="col-span-3">
+                    <Select
+                      value={editSubService}
+                      onValueChange={setEditSubService}
+                      disabled={!editService}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select sub-service" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredSubServices.map((subService) => (
+                          <SelectItem key={subService} value={subService || ""}>
+                            {subService}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="product" className="text-right">
+                    Product
+                  </Label>
+                  <div className="col-span-3">
+                    <Select
+                      value={editProductName}
+                      onValueChange={setEditProductName}
+                      disabled={!editService}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select product" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredProducts.map((product) => (
+                          <SelectItem key={product.id} value={product.name || ""}>
+                            {product.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="qty" className="text-right">
+                    Quantity
+                  </Label>
+                  <div className="col-span-3">
+                    <Input
+                      id="qty"
+                      type="number"
+                      min="1"
+                      value={editQty}
+                      onChange={(e) => setEditQty(parseInt(e.target.value, 10) || 1)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="address" className="text-right">
+                    Address
+                  </Label>
+                  <div className="col-span-3">
+                    <Textarea
+                      id="address"
+                      value={editAddress}
+                      onChange={(e) => setEditAddress(e.target.value)}
+                      className="resize-none"
+                      rows={2}
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="pincode" className="text-right">
+                    PIN Code
+                  </Label>
+                  <div className="col-span-3">
+                    <Input
+                      id="pincode"
+                      value={editPincode}
+                      onChange={(e) => setEditPincode(e.target.value.replace(/[^0-9]/g, ''))}
+                      maxLength={6}
+                    />
+                  </div>
+                </div>
               
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="booking-status" className="text-right">
-                  Status
-                </Label>
-                <div className="col-span-3">
-                  <Select
-                    value={editStatus}
-                    onValueChange={setEditStatus}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map((option) => (
-                        <SelectItem key={option.status_code} value={option.status_code}>
-                          {option.status_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="booking-date" className="text-right">
+                    Date
+                  </Label>
+                  <div className="col-span-3">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !editDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {editDate ? format(editDate, "PPP") : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={editDate}
+                          onSelect={setEditDate}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="booking-time" className="text-right">
+                    Time
+                  </Label>
+                  <div className="col-span-3">
+                    <div className="flex items-center">
+                      <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="booking-time"
+                        type="time"
+                        value={editTime}
+                        onChange={(e) => setEditTime(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="booking-status" className="text-right">
+                    Status
+                  </Label>
+                  <div className="col-span-3">
+                    <Select
+                      value={editStatus}
+                      onValueChange={setEditStatus}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statusOptions.map((option) => (
+                          <SelectItem key={option.status_code} value={option.status_code}>
+                            {option.status_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="assigned-artist" className="text-right">
+                    Assigned Artist
+                  </Label>
+                  <div className="col-span-3">
+                    <Select
+                      value={editArtist?.toString() || ""}
+                      onValueChange={(value) => setEditArtist(value ? parseInt(value, 10) : null)}
+                      disabled={!requiresArtist(editStatus)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select artist" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {artistOptions.map((artist) => (
+                          <SelectItem key={artist.ArtistId} value={artist.ArtistId.toString()}>
+                            {artist.displayName || `Artist ${artist.ArtistId}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    {(requiresArtist(editStatus) && !editArtist) && (
+                      <p className="text-xs text-destructive mt-1">
+                        Artist assignment is required for this status
+                      </p>
+                    )}
+                    
+                    {!requiresArtist(editStatus) && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Artist assignment available when status is "Beautician Assigned" or later
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="assigned-artist" className="text-right">
-                  Assigned Artist
-                </Label>
-                <div className="col-span-3">
-                  <Select
-                    value={editArtist?.toString() || ""}
-                    onValueChange={(value) => setEditArtist(value ? parseInt(value, 10) : null)}
-                    disabled={!requiresArtist(editStatus)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select artist" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {artistOptions.map((artist) => (
-                        <SelectItem key={artist.ArtistId} value={artist.ArtistId.toString()}>
-                          {artist.displayName || `Artist ${artist.ArtistId}`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  {(requiresArtist(editStatus) && !editArtist) && (
-                    <p className="text-xs text-destructive mt-1">
-                      Artist assignment is required for this status
-                    </p>
-                  )}
-                  
-                  {!requiresArtist(editStatus) && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Artist assignment available when status is "Beautician Assigned" or later
-                    </p>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-        <DialogFooter>
+            )}
+          </div>
+        </ScrollArea>
+        
+        <DialogFooter className="pt-2">
           <Button 
             type="submit" 
             onClick={handleSaveChanges}
