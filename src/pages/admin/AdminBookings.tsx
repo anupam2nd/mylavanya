@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,21 +37,24 @@ const AdminBookings = () => {
     clearFilters
   } = useBookingFilters(bookings);
 
-  // Fetch current user info
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
         const { data: authSession } = await supabase.auth.getSession();
         
         if (authSession?.session?.user?.id) {
-          const { data, error } = await supabase
-            .from('UserMST')
-            .select('Username, FirstName, LastName')
-            .eq('id', authSession.session.user.id)
-            .single();
-            
-          if (!error && data) {
-            setCurrentUser(data);
+          const userId = parseInt(authSession.session.user.id, 10);
+          
+          if (!isNaN(userId)) {
+            const { data, error } = await supabase
+              .from('UserMST')
+              .select('Username, FirstName, LastName')
+              .eq('id', userId)
+              .single();
+              
+            if (!error && data) {
+              setCurrentUser(data);
+            }
           }
         }
       } catch (error) {
@@ -77,7 +79,6 @@ const AdminBookings = () => {
 
       if (error) throw error;
 
-      // Update the bookings state with the edited booking
       setBookings(bookings.map(b => 
         b.id === booking.id ? { ...b, ...updates } : b
       ));
@@ -98,7 +99,6 @@ const AdminBookings = () => {
     }
   };
 
-  // CSV export headers for better readability
   const bookingHeaders = {
     id: 'ID',
     Booking_NO: 'Booking Number',

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,14 +54,20 @@ const UserBookings = () => {
         const { data: authSession } = await supabase.auth.getSession();
         
         if (authSession?.session?.user?.id) {
-          const { data, error } = await supabase
-            .from('UserMST')
-            .select('Username, FirstName, LastName')
-            .eq('id', authSession.session.user.id)
-            .single();
-            
-          if (!error && data) {
-            setCurrentUser(data);
+          // Convert the string id to a number using parseInt to match the database type
+          const userId = parseInt(authSession.session.user.id, 10);
+          
+          // Only proceed with the query if parsing was successful
+          if (!isNaN(userId)) {
+            const { data, error } = await supabase
+              .from('UserMST')
+              .select('Username, FirstName, LastName')
+              .eq('id', userId)
+              .single();
+              
+            if (!error && data) {
+              setCurrentUser(data);
+            }
           }
         }
       } catch (error) {
