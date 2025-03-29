@@ -75,12 +75,12 @@ const ServiceCard = ({
           )}
           
           {service.subservice && (
-            <div className="text-sm text-gray-600 mb-1">
+            <div className="text-sm text-gray-800 mb-1 font-bold text-base">
               {service.subservice}
             </div>
           )}
           
-          <h3 className="font-semibold text-base truncate">{service.pname}</h3>
+          <h3 className="font-normal text-sm truncate">{service.pname}</h3>
         </div>
         
         <div className="mt-2">
