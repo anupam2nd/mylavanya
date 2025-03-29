@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -112,12 +113,14 @@ const ServiceDetail = () => {
       </div>;
   }
 
-  const serviceParts = service?.ProductName?.split(' ') || [];
-  const serviceCategory = serviceParts[0] || '';
-  const subService = serviceParts[1] || '';
-  const productName = serviceParts.slice(2).join(' ') || '';
-
   const serviceImage = getServiceImage(service.prod_id, service.ProductName);
+  
+  // Calculate final price if discount is available
+  const finalPrice = service.NetPayable !== null && service.NetPayable !== undefined 
+    ? service.NetPayable 
+    : service.Discount 
+      ? service.Price - (service.Price * service.Discount / 100) 
+      : service.Price;
 
   return <div className="min-h-screen bg-gray-50 pb-16">
       <div className="bg-gradient-to-r from-violet-100 to-purple-50 py-8">
@@ -128,13 +131,29 @@ const ServiceDetail = () => {
           
           <div className="flex flex-col space-y-2">
             <div>
-              <StatusBadge status="processing" className="text-lg font-bold px-4 py-2 bg-primary/20 text-primary">
-                {serviceCategory} {subService}
+              <StatusBadge status={service.Services} className="text-lg font-bold px-4 py-2 bg-primary/20 text-primary">
+                {service.Services}
               </StatusBadge>
             </div>
-            <div className="text-xl font-medium text-gray-700">{subService}</div>
-            <div className="text-base text-gray-500">{productName}</div>
-            <p className="text-lg font-medium text-primary mt-1">₹{service?.Price.toFixed(2)}</p>
+            {service.Subservice && (
+              <div className="text-xl font-medium text-gray-700">{service.Subservice}</div>
+            )}
+            {service.ProductName && (
+              <div className="text-base text-gray-500">{service.ProductName}</div>
+            )}
+            
+            {/* Price display with discount if available */}
+            {service.Discount ? (
+              <div className="flex items-center space-x-2 mt-1">
+                <span className="line-through text-gray-500">₹{service.Price.toFixed(2)}</span>
+                <span className="text-lg font-medium text-primary">₹{finalPrice.toFixed(2)}</span>
+                <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded">
+                  {service.Discount}% OFF
+                </span>
+              </div>
+            ) : (
+              <p className="text-lg font-medium text-primary mt-1">₹{service.Price.toFixed(2)}</p>
+            )}
           </div>
         </div>
       </div>
@@ -144,12 +163,12 @@ const ServiceDetail = () => {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="h-64 sm:h-80 bg-gray-200">
-                <img alt={service?.ProductName} className="w-full h-full object-cover" src={serviceImage} />
+                <img alt={service.ProductName} className="w-full h-full object-cover" src={serviceImage} />
               </div>
               <div className="p-6">
                 <h2 className="text-2xl font-semibold mb-4">Service Description</h2>
                 <p className="text-gray-600 mb-6">
-                  {service?.Description || "Professional beauty service tailored for weddings and special occasions. Our expert team uses premium products to ensure you look your best on your special day."}
+                  {service.Description || "Professional beauty service tailored for weddings and special occasions. Our expert team uses premium products to ensure you look your best on your special day."}
                 </p>
                 
                 <h3 className="text-xl font-medium mb-3">What's Included</h3>
