@@ -24,13 +24,15 @@ const CustomerDetails = ({ booking }: CustomerDetailsProps) => {
         </div>
       )}
       
-      <div>
-        <p className="text-sm font-medium text-gray-500">Phone</p>
-        <p className="font-medium flex items-center">
-          <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
-          {booking.Phone_no}
-        </p>
-      </div>
+      {booking.Phone_no && (
+        <div>
+          <p className="text-sm font-medium text-gray-500">Phone</p>
+          <p className="font-medium flex items-center">
+            <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
+            {booking.Phone_no}
+          </p>
+        </div>
+      )}
       
       <div>
         <p className="text-sm font-medium text-gray-500">Status</p>
