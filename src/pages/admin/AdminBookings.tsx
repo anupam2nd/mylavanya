@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 const AdminBookings = () => {
   const { toast } = useToast();
   const { bookings, setBookings, loading } = useBookings();
-  const { statusOptions } = useStatusOptions();
+  const { statusOptions, formattedStatusOptions } = useStatusOptions();
   const [currentUser, setCurrentUser] = useState<{ Username?: string } | null>(null);
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -149,7 +149,7 @@ const AdminBookings = () => {
                 statusFilter={statusFilter}
                 setStatusFilter={setStatusFilter}
                 clearFilters={clearFilters}
-                statusOptions={statusOptions}
+                statusOptions={formattedStatusOptions}
                 showDateFilter={showDateFilter}
                 setShowDateFilter={setShowDateFilter}
                 filterDateType={filterDateType}

@@ -22,6 +22,7 @@ import {
 import { FilterDateType } from "@/hooks/useBookingFilters";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "lucide-react";
+import { FormattedStatusOption } from "@/hooks/useStatusOptions";
 
 interface UserBookingFiltersProps {
   searchQuery: string;
@@ -33,7 +34,7 @@ interface UserBookingFiltersProps {
   statusFilter: string;
   setStatusFilter: (status: string) => void;
   clearFilters: () => void;
-  statusOptions: { status_code: string; status_name: string }[];
+  statusOptions: FormattedStatusOption[];
   showDateFilter: boolean;
   setShowDateFilter: (show: boolean) => void;
   filterDateType: FilterDateType;

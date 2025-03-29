@@ -9,8 +9,14 @@ export interface StatusOption {
   active: boolean;
 }
 
+export interface FormattedStatusOption {
+  value: string;
+  label: string;
+}
+
 export const useStatusOptions = () => {
   const [statusOptions, setStatusOptions] = useState<StatusOption[]>([]);
+  const [formattedStatusOptions, setFormattedStatusOptions] = useState<FormattedStatusOption[]>([]);
 
   useEffect(() => {
     const fetchStatusOptions = async () => {
@@ -21,6 +27,14 @@ export const useStatusOptions = () => {
 
         if (error) throw error;
         setStatusOptions(data || []);
+        
+        // Transform data to match expected format for BookingFilters
+        setFormattedStatusOptions(
+          (data || []).map(option => ({
+            value: option.status_code,
+            label: option.status_name
+          }))
+        );
       } catch (error) {
         console.error('Error fetching status options:', error);
       }
@@ -29,5 +43,5 @@ export const useStatusOptions = () => {
     fetchStatusOptions();
   }, []);
 
-  return { statusOptions };
+  return { statusOptions, formattedStatusOptions };
 };

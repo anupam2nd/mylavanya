@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,10 +26,8 @@ const UserBookings = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ Username?: string } | null>(null);
   
-  // Get status options for the filter
-  const { statusOptions } = useStatusOptions();
+  const { statusOptions, formattedStatusOptions } = useStatusOptions();
   
-  // Use the same filter hook used in admin panel
   const {
     filteredBookings,
     startDate,
@@ -52,17 +49,14 @@ const UserBookings = () => {
     clearFilters
   } = useBookingFilters(bookings);
 
-  // Fetch the current user information
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
         const { data: authSession } = await supabase.auth.getSession();
         
         if (authSession?.session?.user?.id) {
-          // Convert the string id to a number using parseInt to match the database type
           const userId = parseInt(authSession.session.user.id, 10);
           
-          // Only proceed with the query if parsing was successful
           if (!isNaN(userId)) {
             const { data, error } = await supabase
               .from('UserMST')
@@ -83,7 +77,6 @@ const UserBookings = () => {
     fetchCurrentUser();
   }, []);
 
-  // Fetch all bookings instead of just the user's bookings
   useEffect(() => {
     const fetchBookings = async () => {
       try {
@@ -132,7 +125,6 @@ const UserBookings = () => {
 
       if (error) throw error;
 
-      // Update local state
       setBookings(bookings.map(item => 
         item.id === booking.id 
           ? { ...item, ...updates } 
@@ -155,7 +147,6 @@ const UserBookings = () => {
     }
   };
 
-  // CSV export headers for better readability
   const bookingHeaders = {
     id: 'ID',
     Booking_NO: 'Booking Number',
@@ -197,7 +188,7 @@ const UserBookings = () => {
                 statusFilter={statusFilter}
                 setStatusFilter={setStatusFilter}
                 clearFilters={clearFilters}
-                statusOptions={statusOptions}
+                statusOptions={formattedStatusOptions}
                 showDateFilter={showDateFilter}
                 setShowDateFilter={setShowDateFilter}
                 filterDateType={filterDateType}

@@ -68,7 +68,7 @@ const BookingsList = () => {
   }, [user, isAuthenticated, navigate]);
   
   // Add these new hooks for filtering
-  const { statusOptions } = useStatusOptions();
+  const { statusOptions, formattedStatusOptions } = useStatusOptions();
   const {
     filteredBookings,
     startDate,
@@ -100,7 +100,7 @@ const BookingsList = () => {
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
           clearFilters={clearFilters}
-          statusOptions={statusOptions}
+          statusOptions={formattedStatusOptions}
           showDateFilter={showDateFilter}
           setShowDateFilter={setShowDateFilter}
           filterDateType={filterDateType}
