@@ -25,7 +25,7 @@ const TrackBooking = () => {
       // Get all bookings matching the reference and phone number
       const { data: bookingsData, error: bookingError } = await supabase
         .from("BookMST")
-        .select("*")
+        .select("*, ArtistId, jobno") // Ensure we select the jobno field
         .eq("Booking_NO", data.bookingRef)
         .eq("Phone_no", phoneNumber);
 
@@ -49,7 +49,8 @@ const TrackBooking = () => {
           Services: booking.ServiceName || "General Service",
           Subservice: booking.SubService || "Standard",
           ProductName: booking.ProductName || "Unknown Service",
-          ArtistId: booking.ArtistId // Ensure ArtistId is included
+          ArtistId: booking.ArtistId, // Ensure ArtistId is included
+          jobno: booking.jobno // Ensure jobno is included
         };
       });
 

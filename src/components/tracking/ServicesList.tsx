@@ -14,7 +14,8 @@ interface Service {
   Subservice?: string;
   Assignedto?: string;
   AssignedBY?: string;
-  ArtistId?: number; // Added ArtistId field
+  ArtistId?: number;
+  jobno?: number; // Added jobno field
 }
 
 interface ServicesListProps {
@@ -167,6 +168,16 @@ const ServicesList = ({ services }: ServicesListProps) => {
     return firstName + (lastName ? ` ${lastName}` : "");
   };
 
+  // Generate service ID from job number or index
+  const getServiceId = (service: Service, index: number) => {
+    // If jobno is available, use it as the service ID
+    if (service.jobno) {
+      return `JOB-${service.jobno.toString().padStart(3, '0')}`;
+    }
+    // Fallback to index-based ID if jobno is not available
+    return `SVC-${(1000 + index).toString()}`;
+  };
+
   return (
     <div className="col-span-2 mt-4 border-t pt-4">
       <p className="text-sm font-medium text-gray-500 mb-3 flex items-center">
@@ -185,6 +196,9 @@ const ServicesList = ({ services }: ServicesListProps) => {
           const artistPhone = service.ArtistId ? 
             artistInfo[service.ArtistId]?.ArtistPhno : null;
           const maskedPhone = maskPhoneNumber(artistPhone);
+          
+          // Get service ID using job number or index
+          const serviceId = getServiceId(service, index);
           
           return (
             <Collapsible 
@@ -256,7 +270,7 @@ const ServicesList = ({ services }: ServicesListProps) => {
                   <dl className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <dt className="text-xs text-gray-500">Service ID</dt>
-                      <dd className="font-medium">SVC-{1000 + index}</dd>
+                      <dd className="font-medium">{serviceId}</dd>
                     </div>
                     <div>
                       <dt className="text-xs text-gray-500">Category</dt>

@@ -61,6 +61,7 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: number
+          jobno: number | null
           name: string | null
           Phone_no: number
           Pincode: number | null
@@ -86,6 +87,7 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           id?: number
+          jobno?: number | null
           name?: string | null
           Phone_no: number
           Pincode?: number | null
@@ -111,6 +113,7 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           id?: number
+          jobno?: number | null
           name?: string | null
           Phone_no?: number
           Pincode?: number | null

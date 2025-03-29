@@ -83,9 +83,13 @@ export const useBookingSubmit = () => {
       const servicesWithDetails = await Promise.all(serviceDetailsPromises);
       
       // Insert multiple bookings with the same booking reference number
-      const bookingPromises = servicesWithDetails.map(service => {
+      // Add sequential job numbers for each service booked
+      const bookingPromises = servicesWithDetails.map((service, index) => {
         // Clean the phone number to ensure it's only digits
         const phoneNumber = data.phone.replace(/\D/g, '');
+        
+        // Assign job number (1-based index)
+        const jobNumber = index + 1;
         
         return supabase.from("BookMST").insert({
           Product: service.id,
@@ -103,7 +107,8 @@ export const useBookingSubmit = () => {
           email: data.email,
           ServiceName: service.serviceName,
           SubService: service.subService,
-          ProductName: service.productName
+          ProductName: service.productName,
+          jobno: jobNumber // Add sequential job number
         });
       });
       
