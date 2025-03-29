@@ -38,6 +38,8 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
       address: "",
       pincode: "",
       notes: "",
+      selectedDate: undefined,
+      selectedTime: "",
       selectedServices: initialSelectedService ? [initialSelectedService] : []
     },
   });

@@ -11,12 +11,12 @@ const TimePickerField = () => {
   return (
     <FormField
       control={form.control}
-      name="time"
+      name="selectedTime"
       render={({ field }) => (
         <FormItem>
           <FormLabel className="flex items-center gap-1">
             Preferred Time
-            {requiredFields.time && <Asterisk className="h-3 w-3 text-red-500" />}
+            {requiredFields.selectedTime && <Asterisk className="h-3 w-3 text-red-500" />}
           </FormLabel>
           <Select
             onValueChange={field.onChange}

@@ -10,6 +10,26 @@ const serviceSchema = z.object({
   quantity: z.number().optional().default(1),
 });
 
+// Define which fields are required in the form
+export const requiredFields = {
+  name: true,
+  email: true,
+  phone: true,
+  address: true,
+  pincode: true,
+  selectedDate: true,
+  selectedTime: true,
+  notes: false,
+  selectedServices: true
+};
+
+// Define available time slots
+export const timeSlots = [
+  "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", 
+  "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", 
+  "05:00 PM", "06:00 PM"
+];
+
 // Define schema for the booking form values
 export const bookingFormSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -33,7 +53,7 @@ export interface BookingFormProps {
   serviceId?: number;
   serviceName?: string;
   servicePrice?: number;
-  serviceOriginalPrice?: number; // Added this field
+  serviceOriginalPrice?: number;
   onCancel?: () => void;
   onSuccess?: () => void;
 }

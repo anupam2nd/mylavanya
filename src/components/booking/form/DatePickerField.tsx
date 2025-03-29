@@ -1,6 +1,6 @@
 
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Asterisk } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFormContext } from "react-hook-form";
 import { BookingFormValues, requiredFields } from "./FormSchema";
@@ -8,7 +8,6 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { Calendar } from "@/components/ui/calendar";
-import { Asterisk } from "lucide-react";
 
 const DatePickerField = () => {
   const form = useFormContext<BookingFormValues>();
@@ -16,12 +15,12 @@ const DatePickerField = () => {
   return (
     <FormField
       control={form.control}
-      name="date"
+      name="selectedDate"
       render={({ field }) => (
         <FormItem className="flex flex-col">
           <FormLabel className="flex items-center gap-1">
             Appointment Date
-            {requiredFields.date && <Asterisk className="h-3 w-3 text-red-500" />}
+            {requiredFields.selectedDate && <Asterisk className="h-3 w-3 text-red-500" />}
           </FormLabel>
           <Popover>
             <PopoverTrigger asChild>

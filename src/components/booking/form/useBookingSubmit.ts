@@ -46,15 +46,15 @@ export const useBookingSubmit = () => {
     setIsSubmitting(true);
     
     try {
-      const bookingDate = new Date(data.date);
+      const bookingDate = new Date(data.selectedDate);
       const bookingRef = await generateBookingReference(bookingDate);
       setBookingReference(bookingRef);
       
       console.log("Submitting booking with address details:", {
         services: data.selectedServices,
         bookingRef,
-        date: format(data.date, "yyyy-MM-dd"),
-        time: data.time,
+        date: format(data.selectedDate, "yyyy-MM-dd"),
+        time: data.selectedTime,
         phone: data.phone,
         email: data.email,
         address: data.address,
@@ -71,8 +71,8 @@ export const useBookingSubmit = () => {
           Product: service.id,
           Purpose: service.name,
           Phone_no: parseInt(phoneNumber),
-          Booking_date: format(data.date, "yyyy-MM-dd"),
-          booking_time: data.time,
+          Booking_date: format(data.selectedDate, "yyyy-MM-dd"),
+          booking_time: data.selectedTime,
           Status: "pending",
           price: service.price,
           Booking_NO: bookingRef,
