@@ -6,16 +6,26 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Booking {
   id: number;
   Booking_NO: string;
+  jobno?: number;
   name: string;
   email: string;
   Phone_no: number;
+  Address?: string;
+  Pincode?: number;
   Booking_date: string;
   booking_time: string;
   Purpose: string;
+  ServiceName?: string;
+  SubService?: string;
+  ProductName?: string;
+  price?: number;
+  Qty?: number;
   Status: string;
-  price: number;
-  Address?: string;
-  Pincode?: number;
+  StatusUpdated?: string;
+  Assignedto?: string;
+  AssignedBY?: string;
+  AssingnedON?: string;
+  ArtistId?: number;
   created_at?: string;
 }
 

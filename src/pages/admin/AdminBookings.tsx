@@ -1,19 +1,26 @@
 
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import BookingFilters from "@/components/admin/bookings/BookingFilters";
-import EditBookingDialog from "@/components/admin/bookings/EditBookingDialog";
+import EditBookingDialog from "@/components/user/bookings/EditBookingDialog";
 import { useBookings } from "@/hooks/useBookings";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
 import { useBookingFilters } from "@/hooks/useBookingFilters";
-import { useBookingEdit } from "@/hooks/useBookingEdit";
 import { ExportButton } from "@/components/ui/export-button";
 import AdminBookingsList from "@/components/user/bookings/AdminBookingsList";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminBookings = () => {
+  const { toast } = useToast();
   const { bookings, setBookings, loading } = useBookings();
   const { statusOptions } = useStatusOptions();
+  const [currentUser, setCurrentUser] = useState<{ Username?: string } | null>(null);
+  const [editBooking, setEditBooking] = useState<Booking | null>(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  
   const {
     filteredBookings,
     startDate,
@@ -31,18 +38,71 @@ const AdminBookings = () => {
     clearFilters
   } = useBookingFilters(bookings);
 
-  const {
-    editBooking,
-    openDialog,
-    setOpenDialog,
-    handleEditClick,
-    handleSaveChanges
-  } = useBookingEdit(bookings, setBookings);
+  // Fetch current user info
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const { data: authSession } = await supabase.auth.getSession();
+        
+        if (authSession?.session?.user?.id) {
+          const { data, error } = await supabase
+            .from('UserMST')
+            .select('Username, FirstName, LastName')
+            .eq('id', authSession.session.user.id)
+            .single();
+            
+          if (!error && data) {
+            setCurrentUser(data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+    
+    fetchCurrentUser();
+  }, []);
+
+  const handleEditClick = (booking: Booking) => {
+    setEditBooking(booking);
+    setOpenDialog(true);
+  };
+
+  const handleSaveChanges = async (booking: Booking, updates: Partial<Booking>) => {
+    try {
+      const { error } = await supabase
+        .from('BookMST')
+        .update(updates)
+        .eq('id', booking.id);
+
+      if (error) throw error;
+
+      // Update the bookings state with the edited booking
+      setBookings(bookings.map(b => 
+        b.id === booking.id ? { ...b, ...updates } : b
+      ));
+
+      toast({
+        title: "Booking updated",
+        description: "The booking has been successfully updated",
+      });
+
+      setOpenDialog(false);
+    } catch (error) {
+      console.error('Error updating booking:', error);
+      toast({
+        title: "Update failed",
+        description: "There was a problem updating the booking",
+        variant: "destructive"
+      });
+    }
+  };
 
   // CSV export headers for better readability
   const bookingHeaders = {
     id: 'ID',
     Booking_NO: 'Booking Number',
+    jobno: 'Job Number',
     Booking_date: 'Booking Date',
     booking_time: 'Booking Time',
     name: 'Customer Name',
@@ -51,10 +111,13 @@ const AdminBookings = () => {
     Address: 'Address',
     Pincode: 'Pin Code',
     Purpose: 'Purpose',
-    Product: 'Product ID',
+    ServiceName: 'Service',
+    SubService: 'Sub Service',
+    ProductName: 'Product',
     price: 'Price',
     Qty: 'Quantity',
     Status: 'Status',
+    Assignedto: 'Assigned To',
     created_at: 'Created At'
   };
 
@@ -102,11 +165,12 @@ const AdminBookings = () => {
         </Card>
 
         <EditBookingDialog
-          openDialog={openDialog}
-          setOpenDialog={setOpenDialog}
-          editBooking={editBooking}
-          handleSaveChanges={handleSaveChanges}
+          booking={editBooking}
+          open={openDialog}
+          onOpenChange={setOpenDialog}
+          onSave={handleSaveChanges}
           statusOptions={statusOptions}
+          currentUser={currentUser}
         />
       </DashboardLayout>
     </ProtectedRoute>

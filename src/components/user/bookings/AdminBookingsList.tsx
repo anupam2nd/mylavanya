@@ -1,9 +1,20 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Edit } from "lucide-react";
+import { Calendar, Clock, Edit, ChevronDown, ChevronUp, MapPin } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { format } from "date-fns";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
 
 interface BookingsListProps {
   bookings: Booking[];
@@ -11,7 +22,21 @@ interface BookingsListProps {
   onEditClick: (booking: Booking) => void;
 }
 
-const BookingsList = ({ bookings, loading, onEditClick }: BookingsListProps) => {
+interface GroupedBookings {
+  [key: string]: Booking[];
+}
+
+const AdminBookingsList = ({ bookings, loading, onEditClick }: BookingsListProps) => {
+  const [expandedBookings, setExpandedBookings] = useState<string[]>([]);
+
+  const toggleBooking = (bookingNo: string) => {
+    setExpandedBookings(prev => 
+      prev.includes(bookingNo) 
+        ? prev.filter(id => id !== bookingNo) 
+        : [...prev, bookingNo]
+    );
+  };
+
   if (loading) {
     return (
       <div className="p-8 flex justify-center items-center">
@@ -28,67 +53,163 @@ const BookingsList = ({ bookings, loading, onEditClick }: BookingsListProps) => 
     );
   }
 
+  // Group bookings by Booking_NO
+  const groupedBookings: GroupedBookings = bookings.reduce((acc, booking) => {
+    const bookingNo = booking.Booking_NO || 'unknown';
+    if (!acc[bookingNo]) {
+      acc[bookingNo] = [];
+    }
+    acc[bookingNo].push(booking);
+    return acc;
+  }, {} as GroupedBookings);
+
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto">
-        <table className="w-full whitespace-nowrap">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-3 px-4 font-medium">Booking No.</th>
-              <th className="text-left py-3 px-4 font-medium">Customer</th>
-              <th className="text-left py-3 px-4 font-medium">Date</th>
-              <th className="text-left py-3 px-4 font-medium">Time</th>
-              <th className="text-left py-3 px-4 font-medium">Purpose</th>
-              <th className="text-left py-3 px-4 font-medium">Status</th>
-              <th className="text-left py-3 px-4 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bookings.map((booking) => (
-              <tr key={booking.id} className="border-b hover:bg-muted/50">
-                <td className="py-3 px-4">{booking.Booking_NO}</td>
-                <td className="py-3 px-4">{booking.name || 'N/A'}</td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1 text-muted-foreground" />
-                    {booking.Booking_date}
-                  </div>
-                </td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center">
-                    <Clock className="w-4 h-4 mr-1 text-muted-foreground" />
-                    {booking.booking_time}
-                  </div>
-                </td>
-                <td className="py-3 px-4">{booking.Purpose}</td>
-                <td className="py-3 px-4">
-                  <div className={`px-3 py-1 text-xs font-medium rounded-full inline-block
-                    ${booking.Status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      booking.Status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                        booking.Status === 'beautician_assigned' ? 'bg-purple-100 text-purple-800' :
-                          booking.Status === 'done' ? 'bg-green-100 text-green-800' :
-                            'bg-red-100 text-red-800'}`}>
-                    {booking.Status?.toUpperCase() || 'PENDING'}
-                  </div>
-                </td>
-                <td className="py-3 px-4">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => onEditClick(booking)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Booking No.</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Creation Date</TableHead>
+            <TableHead>Purpose</TableHead>
+            <TableHead>Address</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Object.entries(groupedBookings).map(([bookingNo, bookingsGroup]) => {
+            // Use the first booking in the group for the main row details
+            const mainBooking = bookingsGroup[0];
+            const isExpanded = expandedBookings.includes(bookingNo);
+            
+            return (
+              <React.Fragment key={bookingNo}>
+                <TableRow className="hover:bg-muted/50">
+                  <TableCell className="font-medium">{bookingNo}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span>{mainBooking.name || 'N/A'}</span>
+                      <span className="text-xs text-muted-foreground">{mainBooking.email || 'N/A'}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {mainBooking.created_at ? 
+                      format(new Date(mainBooking.created_at), 'MMM dd, yyyy') : 
+                      'N/A'
+                    }
+                  </TableCell>
+                  <TableCell>{mainBooking.Purpose}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="flex items-center">
+                        <MapPin className="w-3 h-3 mr-1 text-muted-foreground" />
+                        {mainBooking.Address || 'N/A'}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {mainBooking.Pincode ? `PIN: ${mainBooking.Pincode}` : ''}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => toggleBooking(bookingNo)}
+                      className="h-8 p-0 w-8"
+                    >
+                      {isExpanded ? 
+                        <ChevronUp className="h-4 w-4" /> : 
+                        <ChevronDown className="h-4 w-4" />
+                      }
+                      <span className="sr-only">
+                        {isExpanded ? 'Collapse' : 'Expand'}
+                      </span>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+                
+                {isExpanded && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="p-0 border-t-0">
+                      <div className="bg-muted/20 p-4 rounded-md">
+                        <h4 className="font-medium text-sm mb-2">Service Details</h4>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Job No.</TableHead>
+                              <TableHead>Service</TableHead>
+                              <TableHead>Date & Time</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Assigned To</TableHead>
+                              <TableHead>Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {bookingsGroup.map((booking) => (
+                              <TableRow key={`${booking.id}-${booking.jobno}`} className="hover:bg-white/50">
+                                <TableCell>
+                                  {booking.jobno ? 
+                                    `JOB-${booking.jobno.toString().padStart(3, '0')}` : 
+                                    'N/A'
+                                  }
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{booking.ProductName || 'N/A'}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {[
+                                        booking.ServiceName, 
+                                        booking.SubService
+                                      ].filter(Boolean).join(' > ')}
+                                    </span>
+                                    <span className="text-xs">
+                                      Qty: {booking.Qty || 1}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex flex-col">
+                                    <span className="flex items-center">
+                                      <Calendar className="w-3 h-3 mr-1 text-muted-foreground" />
+                                      {booking.Booking_date}
+                                    </span>
+                                    <span className="flex items-center">
+                                      <Clock className="w-3 h-3 mr-1 text-muted-foreground" />
+                                      {booking.booking_time}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <StatusBadge status={booking.Status || 'pending'} />
+                                </TableCell>
+                                <TableCell>
+                                  {booking.Assignedto || 'Not assigned'}
+                                </TableCell>
+                                <TableCell>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => onEditClick(booking)}
+                                    className="h-8"
+                                  >
+                                    <Edit className="h-4 w-4 mr-1" /> Edit
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </TableBody>
+      </Table>
     </div>
   );
 };
 
-export default BookingsList;
+export default AdminBookingsList;
