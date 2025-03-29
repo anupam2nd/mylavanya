@@ -4,7 +4,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import BookingFilters from "@/components/admin/bookings/BookingFilters";
-import EditBookingDialog from "@/components/user/bookings/EditBookingDialog";
+import EditBookingDialog from "@/components/admin/bookings/EditBookingDialog";
 import { useBookings, Booking } from "@/hooks/useBookings";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
 import { useBookingFilters } from "@/hooks/useBookingFilters";
@@ -77,15 +77,27 @@ const AdminBookings = () => {
 
   const handleSaveChanges = async (booking: Booking, updates: Partial<Booking>) => {
     try {
+      // Filter out any fields that don't exist in the BookMST table
+      // based on the error we're seeing with prod_id
+      const validUpdates = { ...updates };
+      if ('prod_id' in validUpdates) {
+        delete validUpdates.prod_id;
+      }
+      
+      console.log("Updating booking with filtered updates:", validUpdates);
+
       const { error } = await supabase
         .from('BookMST')
-        .update(updates)
+        .update(validUpdates)
         .eq('id', booking.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating booking:', error);
+        throw error;
+      }
 
       setBookings(bookings.map(b => 
-        b.id === booking.id ? { ...b, ...updates } : b
+        b.id === booking.id ? { ...b, ...validUpdates } : b
       ));
 
       toast({
