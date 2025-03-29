@@ -8,6 +8,7 @@ interface Service {
   ProductName: string;
   Qty: number;
   price: number;
+  originalPrice?: number;
   Services?: string;
   Subservice?: string;
 }
@@ -72,6 +73,7 @@ const ServicesList = ({ services }: ServicesListProps) => {
         {services.map((service, index) => {
           const isExpanded = expandedServices.includes(index);
           const formattedName = formatServiceName(service);
+          const hasDiscount = service.originalPrice && service.originalPrice > service.price;
           
           return (
             <Collapsible 
@@ -107,13 +109,31 @@ const ServicesList = ({ services }: ServicesListProps) => {
                     </div>
                     <div className="bg-white/50 p-2 rounded">
                       <p className="text-xs text-gray-500">Price</p>
-                      <p className="font-medium">₹{service.price?.toFixed(2) || '0.00'}</p>
+                      {hasDiscount ? (
+                        <div className="flex flex-col">
+                          <span className="line-through text-gray-500 text-xs">₹{service.originalPrice?.toFixed(2)}</span>
+                          <span className="font-medium text-primary">₹{service.price?.toFixed(2)}</span>
+                        </div>
+                      ) : (
+                        <p className="font-medium">₹{service.price?.toFixed(2) || '0.00'}</p>
+                      )}
                     </div>
                     <div className="bg-white/50 p-2 rounded">
                       <p className="text-xs text-gray-500">Total</p>
-                      <p className="font-medium text-primary">
-                        ₹{((service.Qty || 1) * service.price)?.toFixed(2) || '0.00'}
-                      </p>
+                      {hasDiscount ? (
+                        <div className="flex flex-col">
+                          <span className="line-through text-gray-500 text-xs">
+                            ₹{((service.Qty || 1) * (service.originalPrice || 0))?.toFixed(2)}
+                          </span>
+                          <span className="font-medium text-primary">
+                            ₹{((service.Qty || 1) * service.price)?.toFixed(2)}
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="font-medium text-primary">
+                          ₹{((service.Qty || 1) * service.price)?.toFixed(2) || '0.00'}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

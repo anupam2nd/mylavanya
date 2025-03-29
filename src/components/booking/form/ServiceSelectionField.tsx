@@ -22,7 +22,7 @@ interface Service {
   Discount: number | null;
 }
 
-const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedService?: { id: number; name: string; price: number; quantity?: number } }) => {
+const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedService?: { id: number; name: string; price: number; originalPrice?: number; quantity?: number } }) => {
   const form = useFormContext<BookingFormValues>();
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,6 +64,7 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
         id: initialSelectedService.id,
         name: initialSelectedService.name,
         price: initialSelectedService.price,
+        originalPrice: initialSelectedService.originalPrice || initialSelectedService.price,
         quantity: initialSelectedService.quantity || 1
       }]);
     }
@@ -103,6 +104,7 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
           id: service.prod_id,
           name: serviceName,
           price: finalPrice,
+          originalPrice: service.Price,
           quantity: 1
         }
       ]);
@@ -132,8 +134,12 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
     return selectedServices.some(s => s.id === serviceId);
   };
   
-  // Calculate total price including quantities
-  const totalPrice = selectedServices.reduce((sum, service) => 
+  // Calculate total price including quantities with original prices
+  const totalOriginalPrice = selectedServices.reduce((sum, service) => 
+    sum + ((service.originalPrice || service.price) * (service.quantity || 1)), 0);
+    
+  // Calculate total price including quantities with discounted prices
+  const totalNetPrice = selectedServices.reduce((sum, service) => 
     sum + (service.price * (service.quantity || 1)), 0);
   
   return (
@@ -151,9 +157,18 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
             <div className="space-y-2">
               {/* Selected services display */}
               <div className="border rounded-md p-3 bg-gray-50">
-                <div className="flex justify-between items-center mb-2">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
                   <h4 className="text-sm font-medium">Services in this booking</h4>
-                  <div className="text-sm font-semibold">Total: ₹{totalPrice.toFixed(2)}</div>
+                  <div className="text-sm font-semibold mt-1 sm:mt-0">
+                    {totalOriginalPrice !== totalNetPrice ? (
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <span className="line-through text-gray-500">₹{totalOriginalPrice.toFixed(2)}</span>
+                        <span className="text-primary">₹{totalNetPrice.toFixed(2)}</span>
+                      </div>
+                    ) : (
+                      <span>Total: ₹{totalNetPrice.toFixed(2)}</span>
+                    )}
+                  </div>
                 </div>
                 
                 {selectedServices.length > 0 ? (
@@ -165,7 +180,18 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
                       >
                         <div className="flex-grow">
                           <p className="font-medium text-sm">{service.name}</p>
-                          <p className="text-sm text-gray-500">₹{service.price.toFixed(2)} × {service.quantity || 1} = ₹{((service.price * (service.quantity || 1))).toFixed(2)}</p>
+                          <div className="text-sm text-gray-500">
+                            {service.originalPrice && service.originalPrice !== service.price ? (
+                              <div className="flex flex-wrap items-center gap-1">
+                                <span className="line-through">₹{service.originalPrice.toFixed(2)}</span>
+                                <span className="text-primary">₹{service.price.toFixed(2)}</span>
+                                <span>× {service.quantity || 1} =</span>
+                                <span className="font-medium text-primary">₹{((service.price * (service.quantity || 1))).toFixed(2)}</span>
+                              </div>
+                            ) : (
+                              <p>₹{service.price.toFixed(2)} × {service.quantity || 1} = ₹{((service.price * (service.quantity || 1))).toFixed(2)}</p>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center space-x-1">
                           <div className="flex items-center mr-2 border rounded-md">
@@ -236,6 +262,7 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
                           {services.map(service => {
                             const formattedName = formatServiceName(service);
                             const finalPrice = getFinalPrice(service);
+                            const hasDiscount = finalPrice !== service.Price;
                             
                             return (
                               <div
@@ -248,7 +275,14 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
                               >
                                 <div>
                                   <p className="font-medium text-sm">{formattedName}</p>
-                                  <p className="text-xs text-gray-500">₹{finalPrice.toFixed(2)}</p>
+                                  {hasDiscount ? (
+                                    <div className="flex items-center gap-1 text-xs">
+                                      <span className="line-through text-gray-500">₹{service.Price.toFixed(2)}</span>
+                                      <span className="text-primary">₹{finalPrice.toFixed(2)}</span>
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-gray-500">₹{finalPrice.toFixed(2)}</p>
+                                  )}
                                 </div>
                                 {isServiceSelected(service.prod_id) && (
                                   <Badge variant="outline" className="bg-primary/20 border-primary/30">

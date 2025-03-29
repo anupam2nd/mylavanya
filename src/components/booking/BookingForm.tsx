@@ -15,13 +15,18 @@ import { useBookingSubmit } from "./form/useBookingSubmit";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 
-const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess }: BookingFormProps) => {
+const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPrice, onCancel, onSuccess }: BookingFormProps) => {
   const [bookingCompleted, setBookingCompleted] = useState(false);
   const [bookingRef, setBookingRef] = useState<string | null>(null);
 
   // Prepare initial selected service if provided as prop
   const initialSelectedService = serviceId && serviceName && servicePrice 
-    ? { id: serviceId, name: serviceName, price: servicePrice }
+    ? { 
+        id: serviceId, 
+        name: serviceName, 
+        price: servicePrice,
+        originalPrice: serviceOriginalPrice || servicePrice
+      }
     : undefined;
 
   const form = useForm<BookingFormValues>({

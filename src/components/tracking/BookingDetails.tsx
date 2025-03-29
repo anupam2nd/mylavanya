@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { useRef } from "react";
 import BookingHeader from "./BookingHeader";
@@ -18,6 +19,7 @@ export interface BookingData {
   booking_time: string;
   Status: string;
   price: number;
+  originalPrice?: number;
   ProductName: string;
   Qty: number;
   Address?: string;
@@ -25,6 +27,8 @@ export interface BookingData {
   name?: string;
   email?: string;
   id?: number;
+  Services?: string;
+  Subservice?: string;
 }
 
 const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
@@ -34,8 +38,16 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
 
   const firstBooking = bookingDetails[0];
   
+  // Calculate total discounted amount
   const totalAmount = bookingDetails.reduce((sum, booking) => 
     sum + (booking.price * (booking.Qty || 1)), 0);
+    
+  // Calculate total original amount (if available)
+  const totalOriginalAmount = bookingDetails.reduce((sum, booking) => 
+    sum + ((booking.originalPrice || booking.price) * (booking.Qty || 1)), 0);
+
+  // Only set original amount if different from total
+  const displayOriginalAmount = totalOriginalAmount > totalAmount ? totalOriginalAmount : undefined;
 
   const handlePrint = () => {
     const printContent = printRef.current;
@@ -163,7 +175,7 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
           <BookingReference reference={firstBooking.Booking_NO} />
           <CustomerDetails booking={firstBooking} />
           <ServicesList services={bookingDetails} />
-          <TotalAmount amount={totalAmount} />
+          <TotalAmount amount={totalAmount} originalAmount={displayOriginalAmount} />
         </div>
       </div>
     </div>

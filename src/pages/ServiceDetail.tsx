@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -115,19 +114,19 @@ const ServiceDetail = () => {
 
   const serviceImage = getServiceImage(service.prod_id, service.ProductName);
   
-  // Calculate final price if discount is available
-  const finalPrice = service.NetPayable !== null && service.NetPayable !== undefined 
-    ? service.NetPayable 
-    : service.Discount 
-      ? service.Price - (service.Price * service.Discount / 100) 
-      : service.Price;
-      
-  // Format the service name as "Services - Subservice - ProductName"
-  const formattedServiceName = [
+  const formattedServiceName = service ? [
     service.Services,
     service.Subservice,
     service.ProductName
-  ].filter(Boolean).join(' - ');
+  ].filter(Boolean).join(' - ') : '';
+  
+  const finalPrice = service ? (
+    service.NetPayable !== null && service.NetPayable !== undefined 
+      ? service.NetPayable 
+      : service.Discount 
+        ? service.Price - (service.Price * service.Discount / 100) 
+        : service.Price
+  ) : 0;
 
   return <div className="min-h-screen bg-gray-50 pb-16">
       <div className="bg-gradient-to-r from-violet-100 to-purple-50 py-8">
@@ -150,13 +149,15 @@ const ServiceDetail = () => {
             )}
             
             {/* Price display with discount if available */}
-            {service.Discount ? (
+            {service.Discount || (service.NetPayable !== null && service.NetPayable !== undefined) ? (
               <div className="flex items-center space-x-2 mt-1">
                 <span className="line-through text-gray-500">₹{service.Price.toFixed(2)}</span>
                 <span className="text-lg font-medium text-primary">₹{finalPrice.toFixed(2)}</span>
-                <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded">
-                  {service.Discount}% OFF
-                </span>
+                {service.Discount && (
+                  <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded">
+                    {service.Discount}% OFF
+                  </span>
+                )}
               </div>
             ) : (
               <p className="text-lg font-medium text-primary mt-1">₹{service.Price.toFixed(2)}</p>
@@ -203,7 +204,8 @@ const ServiceDetail = () => {
                 </ButtonCustom> : <BookingForm 
                   serviceId={service.prod_id} 
                   serviceName={formattedServiceName} 
-                  servicePrice={finalPrice} 
+                  servicePrice={finalPrice}
+                  serviceOriginalPrice={service.Price}
                   onCancel={() => setShowBookingForm(false)} 
                   onSuccess={handleBookingSuccess} 
                 />}
