@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +27,7 @@ export interface Booking {
   AssingnedON?: string;
   ArtistId?: number;
   created_at?: string;
+  prod_id?: number; // Added this field to match with database schema
 }
 
 export const useBookings = () => {
