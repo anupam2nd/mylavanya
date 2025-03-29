@@ -121,6 +121,13 @@ const ServiceDetail = () => {
     : service.Discount 
       ? service.Price - (service.Price * service.Discount / 100) 
       : service.Price;
+      
+  // Format the service name as "Services - Subservice - ProductName"
+  const formattedServiceName = [
+    service.Services,
+    service.Subservice,
+    service.ProductName
+  ].filter(Boolean).join(' - ');
 
   return <div className="min-h-screen bg-gray-50 pb-16">
       <div className="bg-gradient-to-r from-violet-100 to-purple-50 py-8">
@@ -193,7 +200,13 @@ const ServiceDetail = () => {
               
               {!showBookingForm ? <ButtonCustom variant="primary-gradient" className="w-full" size="lg" onClick={() => setShowBookingForm(true)}>
                   Book Now
-                </ButtonCustom> : <BookingForm serviceId={service.prod_id} serviceName={service.ProductName} servicePrice={service.Price} onCancel={() => setShowBookingForm(false)} onSuccess={handleBookingSuccess} />}
+                </ButtonCustom> : <BookingForm 
+                  serviceId={service.prod_id} 
+                  serviceName={formattedServiceName} 
+                  servicePrice={finalPrice} 
+                  onCancel={() => setShowBookingForm(false)} 
+                  onSuccess={handleBookingSuccess} 
+                />}
               
               <div className="border-t mt-6 pt-6">
                 <h3 className="font-medium text-center mb-4">Need Help?</h3>

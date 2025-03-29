@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { BookingFormValues } from "./FormSchema";
@@ -15,6 +16,10 @@ interface Service {
   prod_id: number;
   ProductName: string;
   Price: number;
+  Services: string;
+  Subservice: string;
+  NetPayable: number | null;
+  Discount: number | null;
 }
 
 const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedService?: { id: number; name: string; price: number; quantity?: number } }) => {
@@ -31,9 +36,9 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
       try {
         const { data, error } = await supabase
           .from('PriceMST')
-          .select('prod_id, ProductName, Price')
+          .select('prod_id, ProductName, Price, Services, Subservice, NetPayable, Discount')
           .eq('active', true) // Only fetch active services
-          .order('ProductName');
+          .order('Services');
           
         if (error) {
           throw error;
@@ -63,17 +68,41 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
       }]);
     }
   }, [initialSelectedService, form]);
+
+  // Format service name as "Services - Subservice - ProductName"
+  const formatServiceName = (service: Service) => {
+    let parts = [];
+    if (service.Services) parts.push(service.Services);
+    if (service.Subservice) parts.push(service.Subservice);
+    if (service.ProductName) parts.push(service.ProductName);
+    
+    return parts.join(' - ');
+  };
+
+  // Get final price (NetPayable or calculated discount price)
+  const getFinalPrice = (service: Service) => {
+    if (service.NetPayable !== null && service.NetPayable !== undefined) {
+      return service.NetPayable;
+    } else if (service.Discount) {
+      return service.Price - (service.Price * service.Discount / 100);
+    } else {
+      return service.Price;
+    }
+  };
   
   const handleAddService = (service: Service) => {
     const currentServices = form.getValues("selectedServices") || [];
+    const finalPrice = getFinalPrice(service);
+    const serviceName = formatServiceName(service);
+    
     // Check if service already exists in the selected list
     if (!currentServices.some(s => s.id === service.prod_id)) {
       form.setValue("selectedServices", [
         ...currentServices,
         {
           id: service.prod_id,
-          name: service.ProductName || `Service ${service.prod_id}`,
-          price: service.Price,
+          name: serviceName,
+          price: finalPrice,
           quantity: 1
         }
       ]);
@@ -204,26 +233,31 @@ const ServiceSelectionField = ({ initialSelectedService }: { initialSelectedServ
                     ) : (
                       <ScrollArea className="h-60">
                         <div className="space-y-1 p-2">
-                          {services.map(service => (
-                            <div
-                              key={service.prod_id}
-                              className={cn(
-                                "flex items-center justify-between p-2 rounded-md cursor-pointer hover:bg-gray-100",
-                                isServiceSelected(service.prod_id) && "bg-primary/10"
-                              )}
-                              onClick={() => handleAddService(service)}
-                            >
-                              <div>
-                                <p className="font-medium text-sm">{service.ProductName}</p>
-                                <p className="text-xs text-gray-500">₹{service.Price.toFixed(2)}</p>
+                          {services.map(service => {
+                            const formattedName = formatServiceName(service);
+                            const finalPrice = getFinalPrice(service);
+                            
+                            return (
+                              <div
+                                key={service.prod_id}
+                                className={cn(
+                                  "flex items-center justify-between p-2 rounded-md cursor-pointer hover:bg-gray-100",
+                                  isServiceSelected(service.prod_id) && "bg-primary/10"
+                                )}
+                                onClick={() => handleAddService(service)}
+                              >
+                                <div>
+                                  <p className="font-medium text-sm">{formattedName}</p>
+                                  <p className="text-xs text-gray-500">₹{finalPrice.toFixed(2)}</p>
+                                </div>
+                                {isServiceSelected(service.prod_id) && (
+                                  <Badge variant="outline" className="bg-primary/20 border-primary/30">
+                                    <Check className="h-3 w-3 mr-1" /> Selected
+                                  </Badge>
+                                )}
                               </div>
-                              {isServiceSelected(service.prod_id) && (
-                                <Badge variant="outline" className="bg-primary/20 border-primary/30">
-                                  <Check className="h-3 w-3 mr-1" /> Selected
-                                </Badge>
-                              )}
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </ScrollArea>
                     )}

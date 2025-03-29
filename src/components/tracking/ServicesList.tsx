@@ -8,6 +8,8 @@ interface Service {
   ProductName: string;
   Qty: number;
   price: number;
+  Services?: string;
+  Subservice?: string;
 }
 
 interface ServicesListProps {
@@ -24,6 +26,17 @@ const ServicesList = ({ services }: ServicesListProps) => {
         ? prev.filter(i => i !== index) 
         : [...prev, index]
     );
+  };
+
+  // Format service name as "Services - Subservice - ProductName"
+  const formatServiceName = (service: Service) => {
+    let parts = [];
+    if (service.Services) parts.push(service.Services);
+    if (service.Subservice) parts.push(service.Subservice);
+    if (service.ProductName) parts.push(service.ProductName);
+    
+    // If we have no parts, just return the ProductName
+    return parts.length > 0 ? parts.join(' - ') : service.ProductName;
   };
 
   // Function to get an icon based on the service name
@@ -58,6 +71,8 @@ const ServicesList = ({ services }: ServicesListProps) => {
       <div className="space-y-3">
         {services.map((service, index) => {
           const isExpanded = expandedServices.includes(index);
+          const formattedName = formatServiceName(service);
+          
           return (
             <Collapsible 
               key={index} 
@@ -70,11 +85,11 @@ const ServicesList = ({ services }: ServicesListProps) => {
             >
               <div className="flex items-start">
                 <div className="p-2 rounded-full bg-white shadow-sm mr-3">
-                  {getServiceIcon(service.ProductName)}
+                  {getServiceIcon(formattedName)}
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-center">
-                    <p className="font-medium text-foreground">{service.ProductName}</p>
+                    <p className="font-medium text-foreground">{formattedName}</p>
                     <CollapsibleTrigger asChild>
                       <button className="p-1 rounded-full hover:bg-white/50 transition-colors">
                         {isExpanded ? 
@@ -115,14 +130,15 @@ const ServicesList = ({ services }: ServicesListProps) => {
                     <div>
                       <dt className="text-xs text-gray-500">Category</dt>
                       <dd className="font-medium">
-                        {service.ProductName.includes("Premium") ? "Premium" : 
-                         service.ProductName.includes("Package") ? "Package" : "Standard"}
+                        {service.Services || 
+                          (formattedName.includes("Premium") ? "Premium" : 
+                          formattedName.includes("Package") ? "Package" : "Standard")}
                       </dd>
                     </div>
                     <div className="col-span-2 mt-2">
                       <dt className="text-xs text-gray-500">Description</dt>
                       <dd className="text-sm text-gray-600 mt-1">
-                        {service.ProductName} includes all standard features and benefits. 
+                        {formattedName} includes all standard features and benefits. 
                         Our professional staff will ensure quality service delivery.
                       </dd>
                     </div>

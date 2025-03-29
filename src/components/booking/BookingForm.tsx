@@ -45,6 +45,9 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, onCancel, onSuccess
       setBookingRef(result.bookingRef);
       setBookingCompleted(true);
       form.reset();
+      if (onSuccess) {
+        onSuccess();
+      }
     }
   };
 
