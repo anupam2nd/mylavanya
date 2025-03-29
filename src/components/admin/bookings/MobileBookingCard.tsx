@@ -1,7 +1,7 @@
 
 import React from "react";
 import { format } from "date-fns";
-import { Edit } from "lucide-react";
+import { Edit, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Booking } from "@/hooks/useBookings";
@@ -33,6 +33,10 @@ export const MobileBookingCard: React.FC<MobileBookingCardProps> = ({
           <p className="font-medium text-sm">{booking.Booking_NO}</p>
           <h4 className="font-medium">{booking.name}</h4>
           <p className="text-xs text-muted-foreground">{booking.email}</p>
+          <div className="flex items-center mt-1 text-xs">
+            <Phone className="h-3 w-3 mr-1 text-muted-foreground" />
+            <span>{booking.Phone_no}</span>
+          </div>
         </div>
         <StatusBadge status={booking.Status || 'pending'} />
       </div>

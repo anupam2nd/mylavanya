@@ -1,7 +1,7 @@
 
 import React from "react";
 import { format } from "date-fns";
-import { Edit } from "lucide-react";
+import { Edit, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Booking } from "@/hooks/useBookings";
@@ -30,6 +30,7 @@ export const DesktopBookingsTable: React.FC<DesktopBookingsTableProps> = ({
           <TableRow>
             <TableHead>Booking #</TableHead>
             <TableHead>Customer</TableHead>
+            <TableHead>Contact</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Time</TableHead>
             <TableHead>Service</TableHead>
@@ -46,6 +47,12 @@ export const DesktopBookingsTable: React.FC<DesktopBookingsTableProps> = ({
                   <span className="font-medium">{booking.name}</span>
                   <span className="text-sm text-muted-foreground">{booking.email}</span>
                 </div>
+              </TableCell>
+              <TableCell>
+                <span className="flex items-center">
+                  <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
+                  {booking.Phone_no}
+                </span>
               </TableCell>
               <TableCell>
                 {booking.Booking_date ? format(new Date(booking.Booking_date), 'MMM dd, yyyy') : 'N/A'}

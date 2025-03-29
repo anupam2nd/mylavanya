@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Edit, ChevronDown, ChevronUp, MapPin } from "lucide-react";
+import { Calendar, Clock, Edit, ChevronDown, ChevronUp, MapPin, Phone } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format } from "date-fns";
@@ -70,6 +70,7 @@ const AdminBookingsList = ({ bookings, loading, onEditClick }: BookingsListProps
           <TableRow>
             <TableHead>Booking No.</TableHead>
             <TableHead>Customer</TableHead>
+            <TableHead>Contact</TableHead>
             <TableHead>Creation Date</TableHead>
             <TableHead>Purpose</TableHead>
             <TableHead>Address</TableHead>
@@ -91,6 +92,12 @@ const AdminBookingsList = ({ bookings, loading, onEditClick }: BookingsListProps
                       <span>{mainBooking.name || 'N/A'}</span>
                       <span className="text-xs text-muted-foreground">{mainBooking.email || 'N/A'}</span>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="flex items-center">
+                      <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
+                      {mainBooking.Phone_no || 'N/A'}
+                    </span>
                   </TableCell>
                   <TableCell>
                     {mainBooking.created_at ? 
@@ -130,7 +137,7 @@ const AdminBookingsList = ({ bookings, loading, onEditClick }: BookingsListProps
                 
                 {isExpanded && (
                   <TableRow>
-                    <TableCell colSpan={6} className="p-0 border-t-0">
+                    <TableCell colSpan={7} className="p-0 border-t-0">
                       <div className="bg-muted/20 p-4 rounded-md">
                         <h4 className="font-medium text-sm mb-2">Service Details</h4>
                         <Table>
