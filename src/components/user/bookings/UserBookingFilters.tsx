@@ -174,8 +174,8 @@ const UserBookingFilters: React.FC<UserBookingFiltersProps> = ({
                 <SelectContent className="bg-white z-50">
                   <SelectItem value="all">All Statuses</SelectItem>
                   {statusOptions && statusOptions.map((option) => (
-                    <SelectItem key={option.status_code} value={option.status_code}>
-                      {option.status_name}
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
