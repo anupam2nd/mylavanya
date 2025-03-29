@@ -10,9 +10,10 @@ export const useBookingSubmit = () => {
   const [bookingReference, setBookingReference] = useState<string | null>(null);
 
   // Function to generate booking reference number
-  const generateBookingReference = async (bookingDate: Date): Promise<string> => {
-    // Format: YYMM + 4 digit running number
-    const yearMonth = format(bookingDate, "yyMM");
+  const generateBookingReference = async (): Promise<string> => {
+    // Format: YYMM + 4 digit running number using current date (not booking date)
+    const currentDate = new Date();
+    const yearMonth = format(currentDate, "yyMM");
     
     try {
       // Get the latest booking with this year-month prefix
@@ -38,7 +39,8 @@ export const useBookingSubmit = () => {
     } catch (error) {
       console.error("Error generating booking reference:", error);
       // Fallback to timestamp-based reference if database query fails
-      return `${yearMonth}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+      const fallbackYearMonth = format(new Date(), "yyMM");
+      return `${fallbackYearMonth}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
     }
   };
 
@@ -46,8 +48,8 @@ export const useBookingSubmit = () => {
     setIsSubmitting(true);
     
     try {
-      const bookingDate = new Date(data.selectedDate);
-      const bookingRef = await generateBookingReference(bookingDate);
+      // Generate booking reference using current date instead of booking date
+      const bookingRef = await generateBookingReference();
       setBookingReference(bookingRef);
       
       console.log("Submitting booking with address details:", {
