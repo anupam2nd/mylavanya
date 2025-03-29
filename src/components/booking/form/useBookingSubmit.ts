@@ -98,10 +98,18 @@ export const useBookingSubmit = () => {
       const totalPrice = data.selectedServices.reduce((sum, service) => 
         sum + (service.price * (service.quantity || 1)), 0);
       
+      // Use HTML in toast to format booking reference in bold red
       toast({
         title: "Booking Successful!",
-        description: `Your appointment has been scheduled. Your booking reference number is ${bookingRef}. Total amount: ₹${totalPrice.toFixed(2)}`,
-        duration: 10000,
+        description: (
+          <>
+            Your appointment has been scheduled. <br />
+            Your booking reference number is <span className="text-xl font-bold text-red-600">{bookingRef}</span>. <br />
+            Total amount: ₹{totalPrice.toFixed(2)} <br />
+            <span className="font-semibold mt-2 block">Note: Your booking is not confirmed until payment is made.</span>
+          </>
+        ),
+        duration: 15000,
       });
       
       return { success: true, bookingRef };
