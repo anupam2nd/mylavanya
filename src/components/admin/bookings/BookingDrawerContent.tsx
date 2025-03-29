@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Edit } from "lucide-react";
+import { Edit, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Booking } from "@/hooks/useBookings";
@@ -35,7 +35,10 @@ export const BookingDrawerContent: React.FC<BookingDrawerContentProps> = ({
         </div>
         <div>
           <p className="text-muted-foreground text-xs">Phone</p>
-          <p>{booking.Phone_no}</p>
+          <p className="flex items-center">
+            <Phone className="h-3 w-3 mr-1 text-muted-foreground" />
+            {booking.Phone_no}
+          </p>
         </div>
         <div>
           <p className="text-muted-foreground text-xs">Price</p>

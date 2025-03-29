@@ -83,6 +83,10 @@ const BookingsList = () => {
     setShowDateFilter,
     filterDateType,
     setFilterDateType,
+    sortDirection,
+    setSortDirection,
+    sortField,
+    setSortField,
     clearFilters
   } = useBookingFilters(bookings);
   
@@ -105,6 +109,10 @@ const BookingsList = () => {
           setShowDateFilter={setShowDateFilter}
           filterDateType={filterDateType}
           setFilterDateType={setFilterDateType}
+          sortDirection={sortDirection}
+          setSortDirection={setSortDirection}
+          sortField={sortField}
+          setSortField={setSortField}
         />
       </div>
       
@@ -134,6 +142,9 @@ const BookingsList = () => {
                   <span>{booking.Booking_date}</span>
                   <Clock className="w-4 h-4 ml-3 mr-1" />
                   <span>{booking.booking_time}</span>
+                </div>
+                <div className="text-sm text-muted-foreground mb-2">
+                  <span>Phone: {booking.Phone_no}</span>
                 </div>
                 <div className={`px-3 py-1 text-xs font-medium rounded-full inline-block
                       ${booking.Status === 'pending' ? 'bg-yellow-100 text-yellow-800' :

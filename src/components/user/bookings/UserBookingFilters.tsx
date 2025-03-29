@@ -19,10 +19,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FilterDateType } from "@/hooks/useBookingFilters";
+import { FilterDateType, SortDirection, SortField } from "@/hooks/useBookingFilters";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Calendar } from "lucide-react";
+import { Calendar, ArrowDownUp } from "lucide-react";
 import { FormattedStatusOption } from "@/hooks/useStatusOptions";
+import {
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel
+} from "@/components/ui/dropdown-menu";
 
 interface UserBookingFiltersProps {
   searchQuery: string;
@@ -39,6 +47,10 @@ interface UserBookingFiltersProps {
   setShowDateFilter: (show: boolean) => void;
   filterDateType: FilterDateType;
   setFilterDateType: (type: FilterDateType) => void;
+  sortDirection: SortDirection;
+  setSortDirection: (direction: SortDirection) => void;
+  sortField: SortField;
+  setSortField: (field: SortField) => void;
 }
 
 const UserBookingFilters: React.FC<UserBookingFiltersProps> = ({
@@ -56,6 +68,10 @@ const UserBookingFilters: React.FC<UserBookingFiltersProps> = ({
   setShowDateFilter,
   filterDateType,
   setFilterDateType,
+  sortDirection,
+  setSortDirection,
+  sortField,
+  setSortField,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full">
@@ -181,6 +197,39 @@ const UserBookingFilters: React.FC<UserBookingFiltersProps> = ({
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Add sort dropdown */}
+            <div className="space-y-2">
+              <h4 className="font-medium leading-none">Sort By</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <Select
+                  value={sortField}
+                  onValueChange={(value) => setSortField(value as SortField)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sort field" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50">
+                    <SelectItem value="creation_date">Creation Date</SelectItem>
+                    <SelectItem value="booking_date">Booking Date</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select
+                  value={sortDirection}
+                  onValueChange={(value) => setSortDirection(value as SortDirection)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Direction" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50">
+                    <SelectItem value="desc">Newest first</SelectItem>
+                    <SelectItem value="asc">Oldest first</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
             <div className="flex justify-between">
               <Button 
                 variant="outline" 
@@ -199,6 +248,45 @@ const UserBookingFilters: React.FC<UserBookingFiltersProps> = ({
           </div>
         </PopoverContent>
       </Popover>
+      
+      {/* Sort button for smaller screens */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="w-full sm:w-auto">
+            <ArrowDownUp className="mr-2 h-4 w-4" />
+            Sort
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="bg-white z-50">
+          <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className={sortField === "creation_date" ? "bg-secondary" : ""}
+            onClick={() => setSortField("creation_date")}
+          >
+            Creation date
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className={sortField === "booking_date" ? "bg-secondary" : ""}
+            onClick={() => setSortField("booking_date")}
+          >
+            Booking date
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className={sortDirection === "desc" ? "bg-secondary" : ""}
+            onClick={() => setSortDirection("desc")}
+          >
+            Newest first
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className={sortDirection === "asc" ? "bg-secondary" : ""}
+            onClick={() => setSortDirection("asc")}
+          >
+            Oldest first
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 
 import { StatusBadge } from "@/components/ui/status-badge";
 import { BookingData } from "./BookingDetails";
+import { Phone } from "lucide-react";
 
 interface CustomerDetailsProps {
   booking: BookingData;
@@ -25,7 +26,10 @@ const CustomerDetails = ({ booking }: CustomerDetailsProps) => {
       
       <div>
         <p className="text-sm font-medium text-gray-500">Phone</p>
-        <p className="font-medium">{booking.Phone_no}</p>
+        <p className="font-medium flex items-center">
+          <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
+          {booking.Phone_no}
+        </p>
       </div>
       
       <div>
