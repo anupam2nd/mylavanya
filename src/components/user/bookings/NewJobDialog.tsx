@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ import {
 import { Booking } from "@/hooks/useBookings";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import TimeSlotPicker from "./TimeSlotPicker";
 
 interface ProductOption {
   prod_id: number;
@@ -67,7 +68,8 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
   useEffect(() => {
     if (booking) {
       setDate(new Date());
-      setTime(new Date().toTimeString().substring(0, 5));
+      // Set a default time like "09:00" (9 AM)
+      setTime("09:00");
       setAddress(booking.Address || "");
       setPincode(booking.Pincode?.toString() || "");
     }
@@ -340,6 +342,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
                         selected={date}
                         onSelect={setDate}
                         initialFocus
+                        className={cn("p-3 pointer-events-auto")}
                       />
                     </PopoverContent>
                   </Popover>
@@ -351,15 +354,10 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
                   Time
                 </Label>
                 <div className="col-span-3">
-                  <div className="flex items-center">
-                    <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="booking-time"
-                      type="time"
-                      value={time}
-                      onChange={(e) => setTime(e.target.value)}
-                    />
-                  </div>
+                  <TimeSlotPicker
+                    value={time}
+                    onChange={setTime}
+                  />
                 </div>
               </div>
             </div>
