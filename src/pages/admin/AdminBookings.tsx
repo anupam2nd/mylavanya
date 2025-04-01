@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,14 +13,16 @@ import AdminBookingsList from "@/components/user/bookings/AdminBookingsList";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBookingEdit } from "@/hooks/useBookingEdit";
+import { useAuth } from "@/context/AuthContext";
 
 import type { Booking } from "@/hooks/useBookings";
 
 const AdminBookings = () => {
   const { toast } = useToast();
+  const { user: authUser } = useAuth();
   const { bookings, setBookings, loading } = useBookings();
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
-  const [currentUser, setCurrentUser] = useState<{ Username?: string, FirstName?: string, LastName?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ Username?: string, FirstName?: string, LastName?: string, role?: string } | null>(null);
   const [showNewJobDialog, setShowNewJobDialog] = useState(false);
   const [selectedBookingForNewJob, setSelectedBookingForNewJob] = useState<Booking | null>(null);
   
@@ -63,10 +64,9 @@ const AdminBookings = () => {
           const userId = parseInt(authSession.session.user.id, 10);
           
           if (!isNaN(userId)) {
-            // Explicitly select the fields we need for AssignedBY
             const { data, error } = await supabase
               .from('UserMST')
-              .select('Username, FirstName, LastName')
+              .select('Username, FirstName, LastName, role')
               .eq('id', userId)
               .single();
               
@@ -75,13 +75,12 @@ const AdminBookings = () => {
               setCurrentUser(data);
             } else {
               console.error("Error fetching user data:", error);
-              // Attempt to recover if we have a username in the session data
-              const email = authSession.session.user.email;
-              if (email) {
+              if (authUser) {
                 setCurrentUser({
-                  Username: email.split('@')[0],
+                  Username: authUser.email?.split('@')[0] || '',
                   FirstName: '',
-                  LastName: ''
+                  LastName: '',
+                  role: authUser.role
                 });
               }
             }
@@ -97,7 +96,7 @@ const AdminBookings = () => {
     };
     
     fetchCurrentUser();
-  }, []);
+  }, [authUser]);
 
   const handleAddNewJob = (booking: Booking) => {
     setSelectedBookingForNewJob(booking);

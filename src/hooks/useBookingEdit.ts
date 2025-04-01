@@ -1,138 +1,84 @@
 
 import { useState } from "react";
-import { format } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { EditBookingFormValues } from "@/components/admin/bookings/EditBookingFormSchema";
-import { Booking } from "./useBookings"; // Ensure we're using the same Booking type
+import { useToast } from "@/hooks/use-toast";
+import type { Booking } from "@/hooks/useBookings";
 
-export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Booking[]) => void) => {
-  const { toast } = useToast();
+export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<React.SetStateAction<Booking[]>>) => {
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const { toast } = useToast();
 
   const handleEditClick = (booking: Booking) => {
     setEditBooking(booking);
     setOpenDialog(true);
   };
 
-  const handleSaveChanges = async (values: EditBookingFormValues) => {
-    if (!editBooking) return;
-
+  const handleSaveChanges = async (values: any) => {
     try {
-      console.log("Starting to save changes for booking:", editBooking.id);
-      console.log("Form values:", values);
-      console.log("Current user data:", values.currentUser);
-      
-      // Prepare updates with all fields that might change
-      const updates: Partial<Booking> = {};
-      
-      // Always update StatusUpdated timestamp on any edit
-      updates.StatusUpdated = new Date().toISOString();
-      
-      // Basic booking details
+      if (!editBooking) return;
+
+      const updates: any = {};
+
+      // Only add values to updates if they changed or exist
       if (values.date) {
-        updates.Booking_date = format(values.date, 'yyyy-MM-dd');
+        updates.Booking_date = values.date.toISOString().split('T')[0];
       }
+      
       if (values.time) {
         updates.booking_time = values.time;
       }
-      if (values.status !== editBooking.Status) {
-        updates.Status = values.status;
+      
+      if (values.service) {
+        updates.ServiceName = values.service;
       }
-
-      // Address details
-      if (values.address && values.address !== editBooking.Address) {
+      
+      if (values.subService) {
+        updates.SubService = values.subService;
+      }
+      
+      if (values.product) {
+        updates.ProductName = values.product;
+      }
+      
+      if (values.quantity) {
+        updates.Qty = values.quantity;
+      }
+      
+      if (values.address) {
         updates.Address = values.address;
       }
-      if (values.pincode && values.pincode !== editBooking.Pincode?.toString()) {
-        updates.Pincode = parseInt(values.pincode, 10);
+      
+      if (values.pincode) {
+        updates.Pincode = values.pincode;
       }
       
-      // Quantity and price update
-      if (values.quantity && values.quantity !== editBooking.Qty) {
-        updates.Qty = values.quantity;
+      // Handle status update
+      if (values.status) {
+        // Update both status fields
+        updates.Status = values.status;
         
-        // Fetch the NetPayable price from PriceMST for this product and calculate the total price
-        if (editBooking.prod_id) {
-          try {
-            const { data: priceData, error: priceError } = await supabase
-              .from('PriceMST')
-              .select('NetPayable')
-              .eq('prod_id', editBooking.prod_id)
-              .maybeSingle();
-            
-            if (priceError) {
-              console.error('Error fetching product price:', priceError);
-              throw priceError;
-            }
-            
-            if (priceData && priceData.NetPayable) {
-              const unitPrice = priceData.NetPayable;
-              updates.price = unitPrice * values.quantity;
-              console.log(`Price calculated: ${unitPrice} × ${values.quantity} = ${updates.price}`);
-            } else {
-              console.warn('No price found for product ID:', editBooking.prod_id);
-              
-              // Fallback to existing price calculation if no product price found
-              if (editBooking.price !== undefined && editBooking.Qty !== undefined) {
-                const unitPrice = editBooking.price / editBooking.Qty;
-                updates.price = unitPrice * values.quantity;
-                console.log(`Fallback price calculated: ${unitPrice} × ${values.quantity} = ${updates.price}`);
+        // For certain statuses, also assign artists
+        const artistAssignmentStatuses = ['process', 'approve', 'ontheway', 'service_started', 'done'];
+        if (artistAssignmentStatuses.includes(values.status)) {
+          // Try to get artist details if an artist ID was provided
+          if (values.artistId) {
+            try {
+              const { data: artistData, error: artistError } = await supabase
+                .from('ArtistMST')
+                .select('fullName, id')
+                .eq('id', values.artistId)
+                .single();
+                
+              if (!artistError && artistData) {
+                updates.ArtistName = artistData.fullName;
+                updates.ArtistId = artistData.id;
+                console.log(`Assigning artist ${artistData.fullName} to booking`);
               }
-            }
-          } catch (error) {
-            console.error('Error calculating price from PriceMST:', error);
-            toast({
-              title: "Price calculation warning",
-              description: "Could not retrieve product price. Using estimated calculation.",
-              variant: "destructive"
-            });
-            
-            // Use fallback calculation
-            if (editBooking.price !== undefined && editBooking.Qty !== undefined) {
-              const unitPrice = editBooking.price / editBooking.Qty;
-              updates.price = unitPrice * values.quantity;
+            } catch (error) {
+              console.error('Error fetching artist details:', error);
             }
           }
-        } else {
-          console.warn('No product ID available for price lookup');
-          
-          // Fallback to existing price calculation if no product ID
-          if (editBooking.price !== undefined && editBooking.Qty !== undefined) {
-            const unitPrice = editBooking.price / editBooking.Qty;
-            updates.price = unitPrice * values.quantity;
-          }
-        }
-      }
-
-      // Artist assignment - Fixed to handle all statuses that require artist assignment
-      const assignmentStatuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done', 'OnTheway', 'Start'];
-      const requiresArtist = assignmentStatuses.includes(values.status);
-      
-      if (requiresArtist && values.artistId) {
-        // Always update artist ID when a valid artist is selected for relevant statuses
-        updates.ArtistId = values.artistId;
-        
-        // Fetch artist name from ArtistMST
-        try {
-          const { data: artistData, error: artistError } = await supabase
-            .from('ArtistMST')
-            .select('ArtistFirstName, ArtistLastName')
-            .eq('ArtistId', values.artistId)
-            .maybeSingle();
-          
-          if (artistError) {
-            console.error('Error fetching artist details:', artistError);
-            throw artistError;
-          }
-          
-          if (artistData) {
-            const artistName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim();
-            updates.Assignedto = artistName || `Artist ${values.artistId}`;
-          }
-        } catch (error) {
-          console.error('Error fetching artist details:', error);
         }
         
         // Set AssignedBY from currentUser data
@@ -140,88 +86,43 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
           // Debug the currentUser object to see what's available
           console.log("Current User data for AssignedBY:", JSON.stringify(values.currentUser));
           
-          // Prioritize first and last name if available
-          if (values.currentUser.FirstName || values.currentUser.LastName) {
-            const firstName = values.currentUser.FirstName || '';
-            const lastName = values.currentUser.LastName || '';
-            
-            // Use the full name if available
-            const fullName = `${firstName} ${lastName}`.trim();
-            if (fullName) {
-              updates.AssignedBY = fullName;
-              console.log("Setting AssignedBY to full name:", updates.AssignedBY);
-            } else if (values.currentUser.Username) {
-              updates.AssignedBY = values.currentUser.Username;
-              console.log("Setting AssignedBY to Username (no name available):", updates.AssignedBY);
-            } else {
-              updates.AssignedBY = 'admin';
-              console.log("No name or username available, defaulting to 'admin'");
-            }
-          } else if (values.currentUser.Username) {
-            // Fall back to Username if no name components
+          // Use the user's role as AssignedBY
+          if (values.currentUser.role) {
+            updates.AssignedBY = values.currentUser.role;
+            console.log("Setting AssignedBY to user role:", updates.AssignedBY);
+          } 
+          // If no role is available, fall back to name or username
+          else if (values.currentUser.FirstName || values.currentUser.LastName) {
+            const fullName = `${values.currentUser.FirstName || ''} ${values.currentUser.LastName || ''}`.trim();
+            updates.AssignedBY = fullName;
+            console.log("Falling back to user name for AssignedBY:", fullName);
+          } 
+          else if (values.currentUser.Username) {
             updates.AssignedBY = values.currentUser.Username;
-            console.log("Setting AssignedBY to Username:", updates.AssignedBY);
-          } else {
-            // Last resort fallback
-            updates.AssignedBY = 'admin';
-            console.log("No user identifiers found, defaulting to 'admin'");
+            console.log("Falling back to username for AssignedBY:", values.currentUser.Username);
+          }
+          // Default if nothing else available
+          else {
+            updates.AssignedBY = 'unknown';
+            console.log("No user info available, defaulting AssignedBY to 'unknown'");
           }
         } else {
-          updates.AssignedBY = 'admin';
-          console.log("No currentUser object provided, defaulting to 'admin'");
-        }
-        
-        // Set AssignedON to current timestamp if status is changing to one requiring artist
-        // or if artist is changing
-        if (!editBooking.ArtistId || 
-            editBooking.Status !== values.status || 
-            editBooking.ArtistId !== values.artistId) {
-          updates.AssingnedON = new Date().toISOString();
+          // No user data available
+          updates.AssignedBY = 'unknown';
+          console.log("No current user data, defaulting AssignedBY to 'unknown'");
         }
       }
-
-      console.log("Final updates to be sent:", updates);
-
-      // Only proceed if we have updates
-      if (Object.keys(updates).length === 0) {
-        setOpenDialog(false);
-        return;
-      }
-
-      // Ensure all numeric fields are properly typed
-      if (updates.ArtistId !== undefined && updates.ArtistId !== null) {
-        updates.ArtistId = Number(updates.ArtistId);
-      }
-
-      if (updates.Pincode !== undefined && updates.Pincode !== null) {
-        updates.Pincode = Number(updates.Pincode);
-      }
       
-      if (updates.Qty !== undefined && updates.Qty !== null) {
-        updates.Qty = Number(updates.Qty);
-      }
+      console.log("Submitting booking updates:", updates);
       
-      if (updates.price !== undefined && updates.price !== null) {
-        updates.price = Number(updates.price);
-      }
-
-      console.log("Final update payload:", updates);
-      
-      // Perform the update
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('BookMST')
         .update(updates)
-        .eq('id', editBooking.id)
-        .select();
+        .eq('id', editBooking.id);
 
-      if (error) {
-        console.error('Error details:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log("Update response:", data);
-
-      // Update local state
+      // Update the local state
       setBookings(bookings.map(booking => 
         booking.id === editBooking.id 
           ? { ...booking, ...updates } 
@@ -229,17 +130,19 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       ));
 
       toast({
-        title: "Booking updated",
-        description: "The booking has been successfully updated",
+        title: "Success!",
+        description: "Booking has been updated",
       });
 
       setOpenDialog(false);
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Error updating booking:', error);
+      
       toast({
-        title: "Update failed",
-        description: "There was a problem updating the booking",
-        variant: "destructive"
+        title: "Error updating booking",
+        description: error.message || "An unknown error occurred",
+        variant: "destructive",
       });
     }
   };
@@ -249,6 +152,6 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
     openDialog,
     setOpenDialog,
     handleEditClick,
-    handleSaveChanges
+    handleSaveChanges,
   };
 };
