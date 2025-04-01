@@ -22,7 +22,6 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
     try {
       console.log("Starting to save changes for booking:", editBooking.id);
       console.log("Form values:", values);
-      console.log("Original booking data:", editBooking);
       
       // Prepare updates with all fields that might change
       const updates: Partial<Booking> = {};
@@ -49,76 +48,33 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
         updates.Pincode = parseInt(values.pincode, 10);
       }
       
-      // Quantity and Price update
+      // Quantity and Price update - simplified logic
       if (values.quantity && values.quantity !== editBooking.Qty) {
         updates.Qty = values.quantity;
         
-        // Direct debug for product ID
-        console.log("Product ID from booking:", editBooking.prod_id);
-        
-        // If we have the product ID, fetch the original price from PriceMST
+        // If we have the product ID, fetch the price from PriceMST
         if (editBooking.prod_id) {
           console.log("Fetching price data for prod_id:", editBooking.prod_id);
           
-          // Fetch the original price from PriceMST table
+          // Fetch the price from PriceMST table
           const { data: priceData, error: priceError } = await supabase
             .from('PriceMST')
-            .select('Price, NetPayable, Discount, ProductName')
+            .select('NetPayable')
             .eq('prod_id', editBooking.prod_id)
             .maybeSingle();
           
           if (priceError) {
             console.error('Error fetching price details:', priceError);
-          } else if (priceData) {
-            console.log("Raw price data from PriceMST:", priceData);
-            
-            // Use Price as the base value, and apply discount if available
-            const basePrice = priceData.Price;
-            let finalUnitPrice = basePrice;
-            
-            if (priceData.Discount && priceData.Discount > 0) {
-              finalUnitPrice = basePrice - (basePrice * priceData.Discount / 100);
-              console.log(`Applied discount of ${priceData.Discount}%:`, {
-                basePrice,
-                discount: priceData.Discount,
-                afterDiscount: finalUnitPrice
-              });
-            }
-            
-            // Only use NetPayable if it's explicitly set and different from calculated price
-            if (priceData.NetPayable !== null && priceData.NetPayable !== undefined) {
-              console.log("NetPayable available:", priceData.NetPayable);
-              // Only override if NetPayable makes sense (is positive and different from calculated price)
-              if (priceData.NetPayable > 0 && priceData.NetPayable !== finalUnitPrice) {
-                console.log(`Using NetPayable (${priceData.NetPayable}) instead of calculated price (${finalUnitPrice})`);
-                finalUnitPrice = priceData.NetPayable;
-              }
-            }
-            
-            // Calculate the new total price based on quantity
-            updates.price = Number(finalUnitPrice) * values.quantity;
-            console.log("Final price calculation:", {
-              productName: priceData.ProductName,
-              basePrice,
-              finalUnitPrice,
+          } else if (priceData && priceData.NetPayable) {
+            // Simple calculation: Price = NetPayable * Quantity
+            updates.price = priceData.NetPayable * values.quantity;
+            console.log("Price calculation:", {
+              unitPrice: priceData.NetPayable,
               quantity: values.quantity,
               totalPrice: updates.price
             });
           } else {
             console.log("No price data found for prod_id:", editBooking.prod_id);
-          }
-        } else {
-          // Fallback to the previous calculation method if prod_id is not available
-          console.log("No prod_id available, using fallback calculation");
-          if (editBooking.price) {
-            // Price per unit stays the same, but total price changes
-            const pricePerUnit = editBooking.price / (editBooking.Qty || 1);
-            updates.price = pricePerUnit * values.quantity;
-            console.log("Fallback price calculation:", {
-              pricePerUnit,
-              quantity: values.quantity,
-              totalPrice: updates.price
-            });
           }
         }
       }

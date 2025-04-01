@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Clock, CalendarIcon } from "lucide-react";
@@ -15,6 +14,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Popover,
@@ -85,7 +85,6 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   const watchStatus = form.watch("status");
   const watchQuantity = form.watch("quantity", 1);
 
-  // Fetch price data when editBooking changes
   useEffect(() => {
     const fetchPriceData = async () => {
       if (!editBooking || !editBooking.prod_id) return;
@@ -96,7 +95,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
         
         const { data, error } = await supabase
           .from('PriceMST')
-          .select('Price, NetPayable, Discount, ProductName')
+          .select('NetPayable, ProductName')
           .eq('prod_id', editBooking.prod_id)
           .maybeSingle();
           
@@ -105,34 +104,20 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
           return;
         }
         
-        if (data) {
+        if (data && data.NetPayable) {
           console.log("Price data from PriceMST:", data);
           setPriceData(data);
           
-          // Use Price as base and apply discount
-          const basePrice = data.Price || 0;
-          let finalPrice = basePrice;
+          const unitPrice = data.NetPayable;
+          setOriginalPrice(unitPrice);
+          setCalculatedPrice(unitPrice * watchQuantity);
           
-          if (data.Discount && data.Discount > 0) {
-            finalPrice = basePrice - (basePrice * data.Discount / 100);
-          }
-          
-          // Override with NetPayable if available and makes sense
-          if (data.NetPayable !== null && data.NetPayable !== undefined && data.NetPayable > 0) {
-            finalPrice = data.NetPayable;
-          }
-          
-          setOriginalPrice(finalPrice);
-          setCalculatedPrice(finalPrice * watchQuantity);
-          
-          console.log("Price calculations:", {
-            basePrice,
-            finalUnitPrice: finalPrice,
+          console.log("Price calculation:", {
+            unitPrice,
             quantity: watchQuantity,
-            totalPrice: finalPrice * watchQuantity
+            totalPrice: unitPrice * watchQuantity
           });
         } else {
-          // Fallback to current price in booking
           console.log("No price data found, using fallback");
           if (editBooking.price && editBooking.Qty) {
             const unitPrice = editBooking.price / editBooking.Qty;
@@ -150,9 +135,8 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
     fetchPriceData();
   }, [editBooking]);
 
-  // Recalculate price when quantity changes
   useEffect(() => {
-    if (originalPrice !== null) {
+    if (watchQuantity !== 1) {
       setCalculatedPrice(originalPrice * watchQuantity);
       console.log("Recalculating price due to quantity change:", {
         unitPrice: originalPrice,
@@ -162,7 +146,6 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
     }
   }, [watchQuantity, originalPrice]);
 
-  // Fetch available artists
   useEffect(() => {
     const fetchArtists = async () => {
       try {
@@ -186,8 +169,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
     
     fetchArtists();
   }, []);
-  
-  // Check if the selected status requires artist assignment
+
   useEffect(() => {
     const statuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done'];
     setRequiresArtist(statuses.includes(watchStatus));
@@ -226,7 +208,6 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
           <div className="px-1">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                {/* Service details section (read-only) */}
                 {editBooking && (editBooking.ServiceName || editBooking.ProductName) && (
                   <div className="border p-3 rounded-md bg-muted/20 space-y-1">
                     <h3 className="text-sm font-medium mb-1">Service Details</h3>
@@ -273,7 +254,6 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                       )}
                     />
                     
-                    {/* Price display area */}
                     <div className="mt-3">
                       <TotalAmount 
                         amount={calculatedPrice || 0} 
@@ -281,21 +261,15 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                         className=""
                       />
                       
-                      {priceData && !loading && (
+                      {priceData?.NetPayable && !loading && (
                         <div className="text-xs text-muted-foreground mt-1 text-center">
-                          {priceData.NetPayable !== null && priceData.NetPayable !== undefined ? (
-                            <p>Unit price: ₹{originalPrice?.toFixed(2)} × {watchQuantity} = ₹{calculatedPrice?.toFixed(2)}</p>
-                          ) : priceData.Discount ? (
-                            <p>Unit price after {priceData.Discount}% discount: ₹{originalPrice?.toFixed(2)}</p>
-                          ) : (
-                            <p>Unit price: ₹{originalPrice?.toFixed(2)}</p>
-                          )}
+                          <p>Unit price: ₹{originalPrice?.toFixed(2)} × {watchQuantity} = ₹{calculatedPrice?.toFixed(2)}</p>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
-
+                
                 <FormField
                   control={form.control}
                   name="date"
