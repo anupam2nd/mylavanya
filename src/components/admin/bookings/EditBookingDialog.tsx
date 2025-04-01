@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Clock, CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -6,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +39,7 @@ import {
 import { cn } from "@/lib/utils";
 import { editBookingFormSchema, EditBookingFormValues } from "./EditBookingFormSchema";
 import { Booking } from "@/hooks/useBookings";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EditBookingDialogProps {
   openDialog: boolean;
@@ -53,6 +56,9 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   handleSaveChanges,
   statusOptions,
 }) => {
+  const [artists, setArtists] = useState<{ ArtistId: number; displayName: string }[]>([]);
+  const [requiresArtist, setRequiresArtist] = useState(false);
+  
   const form = useForm<EditBookingFormValues>({
     resolver: zodResolver(editBookingFormSchema),
     defaultValues: {
@@ -61,10 +67,45 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
       status: editBooking?.Status || "",
       address: editBooking?.Address || "",
       pincode: editBooking?.Pincode?.toString() || "",
+      quantity: editBooking?.Qty || 1,
+      artistId: editBooking?.ArtistId || null,
     },
   });
 
-  React.useEffect(() => {
+  const watchStatus = form.watch("status");
+
+  // Fetch available artists
+  useEffect(() => {
+    const fetchArtists = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('ArtistMST')
+          .select('ArtistId, ArtistFirstName, ArtistLastName')
+          .eq('Active', true);
+          
+        if (error) throw error;
+        
+        const formattedArtists = data.map(artist => ({
+          ArtistId: artist.ArtistId,
+          displayName: `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || `Artist ${artist.ArtistId}`
+        }));
+        
+        setArtists(formattedArtists);
+      } catch (error) {
+        console.error('Error fetching artists:', error);
+      }
+    };
+    
+    fetchArtists();
+  }, []);
+  
+  // Check if the selected status requires artist assignment
+  useEffect(() => {
+    const statuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done'];
+    setRequiresArtist(statuses.includes(watchStatus));
+  }, [watchStatus]);
+
+  useEffect(() => {
     if (editBooking) {
       form.reset({
         date: editBooking.Booking_date ? new Date(editBooking.Booking_date) : undefined,
@@ -72,6 +113,8 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
         status: editBooking.Status || "",
         address: editBooking?.Address || "",
         pincode: editBooking?.Pincode?.toString() || "",
+        quantity: editBooking?.Qty || 1,
+        artistId: editBooking?.ArtistId || null,
       });
     }
   }, [editBooking, form]);
@@ -119,13 +162,32 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                         <span className="font-medium">Scheme:</span> {editBooking.Scheme}
                       </p>
                     )}
-                    {editBooking.Qty && (
-                      <p className="text-sm">
-                        <span className="font-medium">Quantity:</span> {editBooking.Qty}
-                      </p>
-                    )}
-                    <p className="text-sm font-medium mt-1">
-                      Price: ₹{editBooking.price?.toFixed(2) || "0.00"}
+                    <FormField
+                      control={form.control}
+                      name="quantity"
+                      render={({ field }) => (
+                        <FormItem className="mt-2">
+                          <FormLabel>Quantity</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={1}
+                              {...field}
+                              value={field.value}
+                              onChange={(e) => {
+                                const value = parseInt(e.target.value, 10);
+                                field.onChange(isNaN(value) ? 1 : Math.max(1, value));
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <p className="text-sm font-medium mt-2">
+                      Price: ₹{editBooking.price && form.watch("quantity") 
+                        ? (editBooking.price * form.watch("quantity")).toFixed(2) 
+                        : "0.00"}
                     </p>
                     <p className="text-xs text-muted-foreground mt-2">
                       Service details cannot be modified. To change service, cancel this booking and create a new job.
@@ -229,6 +291,43 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                   )}
                 />
                 
+                {requiresArtist && (
+                  <FormField
+                    control={form.control}
+                    name="artistId"
+                    render={({ field }) => (
+                      <FormItem className="grid grid-cols-4 items-center gap-4">
+                        <FormLabel className="text-right">Assign Artist</FormLabel>
+                        <div className="col-span-3">
+                          <Select
+                            onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                            value={field.value?.toString() || ""}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select an artist" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {artists.map((artist) => (
+                                <SelectItem key={artist.ArtistId} value={artist.ArtistId.toString()}>
+                                  {artist.displayName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {requiresArtist && !field.value && (
+                            <p className="text-xs text-red-500 mt-1">
+                              Artist assignment is required for this status
+                            </p>
+                          )}
+                        </div>
+                        <FormMessage className="col-span-4 text-right" />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                
                 <FormField
                   control={form.control}
                   name="address"
@@ -285,7 +384,12 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
         </ScrollArea>
         
         <DialogFooter className="pt-2">
-          <Button onClick={form.handleSubmit(onSubmit)}>Save changes</Button>
+          <Button 
+            onClick={form.handleSubmit(onSubmit)}
+            disabled={requiresArtist && !form.getValues().artistId}
+          >
+            Save changes
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

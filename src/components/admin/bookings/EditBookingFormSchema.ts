@@ -7,6 +7,7 @@ export const editBookingFormSchema = z.object({
   status: z.string().min(1, "Please select a status"),
   address: z.string().optional(),
   pincode: z.string().optional(),
+  quantity: z.number().min(1, "Quantity must be at least 1").default(1),
   artistId: z.number().nullable().optional(),
   currentUser: z.object({
     Username: z.string().optional(),

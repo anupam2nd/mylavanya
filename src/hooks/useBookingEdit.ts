@@ -47,9 +47,26 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       if (values.pincode && values.pincode !== editBooking.Pincode?.toString()) {
         updates.Pincode = parseInt(values.pincode, 10);
       }
+      
+      // Quantity update
+      if (values.quantity && values.quantity !== editBooking.Qty) {
+        updates.Qty = values.quantity;
+      }
 
       // Artist assignment
-      if (values.artistId && values.artistId !== editBooking.ArtistId) {
+      const assignmentStatuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done'];
+      const requiresArtist = assignmentStatuses.includes(values.status);
+      
+      if (requiresArtist) {
+        if (!values.artistId) {
+          toast({
+            title: "Artist required",
+            description: "Please select an artist for this status",
+            variant: "destructive"
+          });
+          return;
+        }
+        
         updates.ArtistId = values.artistId;
         
         // Fetch artist name from ArtistMST
@@ -75,11 +92,11 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
         
         // Set AssignedBY to current user's username or "admin" as fallback
         updates.AssignedBY = values.currentUser?.Username || 'admin';
-      }
-      
-      // Only update AssingnedON if status is changing to beautician_assigned
-      if (values.status === 'beautician_assigned' && editBooking.Status !== 'beautician_assigned') {
-        updates.AssingnedON = new Date().toISOString();
+        
+        // Set AssignedON to current timestamp if status is changing to one requiring artist
+        if (!editBooking.ArtistId || editBooking.Status !== values.status) {
+          updates.AssingnedON = new Date().toISOString();
+        }
       }
 
       console.log("Updating booking with id:", editBooking.id, "Updates:", updates);
@@ -97,6 +114,10 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
 
       if (updates.Pincode !== undefined && updates.Pincode !== null) {
         updates.Pincode = Number(updates.Pincode);
+      }
+      
+      if (updates.Qty !== undefined && updates.Qty !== null) {
+        updates.Qty = Number(updates.Qty);
       }
 
       console.log("Final update payload:", updates);
