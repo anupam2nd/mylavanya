@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
@@ -138,6 +137,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         ServiceName: selectedProductDetails.Services,
         SubService: selectedProductDetails.Subservice,
         ProductName: product,
+        Product: selectedProductDetails.prod_id,
         prod_id: selectedProductDetails.prod_id,
         Scheme: selectedProductDetails.Scheme,
         price: price,
