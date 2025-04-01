@@ -65,16 +65,16 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
           if (values.artistId) {
             try {
               const { data: artistData, error: artistError } = await supabase
-                .from('ArtistMST')
-                .select('ArtistFirstName, ArtistLastName, ArtistId')
-                .eq('ArtistId', values.artistId)
+                .from('UserMST')
+                .select('FirstName, LastName, id')
+                .eq('id', values.artistId)
                 .single();
                 
               if (!artistError && artistData) {
                 // Construct full name from first and last name fields
-                const artistFullName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim();
+                const artistFullName = `${artistData.FirstName || ''} ${artistData.LastName || ''}`.trim();
                 updates.ArtistName = artistFullName;
-                updates.ArtistId = artistData.ArtistId;
+                updates.ArtistId = artistData.id;
                 console.log(`Assigning artist ${artistFullName} to booking`);
               }
             } catch (error) {
