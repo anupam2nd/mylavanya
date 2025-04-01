@@ -22,6 +22,7 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
     try {
       console.log("Starting to save changes for booking:", editBooking.id);
       console.log("Form values:", values);
+      console.log("Current user data:", values.currentUser);
       
       // Prepare updates with all fields that might change
       const updates: Partial<Booking> = {};
@@ -134,24 +135,31 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
           console.error('Error fetching artist details:', error);
         }
         
-        // Set AssignedBY to current user's full name
+        // IMPORTANT: Set AssignedBY from currentUser data
         if (values.currentUser) {
-          // Fix: Use the FirstName and LastName from currentUser properly
-          const firstName = values.currentUser.FirstName || '';
-          const lastName = values.currentUser.LastName || '';
+          // Debug the currentUser object to see what's available
+          console.log("Current User data for AssignedBY:", JSON.stringify(values.currentUser));
           
-          // Create a full name from the first and last name
-          if (firstName || lastName) {
+          // Ensure we're getting all the data properties correctly
+          if (values.currentUser.FirstName || values.currentUser.LastName) {
+            const firstName = values.currentUser.FirstName || '';
+            const lastName = values.currentUser.LastName || '';
+            
+            // Use the full name if available
             updates.AssignedBY = `${firstName} ${lastName}`.trim();
-            console.log("Setting AssignedBY to user's full name:", updates.AssignedBY);
+            console.log("Setting AssignedBY to full name:", updates.AssignedBY);
+          } else if (values.currentUser.Username) {
+            // Fall back to Username if no name components
+            updates.AssignedBY = values.currentUser.Username;
+            console.log("Setting AssignedBY to Username:", updates.AssignedBY);
           } else {
-            // Fallback to username if no name is available
-            updates.AssignedBY = values.currentUser.Username || 'admin';
-            console.log("Fallback to Username for AssignedBY:", updates.AssignedBY);
+            // Last resort fallback
+            updates.AssignedBY = 'admin';
+            console.log("No user identifiers found, defaulting to 'admin'");
           }
         } else {
           updates.AssignedBY = 'admin';
-          console.log("No user data available, setting AssignedBY to 'admin'");
+          console.log("No currentUser object provided, defaulting to 'admin'");
         }
         
         // Set AssignedON to current timestamp if status is changing to one requiring artist
@@ -163,7 +171,7 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
         }
       }
 
-      console.log("Updating booking with id:", editBooking.id, "Updates:", updates);
+      console.log("Final updates to be sent:", updates);
 
       // Only proceed if we have updates
       if (Object.keys(updates).length === 0) {

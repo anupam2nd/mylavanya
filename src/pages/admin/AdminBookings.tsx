@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,12 +70,19 @@ const AdminBookings = () => {
               .single();
               
             if (!error && data) {
+              console.log("Current user data fetched:", data);
               setCurrentUser(data);
+            } else {
+              console.error("Error fetching user data:", error);
             }
+          } else {
+            console.error("Invalid user ID format:", authSession.session.user.id);
           }
+        } else {
+          console.warn("No active session found");
         }
       } catch (error) {
-        console.error('Error fetching user:', error);
+        console.error('Error in fetchCurrentUser:', error);
       }
     };
     
@@ -93,6 +101,19 @@ const AdminBookings = () => {
     toast({
       title: "Success!",
       description: "New job has been added to this booking",
+    });
+  };
+
+  const handleSaveWithUserData = (values: any) => {
+    console.log("Saving changes with current user:", currentUser);
+    
+    if (!currentUser) {
+      console.warn("No current user data available for booking update");
+    }
+    
+    handleSaveChanges({
+      ...values,
+      currentUser
     });
   };
 
@@ -175,12 +196,7 @@ const AdminBookings = () => {
           openDialog={openDialog}
           setOpenDialog={setOpenDialog}
           editBooking={editBooking}
-          handleSaveChanges={(values) => {
-            handleSaveChanges({
-              ...values,
-              currentUser
-            });
-          }}
+          handleSaveChanges={handleSaveWithUserData}
           statusOptions={statusOptions}
         />
         
