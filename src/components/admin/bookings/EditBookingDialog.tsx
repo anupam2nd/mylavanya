@@ -104,15 +104,15 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
           console.log("Price data from PriceMST:", data);
           const netPayable = parseFloat(data.NetPayable);
           setUnitPrice(netPayable);
-          // Fix Type Error: Convert quantity to number explicitly
-          const qty = form.getValues("quantity");
-          const qtyValue = typeof qty === 'string' ? parseInt(qty, 10) : qty || 1;
-          const total = netPayable * qtyValue;
+          
+          // Fix Type Error: Convert form values correctly
+          const qty = watchQuantity;
+          const total = netPayable * Number(qty);
           setCalculatedPrice(total);
           
           console.log("Price calculation:", {
             unitPrice: netPayable,
-            quantity: qtyValue,
+            quantity: qty,
             totalPrice: total
           });
         } else {
@@ -128,13 +128,13 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
     };
     
     fetchPriceData();
-  }, [editBooking, form]);
+  }, [editBooking, watchQuantity, form]);
 
   // Recalculate price when quantity changes
   useEffect(() => {
     if (unitPrice !== null) {
       const qty = watchQuantity < 1 ? 1 : watchQuantity;
-      const total = unitPrice * qty;
+      const total = unitPrice * Number(qty);
       setCalculatedPrice(total);
       console.log("Recalculating price due to quantity change:", {
         unitPrice,
