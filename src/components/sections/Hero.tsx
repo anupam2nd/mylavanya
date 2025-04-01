@@ -26,10 +26,7 @@ const Hero = ({
               <span className="block text-gradient">Natural Beauty</span>
             </h1>
             
-            <p className="text-lg text-muted-foreground mt-6 max-w-lg mx-auto lg:mx-0">
-              Professional makeup artists, hair stylists, and beauty services for weddings, 
-              events, and special occasions delivered at your doorstep.
-            </p>
+            <p className="text-lg text-muted-foreground mt-6 max-w-lg mx-auto lg:mx-0">Professional makeup artists, hair stylists, and beauty services for weddings, events, and special occasions delivered at your DOORSTEP.</p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
               <ButtonCustom variant="primary-gradient" size="lg" onClick={onBookNow} className="group">
@@ -46,7 +43,7 @@ const Hero = ({
               <div className="flex">
                 {[1, 2, 3, 4, 5].map(star => <Star key={star} size={16} className="text-primary fill-primary" />)}
               </div>
-              <span>500+ Happy Clients</span>
+              <span>1000+ Happy Clients</span>
             </div>
           </div>
           
