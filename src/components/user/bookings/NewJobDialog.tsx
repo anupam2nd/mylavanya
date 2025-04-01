@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -49,12 +48,18 @@ interface ArtistOption {
   ArtistLastName: string | null;
 }
 
+interface CurrentUser {
+  Username?: string;
+  FirstName?: string;
+  LastName?: string;
+}
+
 interface NewJobDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   booking: Booking | null;
   onSuccess: (newBooking: Booking) => void;
-  currentUser: { Username?: string } | null;
+  currentUser: CurrentUser | null;
 }
 
 const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: NewJobDialogProps) => {

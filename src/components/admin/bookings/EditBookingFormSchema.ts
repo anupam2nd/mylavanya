@@ -1,19 +1,22 @@
 
 import { z } from "zod";
 
-export const editBookingFormSchema = z.object({
+export const EditBookingFormSchema = z.object({
   date: z.date().optional(),
   time: z.string().optional(),
-  status: z.string().min(1, "Please select a status"),
+  status: z.string(),
   address: z.string().optional(),
   pincode: z.string().optional(),
-  quantity: z.number().min(1, "Quantity must be at least 1").default(1),
-  artistId: z.number().nullable().optional(),
+  service: z.string().optional(),
+  subService: z.string().optional(),
+  product: z.string().optional(),
+  quantity: z.number().optional(),
+  artistId: z.number().nullable(),
   currentUser: z.object({
     Username: z.string().optional(),
     FirstName: z.string().optional(),
     LastName: z.string().optional(),
-  }).optional().nullable(),
+  }).nullable().optional(),
 });
 
-export type EditBookingFormValues = z.infer<typeof editBookingFormSchema>;
+export type EditBookingFormValues = z.infer<typeof EditBookingFormSchema>;

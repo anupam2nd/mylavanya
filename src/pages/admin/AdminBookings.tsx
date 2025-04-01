@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBookingEdit } from "@/hooks/useBookingEdit";
 
-// Import the Booking type directly from useBookings to ensure consistency
 import type { Booking } from "@/hooks/useBookings";
 
 const AdminBookings = () => {
@@ -89,7 +87,6 @@ const AdminBookings = () => {
   };
 
   const handleNewJobSuccess = (newBooking: Booking) => {
-    // Add the new booking to the bookings array
     setBookings([newBooking, ...bookings]);
     setShowNewJobDialog(false);
     
@@ -179,7 +176,6 @@ const AdminBookings = () => {
           setOpenDialog={setOpenDialog}
           editBooking={editBooking}
           handleSaveChanges={(values) => {
-            // Add the current user to form values
             handleSaveChanges({
               ...values,
               currentUser

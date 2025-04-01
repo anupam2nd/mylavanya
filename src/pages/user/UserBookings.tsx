@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +24,7 @@ const UserBookings = () => {
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<{ Username?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ Username?: string, FirstName?: string, LastName?: string } | null>(null);
   const [showNewJobDialog, setShowNewJobDialog] = useState(false);
   const [selectedBookingForNewJob, setSelectedBookingForNewJob] = useState<Booking | null>(null);
   
@@ -126,7 +125,6 @@ const UserBookings = () => {
   };
 
   const handleNewJobSuccess = (newBooking: Booking) => {
-    // Add the new booking to the bookings array
     setBookings(prevBookings => [newBooking, ...prevBookings]);
     setShowNewJobDialog(false);
     
@@ -224,7 +222,6 @@ const UserBookings = () => {
           open={openDialog}
           onOpenChange={setOpenDialog}
           onSave={async (booking, updates) => {
-            // Convert normal updates structure to EditBookingFormValues
             const formValues = {
               date: updates.Booking_date ? new Date(updates.Booking_date) : undefined,
               time: updates.booking_time || "",
