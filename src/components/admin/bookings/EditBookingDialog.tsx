@@ -38,7 +38,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
-import { editBookingFormSchema, EditBookingFormValues } from "./EditBookingFormSchema";
+import { EditBookingFormSchema, EditBookingFormValues } from "./EditBookingFormSchema";
 import { Booking } from "@/hooks/useBookings";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -61,7 +61,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   const [requiresArtist, setRequiresArtist] = useState(false);
   
   const form = useForm<EditBookingFormValues>({
-    resolver: zodResolver(editBookingFormSchema),
+    resolver: zodResolver(EditBookingFormSchema),
     defaultValues: {
       date: editBooking?.Booking_date ? new Date(editBooking.Booking_date) : undefined,
       time: editBooking?.booking_time?.substring(0, 5) || "",
