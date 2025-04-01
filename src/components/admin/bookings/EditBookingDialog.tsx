@@ -104,13 +104,15 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
           console.log("Price data from PriceMST:", data);
           const netPayable = parseFloat(data.NetPayable);
           setUnitPrice(netPayable);
-          const qty = parseInt(form.getValues("quantity") || "1", 10);
-          const total = netPayable * qty;
+          // Fix Type Error: Convert quantity to number explicitly
+          const qty = form.getValues("quantity");
+          const qtyValue = typeof qty === 'string' ? parseInt(qty, 10) : qty || 1;
+          const total = netPayable * qtyValue;
           setCalculatedPrice(total);
           
           console.log("Price calculation:", {
             unitPrice: netPayable,
-            quantity: qty,
+            quantity: qtyValue,
             totalPrice: total
           });
         } else {
