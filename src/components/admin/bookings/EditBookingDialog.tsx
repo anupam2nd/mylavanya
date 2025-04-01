@@ -105,9 +105,9 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
           const netPayable = parseFloat(data.NetPayable);
           setUnitPrice(netPayable);
           
-          // Fix Type Error: Convert form values correctly
+          // Fix for TypeScript error - ensure quantity is treated as a number
           const qty = watchQuantity;
-          const total = netPayable * Number(qty);
+          const total = netPayable * (typeof qty === 'string' ? parseInt(qty, 10) : qty);
           setCalculatedPrice(total);
           
           console.log("Price calculation:", {
@@ -128,13 +128,14 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
     };
     
     fetchPriceData();
-  }, [editBooking, watchQuantity, form]);
+  }, [editBooking, watchQuantity]);
 
   // Recalculate price when quantity changes
   useEffect(() => {
     if (unitPrice !== null) {
       const qty = watchQuantity < 1 ? 1 : watchQuantity;
-      const total = unitPrice * Number(qty);
+      // Fix for TypeScript error - ensure quantity is treated as a number
+      const total = unitPrice * (typeof qty === 'string' ? parseInt(qty, 10) : qty);
       setCalculatedPrice(total);
       console.log("Recalculating price due to quantity change:", {
         unitPrice,
