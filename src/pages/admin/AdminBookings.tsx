@@ -6,7 +6,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import BookingFilters from "@/components/admin/bookings/BookingFilters";
 import EditBookingDialog from "@/components/admin/bookings/EditBookingDialog";
 import NewJobDialog from "@/components/user/bookings/NewJobDialog";
-import { useBookings, Booking } from "@/hooks/useBookings";
+import { useBookings } from "@/hooks/useBookings";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
 import { useBookingFilters } from "@/hooks/useBookingFilters";
 import { ExportButton } from "@/components/ui/export-button";
@@ -14,6 +14,9 @@ import AdminBookingsList from "@/components/user/bookings/AdminBookingsList";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBookingEdit } from "@/hooks/useBookingEdit";
+
+// Import the Booking type directly from useBookings to ensure consistency
+import type { Booking } from "@/hooks/useBookings";
 
 const AdminBookings = () => {
   const { toast } = useToast();

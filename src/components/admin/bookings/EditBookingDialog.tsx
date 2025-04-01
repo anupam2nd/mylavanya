@@ -1,4 +1,3 @@
-
 import React from "react";
 import { format } from "date-fns";
 import { Clock, CalendarIcon } from "lucide-react";
@@ -37,26 +36,7 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { editBookingFormSchema, EditBookingFormValues } from "./EditBookingFormSchema";
-
-interface Booking {
-  id: number;
-  Booking_NO: string;
-  name: string;
-  email: string;
-  Phone_no: number;
-  Booking_date: string;
-  booking_time: string;
-  Purpose: string;
-  Status: string;
-  price: number;
-  Address?: string;
-  Pincode?: number;
-  ServiceName?: string;
-  SubService?: string;
-  ProductName?: string;
-  Scheme?: string;
-  Qty?: number;
-}
+import { Booking } from "@/hooks/useBookings";
 
 interface EditBookingDialogProps {
   openDialog: boolean;

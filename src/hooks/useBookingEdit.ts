@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EditBookingFormValues } from "@/components/admin/bookings/EditBookingFormSchema";
-import { Booking } from "./useBookings";
+import { Booking } from "./useBookings"; // Ensure we're using the same Booking type
 
 export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Booking[]) => void) => {
   const { toast } = useToast();
