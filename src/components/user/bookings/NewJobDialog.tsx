@@ -251,7 +251,22 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       if (requiresArtist(status) && artistId) {
         newBookingData.ArtistId = artistId;
         newBookingData.Assignedto = getArtistName(artistId);
-        newBookingData.AssignedBY = currentUser?.Username || 'admin';
+        
+        // Set AssignedBY to current user's full name instead of just username
+        if (currentUser) {
+          const firstName = currentUser.FirstName || '';
+          const lastName = currentUser.LastName || '';
+          
+          if (firstName || lastName) {
+            newBookingData.AssignedBY = `${firstName} ${lastName}`.trim();
+          } else {
+            // Fallback to username if no name is available
+            newBookingData.AssignedBY = currentUser.Username || 'admin';
+          }
+        } else {
+          newBookingData.AssignedBY = 'admin';
+        }
+        
         newBookingData.AssingnedON = new Date().toISOString();
         newBookingData.StatusUpdated = new Date().toISOString();
       }

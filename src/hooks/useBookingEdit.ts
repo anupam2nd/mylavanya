@@ -142,8 +142,20 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
           console.error('Error fetching artist details:', error);
         }
         
-        // Set AssignedBY to current user's username or "admin" as fallback
-        updates.AssignedBY = values.currentUser?.Username || 'admin';
+        // Set AssignedBY to current user's full name instead of just username
+        if (values.currentUser) {
+          const firstName = values.currentUser.FirstName || '';
+          const lastName = values.currentUser.LastName || '';
+          
+          if (firstName || lastName) {
+            updates.AssignedBY = `${firstName} ${lastName}`.trim();
+          } else {
+            // Fallback to username if no name is available
+            updates.AssignedBY = values.currentUser.Username || 'admin';
+          }
+        } else {
+          updates.AssignedBY = 'admin';
+        }
         
         // Set AssignedON to current timestamp if status is changing to one requiring artist
         if (!editBooking.ArtistId || editBooking.Status !== values.status) {
