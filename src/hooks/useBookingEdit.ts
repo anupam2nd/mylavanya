@@ -20,6 +20,9 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
     if (!editBooking) return;
 
     try {
+      console.log("Starting to save changes for booking:", editBooking.id);
+      console.log("Form values:", values);
+      
       // Prepare updates with all fields that might change
       const updates: Partial<Booking> = {};
       
@@ -49,7 +52,7 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       if (values.product && values.product !== editBooking.ProductName) {
         updates.ProductName = values.product;
         
-        // Fetch and update price from PriceMST when product changes
+        // Fetch and update price and prod_id from PriceMST when product changes
         try {
           console.log("Fetching price for product:", values.product);
           const { data: priceData, error: priceError } = await supabase
@@ -67,9 +70,16 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
           if (priceData) {
             console.log("Found price data:", priceData);
             updates.price = priceData.NetPayable || priceData.NetPayable === 0 ? priceData.NetPayable : null;
-            updates.prod_id = priceData.prod_id;
+            
+            // Make sure to set the prod_id from PriceMST
+            if (priceData.prod_id) {
+              updates.prod_id = priceData.prod_id;
+            }
           } else {
             console.warn("No price data found for product:", values.product);
+            // If no price data found, explicitly set to null to avoid inconsistencies
+            updates.price = null;
+            updates.prod_id = null;
           }
         } catch (error) {
           console.error('Error fetching product price:', error);
@@ -131,6 +141,24 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
         return;
       }
 
+      // Convert numeric types explicitly to ensure proper data types
+      if (updates.prod_id !== undefined) {
+        if (updates.prod_id === null) {
+          // Handle null case
+          console.log("Setting prod_id to null");
+        } else {
+          console.log("Setting prod_id to:", updates.prod_id);
+          // Ensure it's a number
+          updates.prod_id = Number(updates.prod_id);
+        }
+      }
+      
+      if (updates.ArtistId !== undefined && updates.ArtistId !== null) {
+        updates.ArtistId = Number(updates.ArtistId);
+      }
+
+      console.log("Final update payload:", updates);
+      
       const { error } = await supabase
         .from('BookMST')
         .update(updates)
