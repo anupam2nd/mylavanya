@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -45,6 +46,8 @@ import {
 } from "@/components/ui/select";
 import { ExportButton } from "@/components/ui/export-button";
 import { Switch } from "@/components/ui/switch";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
 
 interface Service {
   prod_id: number;
@@ -53,6 +56,11 @@ interface Service {
   Description: string | null;
   Price: number;
   active?: boolean;
+  Subservice?: string | null;
+  Scheme?: string | null;
+  Category?: string | null;
+  Discount?: number | null;
+  NetPayable?: number | null;
 }
 
 const AdminServices = () => {
@@ -74,17 +82,28 @@ const AdminServices = () => {
   
   const isSuperAdmin = user?.role === 'superadmin';
   
+  // Form state
   const [serviceName, setServiceName] = useState("");
-  const [productName, setProductName] = useState("");
+  const [subService, setSubService] = useState("");
+  const [scheme, setScheme] = useState("");
+  const [category, setCategory] = useState("");
   const [serviceDescription, setServiceDescription] = useState("");
   const [servicePrice, setServicePrice] = useState("");
-
+  const [discount, setDiscount] = useState("");
+  const [netPayable, setNetPayable] = useState("");
+  const [priceFirst, setPriceFirst] = useState(true);
+  
   const serviceHeaders = {
     prod_id: 'ID',
     Services: 'Service Name',
     ProductName: 'Product Name',
-    Description: 'Description',
+    Subservice: 'Sub Service',
+    Scheme: 'Scheme',
+    Category: 'Category',
     Price: 'Price',
+    Discount: 'Discount %',
+    NetPayable: 'Net Payable',
+    Description: 'Description',
     active: 'Status'
   };
 
@@ -141,23 +160,43 @@ const AdminServices = () => {
     setActiveFilter("all");
   };
 
+  const generateProductName = () => {
+    const parts = [
+      serviceName.trim(),
+      subService.trim(),
+      scheme.trim()
+    ].filter(Boolean);
+    
+    return parts.join(' - ');
+  };
+
   const handleAddNew = () => {
     setIsNewService(true);
     setCurrentService(null);
     setServiceName("");
-    setProductName("");
+    setSubService("");
+    setScheme("");
+    setCategory("");
     setServiceDescription("");
     setServicePrice("");
+    setDiscount("");
+    setNetPayable("");
+    setPriceFirst(true);
     setOpenDialog(true);
   };
 
   const handleEdit = (service: Service) => {
     setIsNewService(false);
     setCurrentService(service);
-    setServiceName(service.Services);
-    setProductName(service.ProductName || "");
+    setServiceName(service.Services || "");
+    setSubService(service.Subservice || "");
+    setScheme(service.Scheme || "");
+    setCategory(service.Category || "");
     setServiceDescription(service.Description || "");
-    setServicePrice(service.Price.toString());
+    setServicePrice(service.Price?.toString() || "");
+    setDiscount(service.Discount?.toString() || "");
+    setNetPayable(service.NetPayable?.toString() || "");
+    setPriceFirst(true);
     setOpenDialog(true);
   };
 
@@ -237,19 +276,81 @@ const AdminServices = () => {
     setOpenDeactivateDialog(true);
   };
 
+  const handlePriceChange = (value: string) => {
+    setServicePrice(value);
+    if (priceFirst && discount) {
+      // If price changes and we have discount, calculate net payable
+      const price = parseFloat(value) || 0;
+      const discountValue = parseFloat(discount) || 0;
+      const calculatedNetPayable = price * (1 - discountValue / 100);
+      setNetPayable(calculatedNetPayable.toFixed(2));
+    }
+  };
+
+  const handleDiscountChange = (value: string) => {
+    setDiscount(value);
+    if (priceFirst && servicePrice) {
+      // If discount changes and we have price, calculate net payable
+      const price = parseFloat(servicePrice) || 0;
+      const discountValue = parseFloat(value) || 0;
+      const calculatedNetPayable = price * (1 - discountValue / 100);
+      setNetPayable(calculatedNetPayable.toFixed(2));
+    }
+  };
+
+  const handleNetPayableChange = (value: string) => {
+    setNetPayable(value);
+    if (!priceFirst && servicePrice) {
+      // If net payable changes and we have price, calculate discount
+      const price = parseFloat(servicePrice) || 0;
+      const netPayableValue = parseFloat(value) || 0;
+      if (price > 0) {
+        const calculatedDiscount = ((price - netPayableValue) / price) * 100;
+        setDiscount(calculatedDiscount.toFixed(2));
+      }
+    }
+  };
+
+  const toggleCalculationMode = () => {
+    setPriceFirst(!priceFirst);
+  };
+
   const handleSave = async () => {
     try {
-      const priceValue = parseInt(servicePrice);
+      const priceValue = parseFloat(servicePrice);
+      const discountValue = parseFloat(discount) || 0;
+      const netPayableValue = parseFloat(netPayable) || 0;
       
       if (isNaN(priceValue)) {
         throw new Error("Price must be a valid number");
       }
 
+      const productName = generateProductName();
+      
+      // Check if the ProductName already exists (for new services or when changing existing service details)
+      if (productName) {
+        const { data, error } = await supabase
+          .from('PriceMST')
+          .select('prod_id')
+          .eq('ProductName', productName);
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0 && (!currentService || data[0].prod_id !== currentService.prod_id)) {
+          throw new Error("A service with this combination of Service, Sub-service, and Scheme already exists");
+        }
+      }
+
       const serviceData = {
         Services: serviceName,
-        ProductName: productName || null,
+        Subservice: subService || null,
+        Scheme: scheme || null,
+        Category: category || null,
+        ProductName: productName,
         Description: serviceDescription || null,
         Price: priceValue,
+        Discount: discountValue || null,
+        NetPayable: netPayableValue || null,
         active: true
       };
 
@@ -369,8 +470,11 @@ const AdminServices = () => {
                     <TableRow>
                       <TableHead>Service</TableHead>
                       <TableHead>Product Name</TableHead>
-                      <TableHead>Description</TableHead>
+                      <TableHead>Sub-service</TableHead>
+                      <TableHead>Scheme</TableHead>
                       <TableHead>Price</TableHead>
+                      <TableHead>Discount %</TableHead>
+                      <TableHead>Net Payable</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -379,11 +483,12 @@ const AdminServices = () => {
                     {filteredServices.map((service) => (
                       <TableRow key={service.prod_id}>
                         <TableCell className="font-medium">{service.Services}</TableCell>
-                        <TableCell>{service.ProductName}</TableCell>
-                        <TableCell className="max-w-md truncate">
-                          {service.Description}
-                        </TableCell>
+                        <TableCell className="max-w-xs truncate">{service.ProductName}</TableCell>
+                        <TableCell>{service.Subservice}</TableCell>
+                        <TableCell>{service.Scheme}</TableCell>
                         <TableCell>₹{service.Price}</TableCell>
+                        <TableCell>{service.Discount}%</TableCell>
+                        <TableCell>₹{service.NetPayable}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Switch 
@@ -424,7 +529,7 @@ const AdminServices = () => {
         </Card>
 
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{isNewService ? "Add New Service" : "Edit Service"}</DialogTitle>
               <DialogDescription>
@@ -436,7 +541,7 @@ const AdminServices = () => {
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="service-name" className="text-right">
-                  Service Name
+                  Service Name*
                 </Label>
                 <Input
                   id="service-name"
@@ -445,29 +550,112 @@ const AdminServices = () => {
                   className="col-span-3"
                 />
               </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="sub-service" className="text-right">
+                  Sub-service
+                </Label>
+                <Input
+                  id="sub-service"
+                  value={subService}
+                  onChange={(e) => setSubService(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="scheme" className="text-right">
+                  Scheme
+                </Label>
+                <Input
+                  id="scheme"
+                  value={scheme}
+                  onChange={(e) => setScheme(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="category" className="text-right">
+                  Category
+                </Label>
+                <Input
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="product-name" className="text-right">
                   Product Name
                 </Label>
                 <Input
                   id="product-name"
-                  value={productName}
-                  onChange={(e) => setProductName(e.target.value)}
-                  className="col-span-3"
+                  value={generateProductName()}
+                  className="col-span-3 bg-gray-100"
+                  disabled
                 />
               </div>
+              
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="service-price" className="text-right">
-                  Price (₹)
+                  Price (₹)*
                 </Label>
                 <Input
                   id="service-price"
                   type="number"
                   value={servicePrice}
-                  onChange={(e) => setServicePrice(e.target.value)}
+                  onChange={(e) => handlePriceChange(e.target.value)}
                   className="col-span-3"
                 />
               </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="text-right flex items-center justify-end">
+                  <Label htmlFor="calculation-mode" className="mr-2">
+                    Price first
+                  </Label>
+                  <Switch
+                    id="calculation-mode"
+                    checked={priceFirst}
+                    onCheckedChange={toggleCalculationMode}
+                  />
+                </div>
+                <div className="col-span-3 text-sm text-muted-foreground">
+                  {priceFirst 
+                    ? "Enter price and discount % to calculate net payable" 
+                    : "Enter price and net payable to calculate discount %"}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="discount" className="text-right">
+                  Discount %
+                </Label>
+                <Input
+                  id="discount"
+                  type="number"
+                  value={discount}
+                  onChange={(e) => handleDiscountChange(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="net-payable" className="text-right">
+                  Net Payable (₹)
+                </Label>
+                <Input
+                  id="net-payable"
+                  type="number"
+                  value={netPayable}
+                  onChange={(e) => handleNetPayableChange(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="service-description" className="text-right">
                   Description
@@ -482,7 +670,14 @@ const AdminServices = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" onClick={handleSave}>
+              <Button type="button" variant="outline" onClick={() => setOpenDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                onClick={handleSave}
+                disabled={!serviceName || !servicePrice}
+              >
                 Save
               </Button>
             </DialogFooter>
