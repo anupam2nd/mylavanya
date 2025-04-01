@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -65,17 +64,18 @@ interface Artist {
 const artistSchema = z.object({
   ArtistFirstName: z.string().min(1, "First name is required"),
   ArtistLastName: z.string().min(1, "Last name is required"),
-  ArtistEmpCode: z.string().min(1, "Employee code is required"),
+  ArtistEmpCode: z.string().optional(),
   ArtistPhno: z.string().refine(
     (val) => !isNaN(Number(val)) && val.length >= 10,
     { message: "Please enter a valid phone number" }
   ),
-  Artistgrp: z.string().min(1, "Artist group is required"),
+  Artistgrp: z.string().optional(),
   Source: z.string().optional(),
-  ArtistRating: z.string().refine(
-    (val) => !isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 5,
-    { message: "Rating must be between 0 and 5" }
-  ),
+  ArtistRating: z.string().optional()
+    .refine(
+      (val) => val === '' || val === undefined || (!isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 5),
+      { message: "Rating must be between 0 and 5" }
+    ),
   Active: z.boolean().default(true)
 });
 
@@ -291,11 +291,11 @@ const AdminArtists = () => {
       const artistData = {
         ArtistFirstName: values.ArtistFirstName,
         ArtistLastName: values.ArtistLastName,
-        ArtistEmpCode: values.ArtistEmpCode,
+        ArtistEmpCode: values.ArtistEmpCode || null,
         ArtistPhno: Number(values.ArtistPhno),
-        Artistgrp: values.Artistgrp,
+        Artistgrp: values.Artistgrp || null,
         Source: values.Source || null,
-        ArtistRating: Number(values.ArtistRating),
+        ArtistRating: values.ArtistRating ? Number(values.ArtistRating) : null,
         Active: values.Active
       };
 
@@ -510,7 +510,9 @@ const AdminArtists = () => {
                     name="ArtistFirstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First Name</FormLabel>
+                        <FormLabel className="flex items-center gap-1">
+                          First Name <span className="text-red-500">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -524,7 +526,9 @@ const AdminArtists = () => {
                     name="ArtistLastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last Name</FormLabel>
+                        <FormLabel className="flex items-center gap-1">
+                          Last Name <span className="text-red-500">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -554,7 +558,9 @@ const AdminArtists = () => {
                     name="ArtistPhno"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
+                        <FormLabel className="flex items-center gap-1">
+                          Phone Number <span className="text-red-500">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -572,12 +578,12 @@ const AdminArtists = () => {
                       <FormItem>
                         <FormLabel>Artist Group</FormLabel>
                         <Select
-                          value={field.value}
                           onValueChange={field.onChange}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a group" />
+                              <SelectValue placeholder="Select group" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -612,9 +618,15 @@ const AdminArtists = () => {
                     name="ArtistRating"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Artist Rating (0-5)</FormLabel>
+                        <FormLabel>Rating (0-5)</FormLabel>
                         <FormControl>
-                          <Input {...field} type="number" min="0" max="5" step="0.1" />
+                          <Input 
+                            {...field} 
+                            type="number" 
+                            min="0" 
+                            max="5" 
+                            step="0.1" 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -625,25 +637,32 @@ const AdminArtists = () => {
                     control={form.control}
                     name="Active"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel>Active Status</FormLabel>
-                          <p className="text-sm text-muted-foreground">
-                            Is this artist currently active?
-                          </p>
-                        </div>
+                      <FormItem className="flex flex-row items-end space-x-3 space-y-0 rounded-md border p-4">
                         <FormControl>
                           <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
                           />
                         </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>
+                            Active Status
+                          </FormLabel>
+                        </div>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
 
                 <DialogFooter>
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    onClick={() => setOpenDialog(false)}
+                  >
+                    Cancel
+                  </Button>
                   <Button type="submit">
                     {isNewArtist ? "Add Artist" : "Save Changes"}
                   </Button>
@@ -658,13 +677,12 @@ const AdminArtists = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the 
-                artist and may affect existing bookings.
+                This will permanently delete the artist. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              <AlertDialogAction onClick={confirmDelete}>
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>
