@@ -51,6 +51,13 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       // Quantity update
       if (values.quantity && values.quantity !== editBooking.Qty) {
         updates.Qty = values.quantity;
+        
+        // Calculate and update the new price if quantity changes
+        if (editBooking.price) {
+          // Price per unit stays the same, but total price changes
+          const pricePerUnit = editBooking.price / (editBooking.Qty || 1);
+          updates.price = pricePerUnit * values.quantity;
+        }
       }
 
       // Artist assignment
@@ -118,6 +125,10 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       
       if (updates.Qty !== undefined && updates.Qty !== null) {
         updates.Qty = Number(updates.Qty);
+      }
+      
+      if (updates.price !== undefined && updates.price !== null) {
+        updates.price = Number(updates.price);
       }
 
       console.log("Final update payload:", updates);
