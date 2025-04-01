@@ -11,9 +11,7 @@ export default function Footer() {
             <Link to="/" className="flex items-center">
               <span className="text-2xl font-serif font-bold"><span className="text-primary">Lavanya</span></span>
             </Link>
-            <p className="text-muted-foreground">
-              Premium beauty services for your special events. We make you glow on your big day.
-            </p>
+            <p className="text-muted-foreground">Premium beauty & makeup services for your special events. We make you glow on your big day.</p>
             <div className="flex items-center space-x-4 pt-2">
               <a href="#" className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" aria-label="Instagram">
                 <Instagram size={18} />
