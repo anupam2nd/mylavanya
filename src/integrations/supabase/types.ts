@@ -131,39 +131,45 @@ export type Database = {
       }
       PriceMST: {
         Row: {
-          active: boolean
-          created_at: string
+          active: boolean | null
+          Category: string | null
+          created_at: string | null
           Description: string | null
           Discount: number | null
           NetPayable: number | null
-          Price: number
+          Price: number | null
           prod_id: number
           ProductName: string | null
-          Services: string
+          Scheme: string | null
+          Services: string | null
           Subservice: string | null
         }
         Insert: {
-          active?: boolean
-          created_at?: string
+          active?: boolean | null
+          Category?: string | null
+          created_at?: string | null
           Description?: string | null
           Discount?: number | null
           NetPayable?: number | null
-          Price: number
+          Price?: number | null
           prod_id?: number
           ProductName?: string | null
-          Services?: string
+          Scheme?: string | null
+          Services?: string | null
           Subservice?: string | null
         }
         Update: {
-          active?: boolean
-          created_at?: string
+          active?: boolean | null
+          Category?: string | null
+          created_at?: string | null
           Description?: string | null
           Discount?: number | null
           NetPayable?: number | null
-          Price?: number
+          Price?: number | null
           prod_id?: number
           ProductName?: string | null
-          Services?: string
+          Scheme?: string | null
+          Services?: string | null
           Subservice?: string | null
         }
         Relationships: []

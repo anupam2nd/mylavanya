@@ -23,6 +23,9 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       // Prepare updates with all fields that might change
       const updates: Partial<Booking> = {};
       
+      // Always update StatusUpdated timestamp on any edit
+      updates.StatusUpdated = new Date().toISOString();
+      
       // Basic booking details
       if (values.date) {
         updates.Booking_date = format(values.date, 'yyyy-MM-dd');
@@ -32,8 +35,6 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       }
       if (values.status !== editBooking.Status) {
         updates.Status = values.status;
-        // Update StatusUpdated timestamp whenever status changes
-        updates.StatusUpdated = new Date().toISOString();
       }
       
       // Service details
@@ -43,6 +44,8 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       if (values.subService && values.subService !== editBooking.SubService) {
         updates.SubService = values.subService;
       }
+
+      // Product details - using ProductName as unique key
       if (values.product && values.product !== editBooking.ProductName) {
         updates.ProductName = values.product;
         
@@ -52,10 +55,8 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
             .from('PriceMST')
             .select('NetPayable, prod_id')
             .eq('ProductName', values.product)
-            .eq('Services', values.service || editBooking.ServiceName || '')
-            .eq('Subservice', values.subService || editBooking.SubService || '')
             .eq('active', true)
-            .single();
+            .maybeSingle();
           
           if (priceData) {
             updates.price = priceData.NetPayable || priceData.NetPayable === 0 ? priceData.NetPayable : null;
@@ -89,7 +90,7 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
             .from('ArtistMST')
             .select('ArtistFirstName, ArtistLastName')
             .eq('ArtistId', values.artistId)
-            .single();
+            .maybeSingle();
           
           if (artistData) {
             const artistName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim();
@@ -99,13 +100,13 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
           console.error('Error fetching artist details:', error);
         }
         
-        // If status is changing to beautician_assigned, update AssignedON
-        if (values.status === 'beautician_assigned' && editBooking.Status !== 'beautician_assigned') {
-          updates.AssingnedON = new Date().toISOString();
-        }
-        
         // Set AssignedBY to current user's username or "admin" as fallback
         updates.AssignedBY = values.currentUser?.Username || 'admin';
+      }
+      
+      // Only update AssingnedON if status is changing to beautician_assigned
+      if (values.status === 'beautician_assigned' && editBooking.Status !== 'beautician_assigned') {
+        updates.AssingnedON = new Date().toISOString();
       }
 
       console.log("Updating booking with id:", editBooking.id, "Updates:", updates);
