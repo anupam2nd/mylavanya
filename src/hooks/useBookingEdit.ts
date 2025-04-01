@@ -48,9 +48,15 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
         updates.Pincode = parseInt(values.pincode, 10);
       }
       
-      // Quantity update - only update quantity, not price
+      // Quantity and price update
       if (values.quantity && values.quantity !== editBooking.Qty) {
         updates.Qty = values.quantity;
+        
+        // Calculate the updated price based on the new quantity
+        if (editBooking.price !== undefined && editBooking.Qty !== undefined) {
+          const unitPrice = editBooking.price / editBooking.Qty;
+          updates.price = unitPrice * values.quantity;
+        }
       }
 
       // Artist assignment
@@ -118,6 +124,10 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       
       if (updates.Qty !== undefined && updates.Qty !== null) {
         updates.Qty = Number(updates.Qty);
+      }
+      
+      if (updates.price !== undefined && updates.price !== null) {
+        updates.price = Number(updates.price);
       }
 
       console.log("Final update payload:", updates);
