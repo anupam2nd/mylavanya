@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
@@ -124,7 +125,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         : selectedProductDetails.Price;
 
       // Create new booking record with same booking_no but new job
-      const newBookingData = {
+      const newBookingData: any = {
         Booking_NO: booking.Booking_NO,
         name: booking.name,
         email: booking.email,
@@ -137,8 +138,8 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         ServiceName: selectedProductDetails.Services,
         SubService: selectedProductDetails.Subservice,
         ProductName: product,
+        // Only include one reference to the product ID to avoid schema cache issues
         Product: selectedProductDetails.prod_id,
-        prod_id: selectedProductDetails.prod_id,
         Scheme: selectedProductDetails.Scheme,
         price: price,
         Qty: qty,
@@ -154,7 +155,10 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Insert error details:', insertError);
+        throw insertError;
+      }
 
       toast({
         title: "Job created successfully",
