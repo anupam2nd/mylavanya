@@ -52,10 +52,56 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       if (values.quantity && values.quantity !== editBooking.Qty) {
         updates.Qty = values.quantity;
         
-        // Calculate the updated price based on the new quantity
-        if (editBooking.price !== undefined && editBooking.Qty !== undefined) {
-          const unitPrice = editBooking.price / editBooking.Qty;
-          updates.price = unitPrice * values.quantity;
+        // Fetch the NetPayable price from PriceMST for this product and calculate the total price
+        if (editBooking.prod_id) {
+          try {
+            const { data: priceData, error: priceError } = await supabase
+              .from('PriceMST')
+              .select('NetPayable')
+              .eq('prod_id', editBooking.prod_id)
+              .maybeSingle();
+            
+            if (priceError) {
+              console.error('Error fetching product price:', priceError);
+              throw priceError;
+            }
+            
+            if (priceData && priceData.NetPayable) {
+              const unitPrice = priceData.NetPayable;
+              updates.price = unitPrice * values.quantity;
+              console.log(`Price calculated: ${unitPrice} × ${values.quantity} = ${updates.price}`);
+            } else {
+              console.warn('No price found for product ID:', editBooking.prod_id);
+              
+              // Fallback to existing price calculation if no product price found
+              if (editBooking.price !== undefined && editBooking.Qty !== undefined) {
+                const unitPrice = editBooking.price / editBooking.Qty;
+                updates.price = unitPrice * values.quantity;
+                console.log(`Fallback price calculated: ${unitPrice} × ${values.quantity} = ${updates.price}`);
+              }
+            }
+          } catch (error) {
+            console.error('Error calculating price from PriceMST:', error);
+            toast({
+              title: "Price calculation warning",
+              description: "Could not retrieve product price. Using estimated calculation.",
+              variant: "destructive"
+            });
+            
+            // Use fallback calculation
+            if (editBooking.price !== undefined && editBooking.Qty !== undefined) {
+              const unitPrice = editBooking.price / editBooking.Qty;
+              updates.price = unitPrice * values.quantity;
+            }
+          }
+        } else {
+          console.warn('No product ID available for price lookup');
+          
+          // Fallback to existing price calculation if no product ID
+          if (editBooking.price !== undefined && editBooking.Qty !== undefined) {
+            const unitPrice = editBooking.price / editBooking.Qty;
+            updates.price = unitPrice * values.quantity;
+          }
         }
       }
 
