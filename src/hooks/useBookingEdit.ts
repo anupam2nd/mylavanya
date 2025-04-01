@@ -51,16 +51,25 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
         
         // Fetch and update price from PriceMST when product changes
         try {
-          const { data: priceData } = await supabase
+          console.log("Fetching price for product:", values.product);
+          const { data: priceData, error: priceError } = await supabase
             .from('PriceMST')
             .select('NetPayable, prod_id')
             .eq('ProductName', values.product)
             .eq('active', true)
             .maybeSingle();
           
+          if (priceError) {
+            console.error('Error fetching product price:', priceError);
+            throw priceError;
+          }
+          
           if (priceData) {
+            console.log("Found price data:", priceData);
             updates.price = priceData.NetPayable || priceData.NetPayable === 0 ? priceData.NetPayable : null;
             updates.prod_id = priceData.prod_id;
+          } else {
+            console.warn("No price data found for product:", values.product);
           }
         } catch (error) {
           console.error('Error fetching product price:', error);
@@ -86,11 +95,16 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
         
         // Fetch artist name from ArtistMST
         try {
-          const { data: artistData } = await supabase
+          const { data: artistData, error: artistError } = await supabase
             .from('ArtistMST')
             .select('ArtistFirstName, ArtistLastName')
             .eq('ArtistId', values.artistId)
             .maybeSingle();
+          
+          if (artistError) {
+            console.error('Error fetching artist details:', artistError);
+            throw artistError;
+          }
           
           if (artistData) {
             const artistName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim();
