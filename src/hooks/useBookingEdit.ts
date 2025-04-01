@@ -66,14 +66,16 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
             try {
               const { data: artistData, error: artistError } = await supabase
                 .from('ArtistMST')
-                .select('fullName, id')
-                .eq('id', values.artistId)
+                .select('ArtistFirstName, ArtistLastName, ArtistId')
+                .eq('ArtistId', values.artistId)
                 .single();
                 
               if (!artistError && artistData) {
-                updates.ArtistName = artistData.fullName;
-                updates.ArtistId = artistData.id;
-                console.log(`Assigning artist ${artistData.fullName} to booking`);
+                // Construct full name from first and last name fields
+                const artistFullName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim();
+                updates.ArtistName = artistFullName;
+                updates.ArtistId = artistData.ArtistId;
+                console.log(`Assigning artist ${artistFullName} to booking`);
               }
             } catch (error) {
               console.error('Error fetching artist details:', error);
@@ -86,7 +88,7 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
           // Debug the currentUser object to see what's available
           console.log("Current User data for AssignedBY:", JSON.stringify(values.currentUser));
           
-          // Use the user's role as AssignedBY
+          // Use the user's role as AssignedBY, ensuring we use the correct property
           if (values.currentUser.role) {
             updates.AssignedBY = values.currentUser.role;
             console.log("Setting AssignedBY to user role:", updates.AssignedBY);
