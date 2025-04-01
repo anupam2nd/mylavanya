@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Clock, CalendarIcon } from "lucide-react";
@@ -60,6 +61,12 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
   const [originalPrice, setOriginalPrice] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [priceData, setPriceData] = useState<{
+    Price?: number;
+    NetPayable?: number | null;
+    Discount?: number | null;
+    ProductName?: string;
+  } | null>(null);
   
   const form = useForm<EditBookingFormValues>({
     resolver: zodResolver(editBookingFormSchema),
@@ -75,20 +82,20 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   });
 
   const watchStatus = form.watch("status");
-  const watchQuantity = form.watch("quantity");
+  const watchQuantity = form.watch("quantity", 1);
 
-  // Fetch price data when editBooking changes or quantity changes
+  // Fetch price data when editBooking changes
   useEffect(() => {
     const fetchPriceData = async () => {
       if (!editBooking || !editBooking.prod_id) return;
       
       setLoading(true);
       try {
-        console.log("Fetching price data for product:", editBooking.ProductName);
+        console.log("Fetching price data for product:", editBooking.ProductName, "ID:", editBooking.prod_id);
         
         const { data, error } = await supabase
           .from('PriceMST')
-          .select('Price, NetPayable, Discount')
+          .select('Price, NetPayable, Discount, ProductName')
           .eq('prod_id', editBooking.prod_id)
           .maybeSingle();
           
@@ -99,6 +106,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
         
         if (data) {
           console.log("Price data from PriceMST:", data);
+          setPriceData(data);
           
           // Use Price as base and apply discount
           const basePrice = data.Price;
@@ -114,13 +122,13 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
           }
           
           setOriginalPrice(finalPrice);
-          setCalculatedPrice(finalPrice * (watchQuantity || 1));
+          setCalculatedPrice(finalPrice * watchQuantity);
           
           console.log("Price calculations:", {
             basePrice,
             finalUnitPrice: finalPrice,
-            quantity: watchQuantity || 1,
-            totalPrice: finalPrice * (watchQuantity || 1)
+            quantity: watchQuantity,
+            totalPrice: finalPrice * watchQuantity
           });
         } else {
           // Fallback to current price in booking
@@ -128,7 +136,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
           if (editBooking.price && editBooking.Qty) {
             const unitPrice = editBooking.price / editBooking.Qty;
             setOriginalPrice(unitPrice);
-            setCalculatedPrice(unitPrice * (watchQuantity || 1));
+            setCalculatedPrice(unitPrice * watchQuantity);
           }
         }
       } catch (err) {
@@ -139,7 +147,19 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
     };
     
     fetchPriceData();
-  }, [editBooking, watchQuantity]);
+  }, [editBooking]);
+
+  // Recalculate price when quantity changes
+  useEffect(() => {
+    if (originalPrice !== null) {
+      setCalculatedPrice(originalPrice * watchQuantity);
+      console.log("Recalculating price due to quantity change:", {
+        unitPrice: originalPrice,
+        quantity: watchQuantity,
+        newTotal: originalPrice * watchQuantity
+      });
+    }
+  }, [watchQuantity, originalPrice]);
 
   // Fetch available artists
   useEffect(() => {
@@ -261,16 +281,28 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                         <div className="space-y-1 mt-2">
                           <div className="flex justify-between text-sm">
                             <span className="font-medium">Unit Price:</span>
-                            <span>₹{originalPrice !== null ? originalPrice.toFixed(2) : "N/A"}</span>
+                            <span>{originalPrice !== null ? `₹${originalPrice.toFixed(2)}` : "N/A"}</span>
                           </div>
                           <div className="flex justify-between text-sm font-semibold">
                             <span>Total Price:</span>
-                            <span>₹{calculatedPrice !== null ? calculatedPrice.toFixed(2) : (editBooking.price || 0).toFixed(2)}</span>
+                            <span className="text-primary">
+                              {calculatedPrice !== null ? `₹${calculatedPrice.toFixed(2)}` : (editBooking.price || 0).toFixed(2)}
+                            </span>
                           </div>
                         </div>
-                        {editBooking.prod_id ? (
+                        {priceData ? (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {priceData.NetPayable !== null && priceData.NetPayable !== undefined ? (
+                              <p>Using special price from database: ₹{priceData.NetPayable}</p>
+                            ) : priceData.Discount ? (
+                              <p>Price after {priceData.Discount}% discount from ₹{priceData.Price}</p>
+                            ) : (
+                              <p>Original price from database: ₹{priceData.Price}</p>
+                            )}
+                          </div>
+                        ) : editBooking.prod_id ? (
                           <p className="text-xs text-muted-foreground mt-1">
-                            Price based on product configuration in database (ID: {editBooking.prod_id})
+                            Using product ID: {editBooking.prod_id}
                           </p>
                         ) : (
                           <p className="text-xs text-muted-foreground mt-1">
