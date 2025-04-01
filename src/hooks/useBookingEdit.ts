@@ -105,20 +105,12 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
         }
       }
 
-      // Artist assignment
-      const assignmentStatuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done'];
+      // Artist assignment - Fixed to handle all statuses that require artist assignment
+      const assignmentStatuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done', 'OnTheway', 'Start'];
       const requiresArtist = assignmentStatuses.includes(values.status);
       
-      if (requiresArtist) {
-        if (!values.artistId) {
-          toast({
-            title: "Artist required",
-            description: "Please select an artist for this status",
-            variant: "destructive"
-          });
-          return;
-        }
-        
+      if (requiresArtist && values.artistId) {
+        // Always update artist ID when a valid artist is selected for relevant statuses
         updates.ArtistId = values.artistId;
         
         // Fetch artist name from ArtistMST
@@ -158,7 +150,10 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
         }
         
         // Set AssignedON to current timestamp if status is changing to one requiring artist
-        if (!editBooking.ArtistId || editBooking.Status !== values.status) {
+        // or if artist is changing
+        if (!editBooking.ArtistId || 
+            editBooking.Status !== values.status || 
+            editBooking.ArtistId !== values.artistId) {
           updates.AssingnedON = new Date().toISOString();
         }
       }
