@@ -63,6 +63,7 @@ const AdminBookings = () => {
           const userId = parseInt(authSession.session.user.id, 10);
           
           if (!isNaN(userId)) {
+            // Explicitly select the fields we need for AssignedBY
             const { data, error } = await supabase
               .from('UserMST')
               .select('Username, FirstName, LastName')
@@ -74,6 +75,15 @@ const AdminBookings = () => {
               setCurrentUser(data);
             } else {
               console.error("Error fetching user data:", error);
+              // Attempt to recover if we have a username in the session data
+              const email = authSession.session.user.email;
+              if (email) {
+                setCurrentUser({
+                  Username: email.split('@')[0],
+                  FirstName: '',
+                  LastName: ''
+                });
+              }
             }
           } else {
             console.error("Invalid user ID format:", authSession.session.user.id);
