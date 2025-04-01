@@ -5,13 +5,19 @@ interface TotalAmountProps {
   amount: number;
   originalAmount?: number;
   loading?: boolean;
+  className?: string;
 }
 
-const TotalAmount = ({ amount, originalAmount, loading = false }: TotalAmountProps) => {
+const TotalAmount = ({ 
+  amount, 
+  originalAmount, 
+  loading = false,
+  className = "" 
+}: TotalAmountProps) => {
   const hasDiscount = originalAmount && originalAmount > amount;
 
   return (
-    <div className="col-span-2 mt-4 flex justify-end">
+    <div className={`col-span-2 mt-4 flex justify-end ${className}`}>
       <div className="bg-primary/5 p-3 rounded-md border border-primary/10">
         <p className="text-sm font-medium text-gray-500">Total Amount</p>
         {loading ? (

@@ -36,6 +36,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import TotalAmount from "@/components/tracking/TotalAmount";
 import { cn } from "@/lib/utils";
 import { editBookingFormSchema, EditBookingFormValues } from "./EditBookingFormSchema";
 import { Booking } from "@/hooks/useBookings";
@@ -109,7 +110,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
           setPriceData(data);
           
           // Use Price as base and apply discount
-          const basePrice = data.Price;
+          const basePrice = data.Price || 0;
           let finalPrice = basePrice;
           
           if (data.Discount && data.Discount > 0) {
@@ -272,45 +273,26 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                       )}
                     />
                     
-                    {loading ? (
-                      <p className="text-sm italic text-muted-foreground mt-2">
-                        Calculating price...
-                      </p>
-                    ) : (
-                      <>
-                        <div className="space-y-1 mt-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="font-medium">Unit Price:</span>
-                            <span>{originalPrice !== null ? `₹${originalPrice.toFixed(2)}` : "N/A"}</span>
-                          </div>
-                          <div className="flex justify-between text-sm font-semibold">
-                            <span>Total Price:</span>
-                            <span className="text-primary">
-                              {calculatedPrice !== null ? `₹${calculatedPrice.toFixed(2)}` : (editBooking.price || 0).toFixed(2)}
-                            </span>
-                          </div>
+                    {/* Price display area */}
+                    <div className="mt-3">
+                      <TotalAmount 
+                        amount={calculatedPrice || 0} 
+                        loading={loading}
+                        className=""
+                      />
+                      
+                      {priceData && !loading && (
+                        <div className="text-xs text-muted-foreground mt-1 text-center">
+                          {priceData.NetPayable !== null && priceData.NetPayable !== undefined ? (
+                            <p>Unit price: ₹{originalPrice?.toFixed(2)} × {watchQuantity} = ₹{calculatedPrice?.toFixed(2)}</p>
+                          ) : priceData.Discount ? (
+                            <p>Unit price after {priceData.Discount}% discount: ₹{originalPrice?.toFixed(2)}</p>
+                          ) : (
+                            <p>Unit price: ₹{originalPrice?.toFixed(2)}</p>
+                          )}
                         </div>
-                        {priceData ? (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {priceData.NetPayable !== null && priceData.NetPayable !== undefined ? (
-                              <p>Using special price from database: ₹{priceData.NetPayable}</p>
-                            ) : priceData.Discount ? (
-                              <p>Price after {priceData.Discount}% discount from ₹{priceData.Price}</p>
-                            ) : (
-                              <p>Original price from database: ₹{priceData.Price}</p>
-                            )}
-                          </div>
-                        ) : editBooking.prod_id ? (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Using product ID: {editBooking.prod_id}
-                          </p>
-                        ) : (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            No product ID available. Using existing price.
-                          </p>
-                        )}
-                      </>
-                    )}
+                      )}
+                    </div>
                   </div>
                 )}
 
