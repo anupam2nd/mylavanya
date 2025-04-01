@@ -43,6 +43,12 @@ interface ProductOption {
   Scheme: string | null;
 }
 
+interface ArtistOption {
+  ArtistId: number;
+  ArtistFirstName: string | null;
+  ArtistLastName: string | null;
+}
+
 interface NewJobDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -62,8 +68,12 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
   const [address, setAddress] = useState<string>("");
   const [pincode, setPincode] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<string>("pending");
+  const [artistId, setArtistId] = useState<number | null>(null);
   
   const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
+  const [artistOptions, setArtistOptions] = useState<ArtistOption[]>([]);
+  const [statusOptions, setStatusOptions] = useState<{status_code: string, status_name: string}[]>([]);
 
   useEffect(() => {
     if (booking) {
@@ -75,6 +85,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     }
   }, [booking]);
 
+  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -95,6 +106,47 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     fetchProducts();
   }, []);
 
+  // Fetch artists
+  useEffect(() => {
+    const fetchArtists = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('ArtistMST')
+          .select('ArtistId, ArtistFirstName, ArtistLastName')
+          .eq('Active', true);
+
+        if (error) throw error;
+        
+        setArtistOptions(data || []);
+      } catch (error) {
+        console.error('Error fetching artists:', error);
+      }
+    };
+
+    fetchArtists();
+  }, []);
+
+  // Fetch status options
+  useEffect(() => {
+    const fetchStatusOptions = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('statusmst')
+          .select('status_code, status_name')
+          .eq('active', true)
+          .order('id');
+
+        if (error) throw error;
+        
+        setStatusOptions(data || []);
+      } catch (error) {
+        console.error('Error fetching status options:', error);
+      }
+    };
+
+    fetchStatusOptions();
+  }, []);
+
   // Update selectedProductDetails when product changes
   useEffect(() => {
     if (product) {
@@ -108,11 +160,37 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     }
   }, [product, productOptions]);
 
+  // Check if status requires artist assignment
+  const requiresArtist = (statusValue: string): boolean => {
+    const artistRequiredStatuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done'];
+    return artistRequiredStatuses.includes(statusValue);
+  };
+
+  const getArtistName = (id: number): string => {
+    const artist = artistOptions.find(a => a.ArtistId === id);
+    if (!artist) return `Artist ${id}`;
+    
+    const firstName = artist.ArtistFirstName || '';
+    const lastName = artist.ArtistLastName || '';
+    
+    return `${firstName} ${lastName}`.trim();
+  };
+
   const handleSubmit = async () => {
     if (!booking || !date || !time || !product || !selectedProductDetails) {
       toast({
         title: "Missing information",
         description: "Please fill all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if artist is required but not selected
+    if (requiresArtist(status) && !artistId) {
+      toast({
+        title: "Artist required",
+        description: "Please select an artist for this status",
         variant: "destructive"
       });
       return;
@@ -165,9 +243,18 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         Scheme: selectedProductDetails.Scheme,
         price: price,
         Qty: qty,
-        Status: 'pending',
+        Status: status,
         jobno: nextJobNo,
       };
+
+      // Add artist assignment fields if required
+      if (requiresArtist(status) && artistId) {
+        newBookingData.ArtistId = artistId;
+        newBookingData.Assignedto = getArtistName(artistId);
+        newBookingData.AssignedBY = currentUser?.Username || 'admin';
+        newBookingData.AssingnedON = new Date().toISOString();
+        newBookingData.StatusUpdated = new Date().toISOString();
+      }
 
       console.log("Creating new job with data:", newBookingData);
 
@@ -360,6 +447,57 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
                   />
                 </div>
               </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">
+                  Status
+                </Label>
+                <div className="col-span-3">
+                  <Select
+                    value={status}
+                    onValueChange={setStatus}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((option) => (
+                        <SelectItem key={option.status_code} value={option.status_code}>
+                          {option.status_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {requiresArtist(status) && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="artist" className="text-right">
+                    Assigned Artist
+                  </Label>
+                  <div className="col-span-3">
+                    <Select
+                      value={artistId ? String(artistId) : ""}
+                      onValueChange={(value) => setArtistId(parseInt(value, 10))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an artist" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {artistOptions.map((artist) => (
+                          <SelectItem key={artist.ArtistId} value={String(artist.ArtistId)}>
+                            {`${artist.ArtistFirstName || ""} ${artist.ArtistLastName || ""}`.trim() || `Artist ${artist.ArtistId}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Artist assignment is required for this status
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </ScrollArea>
@@ -368,7 +506,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
           <Button 
             type="submit" 
             onClick={handleSubmit}
-            disabled={isSubmitting || !product || !date || !time}
+            disabled={isSubmitting || !product || !date || !time || (requiresArtist(status) && !artistId)}
           >
             {isSubmitting ? "Creating..." : "Create New Job"}
           </Button>
