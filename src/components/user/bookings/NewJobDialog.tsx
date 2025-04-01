@@ -124,6 +124,27 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         ? selectedProductDetails.NetPayable 
         : selectedProductDetails.Price;
 
+      // Find the highest job number for this booking
+      const { data: existingJobs, error: queryError } = await supabase
+        .from('BookMST')
+        .select('jobno')
+        .eq('Booking_NO', booking.Booking_NO)
+        .order('jobno', { ascending: false })
+        .limit(1);
+
+      if (queryError) {
+        console.error('Error fetching existing jobs:', queryError);
+        throw queryError;
+      }
+      
+      // Calculate the next job number
+      const highestJobNo = existingJobs && existingJobs.length > 0 && existingJobs[0].jobno !== null 
+        ? Number(existingJobs[0].jobno) 
+        : 0;
+        
+      const nextJobNo = highestJobNo + 1;
+      console.log("Creating new job with job number:", nextJobNo);
+
       // Create new booking record with same booking_no but new job
       const newBookingData: any = {
         Booking_NO: booking.Booking_NO,
@@ -138,12 +159,12 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         ServiceName: selectedProductDetails.Services,
         SubService: selectedProductDetails.Subservice,
         ProductName: product,
-        // Only include one reference to the product ID to avoid schema cache issues
         Product: selectedProductDetails.prod_id,
         Scheme: selectedProductDetails.Scheme,
         price: price,
         Qty: qty,
         Status: 'pending',
+        jobno: nextJobNo,
       };
 
       console.log("Creating new job with data:", newBookingData);
