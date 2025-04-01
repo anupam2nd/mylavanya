@@ -28,6 +28,7 @@ export interface Booking {
   ArtistId?: number;
   created_at?: string;
   prod_id?: number; // Added this field to match with database schema
+  Scheme?: string;  // Added Scheme property to resolve TypeScript errors
 }
 
 export const useBookings = () => {
