@@ -31,7 +31,7 @@ const TotalAmount = ({
             <p className="text-xl font-bold text-primary">₹{amount.toFixed(2)}</p>
           </div>
         ) : (
-          <p className="text-xl font-bold">₹{amount.toFixed(2)}</p>
+          <p className="text-xl font-bold">₹{amount ? amount.toFixed(2) : '0.00'}</p>
         )}
       </div>
     </div>

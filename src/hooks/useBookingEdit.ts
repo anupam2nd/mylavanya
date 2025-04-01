@@ -48,7 +48,7 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
         updates.Pincode = parseInt(values.pincode, 10);
       }
       
-      // Quantity and Price update - simplified logic
+      // Quantity and Price update
       if (values.quantity && values.quantity !== editBooking.Qty) {
         updates.Qty = values.quantity;
         

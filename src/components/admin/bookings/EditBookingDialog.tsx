@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Clock, CalendarIcon } from "lucide-react";
@@ -60,14 +61,8 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   const [artists, setArtists] = useState<{ ArtistId: number; displayName: string }[]>([]);
   const [requiresArtist, setRequiresArtist] = useState(false);
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
-  const [originalPrice, setOriginalPrice] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [priceData, setPriceData] = useState<{
-    Price?: number;
-    NetPayable?: number | null;
-    Discount?: number | null;
-    ProductName?: string;
-  } | null>(null);
+  const [unitPrice, setUnitPrice] = useState<number | null>(null);
   
   const form = useForm<EditBookingFormValues>({
     resolver: zodResolver(editBookingFormSchema),
@@ -85,17 +80,18 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   const watchStatus = form.watch("status");
   const watchQuantity = form.watch("quantity", 1);
 
+  // Fetch price data when booking changes or quantity changes
   useEffect(() => {
     const fetchPriceData = async () => {
       if (!editBooking || !editBooking.prod_id) return;
       
       setLoading(true);
       try {
-        console.log("Fetching price data for product:", editBooking.ProductName, "ID:", editBooking.prod_id);
+        console.log("Fetching price data for product:", editBooking.prod_id);
         
         const { data, error } = await supabase
           .from('PriceMST')
-          .select('NetPayable, ProductName')
+          .select('NetPayable')
           .eq('prod_id', editBooking.prod_id)
           .maybeSingle();
           
@@ -106,24 +102,18 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
         
         if (data && data.NetPayable) {
           console.log("Price data from PriceMST:", data);
-          setPriceData(data);
-          
-          const unitPrice = data.NetPayable;
-          setOriginalPrice(unitPrice);
-          setCalculatedPrice(unitPrice * watchQuantity);
+          setUnitPrice(data.NetPayable);
+          setCalculatedPrice(data.NetPayable * watchQuantity);
           
           console.log("Price calculation:", {
-            unitPrice,
+            unitPrice: data.NetPayable,
             quantity: watchQuantity,
-            totalPrice: unitPrice * watchQuantity
+            totalPrice: data.NetPayable * watchQuantity
           });
         } else {
-          console.log("No price data found, using fallback");
-          if (editBooking.price && editBooking.Qty) {
-            const unitPrice = editBooking.price / editBooking.Qty;
-            setOriginalPrice(unitPrice);
-            setCalculatedPrice(unitPrice * watchQuantity);
-          }
+          console.log("No price data found");
+          setCalculatedPrice(0);
+          setUnitPrice(0);
         }
       } catch (err) {
         console.error("Error calculating price:", err);
@@ -135,16 +125,17 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
     fetchPriceData();
   }, [editBooking]);
 
+  // Recalculate price when quantity changes
   useEffect(() => {
-    if (watchQuantity !== 1) {
-      setCalculatedPrice(originalPrice * watchQuantity);
+    if (unitPrice !== null) {
+      setCalculatedPrice(unitPrice * watchQuantity);
       console.log("Recalculating price due to quantity change:", {
-        unitPrice: originalPrice,
+        unitPrice,
         quantity: watchQuantity,
-        newTotal: originalPrice * watchQuantity
+        newTotal: unitPrice * watchQuantity
       });
     }
-  }, [watchQuantity, originalPrice]);
+  }, [watchQuantity, unitPrice]);
 
   useEffect(() => {
     const fetchArtists = async () => {
@@ -170,11 +161,13 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
     fetchArtists();
   }, []);
 
+  // Check if artist assignment is required based on status
   useEffect(() => {
     const statuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done'];
     setRequiresArtist(statuses.includes(watchStatus));
   }, [watchStatus]);
 
+  // Reset form when booking changes
   useEffect(() => {
     if (editBooking) {
       form.reset({
@@ -191,7 +184,23 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
 
   const onSubmit = (data: EditBookingFormValues) => {
     console.log("Submitting form data:", data);
-    handleSaveChanges(data);
+    
+    // Check if artist is required but not selected
+    if (requiresArtist && !data.artistId) {
+      form.setError("artistId", { 
+        type: "manual", 
+        message: "Artist selection is required for this status" 
+      });
+      return;
+    }
+    
+    // Add calculated price to the data
+    const dataWithPrice = {
+      ...data,
+      calculatedPrice: calculatedPrice || 0
+    };
+    
+    handleSaveChanges(dataWithPrice);
   };
 
   return (
@@ -261,9 +270,9 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                         className=""
                       />
                       
-                      {priceData?.NetPayable && !loading && (
+                      {unitPrice !== null && !loading && (
                         <div className="text-xs text-muted-foreground mt-1 text-center">
-                          <p>Unit price: ₹{originalPrice?.toFixed(2)} × {watchQuantity} = ₹{calculatedPrice?.toFixed(2)}</p>
+                          <p>Unit price: ₹{unitPrice.toFixed(2)} × {watchQuantity} = ₹{calculatedPrice?.toFixed(2)}</p>
                         </div>
                       )}
                     </div>
