@@ -37,7 +37,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import TotalAmount from "@/components/tracking/TotalAmount";
 import { cn } from "@/lib/utils";
 import { editBookingFormSchema, EditBookingFormValues } from "./EditBookingFormSchema";
 import { Booking } from "@/hooks/useBookings";
@@ -60,9 +59,6 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
 }) => {
   const [artists, setArtists] = useState<{ ArtistId: number; displayName: string }[]>([]);
   const [requiresArtist, setRequiresArtist] = useState(false);
-  const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [unitPrice, setUnitPrice] = useState<number | null>(null);
   
   const form = useForm<EditBookingFormValues>({
     resolver: zodResolver(editBookingFormSchema),
@@ -79,71 +75,6 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
 
   const watchStatus = form.watch("status");
   const watchQuantity = form.watch("quantity", 1);
-
-  // Fetch price data when booking changes
-  useEffect(() => {
-    const fetchPriceData = async () => {
-      if (!editBooking || !editBooking.prod_id) return;
-      
-      setLoading(true);
-      try {
-        console.log("Fetching price data for product:", editBooking.prod_id);
-        
-        const { data, error } = await supabase
-          .from('PriceMST')
-          .select('NetPayable')
-          .eq('prod_id', editBooking.prod_id)
-          .maybeSingle();
-          
-        if (error) {
-          console.error('Error fetching price:', error);
-          return;
-        }
-        
-        if (data && data.NetPayable !== null) {
-          console.log("Price data from PriceMST:", data);
-          const netPayable = parseFloat(data.NetPayable);
-          setUnitPrice(netPayable);
-          
-          // Fix for TypeScript error - ensure quantity is treated as a number
-          const qty = watchQuantity;
-          const total = netPayable * (typeof qty === 'string' ? parseInt(qty, 10) : qty);
-          setCalculatedPrice(total);
-          
-          console.log("Price calculation:", {
-            unitPrice: netPayable,
-            quantity: qty,
-            totalPrice: total
-          });
-        } else {
-          console.log("No price data found or NetPayable is null");
-          setCalculatedPrice(0);
-          setUnitPrice(0);
-        }
-      } catch (err) {
-        console.error("Error calculating price:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchPriceData();
-  }, [editBooking, watchQuantity]);
-
-  // Recalculate price when quantity changes
-  useEffect(() => {
-    if (unitPrice !== null) {
-      const qty = watchQuantity < 1 ? 1 : watchQuantity;
-      // Fix for TypeScript error - ensure quantity is treated as a number
-      const total = unitPrice * (typeof qty === 'string' ? parseInt(qty, 10) : qty);
-      setCalculatedPrice(total);
-      console.log("Recalculating price due to quantity change:", {
-        unitPrice,
-        quantity: qty,
-        newTotal: total
-      });
-    }
-  }, [watchQuantity, unitPrice]);
 
   useEffect(() => {
     const fetchArtists = async () => {
@@ -202,13 +133,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
       return;
     }
     
-    // Add calculated price to the data
-    const dataWithPrice = {
-      ...data,
-      calculatedPrice: calculatedPrice || 0
-    };
-    
-    handleSaveChanges(dataWithPrice);
+    handleSaveChanges(data);
   };
 
   return (
@@ -270,20 +195,6 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                         </FormItem>
                       )}
                     />
-                    
-                    <div className="mt-3">
-                      <TotalAmount 
-                        amount={calculatedPrice || 0} 
-                        loading={loading}
-                        className=""
-                      />
-                      
-                      {unitPrice !== null && !loading && (
-                        <div className="text-xs text-muted-foreground mt-1 text-center">
-                          <p>Unit price: ₹{unitPrice.toFixed(2)} × {watchQuantity} = ₹{calculatedPrice?.toFixed(2)}</p>
-                        </div>
-                      )}
-                    </div>
                   </div>
                 )}
                 

@@ -48,35 +48,9 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
         updates.Pincode = parseInt(values.pincode, 10);
       }
       
-      // Quantity and Price update
+      // Quantity update - only update quantity, not price
       if (values.quantity && values.quantity !== editBooking.Qty) {
         updates.Qty = values.quantity;
-        
-        // If we have the product ID, fetch the price from PriceMST
-        if (editBooking.prod_id) {
-          console.log("Fetching price data for prod_id:", editBooking.prod_id);
-          
-          // Fetch the price from PriceMST table
-          const { data: priceData, error: priceError } = await supabase
-            .from('PriceMST')
-            .select('NetPayable')
-            .eq('prod_id', editBooking.prod_id)
-            .maybeSingle();
-          
-          if (priceError) {
-            console.error('Error fetching price details:', priceError);
-          } else if (priceData && priceData.NetPayable) {
-            // Simple calculation: Price = NetPayable * Quantity
-            updates.price = priceData.NetPayable * values.quantity;
-            console.log("Price calculation:", {
-              unitPrice: priceData.NetPayable,
-              quantity: values.quantity,
-              totalPrice: updates.price
-            });
-          } else {
-            console.log("No price data found for prod_id:", editBooking.prod_id);
-          }
-        }
       }
 
       // Artist assignment
@@ -144,10 +118,6 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       
       if (updates.Qty !== undefined && updates.Qty !== null) {
         updates.Qty = Number(updates.Qty);
-      }
-      
-      if (updates.price !== undefined && updates.price !== null) {
-        updates.price = Number(updates.price);
       }
 
       console.log("Final update payload:", updates);
