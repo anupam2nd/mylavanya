@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Clock, CalendarIcon } from "lucide-react";
@@ -58,6 +57,9 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
 }) => {
   const [artists, setArtists] = useState<{ ArtistId: number; displayName: string }[]>([]);
   const [requiresArtist, setRequiresArtist] = useState(false);
+  const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
+  const [originalPrice, setOriginalPrice] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
   
   const form = useForm<EditBookingFormValues>({
     resolver: zodResolver(editBookingFormSchema),
@@ -73,6 +75,71 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   });
 
   const watchStatus = form.watch("status");
+  const watchQuantity = form.watch("quantity");
+
+  // Fetch price data when editBooking changes or quantity changes
+  useEffect(() => {
+    const fetchPriceData = async () => {
+      if (!editBooking || !editBooking.prod_id) return;
+      
+      setLoading(true);
+      try {
+        console.log("Fetching price data for product:", editBooking.ProductName);
+        
+        const { data, error } = await supabase
+          .from('PriceMST')
+          .select('Price, NetPayable, Discount')
+          .eq('prod_id', editBooking.prod_id)
+          .maybeSingle();
+          
+        if (error) {
+          console.error('Error fetching price:', error);
+          return;
+        }
+        
+        if (data) {
+          console.log("Price data from PriceMST:", data);
+          
+          // Use Price as base and apply discount
+          const basePrice = data.Price;
+          let finalPrice = basePrice;
+          
+          if (data.Discount && data.Discount > 0) {
+            finalPrice = basePrice - (basePrice * data.Discount / 100);
+          }
+          
+          // Override with NetPayable if available and makes sense
+          if (data.NetPayable !== null && data.NetPayable !== undefined && data.NetPayable > 0) {
+            finalPrice = data.NetPayable;
+          }
+          
+          setOriginalPrice(finalPrice);
+          setCalculatedPrice(finalPrice * (watchQuantity || 1));
+          
+          console.log("Price calculations:", {
+            basePrice,
+            finalUnitPrice: finalPrice,
+            quantity: watchQuantity || 1,
+            totalPrice: finalPrice * (watchQuantity || 1)
+          });
+        } else {
+          // Fallback to current price in booking
+          console.log("No price data found, using fallback");
+          if (editBooking.price && editBooking.Qty) {
+            const unitPrice = editBooking.price / editBooking.Qty;
+            setOriginalPrice(unitPrice);
+            setCalculatedPrice(unitPrice * (watchQuantity || 1));
+          }
+        }
+      } catch (err) {
+        console.error("Error calculating price:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchPriceData();
+  }, [editBooking, watchQuantity]);
 
   // Fetch available artists
   useEffect(() => {
@@ -184,14 +251,34 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                         </FormItem>
                       )}
                     />
-                    <p className="text-sm font-medium mt-2">
-                      Price: ₹{editBooking.price && form.watch("quantity") 
-                        ? (editBooking.price * form.watch("quantity")).toFixed(2) 
-                        : "0.00"}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Service details cannot be modified. To change service, cancel this booking and create a new job.
-                    </p>
+                    
+                    {loading ? (
+                      <p className="text-sm italic text-muted-foreground mt-2">
+                        Calculating price...
+                      </p>
+                    ) : (
+                      <>
+                        <div className="space-y-1 mt-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">Unit Price:</span>
+                            <span>₹{originalPrice !== null ? originalPrice.toFixed(2) : "N/A"}</span>
+                          </div>
+                          <div className="flex justify-between text-sm font-semibold">
+                            <span>Total Price:</span>
+                            <span>₹{calculatedPrice !== null ? calculatedPrice.toFixed(2) : (editBooking.price || 0).toFixed(2)}</span>
+                          </div>
+                        </div>
+                        {editBooking.prod_id ? (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Price based on product configuration in database (ID: {editBooking.prod_id})
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            No product ID available. Using existing price.
+                          </p>
+                        )}
+                      </>
+                    )}
                   </div>
                 )}
 
