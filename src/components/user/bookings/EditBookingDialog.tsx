@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Clock, User, Mail, MapPin, Phone, Package } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, User, Mail, MapPin, Phone, Package, Plus } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Booking } from "@/hooks/useBookings";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ArtistOption {
   ArtistId: number;
@@ -60,6 +62,7 @@ const EditBookingDialog = ({
   statusOptions,
   currentUser
 }: EditBookingDialogProps) => {
+  const { toast } = useToast();
   const [editDate, setEditDate] = useState<Date | undefined>(undefined);
   const [editTime, setEditTime] = useState<string>("");
   const [editStatus, setEditStatus] = useState<string>("");
@@ -67,6 +70,9 @@ const EditBookingDialog = ({
   const [editPincode, setEditPincode] = useState<string>("");
   const [editArtist, setEditArtist] = useState<number | null>(null);
   const [editQty, setEditQty] = useState<number>(1);
+  const [showNewJobDialog, setShowNewJobDialog] = useState<boolean>(false);
+  
+  // These fields are now read-only
   const [editService, setEditService] = useState<string>("");
   const [editSubService, setEditSubService] = useState<string>("");
   const [editProductName, setEditProductName] = useState<string>("");
@@ -95,23 +101,7 @@ const EditBookingDialog = ({
       }
     };
 
-    const fetchServices = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('PriceMST')
-          .select('prod_id, ProductName, Services, Subservice')
-          .eq('active', true);
-
-        if (error) throw error;
-        
-        setServiceOptions(data || []);
-      } catch (error) {
-        console.error('Error fetching services:', error);
-      }
-    };
-
     fetchArtists();
-    fetchServices();
   }, []);
 
   useEffect(() => {
@@ -128,23 +118,6 @@ const EditBookingDialog = ({
       setEditProductName(booking.ProductName || "");
     }
   }, [booking]);
-
-  const filteredSubServices = serviceOptions
-    .filter(option => option.Services === editService)
-    .map(option => option.Subservice)
-    .filter((value, index, self) => value && self.indexOf(value) === index);
-
-  const filteredProducts = serviceOptions
-    .filter(option => 
-      option.Services === editService && 
-      (editSubService ? option.Subservice === editSubService : true)
-    )
-    .map(option => ({ id: option.prod_id, name: option.ProductName }))
-    .filter((value, index, self) => 
-      value.name && self.findIndex(item => item.name === value.name) === index
-    );
-
-  const uniqueServices = [...new Set(serviceOptions.map(option => option.Services))].filter(Boolean);
 
   const requiresArtist = (status: string) => {
     const assignmentStatuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done'];
@@ -181,27 +154,8 @@ const EditBookingDialog = ({
       updates.Qty = editQty;
     }
     
-    if (editService !== booking.ServiceName) {
-      updates.ServiceName = editService;
-    }
-    
-    if (editSubService !== booking.SubService) {
-      updates.SubService = editSubService;
-    }
-    
-    if (editProductName !== booking.ProductName) {
-      updates.ProductName = editProductName;
-      
-      const selectedProduct = serviceOptions.find(
-        p => p.ProductName === editProductName && 
-             p.Services === editService && 
-             p.Subservice === editSubService
-      );
-      
-      if (selectedProduct) {
-        updates.prod_id = selectedProduct.prod_id;
-      }
-    }
+    // Note: Service, SubService, and Product fields are now read-only
+    // No updates to those fields should be made
     
     if (requiresArtist(editStatus)) {
       if (editArtist) {
@@ -218,6 +172,23 @@ const EditBookingDialog = ({
     }
 
     await onSave(booking, updates);
+  };
+
+  const handleAddNewJob = async () => {
+    if (!booking) return;
+    
+    try {
+      // Create a new job with the same booking number but allow selecting a new service/product
+      // This will be implemented in a separate function/component
+      setShowNewJobDialog(true);
+    } catch (error) {
+      console.error('Error starting new job:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create new job",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -248,89 +219,54 @@ const EditBookingDialog = ({
                   </div>
                 </div>
                 
+                {/* Read-only service fields */}
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="service" className="text-right">
-                    Service
+                  <Label htmlFor="service-info" className="text-right">
+                    Service Information
                   </Label>
                   <div className="col-span-3">
-                    <Select
-                      value={editService}
-                      onValueChange={setEditService}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select service" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {uniqueServices.map((service) => (
-                          <SelectItem key={service} value={service}>
-                            {service}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="subservice" className="text-right">
-                    Sub Service
-                  </Label>
-                  <div className="col-span-3">
-                    <Select
-                      value={editSubService}
-                      onValueChange={setEditSubService}
-                      disabled={!editService}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select sub-service" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredSubServices.map((subService) => (
-                          <SelectItem key={subService} value={subService || ""}>
-                            {subService}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="product" className="text-right">
-                    Product
-                  </Label>
-                  <div className="col-span-3">
-                    <Select
-                      value={editProductName}
-                      onValueChange={setEditProductName}
-                      disabled={!editService}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select product" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredProducts.map((product) => (
-                          <SelectItem key={product.id} value={product.name || ""}>
-                            {product.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="qty" className="text-right">
-                    Quantity
-                  </Label>
-                  <div className="col-span-3">
-                    <Input
-                      id="qty"
-                      type="number"
-                      min="1"
-                      value={editQty}
-                      onChange={(e) => setEditQty(parseInt(e.target.value, 10) || 1)}
-                    />
+                    <div className="p-3 border rounded-md bg-muted">
+                      <div className="grid gap-2">
+                        <div className="flex flex-col">
+                          <span className="text-xs text-muted-foreground">Service</span>
+                          <span className="font-medium">{editService || 'N/A'}</span>
+                        </div>
+                        
+                        <div className="flex flex-col">
+                          <span className="text-xs text-muted-foreground">Sub Service</span>
+                          <span className="font-medium">{editSubService || 'N/A'}</span>
+                        </div>
+                        
+                        <div className="flex flex-col">
+                          <span className="text-xs text-muted-foreground">Product</span>
+                          <span className="font-medium">{editProductName || 'N/A'}</span>
+                        </div>
+
+                        <div className="flex flex-col">
+                          <span className="text-xs text-muted-foreground">Quantity</span>
+                          <Input
+                            id="qty"
+                            type="number"
+                            min="1"
+                            value={editQty}
+                            onChange={(e) => setEditQty(parseInt(e.target.value, 10) || 1)}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3">
+                        <Button 
+                          onClick={handleAddNewJob}
+                          className="w-full"
+                          type="button"
+                        >
+                          <Plus className="h-4 w-4 mr-2" /> Add New Job
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Add a new job to this booking with a different service
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 

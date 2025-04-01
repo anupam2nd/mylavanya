@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Edit, ChevronDown, ChevronUp, MapPin, Phone } from "lucide-react";
+import { Calendar, Clock, Edit, ChevronDown, ChevronUp, MapPin, Phone, Plus } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format } from "date-fns";
@@ -20,13 +20,14 @@ interface BookingsListProps {
   bookings: Booking[];
   loading: boolean;
   onEditClick: (booking: Booking) => void;
+  onAddNewJob?: (booking: Booking) => void;
 }
 
 interface GroupedBookings {
   [key: string]: Booking[];
 }
 
-const AdminBookingsList = ({ bookings, loading, onEditClick }: BookingsListProps) => {
+const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: BookingsListProps) => {
   const [expandedBookings, setExpandedBookings] = useState<string[]>([]);
 
   const toggleBooking = (bookingNo: string) => {
@@ -139,7 +140,19 @@ const AdminBookingsList = ({ bookings, loading, onEditClick }: BookingsListProps
                   <TableRow>
                     <TableCell colSpan={7} className="p-0 border-t-0">
                       <div className="bg-muted/20 p-4 rounded-md">
-                        <h4 className="font-medium text-sm mb-2">Service Details</h4>
+                        <div className="flex justify-between items-center mb-2">
+                          <h4 className="font-medium text-sm">Service Details</h4>
+                          {onAddNewJob && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => onAddNewJob(mainBooking)}
+                            >
+                              <Plus className="h-3 w-3 mr-1" /> Add New Job
+                            </Button>
+                          )}
+                        </div>
+                        
                         <Table>
                           <TableHeader>
                             <TableRow>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import BookingFilters from "@/components/admin/bookings/BookingFilters";
 import EditBookingDialog from "@/components/user/bookings/EditBookingDialog";
+import NewJobDialog from "@/components/user/bookings/NewJobDialog";
 import { useBookings, Booking } from "@/hooks/useBookings";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
 import { useBookingFilters } from "@/hooks/useBookingFilters";
@@ -19,6 +20,8 @@ const AdminBookings = () => {
   const { bookings, setBookings, loading } = useBookings();
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
   const [currentUser, setCurrentUser] = useState<{ Username?: string } | null>(null);
+  const [showNewJobDialog, setShowNewJobDialog] = useState(false);
+  const [selectedBookingForNewJob, setSelectedBookingForNewJob] = useState<Booking | null>(null);
   
   const {
     editBooking,
@@ -76,6 +79,22 @@ const AdminBookings = () => {
     
     fetchCurrentUser();
   }, []);
+
+  const handleAddNewJob = (booking: Booking) => {
+    setSelectedBookingForNewJob(booking);
+    setShowNewJobDialog(true);
+  };
+
+  const handleNewJobSuccess = (newBooking: Booking) => {
+    // Add the new booking to the bookings array
+    setBookings([newBooking, ...bookings]);
+    setShowNewJobDialog(false);
+    
+    toast({
+      title: "Success!",
+      description: "New job has been added to this booking",
+    });
+  };
 
   const bookingHeaders = {
     id: 'ID',
@@ -147,6 +166,7 @@ const AdminBookings = () => {
               bookings={filteredBookings}
               loading={loading}
               onEditClick={handleEditClick}
+              onAddNewJob={handleAddNewJob}
             />
           </CardContent>
         </Card>
@@ -174,6 +194,14 @@ const AdminBookings = () => {
             await handleSaveChanges(formValues);
           }}
           statusOptions={statusOptions}
+          currentUser={currentUser}
+        />
+        
+        <NewJobDialog
+          open={showNewJobDialog}
+          onOpenChange={setShowNewJobDialog}
+          booking={selectedBookingForNewJob}
+          onSuccess={handleNewJobSuccess}
           currentUser={currentUser}
         />
       </DashboardLayout>

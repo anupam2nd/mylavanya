@@ -70,6 +70,7 @@ export type Database = {
           ProductName: string | null
           Purpose: string
           Qty: number | null
+          Scheme: string | null
           ServiceName: string | null
           Status: string | null
           StatusUpdated: string | null
@@ -96,6 +97,7 @@ export type Database = {
           ProductName?: string | null
           Purpose: string
           Qty?: number | null
+          Scheme?: string | null
           ServiceName?: string | null
           Status?: string | null
           StatusUpdated?: string | null
@@ -122,6 +124,7 @@ export type Database = {
           ProductName?: string | null
           Purpose?: string
           Qty?: number | null
+          Scheme?: string | null
           ServiceName?: string | null
           Status?: string | null
           StatusUpdated?: string | null
