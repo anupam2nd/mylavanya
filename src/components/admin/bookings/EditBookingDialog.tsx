@@ -51,6 +51,10 @@ interface Booking {
   price: number;
   Address?: string;
   Pincode?: number;
+  ServiceName?: string;
+  SubService?: string;
+  ProductName?: string;
+  Scheme?: string;
 }
 
 interface EditBookingDialogProps {
@@ -106,6 +110,39 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
           <div className="px-1">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {/* Service details section (read-only) */}
+                {editBooking && (editBooking.ServiceName || editBooking.ProductName) && (
+                  <div className="border p-3 rounded-md bg-muted/20 space-y-1">
+                    <h3 className="text-sm font-medium mb-1">Service Details</h3>
+                    {editBooking.ServiceName && (
+                      <p className="text-sm">
+                        <span className="font-medium">Service:</span> {editBooking.ServiceName}
+                      </p>
+                    )}
+                    {editBooking.SubService && (
+                      <p className="text-sm">
+                        <span className="font-medium">Sub Service:</span> {editBooking.SubService}
+                      </p>
+                    )}
+                    {editBooking.ProductName && (
+                      <p className="text-sm">
+                        <span className="font-medium">Product:</span> {editBooking.ProductName}
+                      </p>
+                    )}
+                    {editBooking.Scheme && (
+                      <p className="text-sm">
+                        <span className="font-medium">Scheme:</span> {editBooking.Scheme}
+                      </p>
+                    )}
+                    <p className="text-sm font-medium mt-1">
+                      Price: ₹{editBooking.price?.toFixed(2) || "0.00"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Service details cannot be modified. To change service, cancel this booking and create a new job.
+                    </p>
+                  </div>
+                )}
+
                 <FormField
                   control={form.control}
                   name="date"

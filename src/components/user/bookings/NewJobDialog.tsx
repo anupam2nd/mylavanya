@@ -32,11 +32,14 @@ import { Booking } from "@/hooks/useBookings";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-interface ServiceOption {
+interface ProductOption {
   prod_id: number;
   ProductName: string;
   Services: string;
   Subservice: string;
+  Price: number;
+  NetPayable: number | null;
+  Scheme: string | null;
 }
 
 interface NewJobDialogProps {
@@ -52,15 +55,14 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
   
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string>("");
-  const [service, setService] = useState<string>("");
-  const [subService, setSubService] = useState<string>("");
   const [product, setProduct] = useState<string>("");
+  const [selectedProductDetails, setSelectedProductDetails] = useState<ProductOption | null>(null);
   const [qty, setQty] = useState<number>(1);
   const [address, setAddress] = useState<string>("");
   const [pincode, setPincode] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const [serviceOptions, setServiceOptions] = useState<ServiceOption[]>([]);
+  const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
 
   useEffect(() => {
     if (booking) {
@@ -72,43 +74,40 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
   }, [booking]);
 
   useEffect(() => {
-    const fetchServices = async () => {
+    const fetchProducts = async () => {
       try {
         const { data, error } = await supabase
           .from('PriceMST')
-          .select('prod_id, ProductName, Services, Subservice')
-          .eq('active', true);
+          .select('prod_id, ProductName, Services, Subservice, Price, NetPayable, Scheme')
+          .eq('active', true)
+          .order('ProductName');
 
         if (error) throw error;
         
-        setServiceOptions(data || []);
+        setProductOptions(data || []);
       } catch (error) {
-        console.error('Error fetching services:', error);
+        console.error('Error fetching products:', error);
       }
     };
 
-    fetchServices();
+    fetchProducts();
   }, []);
 
-  const filteredSubServices = serviceOptions
-    .filter(option => option.Services === service)
-    .map(option => option.Subservice)
-    .filter((value, index, self) => value && self.indexOf(value) === index);
-
-  const filteredProducts = serviceOptions
-    .filter(option => 
-      option.Services === service && 
-      (subService ? option.Subservice === subService : true)
-    )
-    .map(option => ({ id: option.prod_id, name: option.ProductName }))
-    .filter((value, index, self) => 
-      value.name && self.findIndex(item => item.name === value.name) === index
-    );
-
-  const uniqueServices = [...new Set(serviceOptions.map(option => option.Services))].filter(Boolean);
+  // Update selectedProductDetails when product changes
+  useEffect(() => {
+    if (product) {
+      const productDetail = productOptions.find(p => p.ProductName === product);
+      if (productDetail) {
+        setSelectedProductDetails(productDetail);
+        console.log("Selected product details:", productDetail);
+      }
+    } else {
+      setSelectedProductDetails(null);
+    }
+  }, [product, productOptions]);
 
   const handleSubmit = async () => {
-    if (!booking || !date || !time || !service || !product) {
+    if (!booking || !date || !time || !product || !selectedProductDetails) {
       toast({
         title: "Missing information",
         description: "Please fill all required fields",
@@ -120,31 +119,10 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     setIsSubmitting(true);
 
     try {
-      // Find the prod_id for the selected product
-      const selectedProduct = serviceOptions.find(
-        p => p.ProductName === product && 
-            p.Services === service && 
-            p.Subservice === subService
-      );
-      
-      if (!selectedProduct) {
-        throw new Error("Selected product not found in price list");
-      }
-
-      // Get price information
-      const { data: priceData, error: priceError } = await supabase
-        .from('PriceMST')
-        .select('NetPayable, Price')
-        .eq('prod_id', selectedProduct.prod_id)
-        .eq('active', true)
-        .maybeSingle();
-        
-      if (priceError) throw priceError;
-      
       // Calculate price
-      const price = priceData?.NetPayable !== undefined && priceData?.NetPayable !== null 
-        ? priceData.NetPayable 
-        : priceData?.Price;
+      const price = selectedProductDetails.NetPayable !== undefined && selectedProductDetails.NetPayable !== null 
+        ? selectedProductDetails.NetPayable 
+        : selectedProductDetails.Price;
 
       // Create new booking record with same booking_no but new job
       const newBookingData = {
@@ -157,14 +135,17 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         Booking_date: format(date, 'yyyy-MM-dd'),
         booking_time: time,
         Purpose: booking.Purpose,
-        ServiceName: service,
-        SubService: subService,
+        ServiceName: selectedProductDetails.Services,
+        SubService: selectedProductDetails.Subservice,
         ProductName: product,
-        prod_id: selectedProduct.prod_id,
+        prod_id: selectedProductDetails.prod_id,
+        Scheme: selectedProductDetails.Scheme,
         price: price,
         Qty: qty,
         Status: 'pending',
       };
+
+      console.log("Creating new job with data:", newBookingData);
 
       // Insert the new booking
       const { data: newBooking, error: insertError } = await supabase
@@ -227,61 +208,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
               )}
               
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="service" className="text-right">
-                  Service
-                </Label>
-                <div className="col-span-3">
-                  <Select
-                    value={service}
-                    onValueChange={(value) => {
-                      setService(value);
-                      setSubService("");
-                      setProduct("");
-                    }}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {uniqueServices.map((service) => (
-                        <SelectItem key={service} value={service}>
-                          {service}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="subservice" className="text-right">
-                  Sub Service
-                </Label>
-                <div className="col-span-3">
-                  <Select
-                    value={subService}
-                    onValueChange={(value) => {
-                      setSubService(value);
-                      setProduct("");
-                    }}
-                    disabled={!service}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select sub-service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredSubServices.map((subService) => (
-                        <SelectItem key={subService} value={subService || ""}>
-                          {subService}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="product" className="text-right">
                   Product
                 </Label>
@@ -289,22 +215,39 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
                   <Select
                     value={product}
                     onValueChange={setProduct}
-                    disabled={!service}
                     required
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select product" />
                     </SelectTrigger>
                     <SelectContent>
-                      {filteredProducts.map((product) => (
-                        <SelectItem key={product.id} value={product.name || ""}>
-                          {product.name}
+                      {productOptions.map((product) => (
+                        <SelectItem key={product.prod_id} value={product.ProductName}>
+                          {product.ProductName}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
+              
+              {selectedProductDetails && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right font-medium">Service Details</Label>
+                  <div className="col-span-3 p-3 border rounded-md bg-muted/20">
+                    <p><span className="font-medium">Service:</span> {selectedProductDetails.Services}</p>
+                    <p><span className="font-medium">Sub Service:</span> {selectedProductDetails.Subservice || "N/A"}</p>
+                    {selectedProductDetails.Scheme && (
+                      <p><span className="font-medium">Scheme:</span> {selectedProductDetails.Scheme}</p>
+                    )}
+                    <p className="font-medium mt-1">
+                      Price: ₹{(selectedProductDetails.NetPayable !== null ? 
+                        selectedProductDetails.NetPayable : 
+                        selectedProductDetails.Price).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              )}
               
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="qty" className="text-right">
@@ -402,7 +345,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
           <Button 
             type="submit" 
             onClick={handleSubmit}
-            disabled={isSubmitting || !service || !product || !date || !time}
+            disabled={isSubmitting || !product || !date || !time}
           >
             {isSubmitting ? "Creating..." : "Create New Job"}
           </Button>
