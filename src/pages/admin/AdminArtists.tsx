@@ -510,7 +510,7 @@ const AdminArtists = () => {
                     name="ArtistFirstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-1">
+                        <FormLabel>
                           First Name <span className="text-red-500">*</span>
                         </FormLabel>
                         <FormControl>
@@ -526,7 +526,7 @@ const AdminArtists = () => {
                     name="ArtistLastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-1">
+                        <FormLabel>
                           Last Name <span className="text-red-500">*</span>
                         </FormLabel>
                         <FormControl>
@@ -558,7 +558,7 @@ const AdminArtists = () => {
                     name="ArtistPhno"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-1">
+                        <FormLabel>
                           Phone Number <span className="text-red-500">*</span>
                         </FormLabel>
                         <FormControl>
