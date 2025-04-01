@@ -80,7 +80,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   const watchStatus = form.watch("status");
   const watchQuantity = form.watch("quantity", 1);
 
-  // Fetch price data when booking changes or quantity changes
+  // Fetch price data when booking changes
   useEffect(() => {
     const fetchPriceData = async () => {
       if (!editBooking || !editBooking.prod_id) return;
@@ -100,18 +100,21 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
           return;
         }
         
-        if (data && data.NetPayable) {
+        if (data && data.NetPayable !== null) {
           console.log("Price data from PriceMST:", data);
-          setUnitPrice(data.NetPayable);
-          setCalculatedPrice(data.NetPayable * watchQuantity);
+          const netPayable = parseFloat(data.NetPayable);
+          setUnitPrice(netPayable);
+          const qty = parseInt(form.getValues("quantity") || "1", 10);
+          const total = netPayable * qty;
+          setCalculatedPrice(total);
           
           console.log("Price calculation:", {
-            unitPrice: data.NetPayable,
-            quantity: watchQuantity,
-            totalPrice: data.NetPayable * watchQuantity
+            unitPrice: netPayable,
+            quantity: qty,
+            totalPrice: total
           });
         } else {
-          console.log("No price data found");
+          console.log("No price data found or NetPayable is null");
           setCalculatedPrice(0);
           setUnitPrice(0);
         }
@@ -123,16 +126,18 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
     };
     
     fetchPriceData();
-  }, [editBooking]);
+  }, [editBooking, form]);
 
   // Recalculate price when quantity changes
   useEffect(() => {
     if (unitPrice !== null) {
-      setCalculatedPrice(unitPrice * watchQuantity);
+      const qty = watchQuantity < 1 ? 1 : watchQuantity;
+      const total = unitPrice * qty;
+      setCalculatedPrice(total);
       console.log("Recalculating price due to quantity change:", {
         unitPrice,
-        quantity: watchQuantity,
-        newTotal: unitPrice * watchQuantity
+        quantity: qty,
+        newTotal: total
       });
     }
   }, [watchQuantity, unitPrice]);
@@ -163,7 +168,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
 
   // Check if artist assignment is required based on status
   useEffect(() => {
-    const statuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done'];
+    const statuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done', 'OnTheway', 'Start'];
     setRequiresArtist(statuses.includes(watchStatus));
   }, [watchStatus]);
 

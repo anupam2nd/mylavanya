@@ -15,6 +15,14 @@ const TotalAmount = ({
   className = "" 
 }: TotalAmountProps) => {
   const hasDiscount = originalAmount && originalAmount > amount;
+  
+  // Format amount with 2 decimal places, ensuring it's a valid number
+  const formatAmount = (value: number | undefined): string => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return '0.00';
+    }
+    return value.toFixed(2);
+  };
 
   return (
     <div className={`col-span-2 mt-4 flex justify-end ${className}`}>
@@ -27,11 +35,11 @@ const TotalAmount = ({
           </div>
         ) : hasDiscount ? (
           <div className="flex flex-col">
-            <p className="text-sm line-through text-gray-500">₹{originalAmount.toFixed(2)}</p>
-            <p className="text-xl font-bold text-primary">₹{amount.toFixed(2)}</p>
+            <p className="text-sm line-through text-gray-500">₹{formatAmount(originalAmount)}</p>
+            <p className="text-xl font-bold text-primary">₹{formatAmount(amount)}</p>
           </div>
         ) : (
-          <p className="text-xl font-bold">₹{amount ? amount.toFixed(2) : '0.00'}</p>
+          <p className="text-xl font-bold">₹{formatAmount(amount)}</p>
         )}
       </div>
     </div>
