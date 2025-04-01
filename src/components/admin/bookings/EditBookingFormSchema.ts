@@ -5,7 +5,6 @@ export const editBookingFormSchema = z.object({
   date: z.date().optional(),
   time: z.string().optional(),
   status: z.string().min(1, "Please select a status"),
-  // Service related fields removed as they are no longer editable
   address: z.string().optional(),
   pincode: z.string().optional(),
   artistId: z.number().nullable().optional(),

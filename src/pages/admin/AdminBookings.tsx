@@ -4,7 +4,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import BookingFilters from "@/components/admin/bookings/BookingFilters";
-import EditBookingDialog from "@/components/user/bookings/EditBookingDialog";
+import EditBookingDialog from "@/components/admin/bookings/EditBookingDialog";
 import NewJobDialog from "@/components/user/bookings/NewJobDialog";
 import { useBookings, Booking } from "@/hooks/useBookings";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
@@ -19,7 +19,7 @@ const AdminBookings = () => {
   const { toast } = useToast();
   const { bookings, setBookings, loading } = useBookings();
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
-  const [currentUser, setCurrentUser] = useState<{ Username?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ Username?: string, FirstName?: string, LastName?: string } | null>(null);
   const [showNewJobDialog, setShowNewJobDialog] = useState(false);
   const [selectedBookingForNewJob, setSelectedBookingForNewJob] = useState<Booking | null>(null);
   
@@ -172,29 +172,17 @@ const AdminBookings = () => {
         </Card>
 
         <EditBookingDialog
-          booking={editBooking}
-          open={openDialog}
-          onOpenChange={setOpenDialog}
-          onSave={async (booking, updates) => {
-            // Convert normal updates structure to EditBookingFormValues
-            const formValues = {
-              date: updates.Booking_date ? new Date(updates.Booking_date) : undefined,
-              time: updates.booking_time || "",
-              status: updates.Status || "",
-              service: updates.ServiceName || "",
-              subService: updates.SubService || "",
-              product: updates.ProductName || "",
-              quantity: updates.Qty || 1,
-              address: updates.Address || "",
-              pincode: updates.Pincode?.toString() || "",
-              artistId: updates.ArtistId || null,
+          openDialog={openDialog}
+          setOpenDialog={setOpenDialog}
+          editBooking={editBooking}
+          handleSaveChanges={(values) => {
+            // Add the current user to form values
+            handleSaveChanges({
+              ...values,
               currentUser
-            };
-            
-            await handleSaveChanges(formValues);
+            });
           }}
           statusOptions={statusOptions}
-          currentUser={currentUser}
         />
         
         <NewJobDialog

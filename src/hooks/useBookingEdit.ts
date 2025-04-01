@@ -39,73 +39,6 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       if (values.status !== editBooking.Status) {
         updates.Status = values.status;
       }
-      
-      // Service details
-      if (values.service && values.service !== editBooking.ServiceName) {
-        updates.ServiceName = values.service;
-      }
-      if (values.subService && values.subService !== editBooking.SubService) {
-        updates.SubService = values.subService;
-      }
-
-      // Product details - handle ProductName updates carefully
-      if (values.product && values.product !== editBooking.ProductName) {
-        console.log("Updating product from", editBooking.ProductName, "to", values.product);
-        updates.ProductName = values.product;
-        
-        // Fetch and update price and prod_id from PriceMST when product changes
-        try {
-          console.log("Fetching price for product:", values.product);
-          const { data: priceData, error: priceError } = await supabase
-            .from('PriceMST')
-            .select('NetPayable, prod_id, Price')
-            .eq('ProductName', values.product)
-            .eq('active', true)
-            .maybeSingle();
-          
-          if (priceError) {
-            console.error('Error fetching product price:', priceError);
-            throw priceError;
-          }
-          
-          if (priceData) {
-            console.log("Found price data:", priceData);
-            
-            // Update price with NetPayable if available, otherwise use null
-            if (priceData.NetPayable !== undefined && priceData.NetPayable !== null) {
-              updates.price = priceData.NetPayable;
-            } else if (priceData.Price !== undefined && priceData.Price !== null) {
-              updates.price = priceData.Price;
-            } else {
-              updates.price = null;
-            }
-            
-            // Make sure to set the prod_id from PriceMST
-            if (priceData.prod_id !== undefined) {
-              updates.prod_id = priceData.prod_id;
-              console.log("Setting prod_id to:", priceData.prod_id, "type:", typeof priceData.prod_id);
-            } else {
-              console.warn("No prod_id found in PriceMST for product:", values.product);
-              updates.prod_id = null;
-            }
-          } else {
-            console.warn("No price data found for product:", values.product);
-            // If no price data found, explicitly set to null to avoid inconsistencies
-            updates.price = null;
-            updates.prod_id = null;
-          }
-        } catch (error) {
-          console.error('Error fetching product price:', error);
-          // Continue with the update even if price fetch fails
-          updates.price = null;
-          updates.prod_id = null;
-        }
-      }
-
-      // Quantity
-      if (values.quantity && values.quantity !== editBooking.Qty) {
-        updates.Qty = values.quantity;
-      }
 
       // Address details
       if (values.address && values.address !== editBooking.Address) {
@@ -158,22 +91,8 @@ export const useBookingEdit = (bookings: Booking[], setBookings: (bookings: Book
       }
 
       // Ensure all numeric fields are properly typed
-      if (updates.prod_id !== undefined) {
-        if (updates.prod_id === null) {
-          console.log("Setting prod_id to null");
-        } else {
-          console.log("Setting prod_id to:", updates.prod_id);
-          // Explicitly convert to number to ensure correct type
-          updates.prod_id = Number(updates.prod_id);
-        }
-      }
-      
       if (updates.ArtistId !== undefined && updates.ArtistId !== null) {
         updates.ArtistId = Number(updates.ArtistId);
-      }
-      
-      if (updates.price !== undefined && updates.price !== null) {
-        updates.price = Number(updates.price);
       }
 
       if (updates.Pincode !== undefined && updates.Pincode !== null) {

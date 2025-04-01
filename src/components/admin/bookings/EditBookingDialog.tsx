@@ -55,6 +55,7 @@ interface Booking {
   SubService?: string;
   ProductName?: string;
   Scheme?: string;
+  Qty?: number;
 }
 
 interface EditBookingDialogProps {
@@ -78,6 +79,8 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
       date: editBooking?.Booking_date ? new Date(editBooking.Booking_date) : undefined,
       time: editBooking?.booking_time?.substring(0, 5) || "",
       status: editBooking?.Status || "",
+      address: editBooking?.Address || "",
+      pincode: editBooking?.Pincode?.toString() || "",
     },
   });
 
@@ -87,6 +90,8 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
         date: editBooking.Booking_date ? new Date(editBooking.Booking_date) : undefined,
         time: editBooking.booking_time?.substring(0, 5) || "",
         status: editBooking.Status || "",
+        address: editBooking?.Address || "",
+        pincode: editBooking?.Pincode?.toString() || "",
       });
     }
   }, [editBooking, form]);
@@ -132,6 +137,11 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                     {editBooking.Scheme && (
                       <p className="text-sm">
                         <span className="font-medium">Scheme:</span> {editBooking.Scheme}
+                      </p>
+                    )}
+                    {editBooking.Qty && (
+                      <p className="text-sm">
+                        <span className="font-medium">Quantity:</span> {editBooking.Qty}
                       </p>
                     )}
                     <p className="text-sm font-medium mt-1">
@@ -233,6 +243,46 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                             ))}
                           </SelectContent>
                         </Select>
+                      </div>
+                      <FormMessage className="col-span-4 text-right" />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">Address</FormLabel>
+                      <div className="col-span-3">
+                        <FormControl>
+                          <textarea
+                            className="flex h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage className="col-span-4 text-right" />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="pincode"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-4 items-center gap-4">
+                      <FormLabel className="text-right">Pincode</FormLabel>
+                      <div className="col-span-3">
+                        <FormControl>
+                          <input
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            {...field}
+                            maxLength={6}
+                            onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ''))}
+                          />
+                        </FormControl>
                       </div>
                       <FormMessage className="col-span-4 text-right" />
                     </FormItem>
