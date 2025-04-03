@@ -6,8 +6,12 @@ import { useBookings } from "@/hooks/useBookings";
 import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPieChart";
 import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { parseISO, subDays, format, isToday } from "date-fns";
-import { Calendar } from "lucide-react";
+import { parseISO, subDays, format, isToday, isSameDay } from "date-fns";
+import { CalendarDays } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const AdminDashboard = () => {
   const { bookings, loading } = useBookings();
@@ -22,6 +26,9 @@ const AdminDashboard = () => {
   // For displaying the filter state
   const [appliedStartDate, setAppliedStartDate] = useState<Date | undefined>(startDate);
   const [appliedEndDate, setAppliedEndDate] = useState<Date | undefined>(endDate);
+  
+  // Selected date for bookings card
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
   // Apply filters action
   const applyFilters = () => {
@@ -51,13 +58,19 @@ const AdminDashboard = () => {
     }).length;
   }, [bookings]);
   
-  // Calculate today's bookings
-  const todaysBookings = useMemo(() => {
+  // Calculate selected date's bookings (excluding pending and cancelled)
+  const selectedDateBookings = useMemo(() => {
     return bookings.filter(booking => {
       const date = booking.Booking_date ? parseISO(booking.Booking_date) : null;
-      return date && isToday(date);
+      // Filter by date and exclude pending (P) and cancelled (C) statuses
+      return date && 
+             isSameDay(date, selectedDate) && 
+             booking.Status !== "P" && 
+             booking.Status !== "Pending" && 
+             booking.Status !== "C" && 
+             booking.Status !== "Cancelled";
     }).length;
-  }, [bookings]);
+  }, [bookings, selectedDate]);
 
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
@@ -90,15 +103,37 @@ const AdminDashboard = () => {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Bookings for Today</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">
+                Bookings for {isToday(selectedDate) ? "Today" : format(selectedDate, 'dd MMM yyyy')}
+              </CardTitle>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 p-0"
+                  >
+                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                    <span className="sr-only">Select date</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => date && setSelectedDate(date)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {loading ? '...' : todaysBookings}
+                {loading ? '...' : selectedDateBookings}
               </div>
               <p className="text-xs text-muted-foreground">
-                Scheduled for {format(new Date(), 'dd MMM yyyy')}
+                Active bookings for {format(selectedDate, 'dd MMM yyyy')}
               </p>
             </CardContent>
           </Card>
