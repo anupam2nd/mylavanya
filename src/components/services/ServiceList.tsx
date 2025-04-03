@@ -23,6 +23,7 @@ interface Service {
   Discount: number | null;
   Subservice: string | null;
   NetPayable: number | null;
+  Category: string | null;
 }
 
 const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => {
@@ -47,12 +48,9 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
 
         console.log('query', query);
         
-        // Apply category filter if provided and relevant column exists
+        // Apply category filter if provided
         if (categoryFilter && categoryFilter !== 'all') {
-          // This is a placeholder - if you have a category column in your table,
-          // you would filter by it here. Since your schema doesn't show a category column,
-          // we'll comment this out for now.
-          // query = query.eq('category', categoryFilter);
+          query = query.eq('Category', categoryFilter);
         }
         
         // Limit results if featured is true
@@ -71,7 +69,7 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
         console.log("Active services fetched raw data:", data);
         
         if (!data || data.length === 0) {
-          console.log("No active services found in the PriceMST table. Check your Supabase data.");
+          console.log("No active services found for the selected category. Check your Supabase data.");
           // Instead of setting an error, we'll just set services to an empty array
           setServices([]);
         } else {
@@ -144,9 +142,9 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
           </div>
         ) : (
           <div className="text-center py-12 bg-gray-50 rounded-lg shadow-sm">
-            <p className="text-lg text-gray-600">No active services available</p>
+            <p className="text-lg text-gray-600">No active services available for this category</p>
             <p className="text-sm text-gray-500 mt-2">
-              Check if there are active services in the PriceMST table.
+              Try selecting a different category or check if there are active services in the PriceMST table.
             </p>
           </div>
         )}

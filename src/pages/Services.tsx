@@ -1,23 +1,60 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ServiceList from "@/components/services/ServiceList";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-
-// Predefined categories for beauty services
-const categories = [
-  { id: "all", name: "All Services" },
-  { id: "makeup", name: "Makeup" },
-  { id: "hair", name: "Hair Styling" },
-  { id: "nails", name: "Nail Services" },
-  { id: "facial", name: "Facials & Skincare" },
-  { id: "bridal", name: "Bridal Packages" },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { Loader } from "lucide-react";
 
 const Services = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [categories, setCategories] = useState<Array<{ id: string, name: string }>>([
+    { id: "all", name: "All Services" }
+  ]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Fetch categories from database
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoading(true);
+      try {
+        // Query unique categories from the PriceMST table
+        const { data, error } = await supabase
+          .from('PriceMST')
+          .select('Category')
+          .eq('active', true)
+          .not('Category', 'is', null);
+
+        if (error) {
+          throw error;
+        }
+
+        if (data && data.length > 0) {
+          // Extract unique categories
+          const uniqueCategories = [...new Set(data.map(item => item.Category))];
+          
+          // Create the category array with "All Services" as the first option
+          const categoryOptions = [
+            { id: "all", name: "All Services" },
+            ...uniqueCategories.map(category => ({
+              id: category || "", 
+              name: category || "Uncategorized"
+            }))
+          ];
+          
+          setCategories(categoryOptions);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -31,20 +68,27 @@ const Services = () => {
             </p>
             
             {/* Category filters */}
-            <div className="mt-6 flex flex-wrap gap-2">
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
-                    ${selectedCategory === category.id 
-                      ? 'bg-primary text-white shadow-sm' 
-                      : 'bg-white/70 text-gray-700 hover:bg-white'}`}
-                  onClick={() => setSelectedCategory(category.id)}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
+            {loading ? (
+              <div className="flex justify-center items-center mt-6 py-4">
+                <Loader className="h-5 w-5 animate-spin text-primary mr-2" />
+                <span>Loading categories...</span>
+              </div>
+            ) : (
+              <div className="mt-6 flex flex-wrap gap-2">
+                {categories.map(category => (
+                  <button
+                    key={category.id}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
+                      ${selectedCategory === category.id 
+                        ? 'bg-primary text-white shadow-sm' 
+                        : 'bg-white/70 text-gray-700 hover:bg-white'}`}
+                    onClick={() => setSelectedCategory(category.id)}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         
