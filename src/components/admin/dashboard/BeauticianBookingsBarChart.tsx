@@ -16,6 +16,7 @@ import { Loader, Download } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { ChartContainer } from "@/components/ui/chart";
 import { ExportButton } from "@/components/ui/export-button";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
