@@ -31,7 +31,7 @@ export interface BookingData {
   Assignedto?: string;
   AssignedBY?: string;
   ArtistId?: number;
-  jobno?: number; // Added jobno field
+  jobno?: number;
 }
 
 const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {

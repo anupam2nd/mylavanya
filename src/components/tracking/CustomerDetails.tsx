@@ -2,12 +2,20 @@
 import { StatusBadge } from "@/components/ui/status-badge";
 import { BookingData } from "./BookingDetails";
 import { Phone } from "lucide-react";
+import { useStatusOptions } from "@/hooks/useStatusOptions";
 
 interface CustomerDetailsProps {
   booking: BookingData;
 }
 
 const CustomerDetails = ({ booking }: CustomerDetailsProps) => {
+  const { statusOptions } = useStatusOptions();
+  
+  // Find the status description if available
+  const statusDetails = statusOptions.find(
+    option => option.status_code === booking.Status
+  );
+  
   return (
     <>
       {booking.name && (
@@ -36,7 +44,16 @@ const CustomerDetails = ({ booking }: CustomerDetailsProps) => {
       
       <div>
         <p className="text-sm font-medium text-gray-500">Status</p>
-        <StatusBadge status={booking.Status || 'pending'} />
+        <StatusBadge 
+          status={booking.Status || 'pending'} 
+          description={statusDetails?.description}
+          showTooltip={!!statusDetails?.description}
+        />
+        {statusDetails?.description && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {statusDetails.description}
+          </p>
+        )}
       </div>
       
       <div>

@@ -1,11 +1,14 @@
 
 import { cn } from "@/lib/utils";
 import { Badge, BadgeProps } from "./badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
 
 export type StatusType = "completed" | "pending" | "cancelled" | "processing" | string;
 
 interface StatusBadgeProps extends Omit<BadgeProps, "variant"> {
   status: StatusType;
+  description?: string;
+  showTooltip?: boolean;
   classNames?: {
     root?: string;
     text?: string;
@@ -44,10 +47,17 @@ const getStatusStyles = (status: StatusType) => {
   }
 };
 
-export const StatusBadge = ({ status, classNames, className, ...props }: StatusBadgeProps) => {
+export const StatusBadge = ({ 
+  status, 
+  description, 
+  showTooltip = false, 
+  classNames, 
+  className, 
+  ...props 
+}: StatusBadgeProps) => {
   const styles = getStatusStyles(status);
   
-  return (
+  const badge = (
     <Badge
       {...props}
       className={cn(
@@ -63,4 +73,21 @@ export const StatusBadge = ({ status, classNames, className, ...props }: StatusB
       </span>
     </Badge>
   );
+
+  if (showTooltip && description) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {badge}
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{description}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  
+  return badge;
 };
