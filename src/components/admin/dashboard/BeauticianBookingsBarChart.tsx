@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -59,16 +58,14 @@ const BeauticianBookingsBarChart = ({
   const chartData = useMemo(() => {
     if (!bookings.length) return [];
     
-    // Filter active bookings (not pending or cancelled)
     const activeBookings = bookings.filter(booking => 
       booking.Status !== "P" && 
       booking.Status !== "Pending" && 
       booking.Status !== "C" && 
       booking.Status !== "Cancelled" &&
-      booking.Assignedto // Only include bookings that are assigned to a beautician
+      booking.Assignedto
     );
     
-    // Apply date filters
     const filteredBookings = activeBookings.filter(booking => {
       const dateField = dateType === "creation" 
         ? booking.created_at 
@@ -78,7 +75,6 @@ const BeauticianBookingsBarChart = ({
       
       const bookingDate = parseISO(dateField);
       
-      // Check if external date filters are applied
       if (externalStartDate && externalEndDate) {
         return isAfter(bookingDate, externalStartDate) && isBefore(bookingDate, externalEndDate);
       }
@@ -86,7 +82,6 @@ const BeauticianBookingsBarChart = ({
       return true;
     });
     
-    // Group by beautician
     const beauticianMap = new Map<string, BeauticianData>();
     
     filteredBookings.forEach(booking => {
@@ -108,10 +103,8 @@ const BeauticianBookingsBarChart = ({
       }
     });
     
-    // Convert to array and sort
     let result = Array.from(beauticianMap.values());
     
-    // Sort by the selected chart type
     result.sort((a, b) => {
       const valueA = chartType === "bookings" ? a.bookings : a.revenue;
       const valueB = chartType === "bookings" ? b.bookings : b.revenue;
@@ -121,18 +114,15 @@ const BeauticianBookingsBarChart = ({
         : valueB - valueA;
     });
     
-    // Apply limit
     return result.slice(0, limit);
   }, [bookings, dateType, limit, sortOrder, chartType, externalStartDate, externalEndDate]);
 
-  // Prepare export data
   const exportData = chartData.map(item => ({
     Beautician: item.name,
     Bookings: item.bookings,
     Revenue: item.revenue,
   }));
 
-  // Return loading state if applicable
   if (loading) {
     return (
       <Card className="col-span-full">
@@ -232,7 +222,10 @@ const BeauticianBookingsBarChart = ({
         </div>
       </CardHeader>
       <CardContent className="h-80">
-        <ChartContainer className="h-full w-full">
+        <ChartContainer 
+          className="h-full w-full" 
+          config={{}}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
