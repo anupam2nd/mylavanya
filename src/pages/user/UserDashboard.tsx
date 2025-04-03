@@ -180,8 +180,8 @@ const UserDashboard = () => {
         </div>
       )}
 
-      {/* Chart Filters */}
-      <div className="mt-6 mb-8">
+      {/* Chart Filters - Moved here, just above the pie charts */}
+      <div className="mb-4 mt-6">
         <ChartFilters
           startDate={startDate}
           setStartDate={setStartDate}

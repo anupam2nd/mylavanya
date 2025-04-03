@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -140,20 +141,8 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Chart Filters */}
-        <div className="mt-6 mb-8">
-          <ChartFilters
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-            applyFilters={applyFilters}
-            resetFilters={resetFilters}
-          />
-        </div>
-
         {/* Monthly Booking Trends Chart */}
-        <div className="mb-8">
+        <div className="mb-8 mt-6">
           <MonthlyBookingTrendsChart 
             bookings={bookings} 
             loading={loading}
@@ -169,6 +158,18 @@ const AdminDashboard = () => {
             loading={loading}
             startDate={appliedStartDate}
             endDate={appliedEndDate}
+          />
+        </div>
+
+        {/* Chart Filters - Moved here above the pie charts */}
+        <div className="mb-4">
+          <ChartFilters
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
+            applyFilters={applyFilters}
+            resetFilters={resetFilters}
           />
         </div>
 
