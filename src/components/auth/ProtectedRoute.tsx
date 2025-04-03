@@ -22,9 +22,9 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
     return <Navigate to="/" state={{ from: location.pathname }} replace />;
   }
 
-  // If roles are specified and user's role is not included, redirect to forbidden page or dashboard
+  // If roles are specified and user's role is not included, redirect to their appropriate dashboard
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    // Redirect based on role
+    // Redirect based on specific role
     if (user.role === 'superadmin') {
       return <Navigate to="/admin/status" replace />;
     } else if (user.role === 'admin') {

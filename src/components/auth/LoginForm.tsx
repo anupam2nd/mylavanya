@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -89,8 +90,10 @@ export default function LoginForm() {
         description: `Welcome back! You are now logged in as ${data.role}.`,
       });
       
-      // Redirect based on role
-      if (data.role === 'superadmin' || data.role === 'admin') {
+      // Redirect based on specific role
+      if (data.role === 'superadmin') {
+        navigate('/admin/status');
+      } else if (data.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
         navigate('/user/dashboard');

@@ -14,12 +14,16 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect users to their dashboard if they're already logged in
+  // Redirect users to their dashboard based on role if they're already logged in
   useEffect(() => {
     if (user) {
-      const redirectPath = user.role === 'admin' || user.role === 'superadmin' 
-        ? '/admin/dashboard' 
-        : '/user/dashboard';
+      let redirectPath = '/user/dashboard';
+      
+      if (user.role === 'superadmin') {
+        redirectPath = '/admin/status';
+      } else if (user.role === 'admin') {
+        redirectPath = '/admin/dashboard';
+      }
       
       // Only redirect if we're on the homepage
       if (window.location.pathname === '/') {
