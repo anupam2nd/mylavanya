@@ -1,11 +1,10 @@
-
 import { useState, useMemo } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBookings } from "@/hooks/useBookings";
 import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPieChart";
-import BeauticianOrdersPieChart from "@/components/admin/dashboard/BeauticianOrdersPieChart";
 import MonthlyBookingTrendsChart from "@/components/admin/dashboard/MonthlyBookingTrendsChart";
+import BeauticianBookingsBarChart from "@/components/admin/dashboard/BeauticianBookingsBarChart";
 import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { parseISO, subDays, format, isToday, isSameDay } from "date-fns";
@@ -157,7 +156,19 @@ const AdminDashboard = () => {
         <div className="mb-8">
           <MonthlyBookingTrendsChart 
             bookings={bookings} 
-            loading={loading} 
+            loading={loading}
+            startDate={appliedStartDate}
+            endDate={appliedEndDate}
+          />
+        </div>
+
+        {/* Beautician Bookings Bar Chart */}
+        <div className="mb-8">
+          <BeauticianBookingsBarChart
+            bookings={bookings}
+            loading={loading}
+            startDate={appliedStartDate}
+            endDate={appliedEndDate}
           />
         </div>
 
@@ -183,14 +194,6 @@ const AdminDashboard = () => {
             title="Status by Creation Date"
             description="Distribution based on when bookings were created"
             filterField="created_at"
-          />
-
-          {/* Beautician Orders Pie Chart */}
-          <BeauticianOrdersPieChart 
-            bookings={bookings} 
-            loading={loading}
-            startDate={appliedStartDate}
-            endDate={appliedEndDate}
           />
         </div>
       </DashboardLayout>
