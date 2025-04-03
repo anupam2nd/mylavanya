@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -10,8 +11,8 @@ import {
   ResponsiveContainer, 
   Legend 
 } from "recharts";
-import { parseISO, isAfter, isBefore } from "date-fns";
-import { Loader, Download } from "lucide-react";
+import { parseISO, isAfter, isBefore, format } from "date-fns";
+import { Loader, Download, Calendar } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { ChartContainer } from "@/components/ui/chart";
 import { ExportButton } from "@/components/ui/export-button";
@@ -30,6 +31,11 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface BeauticianData {
   name: string;
@@ -54,6 +60,9 @@ const BeauticianBookingsBarChart = ({
   const [limit, setLimit] = useState<number>(5);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [chartType, setChartType] = useState<"bookings" | "revenue">("bookings");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [localStartDate, setLocalStartDate] = useState<Date | undefined>(externalStartDate);
+  const [localEndDate, setLocalEndDate] = useState<Date | undefined>(externalEndDate);
 
   const chartData = useMemo(() => {
     if (!bookings.length) return [];
@@ -123,6 +132,11 @@ const BeauticianBookingsBarChart = ({
     Revenue: item.revenue,
   }));
 
+  const handleApplyDates = () => {
+    // Logic to apply date filters would go here in a real implementation
+    setShowDatePicker(false);
+  };
+
   if (loading) {
     return (
       <Card className="col-span-full">
@@ -148,6 +162,92 @@ const BeauticianBookingsBarChart = ({
           </p>
         </div>
         <div className="flex space-x-2 flex-wrap gap-2">
+          <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="flex items-center">
+                <Calendar className="h-4 w-4 mr-2" />
+                {localStartDate && localEndDate ? (
+                  <span className="text-xs">
+                    {format(localStartDate, "MMM dd")} - {format(localEndDate, "MMM dd")}
+                  </span>
+                ) : (
+                  "Select Date Range"
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-4" align="end">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Date Range for {dateType === "creation" ? "Creation" : "Booking"} Date</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-xs">Start Date</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className="w-full justify-start text-left text-xs h-8"
+                          >
+                            {localStartDate ? format(localStartDate, "MMM dd, yyyy") : "Select"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={localStartDate}
+                            onSelect={setLocalStartDate}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs">End Date</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className="w-full justify-start text-left text-xs h-8"
+                          >
+                            {localEndDate ? format(localEndDate, "MMM dd, yyyy") : "Select"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={localEndDate}
+                            onSelect={setLocalEndDate}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setLocalStartDate(undefined);
+                      setLocalEndDate(undefined);
+                    }}
+                  >
+                    Reset
+                  </Button>
+                  <Button 
+                    size="sm"
+                    onClick={handleApplyDates}
+                  >
+                    Apply
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          
           <Select 
             defaultValue={dateType} 
             onValueChange={(value) => setDateType(value as "creation" | "booking")}
