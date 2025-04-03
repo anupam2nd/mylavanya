@@ -1,4 +1,3 @@
-
 import { Package, Star, CheckCircle, ChevronDown, ChevronUp, User, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -26,6 +25,7 @@ interface ArtistInfo {
   ArtistFirstName: string | null;
   ArtistLastName: string | null;
   ArtistPhno: number | null;
+  ArtistRating: number | null;
 }
 
 const ServicesList = ({ services }: ServicesListProps) => {
@@ -87,7 +87,7 @@ const ServicesList = ({ services }: ServicesListProps) => {
         
         const { data, error } = await supabase
           .from("ArtistMST")
-          .select("ArtistId, ArtistFirstName, ArtistLastName, ArtistPhno")
+          .select("ArtistId, ArtistFirstName, ArtistLastName, ArtistPhno, ArtistRating")
           .in("ArtistId", artistIds);
           
         if (error) {
@@ -101,7 +101,8 @@ const ServicesList = ({ services }: ServicesListProps) => {
             artistInfoMap[artist.ArtistId] = {
               ArtistFirstName: artist.ArtistFirstName,
               ArtistLastName: artist.ArtistLastName,
-              ArtistPhno: artist.ArtistPhno
+              ArtistPhno: artist.ArtistPhno,
+              ArtistRating: artist.ArtistRating
             };
           }
         });
@@ -178,6 +179,32 @@ const ServicesList = ({ services }: ServicesListProps) => {
     return "JOB-000";
   };
 
+  // Render star rating
+  const renderStarRating = (rating: number | null) => {
+    if (!rating) return "Not rated yet";
+    
+    // Clamp rating between 0 and 5
+    const safeRating = Math.max(0, Math.min(5, rating));
+    
+    return (
+      <div className="flex items-center">
+        {[...Array(5)].map((_, i) => (
+          <Star 
+            key={i} 
+            size={14} 
+            className={cn(
+              "mr-0.5",
+              i < safeRating 
+                ? "text-amber-500 fill-amber-500" 
+                : "text-gray-300"
+            )} 
+          />
+        ))}
+        <span className="ml-1 text-sm font-medium">{safeRating.toFixed(1)}</span>
+      </div>
+    );
+  };
+
   return (
     <div className="col-span-2 mt-4 border-t pt-4">
       <p className="text-sm font-medium text-gray-500 mb-3 flex items-center">
@@ -196,6 +223,10 @@ const ServicesList = ({ services }: ServicesListProps) => {
           const artistPhone = service.ArtistId ? 
             artistInfo[service.ArtistId]?.ArtistPhno : null;
           const maskedPhone = maskPhoneNumber(artistPhone);
+          
+          // Get artist rating
+          const artistRating = service.ArtistId ? 
+            artistInfo[service.ArtistId]?.ArtistRating : null;
           
           // Get service ID using job number
           const serviceId = getServiceId(service);
@@ -287,6 +318,12 @@ const ServicesList = ({ services }: ServicesListProps) => {
                       <dd className="font-medium flex items-center">
                         <User size={14} className="mr-1 text-primary opacity-70" />
                         {artistName}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-gray-500">Artist Rating</dt>
+                      <dd className="font-medium">
+                        {renderStarRating(artistRating)}
                       </dd>
                     </div>
                     <div>
