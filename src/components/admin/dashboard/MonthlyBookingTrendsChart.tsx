@@ -101,18 +101,20 @@ const MonthlyBookingTrendsChart = ({
         const monthEnd = endOfMonth(monthData.month);
         
         if (isWithinInterval(bookingDate, { start: monthStart, end: monthEnd })) {
+          // Count all bookings regardless of status for totalBookings
           monthData.totalBookings += 1;
           
-          // Count confirmed bookings (not pending or cancelled)
-          if (
-            booking.Status !== "P" && 
-            booking.Status !== "Pending" && 
-            booking.Status !== "C" && 
-            booking.Status !== "Cancelled"
-          ) {
+          // Only count bookings that are not pending or cancelled for confirmedBookings
+          const isPendingOrCancelled = 
+            booking.Status === "P" || 
+            booking.Status === "Pending" || 
+            booking.Status === "C" || 
+            booking.Status === "Cancelled";
+          
+          if (!isPendingOrCancelled) {
             monthData.confirmedBookings += 1;
             
-            // Sum up the price for revenue calculation
+            // Sum up the price for revenue calculation (only for confirmed bookings)
             if (booking.price) {
               monthData.totalRevenue += Number(booking.price);
             }
