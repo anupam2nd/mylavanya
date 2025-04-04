@@ -11,7 +11,7 @@ import {
   Legend 
 } from "recharts";
 import { parseISO, isAfter, isBefore, format } from "date-fns";
-import { Loader, Download, Calendar } from "lucide-react";
+import { Loader, Download, Calendar as CalendarIcon } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { ChartContainer } from "@/components/ui/chart";
 import { ExportButton } from "@/components/ui/export-button";
@@ -35,6 +35,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 interface BeauticianData {
   name: string;
@@ -63,12 +64,12 @@ const BeauticianBookingsBarChart = ({
   const [localStartDate, setLocalStartDate] = useState<Date | undefined>(externalStartDate);
   const [localEndDate, setLocalEndDate] = useState<Date | undefined>(externalEndDate);
 
-  const handleStartDateSelect = (date: Date | undefined) => {
-    setLocalStartDate(date);
+  const handleStartDateSelect = (date: Date | null) => {
+    setLocalStartDate(date || undefined);
   };
 
-  const handleEndDateSelect = (date: Date | undefined) => {
-    setLocalEndDate(date);
+  const handleEndDateSelect = (date: Date | null) => {
+    setLocalEndDate(date || undefined);
   };
 
   const chartData = useMemo(() => {
@@ -171,7 +172,7 @@ const BeauticianBookingsBarChart = ({
           <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
             <PopoverTrigger asChild>
               <Button variant="outline" className="flex items-center">
-                <Calendar className="h-4 w-4 mr-2" />
+                <CalendarIcon className="h-4 w-4 mr-2" />
                 {localStartDate && localEndDate ? (
                   <span className="text-xs">
                     {format(localStartDate, "MMM dd")} - {format(localEndDate, "MMM dd")}
