@@ -1,8 +1,14 @@
+
 import { Link } from "react-router-dom";
 import { Instagram, Facebook, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
+import { useState } from "react";
+import AuthModal from "@/components/auth/AuthModal";
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  
   return <footer className="bg-accent/30 pt-16 pb-8">
       <div className="container-custom">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
@@ -48,6 +54,27 @@ export default function Footer() {
                   </Link>
                 </li>)}
             </ul>
+            
+            {/* Sign in buttons */}
+            <div className="pt-4 space-y-2">
+              <ButtonCustom 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setIsAuthModalOpen(true)} 
+                className="border-primary/20 text-foreground w-full"
+              >
+                Admin Signin
+              </ButtonCustom>
+              
+              <ButtonCustom 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setIsAuthModalOpen(true)} 
+                className="border-primary/20 text-foreground w-full"
+              >
+                Artist Signin
+              </ButtonCustom>
+            </div>
           </div>
           
           {/* Contact Info */}
@@ -96,5 +123,7 @@ export default function Footer() {
           </div>
         </div>
       </div>
+      
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </footer>;
 }

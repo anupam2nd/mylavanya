@@ -74,17 +74,9 @@ const Navbar = () => {
                 {isAuthenticated ? (
                   <Button onClick={navigateToDashboard}>Dashboard</Button>
                 ) : (
-                  <>
-                    <ButtonCustom variant="outline" size="sm" onClick={() => setIsAuthModalOpen(true)} className="border-primary/20 text-foreground">
-                      Admin Signin
-                    </ButtonCustom>
-                    <ButtonCustom variant="outline" size="sm" onClick={() => setIsAuthModalOpen(true)} className="border-primary/20 text-foreground">
-                      Member Signin
-                    </ButtonCustom>
-                    <ButtonCustom variant="outline" size="sm" onClick={() => setIsAuthModalOpen(true)} className="border-primary/20 text-foreground">
-                      Artist Signin
-                    </ButtonCustom>
-                  </>
+                  <ButtonCustom variant="outline" size="sm" onClick={() => setIsAuthModalOpen(true)} className="border-primary/20 text-foreground">
+                    Member Signin
+                  </ButtonCustom>
                 )}
               </div>
             </div>
@@ -113,35 +105,21 @@ const Navbar = () => {
               <NavTrackingButton isMobile={true} onClick={closeMenu} />
               
               {/* Mobile login buttons */}
-              <div className="pt-2 border-t border-gray-200 grid grid-cols-3 gap-2">
+              <div className="pt-2 border-t border-gray-200">
                 {isAuthenticated ? (
                   <Button onClick={() => {
                     navigateToDashboard();
                     closeMenu();
-                  }} className="w-full col-span-3">
+                  }} className="w-full">
                     Dashboard
                   </Button>
                 ) : (
-                  <>
-                    <ButtonCustom variant="outline" size="sm" onClick={() => {
-                      setIsAuthModalOpen(true);
-                      closeMenu();
-                    }} className="border-primary/20 text-foreground">
-                      Admin Signin
-                    </ButtonCustom>
-                    <ButtonCustom variant="outline" size="sm" onClick={() => {
-                      setIsAuthModalOpen(true);
-                      closeMenu();
-                    }} className="border-primary/20 text-foreground">
-                      Member Signin
-                    </ButtonCustom>
-                    <ButtonCustom variant="outline" size="sm" onClick={() => {
-                      setIsAuthModalOpen(true);
-                      closeMenu();
-                    }} className="border-primary/20 text-foreground">
-                      Artist Signin
-                    </ButtonCustom>
-                  </>
+                  <ButtonCustom variant="outline" size="sm" onClick={() => {
+                    setIsAuthModalOpen(true);
+                    closeMenu();
+                  }} className="border-primary/20 text-foreground w-full">
+                    Member Signin
+                  </ButtonCustom>
                 )}
               </div>
             </nav>
