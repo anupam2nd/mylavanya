@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AuthModalHeader from "./AuthModalHeader";
 import LoginForm from "./LoginForm";
+import MemberLoginForm from "./MemberLoginForm";
 import ArtistLoginForm from "./ArtistLoginForm";
 
 interface AuthModalProps {
@@ -38,8 +39,10 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: Au
         <div className="p-6">
           {defaultTab === "artist" ? (
             <ArtistLoginForm />
-          ) : (
+          ) : defaultTab === "admin" ? (
             <LoginForm />
+          ) : (
+            <MemberLoginForm />
           )}
         </div>
         

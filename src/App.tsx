@@ -25,6 +25,7 @@ import UserBookings from "./pages/user/UserBookings";
 import Profile from "./pages/user/Profile";
 import Settings from "./pages/user/Settings";
 import ArtistDashboard from "./pages/artist/ArtistDashboard";
+import Wishlist from "./pages/user/Wishlist";
 
 // Log to confirm App is being loaded
 console.log("App component rendering");
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/track-booking" element={<TrackBooking />} />
+            <Route path="/wishlist" element={<Wishlist />} />
             
             {/* Admin Routes */}
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
