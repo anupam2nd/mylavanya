@@ -9,6 +9,8 @@ import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPie
 import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import { Booking } from "@/hooks/useBookings";
 import { toast } from "sonner";
+import { DollarSign } from "lucide-react";
+import RevenuePieChart from "@/components/user/RevenuePieChart";
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -116,23 +118,37 @@ const UserDashboard = () => {
       return date >= thirtyDaysAgo;
     }).length;
   }, [bookings]);
-  
-  // Calculate awaiting confirmation bookings
-  const awaitingConfirmation = useMemo(() => {
+
+  // Calculate total revenue
+  const totalRevenue = useMemo(() => {
     if (!bookings || bookings.length === 0) return 0;
-    return bookings.filter(booking => booking.Status === "pending").length;
+    
+    return bookings.reduce((sum, booking) => {
+      // Only count revenue for completed bookings
+      if (booking.Status === "done" || booking.Status === "confirmed" || booking.Status === "beautician_assigned") {
+        return sum + (booking.price || 0);
+      }
+      return sum;
+    }, 0);
   }, [bookings]);
 
-  // Calculate confirmed bookings
-  const confirmedBookings = useMemo(() => {
-    if (!bookings || bookings.length === 0) return 0;
-    return bookings.filter(booking => booking.Status === "confirmed").length;
-  }, [bookings]);
+  // Filter bookings by date range for the pie chart
+  const filteredBookings = useMemo(() => {
+    if (!bookings || bookings.length === 0) return [];
+    
+    if (!appliedStartDate || !appliedEndDate) return bookings;
+    
+    return bookings.filter(booking => {
+      if (!booking.Booking_date) return false;
+      const date = parseISO(booking.Booking_date);
+      return date >= appliedStartDate && date <= appliedEndDate;
+    });
+  }, [bookings, appliedStartDate, appliedEndDate]);
 
   console.log("Dashboard calculation results:", { 
     totalBookings: bookings.length, 
     recentBookings,
-    awaitingConfirmation,
+    totalRevenue,
     isLoading: loading,
     error
   });
@@ -167,14 +183,19 @@ const UserDashboard = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Awaiting Confirmation</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {loading ? '...' : awaitingConfirmation}
+            <div className="text-2xl font-bold flex items-center">
+              {loading ? '...' : (
+                <>
+                  <DollarSign className="h-5 w-5 text-primary mr-1" />
+                  {totalRevenue.toLocaleString()}
+                </>
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
-              Bookings requiring your action
+              From completed services
             </p>
           </CardContent>
         </Card>
@@ -202,6 +223,14 @@ const UserDashboard = () => {
 
       {/* Main Dashboard Layout with Pie Charts */}
       <div className="grid gap-8 grid-cols-1 md:grid-cols-2">
+        {/* Revenue by Service Pie Chart */}
+        <RevenuePieChart 
+          bookings={filteredBookings} 
+          loading={loading}
+          title="Revenue by Service"
+          description="Distribution of revenue by service type"
+        />
+
         {/* Booking Status Pie Chart based on booking date */}
         <BookingStatusPieChart 
           bookings={bookings} 
@@ -211,17 +240,6 @@ const UserDashboard = () => {
           title="Status by Booking Date"
           description="Distribution based on when services are scheduled"
           filterField="Booking_date"
-        />
-
-        {/* Booking Status Pie Chart based on creation date */}
-        <BookingStatusPieChart 
-          bookings={bookings} 
-          loading={loading}
-          startDate={appliedStartDate}
-          endDate={appliedEndDate}
-          title="Status by Creation Date"
-          description="Distribution based on when bookings were created"
-          filterField="created_at"
         />
       </div>
     </DashboardLayout>
