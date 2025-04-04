@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -63,6 +62,14 @@ const BeauticianBookingsBarChart = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [localStartDate, setLocalStartDate] = useState<Date | undefined>(externalStartDate);
   const [localEndDate, setLocalEndDate] = useState<Date | undefined>(externalEndDate);
+
+  const handleStartDateSelect = (date: Date | undefined) => {
+    setLocalStartDate(date);
+  };
+
+  const handleEndDateSelect = (date: Date | undefined) => {
+    setLocalEndDate(date);
+  };
 
   const chartData = useMemo(() => {
     if (!bookings.length) return [];
@@ -133,7 +140,6 @@ const BeauticianBookingsBarChart = ({
   }));
 
   const handleApplyDates = () => {
-    // Logic to apply date filters would go here in a real implementation
     setShowDatePicker(false);
   };
 
@@ -195,7 +201,7 @@ const BeauticianBookingsBarChart = ({
                           <Calendar
                             mode="single"
                             selected={localStartDate}
-                            onSelect={setLocalStartDate}
+                            onSelect={handleStartDateSelect}
                             initialFocus
                             className="p-3 pointer-events-auto"
                           />
@@ -217,7 +223,7 @@ const BeauticianBookingsBarChart = ({
                           <Calendar
                             mode="single"
                             selected={localEndDate}
-                            onSelect={setLocalEndDate}
+                            onSelect={handleEndDateSelect}
                             initialFocus
                             className="p-3 pointer-events-auto"
                           />
