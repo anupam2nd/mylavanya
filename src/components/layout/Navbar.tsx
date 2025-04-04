@@ -52,11 +52,6 @@ const Navbar = () => {
     setIsAuthModalOpen(true);
   };
 
-  const openArtistSignIn = () => {
-    setAuthModalTab("artist");
-    setIsAuthModalOpen(true);
-  };
-
   return <>
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white shadow-md py-2" : "bg-transparent py-4"}`}>
         <div className="container mx-auto px-4">
@@ -87,14 +82,9 @@ const Navbar = () => {
                 {isAuthenticated ? (
                   <Button onClick={navigateToDashboard}>Dashboard</Button>
                 ) : (
-                  <div className="flex space-x-2">
-                    <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className="border-primary/20 text-foreground">
-                      Member Signin
-                    </ButtonCustom>
-                    <ButtonCustom variant="outline" size="sm" onClick={openArtistSignIn} className="border-primary/20 text-foreground">
-                      Artist Signin
-                    </ButtonCustom>
-                  </div>
+                  <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className="border-primary/20 text-foreground">
+                    Sign In
+                  </ButtonCustom>
                 )}
               </div>
             </div>
@@ -132,20 +122,12 @@ const Navbar = () => {
                     Dashboard
                   </Button>
                 ) : (
-                  <div className="flex flex-col space-y-2">
-                    <ButtonCustom variant="outline" size="sm" onClick={() => {
-                      openMemberSignIn();
-                      closeMenu();
-                    }} className="border-primary/20 text-foreground w-full">
-                      Member Signin
-                    </ButtonCustom>
-                    <ButtonCustom variant="outline" size="sm" onClick={() => {
-                      openArtistSignIn();
-                      closeMenu();
-                    }} className="border-primary/20 text-foreground w-full">
-                      Artist Signin
-                    </ButtonCustom>
-                  </div>
+                  <ButtonCustom variant="outline" size="sm" onClick={() => {
+                    openMemberSignIn();
+                    closeMenu();
+                  }} className="border-primary/20 text-foreground w-full">
+                    Sign In
+                  </ButtonCustom>
                 )}
               </div>
             </nav>
