@@ -12,6 +12,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState("member");
   const {
     user,
     isAuthenticated
@@ -39,9 +40,21 @@ const Navbar = () => {
     closeMenu();
     if (user?.role === "admin" || user?.role === "superadmin") {
       navigate("/admin/dashboard");
+    } else if (user?.role === "artist") {
+      navigate("/artist/dashboard");
     } else {
       navigate("/user/dashboard");
     }
+  };
+
+  const openMemberSignIn = () => {
+    setAuthModalTab("member");
+    setIsAuthModalOpen(true);
+  };
+
+  const openArtistSignIn = () => {
+    setAuthModalTab("artist");
+    setIsAuthModalOpen(true);
   };
 
   return <>
@@ -74,9 +87,14 @@ const Navbar = () => {
                 {isAuthenticated ? (
                   <Button onClick={navigateToDashboard}>Dashboard</Button>
                 ) : (
-                  <ButtonCustom variant="outline" size="sm" onClick={() => setIsAuthModalOpen(true)} className="border-primary/20 text-foreground">
-                    Member Signin
-                  </ButtonCustom>
+                  <div className="flex space-x-2">
+                    <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className="border-primary/20 text-foreground">
+                      Member Signin
+                    </ButtonCustom>
+                    <ButtonCustom variant="outline" size="sm" onClick={openArtistSignIn} className="border-primary/20 text-foreground">
+                      Artist Signin
+                    </ButtonCustom>
+                  </div>
                 )}
               </div>
             </div>
@@ -114,12 +132,20 @@ const Navbar = () => {
                     Dashboard
                   </Button>
                 ) : (
-                  <ButtonCustom variant="outline" size="sm" onClick={() => {
-                    setIsAuthModalOpen(true);
-                    closeMenu();
-                  }} className="border-primary/20 text-foreground w-full">
-                    Member Signin
-                  </ButtonCustom>
+                  <div className="flex flex-col space-y-2">
+                    <ButtonCustom variant="outline" size="sm" onClick={() => {
+                      openMemberSignIn();
+                      closeMenu();
+                    }} className="border-primary/20 text-foreground w-full">
+                      Member Signin
+                    </ButtonCustom>
+                    <ButtonCustom variant="outline" size="sm" onClick={() => {
+                      openArtistSignIn();
+                      closeMenu();
+                    }} className="border-primary/20 text-foreground w-full">
+                      Artist Signin
+                    </ButtonCustom>
+                  </div>
                 )}
               </div>
             </nav>
@@ -128,7 +154,7 @@ const Navbar = () => {
       {/* Add spacing to account for fixed header */}
       <div className={`${isScrolled ? "h-16" : "h-20"}`}></div>
       
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authModalTab} />
     </>;
 };
 

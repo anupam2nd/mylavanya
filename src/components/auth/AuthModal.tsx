@@ -25,6 +25,25 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: Au
         />
         
         <div className="p-6">
+          <div className="flex justify-center space-x-4 mb-6">
+            <button
+              onClick={() => setActiveTab("member")}
+              className={`px-4 py-2 rounded-md ${activeTab === "member" 
+                ? "bg-primary text-white" 
+                : "bg-gray-100 text-gray-700"}`}
+            >
+              Member
+            </button>
+            <button
+              onClick={() => setActiveTab("artist")}
+              className={`px-4 py-2 rounded-md ${activeTab === "artist" 
+                ? "bg-primary text-white" 
+                : "bg-gray-100 text-gray-700"}`}
+            >
+              Artist
+            </button>
+          </div>
+          
           {activeTab === "member" ? (
             <LoginForm />
           ) : (

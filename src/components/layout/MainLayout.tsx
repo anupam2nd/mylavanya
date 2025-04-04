@@ -23,6 +23,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         redirectPath = '/admin/status';
       } else if (user.role === 'admin') {
         redirectPath = '/admin/dashboard';
+      } else if (user.role === 'artist') {
+        redirectPath = '/artist/dashboard';
       }
       
       // Only redirect if we're on the homepage
