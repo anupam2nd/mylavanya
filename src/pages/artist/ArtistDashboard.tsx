@@ -22,10 +22,21 @@ const ArtistDashboard = () => {
       try {
         console.log("Fetching bookings for artist ID:", user.id);
         
+        // Convert string ID to number for the query
+        const artistId = parseInt(user.id, 10);
+        
+        // Make sure we have a valid number before querying
+        if (isNaN(artistId)) {
+          console.error("Invalid artist ID:", user.id);
+          toast.error("Could not load bookings: invalid artist ID");
+          setIsLoading(false);
+          return;
+        }
+        
         const { data, error } = await supabase
           .from('BookMST')
           .select('*')
-          .eq('ArtistId', user.id)
+          .eq('ArtistId', artistId)
           .not('Status', 'in', '("pending","cancelled","Pending","Cancelled","P","C")')
           .order('Booking_date', { ascending: false });
         

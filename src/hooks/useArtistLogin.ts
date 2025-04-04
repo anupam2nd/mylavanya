@@ -23,10 +23,11 @@ export function useArtistLogin() {
       // Explicitly convert email to lowercase for consistent matching
       const normalizedEmail = email.trim().toLowerCase();
       
+      // Fix the query to properly handle types
       const { data, error } = await supabase
         .from('ArtistMST')
         .select('ArtistId, emailid, ArtistFirstName, ArtistLastName')
-        .ilike('emailid', normalizedEmail)
+        .eq('emailid', normalizedEmail)
         .eq('password', password)
         .maybeSingle();
       
