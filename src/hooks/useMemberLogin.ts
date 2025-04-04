@@ -52,8 +52,8 @@ export function useMemberLogin() {
       
       toast.success("Login successful. Welcome back!");
       
-      // Redirect to home page
-      navigate('/');
+      // No redirection, stay on current page
+      // Removed the navigate('/') line to prevent redirect
 
       return true;
     } catch (error) {
