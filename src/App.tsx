@@ -24,6 +24,7 @@ import UserDashboard from "./pages/user/UserDashboard";
 import UserBookings from "./pages/user/UserBookings";
 import Profile from "./pages/user/Profile";
 import Settings from "./pages/user/Settings";
+import ArtistDashboard from "./pages/artist/ArtistDashboard";
 
 // Log to confirm App is being loaded
 console.log("App component rendering");
@@ -67,6 +68,9 @@ const App = () => (
             <Route path="/user/bookings" element={<UserBookings />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
+            
+            {/* Artist Routes */}
+            <Route path="/artist/dashboard" element={<ArtistDashboard />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

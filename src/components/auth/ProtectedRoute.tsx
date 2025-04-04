@@ -29,6 +29,8 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
       return <Navigate to="/admin/status" replace />;
     } else if (user.role === 'admin') {
       return <Navigate to="/admin/dashboard" replace />;
+    } else if (user.role === 'artist') {
+      return <Navigate to="/artist/dashboard" replace />;
     } else {
       return <Navigate to="/user/dashboard" replace />;
     }

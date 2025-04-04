@@ -20,7 +20,10 @@ export type Database = {
           ArtistPhno: number | null
           ArtistRating: number | null
           created_at: string
+          emailid: string | null
+          password: string | null
           Source: string | null
+          userid: string | null
         }
         Insert: {
           Active?: boolean | null
@@ -32,7 +35,10 @@ export type Database = {
           ArtistPhno?: number | null
           ArtistRating?: number | null
           created_at?: string
+          emailid?: string | null
+          password?: string | null
           Source?: string | null
+          userid?: string | null
         }
         Update: {
           Active?: boolean | null
@@ -44,7 +50,10 @@ export type Database = {
           ArtistPhno?: number | null
           ArtistRating?: number | null
           created_at?: string
+          emailid?: string | null
+          password?: string | null
           Source?: string | null
+          userid?: string | null
         }
         Relationships: []
       }
@@ -129,6 +138,45 @@ export type Database = {
           Status?: string | null
           StatusUpdated?: string | null
           SubService?: string | null
+        }
+        Relationships: []
+      }
+      MemberMST: {
+        Row: {
+          id: number
+          MemberAdress: string | null
+          MemberDOB: string | null
+          MemberEmailId: string | null
+          MemberFirstName: string | null
+          MemberLastName: string | null
+          MemberPhNo: string | null
+          MemberPincode: string | null
+          MemberSex: string | null
+          password: string | null
+        }
+        Insert: {
+          id?: number
+          MemberAdress?: string | null
+          MemberDOB?: string | null
+          MemberEmailId?: string | null
+          MemberFirstName?: string | null
+          MemberLastName?: string | null
+          MemberPhNo?: string | null
+          MemberPincode?: string | null
+          MemberSex?: string | null
+          password?: string | null
+        }
+        Update: {
+          id?: number
+          MemberAdress?: string | null
+          MemberDOB?: string | null
+          MemberEmailId?: string | null
+          MemberFirstName?: string | null
+          MemberLastName?: string | null
+          MemberPhNo?: string | null
+          MemberPincode?: string | null
+          MemberSex?: string | null
+          password?: string | null
         }
         Relationships: []
       }

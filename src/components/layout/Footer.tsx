@@ -8,6 +8,12 @@ import AuthModal from "@/components/auth/AuthModal";
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState("member");
+  
+  const openAuthModal = (tab: string) => {
+    setAuthModalTab(tab);
+    setIsAuthModalOpen(true);
+  };
   
   return <footer className="bg-accent/30 pt-16 pb-8">
       <div className="container-custom">
@@ -49,10 +55,10 @@ export default function Footer() {
               href: "/booking"
             }, {
               name: "Admin Signin",
-              onClick: () => setIsAuthModalOpen(true)
+              onClick: () => openAuthModal("admin")
             }, {
               name: "Artist Signin",
-              onClick: () => setIsAuthModalOpen(true)
+              onClick: () => openAuthModal("artist")
             }].map(link => <li key={link.name}>
                   {link.href ? (
                     <Link to={link.href} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
@@ -119,6 +125,6 @@ export default function Footer() {
         </div>
       </div>
       
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authModalTab} />
     </footer>;
 }
