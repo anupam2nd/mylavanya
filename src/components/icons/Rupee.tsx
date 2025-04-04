@@ -16,9 +16,7 @@ export const Rupee = (props: LucideProps) => {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M6 3h12l-6 18-6-18z" />
-      <path d="M6 3l6 6" />
-      <path d="M18 3l-6 6" />
+      <path d="M6 3h12M6 8h12M12 3v18M6 13.5C6 16.5 8 18 12 18" />
     </svg>
   );
 };
