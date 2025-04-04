@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
 import NavTrackingButton from "@/components/ui/NavTrackingButton";
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -15,12 +16,15 @@ const Navbar = () => {
   } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
+
   const closeMenu = () => {
     setIsOpen(false);
   };
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -28,6 +32,7 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
   const navigateToDashboard = () => {
     closeMenu();
     if (user?.role === "admin" || user?.role === "superadmin") {
@@ -36,6 +41,7 @@ const Navbar = () => {
       navigate("/user/dashboard");
     }
   };
+
   return <>
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white shadow-md py-2" : "bg-transparent py-4"}`}>
         <div className="container mx-auto px-4">
@@ -62,7 +68,7 @@ const Navbar = () => {
               </nav>
 
               <div className="flex items-center space-x-3">
-                {isAuthenticated ? <Button onClick={navigateToDashboard}>Dashboard</Button> : <Button onClick={() => setIsAuthModalOpen(true)}>Sign In</Button>}
+                {isAuthenticated ? <Button onClick={navigateToDashboard}>Dashboard</Button> : <Button onClick={() => setIsAuthModalOpen(true)}>Admin Signin</Button>}
               </div>
             </div>
 
@@ -98,7 +104,7 @@ const Navbar = () => {
               setIsAuthModalOpen(true);
               closeMenu();
             }} className="w-full">
-                    Sign In
+                    Admin Signin
                   </Button>}
               </div>
             </nav>
@@ -110,4 +116,5 @@ const Navbar = () => {
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </>;
 };
+
 export default Navbar;

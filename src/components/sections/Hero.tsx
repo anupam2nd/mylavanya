@@ -1,9 +1,12 @@
+
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
+
 interface HeroProps {
   onBookNow: () => void;
   onLogin: () => void;
 }
+
 const Hero = ({
   onBookNow,
   onLogin
@@ -35,7 +38,7 @@ const Hero = ({
               </ButtonCustom>
               
               <ButtonCustom variant="outline" size="lg" onClick={onLogin} className="border-primary/20 text-foreground">
-                Sign In
+                Admin Signin
               </ButtonCustom>
             </div>
             
@@ -58,4 +61,5 @@ const Hero = ({
       </div>
     </div>;
 };
+
 export default Hero;
