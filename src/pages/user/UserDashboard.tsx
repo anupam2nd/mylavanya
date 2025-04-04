@@ -38,32 +38,40 @@ const UserDashboard = () => {
       setError(null);
       
       try {
-        console.log(`Attempting to fetch bookings for user: ${user.email}`);
+        console.log(`Attempting to fetch bookings for user: ${user.email}, role: ${user.role}, id: ${user.id}`);
         
-        const { data, error } = await supabase
-          .from('BookMST')
-          .select('*');
+        let query = supabase.from('BookMST').select('*');
+        
+        // If the user is an artist, only fetch bookings assigned to them
+        if (user.role === 'artist') {
+          const artistId = parseInt(user.id, 10);
+          if (!isNaN(artistId)) {
+            console.log("Filtering dashboard bookings by ArtistId:", artistId);
+            query = query.eq('ArtistId', artistId);
+          }
+        } else {
+          // For regular users, filter by their email
+          query = query.eq('email', user.email);
+        }
+        
+        const { data, error } = await query;
         
         if (error) {
-          console.error('Error fetching all bookings:', error);
+          console.error('Error fetching bookings:', error);
           setError("Failed to load bookings data");
           toast.error("Failed to load bookings data");
           return;
         }
         
-        console.log(`Total bookings in system: ${data?.length || 0}`);
+        console.log(`User bookings found: ${data?.length || 0}`);
         
-        // Filter to only show the current user's bookings
-        const userBookings = data?.filter(booking => booking.email === user.email) || [];
-        console.log(`User bookings found: ${userBookings.length}`);
-        
-        if (userBookings.length > 0) {
-          console.log("Sample booking:", JSON.stringify(userBookings[0]));
+        if (data?.length > 0) {
+          console.log("Sample booking:", JSON.stringify(data[0]));
         } else {
           console.log("No bookings found for the current user");
         }
         
-        setBookings(userBookings);
+        setBookings(data || []);
       } catch (error) {
         console.error('Unexpected error in fetch:', error);
         setError("An unexpected error occurred");

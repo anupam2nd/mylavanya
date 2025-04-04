@@ -51,6 +51,7 @@ const BookingsList = () => {
         const { data, error } = await query;
 
         if (error) throw error;
+        console.log("Bookings fetched:", data?.length || 0);
 
         // Transform the data to match the Booking interface
         const transformedData = data?.map(booking => ({
