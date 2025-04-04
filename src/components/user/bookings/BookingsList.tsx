@@ -31,11 +31,23 @@ const BookingsList = () => {
 
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('BookMST')
           .select('*')
-          .eq('email', user.email)
           .order('Booking_date', { ascending: false });
+        
+        // If the user is an artist, only show bookings assigned to them
+        if (user.role === 'artist') {
+          const artistId = parseInt(user.id, 10);
+          if (!isNaN(artistId)) {
+            query = query.eq('ArtistId', artistId);
+          }
+        } else {
+          // For regular users, filter by their email
+          query = query.eq('email', user.email);
+        }
+        
+        const { data, error } = await query;
 
         if (error) throw error;
 

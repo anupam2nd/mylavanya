@@ -13,6 +13,44 @@ const ArtistDashboard = () => {
   const { user } = useAuth();
   const [bookings, setBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [artistDetails, setArtistDetails] = useState<{
+    firstName: string;
+    lastName: string;
+  }>({
+    firstName: '',
+    lastName: ''
+  });
+  
+  // Fetch artist details
+  useEffect(() => {
+    const fetchArtistDetails = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('ArtistMST')
+          .select('ArtistFirstName, ArtistLastName')
+          .eq('ArtistId', parseInt(user.id, 10))
+          .single();
+        
+        if (error) {
+          console.error("Error fetching artist details:", error);
+          return;
+        }
+        
+        if (data) {
+          setArtistDetails({
+            firstName: data.ArtistFirstName || '',
+            lastName: data.ArtistLastName || ''
+          });
+        }
+      } catch (error) {
+        console.error("Unexpected error fetching artist details:", error);
+      }
+    };
+    
+    fetchArtistDetails();
+  }, [user]);
   
   useEffect(() => {
     const fetchArtistBookings = async () => {
@@ -58,10 +96,21 @@ const ArtistDashboard = () => {
     
     fetchArtistBookings();
   }, [user]);
+
+  // Get full name from artist details or use fallback from user object
+  const getFullName = () => {
+    if (artistDetails.firstName || artistDetails.lastName) {
+      return `${artistDetails.firstName} ${artistDetails.lastName}`.trim();
+    }
+    
+    return user?.firstName && user?.lastName 
+      ? `${user.firstName} ${user.lastName}`.trim()
+      : (user?.firstName || 'Artist');
+  };
   
   return (
     <ProtectedRoute allowedRoles={["artist"]}>
-      <DashboardLayout title={`Welcome, ${user?.firstName || 'Artist'}`}>
+      <DashboardLayout title={`Welcome, ${getFullName()}`}>
         <div className="mb-6">
           <h2 className="text-2xl font-bold">Your Dashboard</h2>
           <p className="text-muted-foreground">
