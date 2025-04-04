@@ -40,6 +40,7 @@ const BookingsList = () => {
         if (user.role === 'artist') {
           const artistId = parseInt(user.id, 10);
           if (!isNaN(artistId)) {
+            console.log("Filtering bookings by ArtistId:", artistId);
             query = query.eq('ArtistId', artistId);
           }
         } else {

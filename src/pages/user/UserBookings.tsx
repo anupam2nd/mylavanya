@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,11 +92,21 @@ const UserBookings = () => {
     const fetchBookings = async () => {
       try {
         setLoading(true);
-        console.log("Fetching all bookings for coordinator");
-        const { data, error } = await supabase
-          .from('BookMST')
-          .select('*')
-          .order('Booking_date', { ascending: false });
+        
+        let query = supabase.from('BookMST').select('*');
+        
+        // For artist role, filter bookings by ArtistId
+        if (user?.role === 'artist') {
+          const artistId = parseInt(user.id, 10);
+          if (!isNaN(artistId)) {
+            console.log("Filtering bookings by artist ID:", artistId);
+            query = query.eq('ArtistId', artistId);
+          }
+        }
+        
+        query = query.order('Booking_date', { ascending: false });
+        
+        const { data, error } = await query;
 
         if (error) {
           console.error('Error fetching bookings:', error);
@@ -117,7 +128,7 @@ const UserBookings = () => {
     };
 
     fetchBookings();
-  }, [toast]);
+  }, [toast, user]);
 
   const handleAddNewJob = (booking: Booking) => {
     setSelectedBookingForNewJob(booking);
@@ -151,6 +162,9 @@ const UserBookings = () => {
     Status: 'Status',
     created_at: 'Created At'
   };
+
+  // Determine if the current user is an artist
+  const isArtist = user?.role === 'artist';
 
   return (
     <ProtectedRoute>
@@ -209,46 +223,50 @@ const UserBookings = () => {
                 <AdminBookingsList 
                   bookings={filteredBookings} 
                   loading={loading} 
-                  onEditClick={handleEditClick} 
-                  onAddNewJob={handleAddNewJob}
+                  onEditClick={isArtist ? () => {} : handleEditClick} 
+                  onAddNewJob={isArtist ? undefined : handleAddNewJob}
                 />
               </>
             )}
           </CardContent>
         </Card>
 
-        <EditBookingDialog
-          booking={editBooking}
-          open={openDialog}
-          onOpenChange={setOpenDialog}
-          onSave={async (booking, updates) => {
-            const formValues = {
-              date: updates.Booking_date ? new Date(updates.Booking_date) : undefined,
-              time: updates.booking_time || "",
-              status: updates.Status || "",
-              service: updates.ServiceName || "",
-              subService: updates.SubService || "",
-              product: updates.ProductName || "",
-              quantity: updates.Qty || 1,
-              address: updates.Address || "",
-              pincode: updates.Pincode?.toString() || "",
-              artistId: updates.ArtistId || null,
-              currentUser
-            };
+        {!isArtist && (
+          <>
+            <EditBookingDialog
+              booking={editBooking}
+              open={openDialog}
+              onOpenChange={setOpenDialog}
+              onSave={async (booking, updates) => {
+                const formValues = {
+                  date: updates.Booking_date ? new Date(updates.Booking_date) : undefined,
+                  time: updates.booking_time || "",
+                  status: updates.Status || "",
+                  service: updates.ServiceName || "",
+                  subService: updates.SubService || "",
+                  product: updates.ProductName || "",
+                  quantity: updates.Qty || 1,
+                  address: updates.Address || "",
+                  pincode: updates.Pincode?.toString() || "",
+                  artistId: updates.ArtistId || null,
+                  currentUser
+                };
+                
+                await handleSaveChanges(formValues);
+              }}
+              statusOptions={statusOptions}
+              currentUser={currentUser}
+            />
             
-            await handleSaveChanges(formValues);
-          }}
-          statusOptions={statusOptions}
-          currentUser={currentUser}
-        />
-        
-        <NewJobDialog
-          open={showNewJobDialog}
-          onOpenChange={setShowNewJobDialog}
-          booking={selectedBookingForNewJob}
-          onSuccess={handleNewJobSuccess}
-          currentUser={currentUser}
-        />
+            <NewJobDialog
+              open={showNewJobDialog}
+              onOpenChange={setShowNewJobDialog}
+              booking={selectedBookingForNewJob}
+              onSuccess={handleNewJobSuccess}
+              currentUser={currentUser}
+            />
+          </>
+        )}
       </DashboardLayout>
     </ProtectedRoute>
   );
