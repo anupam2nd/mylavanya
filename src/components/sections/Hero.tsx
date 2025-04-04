@@ -51,7 +51,7 @@ const Hero = ({
             <div className="absolute -top-4 -left-4 w-24 h-24 bg-secondary rounded-full"></div>
             <div className="absolute -bottom-10 -right-6 w-36 h-36 bg-accent/30 rounded-full"></div>
             <div className="relative z-10">
-              <img alt="Beauty Services" src="/lovable-uploads/0b9c4ec6-8c62-4d2f-a9b8-bfcf1f87fabd.jpg" className="w-full h-auto rounded-2xl shadow-card object-contain" />
+              <img alt="Beauty Services" className="w-full h-auto rounded-2xl shadow-card object-contain" src="/lovable-uploads/265f8066-8eea-43e2-a9a0-754a8b3fdb20.png" />
             </div>
           </div>
         </div>
