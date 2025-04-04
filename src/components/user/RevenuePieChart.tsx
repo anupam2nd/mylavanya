@@ -12,7 +12,6 @@ import {
 import { Loader } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { ChartContainer } from "@/components/ui/chart";
-import { Rupee } from "@/components/icons/Rupee";
 
 interface RevenuePieChartProps {
   bookings: Booking[];
@@ -122,7 +121,7 @@ const RevenuePieChart = ({
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                formatter={(value) => [`INR ${value.toLocaleString()}`, 'Revenue']}
                 contentStyle={{
                   backgroundColor: 'var(--background)',
                   borderColor: 'var(--border)',

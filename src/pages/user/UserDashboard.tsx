@@ -9,7 +9,6 @@ import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import { Booking } from "@/hooks/useBookings";
 import { toast } from "sonner";
 import RevenuePieChart from "@/components/user/RevenuePieChart";
-import { Rupee } from "@/components/icons/Rupee";
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -17,14 +16,11 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Initialize with last 30 days as default
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
   
-  // Track if filters have been applied
   const [filtersApplied, setFiltersApplied] = useState(false);
   
-  // For displaying the filter state
   const [appliedStartDate, setAppliedStartDate] = useState<Date | undefined>(startDate);
   const [appliedEndDate, setAppliedEndDate] = useState<Date | undefined>(endDate);
 
@@ -43,7 +39,6 @@ const UserDashboard = () => {
         
         let query = supabase.from('BookMST').select('*');
         
-        // If the user is an artist, only fetch bookings assigned to them
         if (user.role === 'artist') {
           const artistId = parseInt(user.id, 10);
           if (!isNaN(artistId)) {
@@ -51,7 +46,6 @@ const UserDashboard = () => {
             query = query.eq('ArtistId', artistId);
           }
         } else {
-          // For regular users, filter by their email
           query = query.eq('email', user.email);
         }
         
@@ -85,7 +79,6 @@ const UserDashboard = () => {
     fetchBookings();
   }, [user]);
   
-  // Apply filters action
   const applyFilters = () => {
     setAppliedStartDate(startDate);
     setAppliedEndDate(endDate);
@@ -93,7 +86,6 @@ const UserDashboard = () => {
     toast.success(`Filtering data from ${startDate ? format(startDate, 'MMM dd, yyyy') : ''} to ${endDate ? format(endDate, 'MMM dd, yyyy') : ''}`);
   };
   
-  // Reset filters action
   const resetFilters = () => {
     const defaultStart = subDays(new Date(), 30);
     const defaultEnd = new Date();
@@ -106,7 +98,6 @@ const UserDashboard = () => {
     toast.info("Filters have been reset");
   };
   
-  // Calculate recent bookings (last 30 days)
   const recentBookings = useMemo(() => {
     if (!bookings || bookings.length === 0) return 0;
     
@@ -118,12 +109,10 @@ const UserDashboard = () => {
     }).length;
   }, [bookings]);
 
-  // Calculate total revenue
   const totalRevenue = useMemo(() => {
     if (!bookings || bookings.length === 0) return 0;
     
     return bookings.reduce((sum, booking) => {
-      // Only count revenue for completed bookings
       if (booking.Status === "done" || booking.Status === "confirmed" || booking.Status === "beautician_assigned") {
         return sum + (booking.price || 0);
       }
@@ -131,7 +120,6 @@ const UserDashboard = () => {
     }, 0);
   }, [bookings]);
 
-  // Filter bookings by date range for the pie chart
   const filteredBookings = useMemo(() => {
     if (!bookings || bookings.length === 0) return [];
     
@@ -154,7 +142,6 @@ const UserDashboard = () => {
 
   return (
     <DashboardLayout title="Dashboard">
-      {/* Summary Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -185,11 +172,10 @@ const UserDashboard = () => {
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold flex items-center">
+            <div className="text-2xl font-bold">
               {loading ? '...' : (
                 <>
-                  <Rupee className="h-5 w-5 text-primary mr-1" />
-                  {totalRevenue.toLocaleString()}
+                  INR {totalRevenue.toLocaleString()}
                 </>
               )}
             </div>
@@ -200,7 +186,6 @@ const UserDashboard = () => {
         </Card>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-700">
           <p>{error}</p>
@@ -208,7 +193,6 @@ const UserDashboard = () => {
         </div>
       )}
 
-      {/* Chart Filters - Moved here, just above the pie charts */}
       <div className="mb-4 mt-6">
         <ChartFilters
           startDate={startDate}
@@ -220,9 +204,7 @@ const UserDashboard = () => {
         />
       </div>
 
-      {/* Main Dashboard Layout with Pie Charts */}
       <div className="grid gap-8 grid-cols-1 md:grid-cols-2">
-        {/* Revenue by Service Pie Chart */}
         <RevenuePieChart 
           bookings={filteredBookings} 
           loading={loading}
@@ -230,7 +212,6 @@ const UserDashboard = () => {
           description="Distribution of revenue by service type"
         />
 
-        {/* Booking Status Pie Chart based on booking date */}
         <BookingStatusPieChart 
           bookings={bookings} 
           loading={loading} 
