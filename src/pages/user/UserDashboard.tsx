@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +8,8 @@ import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPie
 import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import { Booking } from "@/hooks/useBookings";
 import { toast } from "sonner";
-import { DollarSign } from "lucide-react";
 import RevenuePieChart from "@/components/user/RevenuePieChart";
+import { Rupee } from "@/components/icons/Rupee";
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -189,7 +188,7 @@ const UserDashboard = () => {
             <div className="text-2xl font-bold flex items-center">
               {loading ? '...' : (
                 <>
-                  <DollarSign className="h-5 w-5 text-primary mr-1" />
+                  <Rupee className="h-5 w-5 text-primary mr-1" />
                   {totalRevenue.toLocaleString()}
                 </>
               )}
