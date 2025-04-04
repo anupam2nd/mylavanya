@@ -47,34 +47,29 @@ export default function Footer() {
             }, {
               name: "Booking",
               href: "/booking"
+            }, {
+              name: "Admin Signin",
+              onClick: () => setIsAuthModalOpen(true)
+            }, {
+              name: "Artist Signin",
+              onClick: () => setIsAuthModalOpen(true)
             }].map(link => <li key={link.name}>
-                  <Link to={link.href} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
-                    <ChevronRight size={16} className="mr-1" />
-                    {link.name}
-                  </Link>
+                  {link.href ? (
+                    <Link to={link.href} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
+                      <ChevronRight size={16} className="mr-1" />
+                      {link.name}
+                    </Link>
+                  ) : (
+                    <button 
+                      onClick={link.onClick} 
+                      className="flex items-center text-muted-foreground hover:text-primary transition-colors w-full text-left"
+                    >
+                      <ChevronRight size={16} className="mr-1" />
+                      {link.name}
+                    </button>
+                  )}
                 </li>)}
             </ul>
-            
-            {/* Sign in buttons */}
-            <div className="pt-4 space-y-2">
-              <ButtonCustom 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setIsAuthModalOpen(true)} 
-                className="border-primary/20 text-foreground w-full"
-              >
-                Admin Signin
-              </ButtonCustom>
-              
-              <ButtonCustom 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setIsAuthModalOpen(true)} 
-                className="border-primary/20 text-foreground w-full"
-              >
-                Artist Signin
-              </ButtonCustom>
-            </div>
           </div>
           
           {/* Contact Info */}
