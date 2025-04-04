@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
 import NavTrackingButton from "@/components/ui/NavTrackingButton";
+import { ButtonCustom } from "@/components/ui/button-custom";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,7 +52,7 @@ const Navbar = () => {
               <span className="text-xl font-bold text-primary">Lavanya</span>
             </Link>
 
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-6">
               <nav className="flex items-center space-x-6">
                 <Link to="/" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
                   Home
@@ -67,8 +69,23 @@ const Navbar = () => {
                 <NavTrackingButton />
               </nav>
 
-              <div className="flex items-center space-x-3">
-                {isAuthenticated ? <Button onClick={navigateToDashboard}>Dashboard</Button> : <Button onClick={() => setIsAuthModalOpen(true)}>Admin Signin</Button>}
+              {/* Login buttons */}
+              <div className="flex items-center space-x-2">
+                {isAuthenticated ? (
+                  <Button onClick={navigateToDashboard}>Dashboard</Button>
+                ) : (
+                  <>
+                    <ButtonCustom variant="outline" size="sm" onClick={() => setIsAuthModalOpen(true)} className="border-primary/20 text-foreground">
+                      Admin Signin
+                    </ButtonCustom>
+                    <ButtonCustom variant="outline" size="sm" onClick={() => setIsAuthModalOpen(true)} className="border-primary/20 text-foreground">
+                      Member Signin
+                    </ButtonCustom>
+                    <ButtonCustom variant="outline" size="sm" onClick={() => setIsAuthModalOpen(true)} className="border-primary/20 text-foreground">
+                      Artist Signin
+                    </ButtonCustom>
+                  </>
+                )}
               </div>
             </div>
 
@@ -94,18 +111,38 @@ const Navbar = () => {
                 Contact
               </Link>
               <NavTrackingButton isMobile={true} onClick={closeMenu} />
-              <div className="pt-2 border-t border-gray-200">
-                {isAuthenticated ? <Button onClick={() => {
-              navigateToDashboard();
-              closeMenu();
-            }} className="w-full">
+              
+              {/* Mobile login buttons */}
+              <div className="pt-2 border-t border-gray-200 grid grid-cols-3 gap-2">
+                {isAuthenticated ? (
+                  <Button onClick={() => {
+                    navigateToDashboard();
+                    closeMenu();
+                  }} className="w-full col-span-3">
                     Dashboard
-                  </Button> : <Button onClick={() => {
-              setIsAuthModalOpen(true);
-              closeMenu();
-            }} className="w-full">
-                    Admin Signin
-                  </Button>}
+                  </Button>
+                ) : (
+                  <>
+                    <ButtonCustom variant="outline" size="sm" onClick={() => {
+                      setIsAuthModalOpen(true);
+                      closeMenu();
+                    }} className="border-primary/20 text-foreground">
+                      Admin Signin
+                    </ButtonCustom>
+                    <ButtonCustom variant="outline" size="sm" onClick={() => {
+                      setIsAuthModalOpen(true);
+                      closeMenu();
+                    }} className="border-primary/20 text-foreground">
+                      Member Signin
+                    </ButtonCustom>
+                    <ButtonCustom variant="outline" size="sm" onClick={() => {
+                      setIsAuthModalOpen(true);
+                      closeMenu();
+                    }} className="border-primary/20 text-foreground">
+                      Artist Signin
+                    </ButtonCustom>
+                  </>
+                )}
               </div>
             </nav>
           </div>}

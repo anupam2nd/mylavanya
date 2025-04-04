@@ -36,19 +36,6 @@ const Hero = ({
                 Book Your Service 
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
               </ButtonCustom>
-              
-              {/* Login buttons - now in a grid for better organization */}
-              <div className="grid grid-cols-3 gap-2 sm:ml-2">
-                <ButtonCustom variant="outline" size="md" onClick={onLogin} className="border-primary/20 text-foreground">
-                  Admin Signin
-                </ButtonCustom>
-                <ButtonCustom variant="outline" size="md" onClick={onLogin} className="border-primary/20 text-foreground">
-                  Member Signin
-                </ButtonCustom>
-                <ButtonCustom variant="outline" size="md" onClick={onLogin} className="border-primary/20 text-foreground">
-                  Artist Signin
-                </ButtonCustom>
-              </div>
             </div>
             
             <div className="flex items-center justify-center lg:justify-start space-x-4 text-sm text-muted-foreground pt-4">
