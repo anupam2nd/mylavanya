@@ -1,10 +1,12 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader } from "lucide-react";
+import { Loader, ArrowDownWideNarrow, ArrowUpWideNarrow, SortDesc } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ServiceCard from "./ServiceCard";
 import { ButtonCustom } from "@/components/ui/button-custom";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface ServiceListProps {
   featured?: boolean;
@@ -30,6 +32,7 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'none' | 'asc' | 'desc'>('none');
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -92,16 +95,97 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
     navigate(`/services/${serviceId}`);
   };
   
+  // Sort services based on price
+  const sortedServices = [...services].sort((a, b) => {
+    // Get the effective price (NetPayable or calculated price after discount)
+    const getPriceAfterDiscount = (service: Service) => {
+      if (service.NetPayable !== null && service.NetPayable !== undefined) {
+        return service.NetPayable;
+      }
+      if (service.Discount) {
+        return service.Price - (service.Price * service.Discount / 100);
+      }
+      return service.Price;
+    };
+    
+    const priceA = getPriceAfterDiscount(a);
+    const priceB = getPriceAfterDiscount(b);
+    
+    if (sortOrder === 'asc') {
+      return priceA - priceB; // Low to high
+    } else if (sortOrder === 'desc') {
+      return priceB - priceA; // High to low
+    }
+    return 0; // No sorting
+  });
+  
+  // Get the confirmed bookings count
+  const [confirmedBookingsCount, setConfirmedBookingsCount] = useState(0);
+  
+  useEffect(() => {
+    const fetchConfirmedBookingsCount = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('BookMST')
+          .select('*', { count: 'exact', head: true })
+          .eq('Status', 'confirmed');
+          
+        if (error) {
+          console.error("Error fetching confirmed bookings count:", error);
+          return;
+        }
+        
+        setConfirmedBookingsCount(count || 0);
+      } catch (error) {
+        console.error("Error in fetchConfirmedBookingsCount:", error);
+      }
+    };
+    
+    fetchConfirmedBookingsCount();
+  }, []);
+  
   return (
     <div className="py-12 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-            {featured ? "Our Featured Services" : "Browse All Services"}
-          </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-gray-600">
-            Professional beauty services tailored for weddings and special events
-          </p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+              {featured ? "Our Featured Services" : "Browse All Services"}
+            </h2>
+            <p className="mt-2 text-lg text-gray-600">
+              Professional beauty services tailored for weddings and special events
+            </p>
+            {!featured && (
+              <div className="mt-2 inline-flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full">
+                <span className="font-medium mr-1">{confirmedBookingsCount}</span> 
+                <span>confirmed bookings</span>
+              </div>
+            )}
+          </div>
+          
+          {!featured && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="mt-4 sm:mt-0">
+                  <span className="mr-2">Sort by Price</span>
+                  {sortOrder === 'none' && <SortDesc className="h-4 w-4" />}
+                  {sortOrder === 'asc' && <ArrowUpWideNarrow className="h-4 w-4" />}
+                  {sortOrder === 'desc' && <ArrowDownWideNarrow className="h-4 w-4" />}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setSortOrder('none')}>
+                  Default
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder('asc')}>
+                  Price: Low to High
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder('desc')}>
+                  Price: High to Low
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
         
         {error && (
@@ -121,9 +205,9 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
           <div className="flex justify-center items-center py-16">
             <Loader className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : services.length > 0 ? (
+        ) : sortedServices.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {services.map((service) => (
+            {sortedServices.map((service) => (
               <ServiceCard 
                 key={service.prod_id}
                 service={{

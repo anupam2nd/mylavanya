@@ -6,6 +6,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { Eye, EyeOff } from "lucide-react";
 
 interface RegisterFormProps {
   onSuccess: (email: string, password: string) => void;
@@ -19,13 +20,27 @@ export default function RegisterForm({ onSuccess, userType = "member" }: Registe
     lastName: "", 
     email: "", 
     password: "",
+    confirmPassword: "",
     phone: "",
     address: "",
     pincode: ""
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if passwords match
+    if (registerData.password !== registerData.confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Passwords don't match",
+        description: "Please ensure your passwords match.",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -176,14 +191,61 @@ export default function RegisterForm({ onSuccess, userType = "member" }: Registe
         </div>
         <div className="space-y-2">
           <Label htmlFor="password-register">Password</Label>
-          <Input 
-            id="password-register" 
-            type="password" 
-            placeholder="Create a password" 
-            value={registerData.password}
-            onChange={(e) => setRegisterData({...registerData, password: e.target.value})}
-            required
-          />
+          <div className="relative">
+            <Input 
+              id="password-register" 
+              type={showPassword ? "text" : "password"}
+              placeholder="Create a password" 
+              value={registerData.password}
+              onChange={(e) => setRegisterData({...registerData, password: e.target.value})}
+              required
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-0 top-0 h-full px-3"
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <Eye className="h-4 w-4 text-muted-foreground" />
+              )}
+              <span className="sr-only">
+                {showPassword ? "Hide password" : "Show password"}
+              </span>
+            </Button>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirm-password">Confirm Password</Label>
+          <div className="relative">
+            <Input 
+              id="confirm-password" 
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm your password" 
+              value={registerData.confirmPassword}
+              onChange={(e) => setRegisterData({...registerData, confirmPassword: e.target.value})}
+              required
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-0 top-0 h-full px-3"
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <Eye className="h-4 w-4 text-muted-foreground" />
+              )}
+              <span className="sr-only">
+                {showConfirmPassword ? "Hide password" : "Show password"}
+              </span>
+            </Button>
+          </div>
         </div>
         
         {userType === "member" && (

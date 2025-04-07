@@ -5,12 +5,14 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useMemberLogin } from "@/hooks/useMemberLogin";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function MemberLoginForm() {
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const { isLoading, handleLogin } = useMemberLogin();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,6 +23,10 @@ export default function MemberLoginForm() {
     if (success) {
       window.dispatchEvent(new CustomEvent('closeAuthModal'));
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -39,14 +45,32 @@ export default function MemberLoginForm() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="Your password"
-            value={loginData.password}
-            onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-            required
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Your password"
+              value={loginData.password}
+              onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+              required
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={togglePasswordVisibility}
+              className="absolute right-0 top-0 h-full px-3"
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <Eye className="h-4 w-4 text-muted-foreground" />
+              )}
+              <span className="sr-only">
+                {showPassword ? "Hide password" : "Show password"}
+              </span>
+            </Button>
+          </div>
         </div>
         <ButtonCustom 
           variant="primary-gradient" 

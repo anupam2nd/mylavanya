@@ -16,6 +16,7 @@ const BookingsList = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [confirmedBookingsCount, setConfirmedBookingsCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -74,6 +75,11 @@ const BookingsList = () => {
         })) || [];
 
         setBookings(transformedData);
+        
+        // Count confirmed bookings
+        const confirmedCount = transformedData.filter(booking => 
+          booking.Status === 'confirmed').length;
+        setConfirmedBookingsCount(confirmedCount);
       } catch (error) {
         console.error('Error fetching bookings:', error);
       } finally {
@@ -110,7 +116,13 @@ const BookingsList = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
-        <h2 className="text-2xl font-semibold">Your Bookings</h2>
+        <div>
+          <h2 className="text-2xl font-semibold">Your Bookings</h2>
+          <div className="mt-1 inline-flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full">
+            <span className="font-medium mr-1">{confirmedBookingsCount}</span> 
+            <span>confirmed {confirmedBookingsCount === 1 ? 'booking' : 'bookings'}</span>
+          </div>
+        </div>
         <UserBookingFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
