@@ -1,10 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AuthModalHeader from "./AuthModalHeader";
 import LoginForm from "./LoginForm";
 import MemberLoginForm from "./MemberLoginForm";
 import ArtistLoginForm from "./ArtistLoginForm";
+import RegisterForm from "./RegisterForm";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -14,10 +15,38 @@ interface AuthModalProps {
 
 export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: AuthModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [currentView, setCurrentView] = useState<"login" | "register">("login");
+  const [currentType, setCurrentType] = useState(defaultTab);
   
-  // Determine the title based on defaultTab
+  // Reset to login view and sync current type whenever modal is opened or defaultTab changes
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentView("login");
+      setCurrentType(defaultTab);
+    }
+  }, [isOpen, defaultTab]);
+
+  // Listen for tab switch events from login forms
+  useEffect(() => {
+    const handleSwitchToRegister = (e: CustomEvent) => {
+      setCurrentView("register");
+      setCurrentType(e.detail.role);
+    };
+
+    window.addEventListener('switchToRegister', handleSwitchToRegister as EventListener);
+    
+    return () => {
+      window.removeEventListener('switchToRegister', handleSwitchToRegister as EventListener);
+    };
+  }, []);
+  
+  // Determine the title based on current view and type
   const getTitle = () => {
-    switch(defaultTab) {
+    if (currentView === "register") {
+      return "Create Account";
+    }
+    
+    switch(currentType) {
       case "artist":
         return "Artist Sign In";
       case "admin":
@@ -26,6 +55,12 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: Au
         return "Member Sign In";
     }
   }
+
+  // Handle successful registration
+  const handleRegisterSuccess = (email: string, password: string) => {
+    // Switch back to login view
+    setCurrentView("login");
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -37,12 +72,21 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: Au
         />
         
         <div className="p-6">
-          {defaultTab === "artist" ? (
-            <ArtistLoginForm />
-          ) : defaultTab === "admin" ? (
-            <LoginForm />
+          {currentView === "login" ? (
+            // Login forms
+            currentType === "artist" ? (
+              <ArtistLoginForm />
+            ) : currentType === "admin" ? (
+              <LoginForm />
+            ) : (
+              <MemberLoginForm />
+            )
           ) : (
-            <MemberLoginForm />
+            // Registration form
+            <RegisterForm 
+              onSuccess={handleRegisterSuccess} 
+              userType={currentType}
+            />
           )}
         </div>
         

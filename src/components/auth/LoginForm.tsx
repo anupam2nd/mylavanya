@@ -67,6 +67,25 @@ export default function LoginForm() {
         </ButtonCustom>
       </form>
 
+      <div className="mt-6 text-center">
+        <p className="text-sm text-muted-foreground">
+          Don't have an account?{" "}
+          <Button 
+            type="button" 
+            variant="link" 
+            className="p-0 h-auto"
+            onClick={() => {
+              // Trigger tab change in parent component
+              window.dispatchEvent(new CustomEvent('switchToRegister', { 
+                detail: { role: 'admin' } 
+              }));
+            }}
+          >
+            Register here
+          </Button>
+        </p>
+      </div>
+
       {/* Forgot Password Dialog */}
       <ForgotPassword 
         isOpen={forgotPasswordOpen}
