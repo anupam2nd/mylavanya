@@ -34,6 +34,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
 
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   const isSuperAdmin = user?.role === 'superadmin';
+  const isMember = user?.role === 'member';
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -57,11 +58,14 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
           </Button>
         </div>
         <nav className="p-4 space-y-1">
-          <Link to={isAdmin ? "/admin/dashboard" : "/user/dashboard"} 
-            className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-            <Home className="w-5 h-5 mr-3" />
-            <span>Dashboard</span>
-          </Link>
+          {/* Only show Dashboard for non-member users */}
+          {!isMember && (
+            <Link to={isAdmin ? "/admin/dashboard" : "/user/dashboard"} 
+              className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <Home className="w-5 h-5 mr-3" />
+              <span>Dashboard</span>
+            </Link>
+          )}
 
           <Link to={isAdmin ? "/admin/bookings" : "/user/bookings"}
             className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">

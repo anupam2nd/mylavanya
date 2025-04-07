@@ -39,7 +39,9 @@ const Navbar = () => {
 
   const navigateToDashboard = () => {
     closeMenu();
-    if (user?.role === "admin" || user?.role === "superadmin") {
+    if (user?.role === "member") {
+      navigate("/user/bookings");
+    } else if (user?.role === "admin" || user?.role === "superadmin") {
       navigate("/admin/dashboard");
     } else if (user?.role === "artist") {
       navigate("/artist/dashboard");
@@ -84,7 +86,7 @@ const Navbar = () => {
                   user?.role === "member" ? (
                     <ProfileDropdown />
                   ) : (
-                    <Button onClick={navigateToDashboard}>Dashboard</Button>
+                    <Button onClick={navigateToDashboard}>{user?.role === "member" ? "My Bookings" : "Dashboard"}</Button>
                   )
                 ) : (
                   <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className="border-primary/20 text-foreground">
@@ -148,7 +150,7 @@ const Navbar = () => {
                       navigateToDashboard();
                       closeMenu();
                     }} className="w-full">
-                      Dashboard
+                      {user?.role === "member" ? "My Bookings" : "Dashboard"}
                     </Button>
                   )
                 ) : (

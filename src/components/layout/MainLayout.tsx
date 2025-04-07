@@ -20,14 +20,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     if (user) {
       // Only redirect admin, superadmin, or artist roles
       if (user.role === 'superadmin' || user.role === 'admin' || user.role === 'artist') {
-        let redirectPath = '/user/dashboard';
+        let redirectPath = '/user/bookings'; // Default for artists and others
         
         if (user.role === 'superadmin') {
           redirectPath = '/admin/status';
         } else if (user.role === 'admin') {
           redirectPath = '/admin/dashboard';
-        } else if (user.role === 'artist') {
-          redirectPath = '/artist/dashboard';
         }
         
         // Only redirect if we're on the homepage
