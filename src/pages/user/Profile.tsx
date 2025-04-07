@@ -15,8 +15,8 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: user?.email || "",
-    firstName: "",
-    lastName: "",
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
     phone: ""
   });
 
@@ -53,6 +53,32 @@ const Profile = () => {
             }
           }
         } 
+        else if (user.role === 'member') {
+          const memberId = parseInt(user.id, 10);
+          if (!isNaN(memberId)) {
+            const { data, error } = await supabase
+              .from('MemberMST')
+              .select('MemberFirstName, MemberLastName, MemberPhNo, MemberEmailId, MemberAdress, MemberPincode')
+              .eq('id', memberId)
+              .single();
+              
+            if (error) {
+              console.error("Error fetching member profile:", error);
+              return;
+            }
+            
+            if (data) {
+              setFormData(prev => ({
+                ...prev,
+                email: data.MemberEmailId || user?.email || "",
+                firstName: data.MemberFirstName || "",
+                lastName: data.MemberLastName || "",
+                phone: data.MemberPhNo?.toString() || ""
+              }));
+              console.log("Member profile data loaded:", data);
+            }
+          }
+        }
         else {
           const { data, error } = await supabase
             .from('UserMST')
@@ -82,7 +108,7 @@ const Profile = () => {
     };
     
     fetchProfileData();
-  }, [user?.id, user?.email, user?.role]);
+  }, [user?.id, user?.email, user?.role, user?.firstName, user?.lastName]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -119,7 +145,24 @@ const Profile = () => {
             
           if (error) throw error;
         }
-      } else {
+      } 
+      else if (user.role === 'member') {
+        const memberId = parseInt(user.id, 10);
+        if (!isNaN(memberId)) {
+          const { error } = await supabase
+            .from('MemberMST')
+            .update({
+              MemberFirstName: formData.firstName,
+              MemberLastName: formData.lastName,
+              MemberPhNo: formData.phone || null,
+              MemberEmailId: formData.email
+            })
+            .eq('id', memberId);
+            
+          if (error) throw error;
+        }
+      }
+      else {
         const { error } = await supabase
           .from('UserMST')
           .upsert({
@@ -181,7 +224,7 @@ const Profile = () => {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      placeholder="Enter your first name"
+                      placeholder={user?.firstName || "Enter your first name"}
                     />
                   </div>
                   
@@ -192,7 +235,7 @@ const Profile = () => {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      placeholder="Enter your last name"
+                      placeholder={user?.lastName || "Enter your last name"}
                     />
                   </div>
                 </div>
