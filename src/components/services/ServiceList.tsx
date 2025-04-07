@@ -127,31 +127,6 @@ const ServiceList = ({ featured = false, categoryFilter, sortOrder = 'none' }: S
     return 0; // No sorting
   });
   
-  // Get the confirmed bookings count
-  const [confirmedBookingsCount, setConfirmedBookingsCount] = useState(0);
-  
-  useEffect(() => {
-    const fetchConfirmedBookingsCount = async () => {
-      try {
-        const { count, error } = await supabase
-          .from('BookMST')
-          .select('*', { count: 'exact', head: true })
-          .eq('Status', 'confirmed');
-          
-        if (error) {
-          console.error("Error fetching confirmed bookings count:", error);
-          return;
-        }
-        
-        setConfirmedBookingsCount(count || 0);
-      } catch (error) {
-        console.error("Error in fetchConfirmedBookingsCount:", error);
-      }
-    };
-    
-    fetchConfirmedBookingsCount();
-  }, []);
-  
   return (
     <div className="py-12 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -163,12 +138,6 @@ const ServiceList = ({ featured = false, categoryFilter, sortOrder = 'none' }: S
             <p className="mt-2 text-lg text-gray-600">
               Professional beauty services tailored for weddings and special events
             </p>
-            {!featured && (
-              <div className="mt-2 inline-flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full">
-                <span className="font-medium mr-1">{confirmedBookingsCount}</span> 
-                <span>confirmed bookings</span>
-              </div>
-            )}
           </div>
           
           {!featured && !sortOrder && (
