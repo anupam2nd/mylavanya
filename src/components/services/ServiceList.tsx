@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 interface ServiceListProps {
   featured?: boolean;
   categoryFilter?: string;
+  sortOrder?: 'none' | 'asc' | 'desc';
 }
 
 // Define a service type that matches the actual database schema
@@ -28,12 +29,19 @@ interface Service {
   Category: string | null;
 }
 
-const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => {
+const ServiceList = ({ featured = false, categoryFilter, sortOrder = 'none' }: ServiceListProps) => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<'none' | 'asc' | 'desc'>('none');
+  const [localSortOrder, setLocalSortOrder] = useState<'none' | 'asc' | 'desc'>('none');
   const navigate = useNavigate();
+  
+  // Sync the external sortOrder prop with local state
+  useEffect(() => {
+    if (sortOrder !== undefined) {
+      setLocalSortOrder(sortOrder);
+    }
+  }, [sortOrder]);
   
   useEffect(() => {
     const fetchServices = async () => {
@@ -111,9 +119,9 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
     const priceA = getPriceAfterDiscount(a);
     const priceB = getPriceAfterDiscount(b);
     
-    if (sortOrder === 'asc') {
+    if (localSortOrder === 'asc') {
       return priceA - priceB; // Low to high
-    } else if (sortOrder === 'desc') {
+    } else if (localSortOrder === 'desc') {
       return priceB - priceA; // High to low
     }
     return 0; // No sorting
@@ -163,24 +171,24 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
             )}
           </div>
           
-          {!featured && (
+          {!featured && !sortOrder && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="mt-4 sm:mt-0">
                   <span className="mr-2">Sort by Price</span>
-                  {sortOrder === 'none' && <SortDesc className="h-4 w-4" />}
-                  {sortOrder === 'asc' && <ArrowUpWideNarrow className="h-4 w-4" />}
-                  {sortOrder === 'desc' && <ArrowDownWideNarrow className="h-4 w-4" />}
+                  {localSortOrder === 'none' && <SortDesc className="h-4 w-4" />}
+                  {localSortOrder === 'asc' && <ArrowUpWideNarrow className="h-4 w-4" />}
+                  {localSortOrder === 'desc' && <ArrowDownWideNarrow className="h-4 w-4" />}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => setSortOrder('none')}>
+                <DropdownMenuItem onClick={() => setLocalSortOrder('none')}>
                   Default
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder('asc')}>
+                <DropdownMenuItem onClick={() => setLocalSortOrder('asc')}>
                   Price: Low to High
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder('desc')}>
+                <DropdownMenuItem onClick={() => setLocalSortOrder('desc')}>
                   Price: High to Low
                 </DropdownMenuItem>
               </DropdownMenuContent>

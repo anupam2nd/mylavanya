@@ -5,7 +5,9 @@ import ServiceList from "@/components/services/ServiceList";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader } from "lucide-react";
+import { Loader, ArrowDownWideNarrow, ArrowUpWideNarrow, SortDesc } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const Services = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -13,6 +15,7 @@ const Services = () => {
     { id: "all", name: "All Services" }
   ]);
   const [loading, setLoading] = useState(true);
+  const [sortOrder, setSortOrder] = useState<'none' | 'asc' | 'desc'>('none');
   const navigate = useNavigate();
 
   // Fetch categories from database
@@ -67,33 +70,61 @@ const Services = () => {
               Professional beauty services for weddings and special events
             </p>
             
-            {/* Category filters */}
-            {loading ? (
-              <div className="flex justify-center items-center mt-6 py-4">
-                <Loader className="h-5 w-5 animate-spin text-primary mr-2" />
-                <span>Loading categories...</span>
-              </div>
-            ) : (
-              <div className="mt-6 flex flex-wrap gap-2">
-                {categories.map(category => (
-                  <button
-                    key={category.id}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
-                      ${selectedCategory === category.id 
-                        ? 'bg-primary text-white shadow-sm' 
-                        : 'bg-white/70 text-gray-700 hover:bg-white'}`}
-                    onClick={() => setSelectedCategory(category.id)}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="mt-6 flex flex-wrap justify-between items-center">
+              {/* Category filters */}
+              {loading ? (
+                <div className="flex justify-center items-center py-4">
+                  <Loader className="h-5 w-5 animate-spin text-primary mr-2" />
+                  <span>Loading categories...</span>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {categories.map(category => (
+                    <button
+                      key={category.id}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
+                        ${selectedCategory === category.id 
+                          ? 'bg-primary text-white shadow-sm' 
+                          : 'bg-white/70 text-gray-700 hover:bg-white'}`}
+                      onClick={() => setSelectedCategory(category.id)}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              {/* Price sorting dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="mt-4 sm:mt-0 bg-white/70">
+                    <span className="mr-2">Sort by Price</span>
+                    {sortOrder === 'none' && <SortDesc className="h-4 w-4" />}
+                    {sortOrder === 'asc' && <ArrowUpWideNarrow className="h-4 w-4" />}
+                    {sortOrder === 'desc' && <ArrowDownWideNarrow className="h-4 w-4" />}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => setSortOrder('none')}>
+                    Default
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortOrder('asc')}>
+                    Price: Low to High
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortOrder('desc')}>
+                    Price: High to Low
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <ServiceList categoryFilter={selectedCategory !== "all" ? selectedCategory : undefined} />
+          <ServiceList 
+            categoryFilter={selectedCategory !== "all" ? selectedCategory : undefined} 
+            sortOrder={sortOrder}
+          />
         </div>
       </div>
       <Footer />

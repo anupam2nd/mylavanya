@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +11,42 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { User, BookOpen, Heart, LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 
 const ProfileDropdown = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [confirmedBookingsCount, setConfirmedBookingsCount] = useState(0);
+  
+  // Fetch confirmed bookings count for the current user
+  useEffect(() => {
+    const fetchBookingsCount = async () => {
+      if (!user) return;
+      
+      try {
+        // For member users, fetch their confirmed bookings
+        if (user.role === "member") {
+          const { count, error } = await supabase
+            .from('BookMST')
+            .select('*', { count: 'exact', head: true })
+            .eq('Status', 'confirmed')
+            .eq('email', user.email);
+            
+          if (error) {
+            console.error("Error fetching confirmed bookings count:", error);
+            return;
+          }
+          
+          setConfirmedBookingsCount(count || 0);
+        }
+      } catch (error) {
+        console.error("Error in fetchBookingsCount:", error);
+      }
+    };
+    
+    fetchBookingsCount();
+  }, [user]);
   
   const handleLogout = () => {
     logout();
@@ -40,6 +72,11 @@ const ProfileDropdown = () => {
         <DropdownMenuItem onClick={() => navigate("/user/bookings")} className="cursor-pointer">
           <BookOpen className="mr-2 h-4 w-4" />
           <span>My Bookings</span>
+          {confirmedBookingsCount > 0 && (
+            <Badge variant="secondary" className="ml-auto">
+              {confirmedBookingsCount}
+            </Badge>
+          )}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate("/wishlist")} className="cursor-pointer">
           <Heart className="mr-2 h-4 w-4" />
