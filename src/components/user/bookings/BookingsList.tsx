@@ -43,10 +43,13 @@ const BookingsList = () => {
             console.log("Filtering bookings by ArtistId:", artistId);
             query = query.eq('ArtistId', artistId);
           }
-        } else {
-          // For regular users, filter by their email
+        } 
+        // If the user is a member, only show bookings with their email
+        else if (user.role === 'member') {
+          console.log("Filtering bookings by member email:", user.email);
           query = query.eq('email', user.email);
         }
+        // For admins, show all bookings (no additional filter)
         
         const { data, error } = await query;
 

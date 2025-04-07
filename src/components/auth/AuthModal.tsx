@@ -32,13 +32,19 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: Au
       setCurrentView("register");
       setCurrentType(e.detail.role);
     };
+    
+    const handleCloseModal = () => {
+      onClose();
+    };
 
     window.addEventListener('switchToRegister', handleSwitchToRegister as EventListener);
+    window.addEventListener('closeAuthModal', handleCloseModal);
     
     return () => {
       window.removeEventListener('switchToRegister', handleSwitchToRegister as EventListener);
+      window.removeEventListener('closeAuthModal', handleCloseModal);
     };
-  }, []);
+  }, [onClose]);
   
   // Determine the title based on current view and type
   const getTitle = () => {

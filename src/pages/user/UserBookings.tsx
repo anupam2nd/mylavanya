@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -95,14 +94,21 @@ const UserBookings = () => {
         
         let query = supabase.from('BookMST').select('*');
         
-        // For artist role, filter bookings by ArtistId
+        // Filter bookings based on user role
         if (user?.role === 'artist') {
+          // For artist role, filter bookings by ArtistId
           const artistId = parseInt(user.id, 10);
           if (!isNaN(artistId)) {
             console.log("Filtering bookings by artist ID:", artistId);
             query = query.eq('ArtistId', artistId);
           }
+        } 
+        // For member role, filter bookings by email
+        else if (user?.role === 'member') {
+          console.log("Filtering bookings by member email:", user.email);
+          query = query.eq('email', user.email);
         }
+        // For admin role, show all bookings (no additional filter)
         
         query = query.order('Booking_date', { ascending: false });
         
@@ -163,8 +169,9 @@ const UserBookings = () => {
     created_at: 'Created At'
   };
 
-  // Determine if the current user is an artist
+  // Determine if the current user is an artist or admin
   const isArtist = user?.role === 'artist';
+  const isAdmin = user?.role === 'admin';
 
   return (
     <ProtectedRoute>
@@ -223,15 +230,15 @@ const UserBookings = () => {
                 <AdminBookingsList 
                   bookings={filteredBookings} 
                   loading={loading} 
-                  onEditClick={isArtist ? () => {} : handleEditClick} 
-                  onAddNewJob={isArtist ? undefined : handleAddNewJob}
+                  onEditClick={isArtist || !isAdmin ? () => {} : handleEditClick} 
+                  onAddNewJob={isArtist || !isAdmin ? undefined : handleAddNewJob}
                 />
               </>
             )}
           </CardContent>
         </Card>
 
-        {!isArtist && (
+        {isAdmin && !isArtist && (
           <>
             <EditBookingDialog
               booking={editBooking}
