@@ -10,33 +10,37 @@ import {
 import { Booking } from "@/hooks/useBookings";
 import { BookingTableRow } from "./booking-table/BookingTableRow";
 import { BookingDetailRow } from "./booking-table/BookingDetailRow";
-import { useBookingArtists } from "@/hooks/useBookingArtists";
-import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
+import { StatusOption } from "@/hooks/useStatusOptions";
+import { Artist } from "@/hooks/useBookingArtists";
 
 interface BookingsListProps {
   bookings: Booking[];
   loading: boolean;
   onEditClick: (booking: Booking) => void;
   onAddNewJob?: (booking: Booking) => void;
+  statusOptions: {status_code: string; status_name: string}[];
+  artists: Artist[];
+  handleStatusChange: (booking: Booking, newStatus: string) => Promise<void>;
+  handleArtistAssignment: (booking: Booking, artistId: number) => Promise<void>;
+  isEditingDisabled?: boolean;
 }
 
 interface GroupedBookings {
   [key: string]: Booking[];
 }
 
-const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: BookingsListProps) => {
+const AdminBookingsList = ({ 
+  bookings, 
+  loading, 
+  onEditClick, 
+  onAddNewJob,
+  statusOptions,
+  artists,
+  handleStatusChange,
+  handleArtistAssignment,
+  isEditingDisabled = false
+}: BookingsListProps) => {
   const [expandedBookings, setExpandedBookings] = useState<string[]>([]);
-  const { artists } = useBookingArtists();
-  const { 
-    statusOptions, 
-    fetchStatusOptions, 
-    handleStatusChange, 
-    handleArtistAssignment 
-  } = useBookingStatusManagement();
-
-  useEffect(() => {
-    fetchStatusOptions();
-  }, []);
 
   const toggleBooking = (bookingNo: string) => {
     setExpandedBookings(prev => 
@@ -44,11 +48,6 @@ const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: Book
         ? prev.filter(id => id !== bookingNo) 
         : [...prev, bookingNo]
     );
-  };
-
-  // Handle artist assignment with the loaded artists
-  const handleArtistAssignmentWithArtists = (booking: Booking, artistId: number) => {
-    return handleArtistAssignment(booking, artistId, artists);
   };
 
   if (loading) {
@@ -78,7 +77,7 @@ const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: Book
   }, {} as GroupedBookings);
 
   // Check if the onEditClick is a no-op function (used for artists who shouldn't edit)
-  const isEditingDisabled = onEditClick.toString() === (() => {}).toString();
+  const checkEditingDisabled = isEditingDisabled || onEditClick.toString() === (() => {}).toString();
 
   return (
     <div className="space-y-4">
@@ -113,9 +112,9 @@ const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: Book
                     bookingsGroup={bookingsGroup}
                     onEditClick={onEditClick}
                     onAddNewJob={onAddNewJob}
-                    isEditingDisabled={isEditingDisabled}
+                    isEditingDisabled={checkEditingDisabled}
                     handleStatusChange={handleStatusChange}
-                    handleArtistAssignment={handleArtistAssignmentWithArtists}
+                    handleArtistAssignment={handleArtistAssignment}
                     statusOptions={statusOptions}
                     artists={artists}
                   />
