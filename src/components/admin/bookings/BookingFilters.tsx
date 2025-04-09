@@ -24,8 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-export type FilterDateType = "booking_date" | "creation_date";
+import { FilterDateType, SortDirection, SortField } from "@/hooks/useBookingFilters";
 
 interface BookingFiltersProps {
   searchQuery: string;
@@ -42,9 +41,9 @@ interface BookingFiltersProps {
   setShowDateFilter: (show: boolean) => void;
   filterDateType?: FilterDateType;
   setFilterDateType?: (type: FilterDateType) => void;
-  sortDirection?: "asc" | "desc";
-  setSortDirection?: (direction: "asc" | "desc") => void;
-  sortField?: string;
+  sortDirection?: SortDirection;
+  setSortDirection?: (direction: SortDirection) => void;
+  sortField?: SortField;
   setSortField?: (field: string) => void;
 }
 

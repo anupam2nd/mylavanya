@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import EditBookingDialog from "@/components/admin/bookings/EditBookingDialog";
 import NewJobDialog from "@/components/user/bookings/NewJobDialog";
 import { useBookings } from "@/hooks/useBookings";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
-import { useBookingFilters } from "@/hooks/useBookingFilters";
+import { useBookingFilters, SortField } from "@/hooks/useBookingFilters";
 import { ExportButton } from "@/components/ui/export-button";
 import AdminBookingsList from "@/components/user/bookings/AdminBookingsList";
 import { supabase } from "@/integrations/supabase/client";
@@ -218,6 +219,15 @@ const AdminBookings = () => {
     }
   };
 
+  // Create a type-safe handler for setSortField
+  const handleSetSortField = (field: string) => {
+    if (field === 'booking_date' || field === 'creation_date') {
+      setSortField(field);
+    } else {
+      console.warn('Invalid sort field:', field);
+    }
+  };
+
   const bookingHeaders = {
     id: 'ID',
     Booking_NO: 'Booking Number',
@@ -271,7 +281,7 @@ const AdminBookings = () => {
                 sortDirection={sortDirection}
                 setSortDirection={setSortDirection}
                 sortField={sortField}
-                setSortField={setSortField}
+                setSortField={handleSetSortField}
               />
             </div>
           </CardHeader>

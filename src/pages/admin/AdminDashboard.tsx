@@ -10,6 +10,7 @@ import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPie
 import BookingStatsPieChart from "@/components/admin/dashboard/BookingStatsPieChart";
 import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import { supabase } from "@/integrations/supabase/client";
+import { useBookings } from "@/hooks/useBookings";
 
 const AdminDashboard = () => {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -18,6 +19,7 @@ const AdminDashboard = () => {
   const [pendingBookings, setPendingBookings] = useState<number>(0);
   const [completedBookings, setCompletedBookings] = useState<number>(0);
   const [inProgressBookings, setInProgressBookings] = useState<number>(0);
+  const { bookings, loading } = useBookings();
 
   // Function to fetch booking statistics
   const fetchBookingStats = async () => {
@@ -138,7 +140,12 @@ const AdminDashboard = () => {
               <CardTitle>Monthly Booking Trends</CardTitle>
             </CardHeader>
             <CardContent>
-              <MonthlyBookingTrendsChart startDate={startDate} endDate={endDate} />
+              <MonthlyBookingTrendsChart 
+                startDate={startDate} 
+                endDate={endDate} 
+                bookings={bookings} 
+                loading={loading}
+              />
             </CardContent>
           </Card>
           <Card className="col-span-1">
@@ -146,7 +153,15 @@ const AdminDashboard = () => {
               <CardTitle>Booking Status Distribution</CardTitle>
             </CardHeader>
             <CardContent>
-              <BookingStatusPieChart startDate={startDate} endDate={endDate} />
+              <BookingStatusPieChart 
+                startDate={startDate} 
+                endDate={endDate} 
+                bookings={bookings} 
+                loading={loading}
+                title="Booking Status Distribution"
+                description="Current status of all bookings"
+                filterField="Booking_date"
+              />
             </CardContent>
           </Card>
           <Card className="col-span-1">
@@ -154,7 +169,12 @@ const AdminDashboard = () => {
               <CardTitle>Monthly Bookings</CardTitle>
             </CardHeader>
             <CardContent>
-              <MonthlyBookingsChart startDate={startDate} endDate={endDate} />
+              <MonthlyBookingsChart 
+                startDate={startDate} 
+                endDate={endDate}
+                bookings={bookings}
+                loading={loading}
+              />
             </CardContent>
           </Card>
           <Card className="col-span-1">
@@ -162,7 +182,10 @@ const AdminDashboard = () => {
               <CardTitle>Service Distribution</CardTitle>
             </CardHeader>
             <CardContent>
-              <BookingStatsPieChart startDate={startDate} endDate={endDate} />
+              <BookingStatsPieChart 
+                bookings={bookings}
+                loading={loading}
+              />
             </CardContent>
           </Card>
         </div>
