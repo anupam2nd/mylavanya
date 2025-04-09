@@ -33,7 +33,7 @@ export const useWishlist = () => {
       
       // Use rpc to work around TypeScript type issues with join queries
       const { data, error } = await supabase.rpc(
-        'get_user_wishlist',
+        'get_user_wishlist' as any,
         { user_uuid: user.id }
       ) as { data: WishlistItem[] | null; error: any };
 
@@ -75,7 +75,7 @@ export const useWishlist = () => {
 
       // Add to wishlist using RPC function
       const { error } = await supabase.rpc(
-        'add_to_wishlist',
+        'add_to_wishlist' as any,
         {
           service_id_param: serviceId,
           user_id_param: user.id
@@ -104,7 +104,7 @@ export const useWishlist = () => {
     try {
       // Remove from wishlist using RPC function
       const { error } = await supabase.rpc(
-        'remove_from_wishlist',
+        'remove_from_wishlist' as any,
         {
           wishlist_id_param: wishlistItemId,
           user_id_param: user.id
