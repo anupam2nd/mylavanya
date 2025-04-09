@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,13 +36,19 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
     fetchCurrentUser();
   }, []);
 
-  const handleArtistAssignWithUser = async (booking: Booking, artistId: number, artists: Artist[]) => {
+  const handleArtistAssignWithUser = async (booking: Booking, artistId: number) => {
     try {
-      // Find the selected artist
-      const selectedArtist = artists.find(artist => artist.ArtistId === artistId);
-      if (!selectedArtist) return;
-
-      const artistName = `${selectedArtist.ArtistFirstName || ''} ${selectedArtist.ArtistLastName || ''}`.trim();
+      const { data, error: artistError } = await supabase
+        .from('ArtistMST')
+        .select('ArtistFirstName, ArtistLastName')
+        .eq('ArtistId', artistId)
+        .single();
+      
+      if (artistError) {
+        throw artistError;
+      }
+      
+      const artistName = `${data.ArtistFirstName || ''} ${data.ArtistLastName || ''}`.trim();
       
       const { error } = await supabase
         .from('BookMST')
@@ -64,7 +69,6 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
         return;
       }
 
-      // Update local state
       const bookingIndex = bookings.findIndex(b => b.id === booking.id);
       if (bookingIndex !== -1) {
         const updatedBooking = {
