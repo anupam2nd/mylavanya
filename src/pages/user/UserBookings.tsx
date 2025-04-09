@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,11 +13,10 @@ import BookingFilters from "@/components/admin/bookings/BookingFilters";
 import { useBookingFilters } from "@/hooks/useBookingFilters";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
 import { Booking } from "@/hooks/useBookings";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import { Link } from "react-router-dom";
 import { ExportButton } from "@/components/ui/export-button";
 import { useBookingEdit } from "@/hooks/useBookingEdit";
+import { useBookingArtists } from "@/hooks/useBookingArtists";
+import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
 
 const UserBookings = () => {
   const { user } = useAuth();
@@ -30,6 +28,8 @@ const UserBookings = () => {
   const [selectedBookingForNewJob, setSelectedBookingForNewJob] = useState<Booking | null>(null);
   
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
+  const { artists } = useBookingArtists();
+  const { handleStatusChange, handleArtistAssignment } = useBookingStatusManagement();
   
   const {
     editBooking,
@@ -99,21 +99,20 @@ const UserBookings = () => {
           .select('*')
           .order('Booking_date', { ascending: false });
         
-        // Filter bookings based on user role
         if (user?.role === 'artist') {
-          // For artist role, filter bookings by ArtistId
           const artistId = parseInt(user.id, 10);
           if (!isNaN(artistId)) {
             console.log("Filtering bookings by artist ID:", artistId);
             query = query.eq('ArtistId', artistId);
           }
         } 
-        // For member role, filter bookings by email
         else if (user?.role === 'member') {
           console.log("Filtering bookings by member email:", user.email);
           query = query.eq('email', user.email);
         }
-        // For admin role, show all bookings (no additional filter)
+        else if (user?.role === 'admin') {
+          console.log("Showing all bookings for admin");
+        }
         
         query = query.order('Booking_date', { ascending: false });
         
@@ -153,6 +152,25 @@ const UserBookings = () => {
     });
   };
 
+  const handleArtistAssignWithUser = async (booking: Booking, artistId: number) => {
+    await handleArtistAssignment(booking, artistId, artists);
+    
+    const bookingIndex = bookings.findIndex(b => b.id === booking.id);
+    if (bookingIndex !== -1) {
+      const updatedBooking = {
+        ...booking,
+        ArtistId: artistId,
+        Assignedto: artists.find(a => a.ArtistId === artistId)?.ArtistFirstName || 'Artist',
+        AssignedBY: currentUser?.FirstName || currentUser?.Username || 'User',
+        AssingnedON: new Date().toISOString()
+      };
+      
+      const updatedBookings = [...bookings];
+      updatedBookings[bookingIndex] = updatedBooking;
+      setBookings(updatedBookings);
+    }
+  };
+
   const bookingHeaders = {
     id: 'ID',
     Booking_NO: 'Booking Number',
@@ -171,7 +189,6 @@ const UserBookings = () => {
     created_at: 'Created At'
   };
 
-  // Determine if the current user is an artist or admin
   const isArtist = user?.role === 'artist';
   const isAdmin = user?.role === 'admin';
 
@@ -234,6 +251,11 @@ const UserBookings = () => {
                   loading={loading} 
                   onEditClick={isArtist || !isAdmin ? () => {} : handleEditClick} 
                   onAddNewJob={isArtist || !isAdmin ? undefined : handleAddNewJob}
+                  statusOptions={statusOptions}
+                  artists={artists}
+                  handleStatusChange={handleStatusChange}
+                  handleArtistAssignment={handleArtistAssignWithUser}
+                  isEditingDisabled={isArtist || !isAdmin}
                 />
               </>
             )}

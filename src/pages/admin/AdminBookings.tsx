@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBookingEdit } from "@/hooks/useBookingEdit";
 import { useAuth } from "@/context/AuthContext";
+import { useBookingArtists } from "@/hooks/useBookingArtists";
+import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
 
 import type { Booking } from "@/hooks/useBookings";
 
@@ -23,6 +25,9 @@ const AdminBookings = () => {
   const { user: authUser } = useAuth();
   const { bookings, setBookings, loading } = useBookings();
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
+  const { artists } = useBookingArtists();
+  const { handleStatusChange, handleArtistAssignment } = useBookingStatusManagement();
+  
   const [currentUser, setCurrentUser] = useState<{ Username?: string, FirstName?: string, LastName?: string, role?: string } | null>(null);
   const [showNewJobDialog, setShowNewJobDialog] = useState(false);
   const [selectedBookingForNewJob, setSelectedBookingForNewJob] = useState<Booking | null>(null);
@@ -56,6 +61,7 @@ const AdminBookings = () => {
     clearFilters
   } = useBookingFilters(bookings);
 
+  // Fetch current user data
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -125,6 +131,26 @@ const AdminBookings = () => {
       ...values,
       currentUser
     });
+  };
+
+  const handleArtistAssignWithUser = async (booking: Booking, artistId: number) => {
+    await handleArtistAssignment(booking, artistId, artists);
+    
+    // Refresh bookings after assignment
+    const bookingIndex = bookings.findIndex(b => b.id === booking.id);
+    if (bookingIndex !== -1) {
+      const updatedBooking = {
+        ...booking,
+        ArtistId: artistId,
+        Assignedto: artists.find(a => a.ArtistId === artistId)?.ArtistFirstName || 'Artist',
+        AssignedBY: currentUser?.FirstName || currentUser?.Username || 'Admin',
+        AssingnedON: new Date().toISOString()
+      };
+      
+      const updatedBookings = [...bookings];
+      updatedBookings[bookingIndex] = updatedBooking;
+      setBookings(updatedBookings);
+    }
   };
 
   const bookingHeaders = {
@@ -198,6 +224,10 @@ const AdminBookings = () => {
               loading={loading}
               onEditClick={handleEditClick}
               onAddNewJob={handleAddNewJob}
+              statusOptions={statusOptions}
+              artists={artists}
+              handleStatusChange={handleStatusChange}
+              handleArtistAssignment={handleArtistAssignWithUser}
             />
           </CardContent>
         </Card>
