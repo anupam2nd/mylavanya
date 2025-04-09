@@ -16,7 +16,7 @@ export const BookingStatusSelect = ({
   onStatusChange,
   isDisabled 
 }: BookingStatusSelectProps) => {
-  // Ensure we have a valid default value
+  // Ensure we have a valid default value - never empty string
   const defaultValue = currentStatus || 'pending';
   
   return (

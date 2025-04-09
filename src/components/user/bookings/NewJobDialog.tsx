@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -356,8 +357,8 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
                     </SelectTrigger>
                     <SelectContent>
                       {productOptions.map((product) => (
-                        <SelectItem key={product.prod_id} value={product.ProductName}>
-                          {product.ProductName}
+                        <SelectItem key={product.prod_id} value={product.ProductName || `Product-${product.prod_id}`}>
+                          {product.ProductName || `Product-${product.prod_id}`}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -482,7 +483,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
                     </SelectTrigger>
                     <SelectContent>
                       {statusOptions.map((option) => (
-                        <SelectItem key={option.status_code} value={option.status_code}>
+                        <SelectItem key={option.status_code} value={option.status_code || 'pending'}>
                           {option.status_name}
                         </SelectItem>
                       ))}
@@ -494,27 +495,33 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
               {requiresArtist(status) && (
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="artist" className="text-right">
-                    Assigned Artist
+                    Assign Artist
                   </Label>
                   <div className="col-span-3">
                     <Select
-                      value={artistId ? String(artistId) : ""}
-                      onValueChange={(value) => setArtistId(parseInt(value, 10))}
+                      value={artistId?.toString() || ""}
+                      onValueChange={(value) => {
+                        setArtistId(value ? parseInt(value, 10) : null);
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select an artist" />
                       </SelectTrigger>
                       <SelectContent>
                         {artistOptions.map((artist) => (
-                          <SelectItem key={artist.ArtistId} value={String(artist.ArtistId)}>
-                            {`${artist.ArtistFirstName || ""} ${artist.ArtistLastName || ""}`.trim() || `Artist ${artist.ArtistId}`}
+                          <SelectItem 
+                            key={artist.ArtistId} 
+                            value={artist.ArtistId.toString()}
+                          >
+                            {`${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || `Artist #${artist.ArtistId}`}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Artist assignment is required for this status
-                    </p>
+                    
+                    {requiresArtist(status) && !artistId && (
+                      <p className="text-sm text-red-500 mt-1">Artist required for this status</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -522,13 +529,9 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
           </div>
         </ScrollArea>
         
-        <DialogFooter className="pt-2">
-          <Button 
-            type="submit" 
-            onClick={handleSubmit}
-            disabled={isSubmitting || !product || !date || !time || (requiresArtist(status) && !artistId)}
-          >
-            {isSubmitting ? "Creating..." : "Create New Job"}
+        <DialogFooter>
+          <Button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? "Creating..." : "Create Job"}
           </Button>
         </DialogFooter>
       </DialogContent>
