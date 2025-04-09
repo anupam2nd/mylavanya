@@ -65,7 +65,9 @@ export const useDashboardStats = (): DashboardStats => {
         setInProgressBookings(inProgressCount || 0);
 
         // Get count for each status using RPC function
-        const { data: statusData, error: statusError } = await supabase.rpc('get_booking_counts_by_status');
+        const { data: statusData, error: statusError } = await supabase.rpc(
+          'get_booking_counts_by_status'
+        ) as { data: Array<{ status: string; count: number }> | null; error: any };
         
         if (statusError) {
           console.error("Error fetching status counts:", statusError);
@@ -97,11 +99,13 @@ export const useDashboardStats = (): DashboardStats => {
             statusCountsObj[status.status_code] = 0;
           });
           
-          statusData.forEach((item: { status: string; count: number }) => {
-            if (item && item.status) {
-              statusCountsObj[item.status] = item.count;
-            }
-          });
+          if (Array.isArray(statusData)) {
+            statusData.forEach((item: { status: string; count: number }) => {
+              if (item && item.status) {
+                statusCountsObj[item.status] = item.count;
+              }
+            });
+          }
           
           setStatusCounts(statusCountsObj);
         }
