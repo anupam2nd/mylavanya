@@ -92,7 +92,7 @@ const UserBookings = () => {
   };
 
   const isArtist = user?.role === 'artist';
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
   return (
     <ProtectedRoute>
@@ -128,22 +128,22 @@ const UserBookings = () => {
               loading={loading}
               bookings={bookings}
               filteredBookings={filteredBookings}
-              handleEditClick={isArtist || !isAdmin ? () => {} : handleEditClick}
-              handleAddNewJob={isArtist || !isAdmin ? undefined : handleAddNewJob}
+              handleEditClick={isAdmin ? handleEditClick : () => {}}
+              handleAddNewJob={isAdmin ? handleAddNewJob : undefined}
               statusOptions={statusOptions}
               artists={artists}
               handleStatusChange={handleStatusChange}
               handleArtistAssignment={handleArtistAssignWithUser}
-              isEditingDisabled={isArtist || !isAdmin}
-              handleDeleteJob={isArtist || !isAdmin ? undefined : handleDeleteJob}
-              handleScheduleChange={isArtist || !isAdmin ? undefined : handleScheduleChange}
+              isEditingDisabled={!isAdmin}
+              handleDeleteJob={isAdmin ? handleDeleteJob : undefined}
+              handleScheduleChange={isAdmin ? handleScheduleChange : undefined}
               sortField={sortField}
               sortDirection={sortDirection}
             />
           </CardContent>
         </Card>
 
-        {isAdmin && !isArtist && (
+        {isAdmin && (
           <>
             <EditBookingDialog
               booking={editBooking}

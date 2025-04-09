@@ -34,7 +34,7 @@ export const BookingDetailRow = ({
   onScheduleChange
 }: BookingDetailRowProps) => {
   const mainBooking = bookingsGroup[0];
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   
   return (
     <TableRow>
@@ -43,7 +43,7 @@ export const BookingDetailRow = ({
           <div className="flex justify-between items-center mb-4">
             <Collapsible open={isExpanded} onOpenChange={setIsExpanded} className="w-full">
               <div className="flex justify-between items-center">
-                <h4 className="font-medium">Service Details</h4>
+                <div className="flex-1"></div> {/* Empty div to replace the header */}
                 <div className="flex items-center gap-2">
                   {onAddNewJob && !isEditingDisabled && (
                     <Button 

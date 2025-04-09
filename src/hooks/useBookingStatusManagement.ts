@@ -61,7 +61,17 @@ export const useBookingStatusManagement = () => {
   // Handle artist assignment
   const handleArtistAssignment = async (booking: Booking, artistId: number) => {
     try {
-      // Get the artist from the artists array
+      if (artistId === 0 || isNaN(artistId)) {
+        console.error("Invalid artist ID:", artistId);
+        toast({
+          variant: "destructive",
+          title: "Invalid artist selection",
+          description: "Please select a valid artist",
+        });
+        return;
+      }
+
+      // Get the artist from the database
       const { data: artistData, error: artistError } = await supabase
         .from('ArtistMST')
         .select('ArtistFirstName, ArtistLastName')
@@ -69,6 +79,7 @@ export const useBookingStatusManagement = () => {
         .single();
 
       if (artistError) {
+        console.error("Error fetching artist:", artistError);
         toast({
           variant: "destructive",
           title: "Failed to find artist",
@@ -77,7 +88,7 @@ export const useBookingStatusManagement = () => {
         return;
       }
 
-      const artistName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim();
+      const artistName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim() || `Artist #${artistId}`;
       
       const { error } = await supabase
         .from('BookMST')
@@ -89,6 +100,7 @@ export const useBookingStatusManagement = () => {
         .eq('id', booking.id);
 
       if (error) {
+        console.error("Error assigning artist:", error);
         toast({
           variant: "destructive",
           title: "Failed to assign artist",

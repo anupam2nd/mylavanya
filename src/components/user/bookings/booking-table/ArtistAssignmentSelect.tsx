@@ -17,12 +17,13 @@ export const ArtistAssignmentSelect = ({
   return (
     <Select
       onValueChange={(value) => onArtistAssign(booking, parseInt(value))}
-      defaultValue={booking.ArtistId?.toString()}
+      defaultValue={booking.ArtistId?.toString() || "unassigned"}
     >
       <SelectTrigger className="h-7 text-xs">
         <SelectValue placeholder="Assign Artist" />
       </SelectTrigger>
       <SelectContent>
+        <SelectItem value="unassigned">Select Artist</SelectItem>
         {artists.map((artist) => (
           <SelectItem 
             key={artist.ArtistId} 
