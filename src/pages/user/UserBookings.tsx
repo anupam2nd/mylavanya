@@ -174,7 +174,7 @@ const UserBookings = () => {
 
   // New function to handle job deletion (admin only)
   const handleDeleteJob = async (booking: Booking) => {
-    if (!user?.role === 'admin') return;
+    if (user?.role !== 'admin') return;
     
     try {
       const { error } = await supabase
@@ -205,7 +205,7 @@ const UserBookings = () => {
 
   // New function to handle schedule changes (admin only)
   const handleScheduleChange = async (booking: Booking, date: string, time: string) => {
-    if (!user?.role === 'admin') return;
+    if (user?.role !== 'admin') return;
     
     try {
       const { error } = await supabase
