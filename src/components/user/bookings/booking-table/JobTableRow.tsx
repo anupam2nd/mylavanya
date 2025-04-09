@@ -125,7 +125,7 @@ export const JobTableRow = ({
         {/* Only show dropdown for specific non-member users (hidden as requested) */}
         {false && !isMember && (
           <BookingStatusSelect 
-            currentStatus={booking.Status} 
+            currentStatus={booking.Status || 'pending'} 
             statusOptions={statusOptions} 
             onStatusChange={handleStatusChangeWrapper}
             isDisabled={isEditingDisabled || isUpdatingStatus}
