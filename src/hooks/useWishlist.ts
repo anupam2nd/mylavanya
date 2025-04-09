@@ -31,46 +31,26 @@ export const useWishlist = () => {
     try {
       setLoading(true);
       
-      // Using simpler join syntax that works with existing types
-      const { data, error } = await supabase
-        .from('wishlist')
-        .select(`
-          id,
-          user_id,
-          service_id,
-          created_at,
-          PriceMST:service_id (
-            ProductName,
-            Price,
-            Category,
-            Description
-          )
-        `)
-        .eq('user_id', user.id);
+      // Use rpc to work around TypeScript type issues with join queries
+      const { data, error } = await supabase.rpc('get_user_wishlist', {
+        user_uuid: user.id
+      });
 
       if (error) {
         console.error("Error fetching wishlist:", error);
         throw error;
       }
 
-      // Transform the data
+      // Set wishlist items if data exists
       if (data) {
-        const formattedItems = data.map(item => ({
-          id: item.id,
-          user_id: item.user_id,
-          service_id: item.service_id,
-          created_at: item.created_at,
-          service_name: item.PriceMST?.ProductName || 'Unknown Service',
-          service_price: item.PriceMST?.Price,
-          service_category: item.PriceMST?.Category,
-          service_description: item.PriceMST?.Description
-        }));
-
-        setWishlistItems(formattedItems);
+        setWishlistItems(data);
+      } else {
+        setWishlistItems([]);
       }
     } catch (error) {
       console.error("Error fetching wishlist:", error);
       toast.error("Failed to load wishlist");
+      setWishlistItems([]);
     } finally {
       setLoading(false);
     }
@@ -92,13 +72,11 @@ export const useWishlist = () => {
         return true;
       }
 
-      // Add to wishlist
-      const { error } = await supabase
-        .from('wishlist')
-        .insert({
-          user_id: user.id,
-          service_id: serviceId
-        });
+      // Add to wishlist using RPC function
+      const { error } = await supabase.rpc('add_to_wishlist', {
+        service_id_param: serviceId,
+        user_id_param: user.id
+      });
 
       if (error) throw error;
 
@@ -120,11 +98,11 @@ export const useWishlist = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('wishlist')
-        .delete()
-        .eq('id', wishlistItemId)
-        .eq('user_id', user.id);
+      // Remove from wishlist using RPC function
+      const { error } = await supabase.rpc('remove_from_wishlist', {
+        wishlist_id_param: wishlistItemId,
+        user_id_param: user.id
+      });
 
       if (error) throw error;
 

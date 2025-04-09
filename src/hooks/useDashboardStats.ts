@@ -64,40 +64,47 @@ export const useDashboardStats = (): DashboardStats => {
         if (inProgressError) throw inProgressError;
         setInProgressBookings(inProgressCount || 0);
 
-        // Get count for each status
-        const statusCountsObj: Record<string, number> = {};
-        
-        // Initialize counts with 0 for all statuses
-        statusOptions.forEach(status => {
-          statusCountsObj[status.status_code] = 0;
-        });
-        
-        // Fetch all counts at once with a workaround for the group method
-        const { data: statusData, error: statusError } = await supabase
-          .rpc('get_booking_counts_by_status');
+        // Get count for each status using RPC function
+        const { data: statusData, error: statusError } = await supabase.rpc('get_booking_counts_by_status');
         
         if (statusError) {
-          // If RPC is not available, fallback to multiple queries
+          console.error("Error fetching status counts:", statusError);
+          
+          // Initialize counts with 0 for all statuses
+          const statusCountsObj: Record<string, number> = {};
+          statusOptions.forEach(status => {
+            statusCountsObj[status.status_code] = 0;
+          });
+          
+          // Fallback: perform individual queries for each status
           await Promise.all(statusOptions.map(async (status) => {
             const { count, error } = await supabase
               .from('BookMST')
               .select('*', { count: 'exact', head: true })
               .eq('Status', status.status_code);
             
-            if (!error) {
-              statusCountsObj[status.status_code] = count || 0;
+            if (!error && count !== null) {
+              statusCountsObj[status.status_code] = count;
             }
           }));
+          
+          setStatusCounts(statusCountsObj);
         } else if (statusData) {
-          // If RPC was successful, use its data
+          // Process the status count data from RPC
+          const statusCountsObj: Record<string, number> = {};
+          
+          statusOptions.forEach(status => {
+            statusCountsObj[status.status_code] = 0;
+          });
+          
           statusData.forEach((item: { status: string; count: number }) => {
-            if (item.status) {
+            if (item && item.status) {
               statusCountsObj[item.status] = item.count;
             }
           });
+          
+          setStatusCounts(statusCountsObj);
         }
-        
-        setStatusCounts(statusCountsObj);
       } catch (error) {
         console.error("Error fetching booking stats:", error);
         toast.error("Failed to load dashboard statistics");
