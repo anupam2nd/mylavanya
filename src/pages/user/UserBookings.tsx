@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -171,6 +172,82 @@ const UserBookings = () => {
     }
   };
 
+  // New function to handle job deletion (admin only)
+  const handleDeleteJob = async (booking: Booking) => {
+    if (!user?.role === 'admin') return;
+    
+    try {
+      const { error } = await supabase
+        .from('BookMST')
+        .delete()
+        .eq('id', booking.id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setBookings(bookings.filter(b => b.id !== booking.id));
+      
+      toast({
+        title: "Job deleted",
+        description: `Job #${booking.jobno} has been deleted successfully`,
+      });
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      toast({
+        variant: "destructive",
+        title: "Error deleting job",
+        description: "An error occurred while trying to delete the job",
+      });
+    }
+  };
+
+  // New function to handle schedule changes (admin only)
+  const handleScheduleChange = async (booking: Booking, date: string, time: string) => {
+    if (!user?.role === 'admin') return;
+    
+    try {
+      const { error } = await supabase
+        .from('BookMST')
+        .update({
+          Booking_date: date,
+          booking_time: time
+        })
+        .eq('id', booking.id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      const bookingIndex = bookings.findIndex(b => b.id === booking.id);
+      if (bookingIndex !== -1) {
+        const updatedBooking = {
+          ...booking,
+          Booking_date: date,
+          booking_time: time
+        };
+        
+        const updatedBookings = [...bookings];
+        updatedBookings[bookingIndex] = updatedBooking;
+        setBookings(updatedBookings);
+      }
+      
+      toast({
+        title: "Schedule updated",
+        description: `Booking schedule has been updated to ${date} at ${time}`,
+      });
+    } catch (error) {
+      console.error("Error updating schedule:", error);
+      toast({
+        variant: "destructive",
+        title: "Error updating schedule",
+        description: "An error occurred while trying to update the schedule",
+      });
+    }
+  };
+
   const bookingHeaders = {
     id: 'ID',
     Booking_NO: 'Booking Number',
@@ -256,6 +333,8 @@ const UserBookings = () => {
                   handleStatusChange={handleStatusChange}
                   handleArtistAssignment={handleArtistAssignWithUser}
                   isEditingDisabled={isArtist || !isAdmin}
+                  onDeleteJob={isArtist || !isAdmin ? undefined : handleDeleteJob}
+                  onScheduleChange={isArtist || !isAdmin ? undefined : handleScheduleChange}
                 />
               </>
             )}

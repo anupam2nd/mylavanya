@@ -1,12 +1,19 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { TableCell, TableRow, Table, TableHeader, TableHead, TableBody } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Plus, Calendar, Clock } from "lucide-react";
+import { Edit, Plus, Calendar, Clock, Trash2 } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { BookingStatusSelect } from "./BookingStatusSelect";
 import { ArtistAssignmentSelect } from "./ArtistAssignmentSelect";
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { DateTimePicker } from "./DateTimePicker";
 
 interface BookingDetailRowProps {
   bookingsGroup: Booking[];
@@ -17,6 +24,8 @@ interface BookingDetailRowProps {
   handleArtistAssignment: (booking: Booking, artistId: number) => Promise<void>;
   statusOptions: {status_code: string; status_name: string}[];
   artists: {ArtistId: number; ArtistFirstName: string; ArtistLastName: string}[];
+  onDeleteJob?: (booking: Booking) => Promise<void>;
+  onScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;
 }
 
 export const BookingDetailRow = ({
@@ -27,9 +36,19 @@ export const BookingDetailRow = ({
   handleStatusChange,
   handleArtistAssignment,
   statusOptions,
-  artists
+  artists,
+  onDeleteJob,
+  onScheduleChange
 }: BookingDetailRowProps) => {
   const mainBooking = bookingsGroup[0];
+  const [editingSchedule, setEditingSchedule] = useState<{[key: number]: boolean}>({});
+  
+  const toggleScheduleEdit = (bookingId: number) => {
+    setEditingSchedule(prev => ({
+      ...prev,
+      [bookingId]: !prev[bookingId]
+    }));
+  };
   
   return (
     <TableRow>
@@ -83,16 +102,37 @@ export const BookingDetailRow = ({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-col">
-                      <span className="flex items-center">
-                        <Calendar className="w-3 h-3 mr-1 text-muted-foreground" />
-                        {booking.Booking_date}
-                      </span>
-                      <span className="flex items-center">
-                        <Clock className="w-3 h-3 mr-1 text-muted-foreground" />
-                        {booking.booking_time}
-                      </span>
-                    </div>
+                    {editingSchedule[booking.id] && onScheduleChange ? (
+                      <DateTimePicker 
+                        booking={booking}
+                        onSave={(date, time) => {
+                          onScheduleChange(booking, date, time);
+                          toggleScheduleEdit(booking.id);
+                        }}
+                        onCancel={() => toggleScheduleEdit(booking.id)}
+                      />
+                    ) : (
+                      <div className="flex flex-col">
+                        <span className="flex items-center">
+                          <Calendar className="w-3 h-3 mr-1 text-muted-foreground" />
+                          {booking.Booking_date}
+                        </span>
+                        <span className="flex items-center">
+                          <Clock className="w-3 h-3 mr-1 text-muted-foreground" />
+                          {booking.booking_time}
+                        </span>
+                        {!isEditingDisabled && onScheduleChange && (
+                          <Button 
+                            variant="link" 
+                            size="sm" 
+                            className="h-6 p-0 text-xs" 
+                            onClick={() => toggleScheduleEdit(booking.id)}
+                          >
+                            Change schedule
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
@@ -119,15 +159,28 @@ export const BookingDetailRow = ({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => onEditClick(booking)}
-                      className="h-8"
-                      disabled={isEditingDisabled}
-                    >
-                      <Edit className="h-4 w-4 mr-1" /> Edit
-                    </Button>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => onEditClick(booking)}
+                        className="h-8"
+                        disabled={isEditingDisabled}
+                      >
+                        <Edit className="h-4 w-4 mr-1" /> Edit
+                      </Button>
+                      
+                      {!isEditingDisabled && onDeleteJob && bookingsGroup.length > 1 && (
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => onDeleteJob(booking)}
+                          className="h-8"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" /> Delete
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

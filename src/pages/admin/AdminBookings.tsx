@@ -153,6 +153,78 @@ const AdminBookings = () => {
     }
   };
 
+  // New function to handle job deletion
+  const handleDeleteJob = async (booking: Booking) => {
+    try {
+      const { error } = await supabase
+        .from('BookMST')
+        .delete()
+        .eq('id', booking.id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setBookings(bookings.filter(b => b.id !== booking.id));
+      
+      toast({
+        title: "Job deleted",
+        description: `Job #${booking.jobno} has been deleted successfully`,
+      });
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      toast({
+        variant: "destructive",
+        title: "Error deleting job",
+        description: "An error occurred while trying to delete the job",
+      });
+    }
+  };
+
+  // New function to handle schedule changes
+  const handleScheduleChange = async (booking: Booking, date: string, time: string) => {
+    try {
+      const { error } = await supabase
+        .from('BookMST')
+        .update({
+          Booking_date: date,
+          booking_time: time
+        })
+        .eq('id', booking.id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      const bookingIndex = bookings.findIndex(b => b.id === booking.id);
+      if (bookingIndex !== -1) {
+        const updatedBooking = {
+          ...booking,
+          Booking_date: date,
+          booking_time: time
+        };
+        
+        const updatedBookings = [...bookings];
+        updatedBookings[bookingIndex] = updatedBooking;
+        setBookings(updatedBookings);
+      }
+      
+      toast({
+        title: "Schedule updated",
+        description: `Booking schedule has been updated to ${date} at ${time}`,
+      });
+    } catch (error) {
+      console.error("Error updating schedule:", error);
+      toast({
+        variant: "destructive",
+        title: "Error updating schedule",
+        description: "An error occurred while trying to update the schedule",
+      });
+    }
+  };
+
   const bookingHeaders = {
     id: 'ID',
     Booking_NO: 'Booking Number',
@@ -228,6 +300,8 @@ const AdminBookings = () => {
               artists={artists}
               handleStatusChange={handleStatusChange}
               handleArtistAssignment={handleArtistAssignWithUser}
+              onDeleteJob={handleDeleteJob}
+              onScheduleChange={handleScheduleChange}
             />
           </CardContent>
         </Card>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { 
   Table, 
   TableBody, 
@@ -23,6 +23,8 @@ interface BookingsListProps {
   handleStatusChange: (booking: Booking, newStatus: string) => Promise<void>;
   handleArtistAssignment: (booking: Booking, artistId: number) => Promise<void>;
   isEditingDisabled?: boolean;
+  onDeleteJob?: (booking: Booking) => Promise<void>;
+  onScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;
 }
 
 interface GroupedBookings {
@@ -38,7 +40,9 @@ const AdminBookingsList = ({
   artists,
   handleStatusChange,
   handleArtistAssignment,
-  isEditingDisabled = false
+  isEditingDisabled = false,
+  onDeleteJob,
+  onScheduleChange
 }: BookingsListProps) => {
   const [expandedBookings, setExpandedBookings] = useState<string[]>([]);
 
@@ -117,6 +121,8 @@ const AdminBookingsList = ({
                     handleArtistAssignment={handleArtistAssignment}
                     statusOptions={statusOptions}
                     artists={artists}
+                    onDeleteJob={onDeleteJob}
+                    onScheduleChange={onScheduleChange}
                   />
                 )}
               </React.Fragment>
