@@ -72,18 +72,27 @@ export const useDashboardStats = (): DashboardStats => {
           statusCountsObj[status.status_code] = 0;
         });
         
-        // Fetch all counts at once
+        // Fetch all counts at once with a workaround for the group method
         const { data: statusData, error: statusError } = await supabase
-          .from('BookMST')
-          .select('Status, count')
-          .group('Status');
+          .rpc('get_booking_counts_by_status');
         
-        if (statusError) throw statusError;
-        
-        if (statusData) {
-          statusData.forEach(item => {
-            if (item.Status) {
-              statusCountsObj[item.Status] = item.count;
+        if (statusError) {
+          // If RPC is not available, fallback to multiple queries
+          await Promise.all(statusOptions.map(async (status) => {
+            const { count, error } = await supabase
+              .from('BookMST')
+              .select('*', { count: 'exact', head: true })
+              .eq('Status', status.status_code);
+            
+            if (!error) {
+              statusCountsObj[status.status_code] = count || 0;
+            }
+          }));
+        } else if (statusData) {
+          // If RPC was successful, use its data
+          statusData.forEach((item: { status: string; count: number }) => {
+            if (item.status) {
+              statusCountsObj[item.status] = item.count;
             }
           });
         }

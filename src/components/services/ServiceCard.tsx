@@ -5,7 +5,7 @@ import { Rupee } from "@/components/icons/Rupee";
 import { useNavigate } from "react-router-dom";
 import WishlistButton from "./WishlistButton";
 
-interface ServiceCardProps {
+export interface ServiceCardProps {
   id: number;
   name: string;
   description: string;

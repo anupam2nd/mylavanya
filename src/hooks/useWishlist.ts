@@ -30,6 +30,8 @@ export const useWishlist = () => {
 
     try {
       setLoading(true);
+      
+      // Using simpler join syntax that works with existing types
       const { data, error } = await supabase
         .from('wishlist')
         .select(`
@@ -46,21 +48,26 @@ export const useWishlist = () => {
         `)
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching wishlist:", error);
+        throw error;
+      }
 
       // Transform the data
-      const formattedItems = data.map(item => ({
-        id: item.id,
-        user_id: item.user_id,
-        service_id: item.service_id,
-        created_at: item.created_at,
-        service_name: item.PriceMST?.ProductName || 'Unknown Service',
-        service_price: item.PriceMST?.Price,
-        service_category: item.PriceMST?.Category,
-        service_description: item.PriceMST?.Description
-      }));
+      if (data) {
+        const formattedItems = data.map(item => ({
+          id: item.id,
+          user_id: item.user_id,
+          service_id: item.service_id,
+          created_at: item.created_at,
+          service_name: item.PriceMST?.ProductName || 'Unknown Service',
+          service_price: item.PriceMST?.Price,
+          service_category: item.PriceMST?.Category,
+          service_description: item.PriceMST?.Description
+        }));
 
-      setWishlistItems(formattedItems);
+        setWishlistItems(formattedItems);
+      }
     } catch (error) {
       console.error("Error fetching wishlist:", error);
       toast.error("Failed to load wishlist");
@@ -78,14 +85,7 @@ export const useWishlist = () => {
 
     try {
       // Check if the item is already in the wishlist
-      const { data: existingItem, error: checkError } = await supabase
-        .from('wishlist')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('service_id', serviceId)
-        .maybeSingle();
-
-      if (checkError) throw checkError;
+      const existingItem = wishlistItems.find(item => item.service_id === serviceId);
 
       if (existingItem) {
         toast.info("This service is already in your wishlist");
