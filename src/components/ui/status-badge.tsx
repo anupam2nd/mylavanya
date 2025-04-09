@@ -1,13 +1,16 @@
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface StatusBadgeProps {
   status: string;
   className?: string;
+  description?: string;
+  showTooltip?: boolean;
 }
 
-export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
+export const StatusBadge = ({ status, className, description, showTooltip = false }: StatusBadgeProps) => {
   const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
     pending: {
       label: "Pending",
@@ -44,7 +47,7 @@ export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
     variant: "outline",
   };
 
-  return (
+  const badge = (
     <Badge 
       variant={statusInfo.variant}
       className={cn(
@@ -58,4 +61,21 @@ export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
       {statusInfo.label}
     </Badge>
   );
+
+  if (showTooltip && description) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {badge}
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{description}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return badge;
 };
