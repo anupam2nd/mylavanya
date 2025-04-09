@@ -8,9 +8,10 @@ export interface StatusBadgeProps {
   className?: string;
   description?: string;
   showTooltip?: boolean;
+  children?: React.ReactNode; // Added children property to fix type error
 }
 
-export const StatusBadge = ({ status, className, description, showTooltip = false }: StatusBadgeProps) => {
+export const StatusBadge = ({ status, className, description, showTooltip = false, children }: StatusBadgeProps) => {
   const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
     pending: {
       label: "Pending",
@@ -58,7 +59,7 @@ export const StatusBadge = ({ status, className, description, showTooltip = fals
         className
       )}
     >
-      {statusInfo.label}
+      {children || statusInfo.label}
     </Badge>
   );
 

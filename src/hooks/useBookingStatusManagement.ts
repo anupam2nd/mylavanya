@@ -60,13 +60,25 @@ export const useBookingStatusManagement = () => {
   };
 
   // Handle artist assignment
-  const handleArtistAssignment = async (booking: Booking, artistId: number, artists: Artist[]) => {
+  const handleArtistAssignment = async (booking: Booking, artistId: number) => {
     try {
-      // Find the selected artist
-      const selectedArtist = artists.find(artist => artist.ArtistId === artistId);
-      if (!selectedArtist) return;
+      // Get the artist from the artists array
+      const { data: artistData, error: artistError } = await supabase
+        .from('ArtistMST')
+        .select('ArtistFirstName, ArtistLastName')
+        .eq('ArtistId', artistId)
+        .single();
 
-      const artistName = `${selectedArtist.ArtistFirstName || ''} ${selectedArtist.ArtistLastName || ''}`.trim();
+      if (artistError) {
+        toast({
+          variant: "destructive",
+          title: "Failed to find artist",
+          description: artistError.message,
+        });
+        return;
+      }
+
+      const artistName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim();
       
       const { error } = await supabase
         .from('BookMST')
