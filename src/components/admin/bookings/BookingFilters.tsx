@@ -44,7 +44,7 @@ interface BookingFiltersProps {
   sortDirection?: SortDirection;
   setSortDirection?: (direction: SortDirection) => void;
   sortField?: SortField;
-  setSortField?: (field: string) => void;
+  setSortField?: (field: SortField) => void;
 }
 
 const BookingFilters = ({
@@ -79,7 +79,7 @@ const BookingFilters = ({
     }
   };
 
-  const handleSetSortField = (field: string) => {
+  const handleSetSortField = (field: SortField) => {
     if (setSortField) {
       setSortField(field);
     }

@@ -12,7 +12,12 @@ interface BookingStatsPieChartProps {
   endDate?: Date;
 }
 
-export const BookingStatsPieChart = ({ bookings, loading, startDate, endDate }: BookingStatsPieChartProps) => {
+export const BookingStatsPieChart = ({ 
+  bookings, 
+  loading, 
+  startDate, 
+  endDate 
+}: BookingStatsPieChartProps) => {
   const statusData = useMemo(() => {
     // Group bookings by status
     const statusCounts: Record<string, number> = {};
