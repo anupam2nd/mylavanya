@@ -4,23 +4,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Booking } from "@/hooks/useBookings";
 
 interface BookingStatusSelectProps {
-  booking: Booking;
+  currentStatus: string;
   statusOptions: {status_code: string; status_name: string}[];
-  onStatusChange: (booking: Booking, newStatus: string) => Promise<void>;
+  onStatusChange: (newStatus: string) => Promise<void>;
+  isDisabled: boolean;
 }
 
 export const BookingStatusSelect = ({ 
-  booking, 
+  currentStatus, 
   statusOptions, 
-  onStatusChange 
+  onStatusChange,
+  isDisabled 
 }: BookingStatusSelectProps) => {
   // Ensure we have a valid default value
-  const defaultValue = booking.Status || 'pending';
+  const defaultValue = currentStatus || 'pending';
   
   return (
     <Select
-      onValueChange={(value) => onStatusChange(booking, value)}
+      onValueChange={(value) => onStatusChange(value)}
       defaultValue={defaultValue}
+      disabled={isDisabled}
     >
       <SelectTrigger className="h-7 text-xs">
         <SelectValue placeholder="Change Status" />

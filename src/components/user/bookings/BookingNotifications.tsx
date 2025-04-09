@@ -27,7 +27,7 @@ export const BookingNotifications = () => {
     const fetchNotifications = async () => {
       setLoading(true);
       try {
-        // Use custom query instead of typed query to work around TypeScript issues
+        // Use a more generic approach that doesn't rely on specific types
         const { data, error } = await supabase
           .from('notifications')
           .select('*')
@@ -36,7 +36,9 @@ export const BookingNotifications = () => {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setNotifications(data as Notification[] || []);
+        
+        // Cast data to Notification type
+        setNotifications((data || []) as Notification[]);
       } catch (error) {
         console.error('Error fetching notifications:', error);
       } finally {
@@ -72,7 +74,7 @@ export const BookingNotifications = () => {
 
   const markAsRead = async (notificationId: number) => {
     try {
-      // Use custom query instead of typed query to work around TypeScript issues
+      // Use a more generic approach without relying on types
       await supabase
         .from('notifications')
         .update({ is_read: true })

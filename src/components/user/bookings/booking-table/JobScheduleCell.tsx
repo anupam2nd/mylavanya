@@ -8,14 +8,16 @@ import { DateTimePicker } from "./DateTimePicker";
 
 interface JobScheduleCellProps {
   booking: Booking;
-  onScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;
+  onScheduleChange?: (date: string, time: string) => Promise<void>;
   isEditingDisabled: boolean;
+  isUpdating?: boolean;
 }
 
 export const JobScheduleCell = ({ 
   booking, 
   onScheduleChange,
-  isEditingDisabled 
+  isEditingDisabled,
+  isUpdating = false
 }: JobScheduleCellProps) => {
   const [editingSchedule, setEditingSchedule] = useState(false);
   
@@ -24,14 +26,11 @@ export const JobScheduleCell = ({
   };
   
   return (
-    <TableCell>
+    <div>
       {editingSchedule && onScheduleChange ? (
         <DateTimePicker 
           booking={booking}
-          onSave={(date, time) => {
-            onScheduleChange(booking, date, time);
-            toggleScheduleEdit();
-          }}
+          onSave={onScheduleChange}
           onCancel={toggleScheduleEdit}
         />
       ) : (
@@ -50,12 +49,13 @@ export const JobScheduleCell = ({
               size="sm" 
               className="h-6 p-0 text-xs mt-1" 
               onClick={toggleScheduleEdit}
+              disabled={isUpdating}
             >
               Change schedule
             </Button>
           )}
         </div>
       )}
-    </TableCell>
+    </div>
   );
 };

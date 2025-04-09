@@ -6,13 +6,15 @@ import { Booking } from "@/hooks/useBookings";
 interface ArtistAssignmentSelectProps {
   booking: Booking;
   artists: {ArtistId: number; ArtistFirstName: string; ArtistLastName: string}[];
-  onArtistAssign: (booking: Booking, artistId: number) => Promise<void>;
+  onArtistAssignment: (booking: Booking, artistId: number) => Promise<void>;
+  isDisabled: boolean;
 }
 
 export const ArtistAssignmentSelect = ({ 
   booking, 
   artists, 
-  onArtistAssign 
+  onArtistAssignment,
+  isDisabled
 }: ArtistAssignmentSelectProps) => {
   return (
     <Select
@@ -21,9 +23,10 @@ export const ArtistAssignmentSelect = ({
           // Handle the unassigned case differently if needed
           return;
         }
-        onArtistAssign(booking, parseInt(value));
+        onArtistAssignment(booking, parseInt(value));
       }}
       defaultValue={booking.ArtistId?.toString() || "unassigned"}
+      disabled={isDisabled}
     >
       <SelectTrigger className="h-7 text-xs">
         <SelectValue placeholder="Assign Artist" />

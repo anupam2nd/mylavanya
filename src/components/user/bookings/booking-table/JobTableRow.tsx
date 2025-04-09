@@ -84,7 +84,9 @@ export const JobTableRow = ({
         <JobScheduleCell 
           booking={booking}
           isEditingDisabled={isEditingDisabled}
-          onScheduleChange={handleScheduleChangeWrapper}
+          onScheduleChange={onScheduleChange ? 
+            (date, time) => onScheduleChange(booking, date, time) : 
+            undefined}
           isUpdating={isUpdatingSchedule}
         />
       </TableCell>
@@ -100,9 +102,9 @@ export const JobTableRow = ({
       
       <TableCell>
         <ArtistAssignmentSelect 
-          currentArtistId={booking.ArtistId ? Number(booking.ArtistId) : undefined}
+          booking={booking}
           artists={artists}
-          onArtistAssignment={handleArtistAssignmentWrapper}
+          onArtistAssignment={handleArtistAssignment}
           isDisabled={isEditingDisabled || isAssigningArtist}
         />
       </TableCell>
