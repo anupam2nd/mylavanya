@@ -71,10 +71,13 @@ const UserBookings = () => {
   // Determine if the current user is allowed to edit bookings (admin, superadmin, or user from UserMST)
   const canEdit = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'user';
   const isMember = user?.role === 'member';
+  
+  // Set the title based on user role
+  const pageTitle = isMember ? "Your Bookings" : "Booking Management";
 
   return (
     <ProtectedRoute>
-      <DashboardLayout title="Booking Management">
+      <DashboardLayout title={pageTitle}>
         <Card>
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
             <BookingListHeader 

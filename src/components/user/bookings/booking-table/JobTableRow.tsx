@@ -7,6 +7,8 @@ import { Booking } from "@/hooks/useBookings";
 import { BookingStatusSelect } from "./BookingStatusSelect";
 import { ArtistAssignmentSelect } from "./ArtistAssignmentSelect";
 import { JobScheduleCell } from "./JobScheduleCell";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { useAuth } from "@/context/AuthContext";
 
 interface JobTableRowProps {
   booking: Booking;
@@ -38,6 +40,9 @@ export const JobTableRow = ({
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isAssigningArtist, setIsAssigningArtist] = useState(false);
   const [isUpdatingSchedule, setIsUpdatingSchedule] = useState(false);
+  const { user } = useAuth();
+  const isMember = user?.role === 'member';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'user';
 
   const handleStatusChangeWrapper = async (newStatus: string) => {
     if (isUpdatingStatus) return;
@@ -72,6 +77,15 @@ export const JobTableRow = ({
     }
   };
 
+  // Find artist name for display
+  const getArtistName = () => {
+    if (!booking.ArtistId) return 'Unassigned';
+    const artist = artists.find(a => a.ArtistId === Number(booking.ArtistId));
+    return artist ? 
+      `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || `Artist #${artist.ArtistId}` 
+      : booking.Assignedto || 'Assigned';
+  };
+
   return (
     <TableRow>
       <TableCell className="font-medium">{booking.jobno || 'N/A'}</TableCell>
@@ -81,35 +95,60 @@ export const JobTableRow = ({
       </TableCell>
 
       <TableCell>
-        <JobScheduleCell 
-          booking={booking}
-          isEditingDisabled={isEditingDisabled}
-          onScheduleChange={onScheduleChange ? 
-            (date, time) => onScheduleChange(booking, date, time) : 
-            undefined}
-          isUpdating={isUpdatingSchedule}
-        />
+        {/* Show schedule data only for members, and JobScheduleCell with edit for admins */}
+        {isMember ? (
+          <div>
+            <div className="flex items-center">
+              <span className="text-sm">{booking.Booking_date}</span>
+            </div>
+            <div className="flex items-center mt-1">
+              <span className="text-sm">{booking.booking_time}</span>
+            </div>
+          </div>
+        ) : (
+          <JobScheduleCell 
+            booking={booking}
+            isEditingDisabled={isEditingDisabled}
+            onScheduleChange={isAdmin ? 
+              (date, time) => onScheduleChange && onScheduleChange(booking, date, time) : 
+              undefined}
+            isUpdating={isUpdatingSchedule}
+          />
+        )}
       </TableCell>
 
       <TableCell>
-        <BookingStatusSelect 
-          currentStatus={booking.Status} 
-          statusOptions={statusOptions} 
-          onStatusChange={handleStatusChangeWrapper}
-          isDisabled={isEditingDisabled || isUpdatingStatus}
-        />
+        {/* Show status badge for members and admins */}
+        <StatusBadge status={booking.Status || 'pending'} />
+        
+        {/* Only show dropdown for specific non-member users (hidden as requested) */}
+        {false && !isMember && (
+          <BookingStatusSelect 
+            currentStatus={booking.Status} 
+            statusOptions={statusOptions} 
+            onStatusChange={(newStatus) => handleStatusChangeWrapper(newStatus)}
+            isDisabled={isEditingDisabled || isUpdatingStatus}
+          />
+        )}
       </TableCell>
       
       <TableCell>
-        <ArtistAssignmentSelect 
-          booking={booking}
-          artists={artists}
-          onArtistAssignment={handleArtistAssignment}
-          isDisabled={isEditingDisabled || isAssigningArtist}
-        />
+        {/* Show assigned artist name for all users */}
+        {getArtistName()}
+        
+        {/* Only show artist assignment dropdown for specific non-member users (hidden as requested) */}
+        {false && !isMember && (
+          <ArtistAssignmentSelect 
+            booking={booking}
+            artists={artists}
+            onArtistAssignment={(artistId) => handleArtistAssignmentWrapper(artistId)}
+            isDisabled={isEditingDisabled || isAssigningArtist}
+          />
+        )}
       </TableCell>
       
-      {showActions && (
+      {/* Only show actions column for non-members */}
+      {showActions && !isMember && (
         <TableCell>
           <div className="flex gap-2">
             <Button
