@@ -101,14 +101,15 @@ export const useJobOperations = (bookings: Booking[], setBookings: React.Dispatc
             booking_id: booking.id,
             booking_no: booking.Booking_NO,
             message: `${adminName} has rescheduled your booking ${booking.Booking_NO} to ${date} at ${time}.`,
-            created_at: new Date().toISOString(),
             is_read: false,
             change_type: 'reschedule'
           };
           
+          // Use custom query to insert notification
           await supabase
             .from('notifications')
             .insert([notificationMessage]);
+            
         } catch (notifError) {
           console.error("Error creating notification:", notifError);
         }

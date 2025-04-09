@@ -1,14 +1,12 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { BookingStatusSelect } from "./BookingStatusSelect";
 import { ArtistAssignmentSelect } from "./ArtistAssignmentSelect";
 import { JobScheduleCell } from "./JobScheduleCell";
-import { useAuth } from "@/context/AuthContext";
 
 interface JobTableRowProps {
   booking: Booking;
@@ -21,6 +19,7 @@ interface JobTableRowProps {
   statusOptions: {status_code: string; status_name: string}[];
   artists: {ArtistId: number; ArtistFirstName: string; ArtistLastName: string}[];
   showDeleteButton: boolean;
+  showActions?: boolean;
 }
 
 export const JobTableRow = ({
@@ -33,81 +32,101 @@ export const JobTableRow = ({
   onScheduleChange,
   statusOptions,
   artists,
-  showDeleteButton
+  showDeleteButton,
+  showActions = true
 }: JobTableRowProps) => {
-  const { user } = useAuth();
-  const isMember = user?.role === 'member';
-  
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isAssigningArtist, setIsAssigningArtist] = useState(false);
+  const [isUpdatingSchedule, setIsUpdatingSchedule] = useState(false);
+
+  const handleStatusChangeWrapper = async (newStatus: string) => {
+    if (isUpdatingStatus) return;
+    
+    setIsUpdatingStatus(true);
+    try {
+      await handleStatusChange(booking, newStatus);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleArtistAssignmentWrapper = async (artistId: number) => {
+    if (isAssigningArtist) return;
+    
+    setIsAssigningArtist(true);
+    try {
+      await handleArtistAssignment(booking, artistId);
+    } finally {
+      setIsAssigningArtist(false);
+    }
+  };
+
+  const handleScheduleChangeWrapper = async (date: string, time: string) => {
+    if (isUpdatingSchedule || !onScheduleChange) return;
+    
+    setIsUpdatingSchedule(true);
+    try {
+      await onScheduleChange(booking, date, time);
+    } finally {
+      setIsUpdatingSchedule(false);
+    }
+  };
+
   return (
     <TableRow>
+      <TableCell className="font-medium">{booking.jobno || 'N/A'}</TableCell>
       <TableCell>
-        {booking.jobno ? 
-          `JOB-${booking.jobno.toString().padStart(3, '0')}` : 
-          'N/A'
-        }
+        {booking.ServiceName}{booking.SubService ? ` - ${booking.SubService}` : ''}
+        {booking.ProductName && <div className="text-xs text-muted-foreground mt-1">{booking.ProductName} x {booking.Qty || 1}</div>}
       </TableCell>
+
       <TableCell>
-        <div>
-          <div className="font-medium">
-            {[booking.ServiceName, booking.SubService].filter(Boolean).join(' > ') || 'N/A'}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {booking.ProductName ? `${booking.ProductName} (Qty: ${booking.Qty || 1})` : 'N/A'}
-          </div>
-        </div>
+        <JobScheduleCell 
+          booking={booking}
+          isEditingDisabled={isEditingDisabled}
+          onScheduleChange={handleScheduleChangeWrapper}
+          isUpdating={isUpdatingSchedule}
+        />
       </TableCell>
-      <JobScheduleCell 
-        booking={booking} 
-        onScheduleChange={onScheduleChange}
-        isEditingDisabled={isEditingDisabled || isMember}
-      />
+
       <TableCell>
-        <div>
-          <StatusBadge status={booking.Status || 'pending'} />
-          {!isEditingDisabled && !isMember && (
-            <div className="mt-2">
-              <BookingStatusSelect
-                booking={booking}
-                statusOptions={statusOptions}
-                onStatusChange={handleStatusChange}
-              />
-            </div>
-          )}
-        </div>
+        <BookingStatusSelect 
+          currentStatus={booking.Status} 
+          statusOptions={statusOptions} 
+          onStatusChange={handleStatusChangeWrapper}
+          isDisabled={isEditingDisabled || isUpdatingStatus}
+        />
       </TableCell>
+      
       <TableCell>
-        <div>{booking.Assignedto || 'Not assigned'}</div>
-        {!isEditingDisabled && !isMember && (
-          <div className="mt-2">
-            <ArtistAssignmentSelect
-              booking={booking}
-              artists={artists}
-              onArtistAssign={handleArtistAssignment}
-            />
-          </div>
-        )}
+        <ArtistAssignmentSelect 
+          currentArtistId={booking.ArtistId ? Number(booking.ArtistId) : undefined}
+          artists={artists}
+          onArtistAssignment={handleArtistAssignmentWrapper}
+          isDisabled={isEditingDisabled || isAssigningArtist}
+        />
       </TableCell>
-      {!isMember && (
+      
+      {showActions && (
         <TableCell>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => onEditClick(booking)}
-              className="h-8"
               disabled={isEditingDisabled}
             >
-              <Edit className="h-4 w-4 mr-1" /> Edit
+              <Pencil className="h-4 w-4" />
             </Button>
             
-            {!isEditingDisabled && onDeleteJob && showDeleteButton && (
-              <Button 
-                variant="destructive" 
-                size="sm" 
-                onClick={() => onDeleteJob(booking)}
-                className="h-8"
+            {onDeleteJob && showDeleteButton && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onDeleteJob && onDeleteJob(booking)}
+                disabled={isEditingDisabled}
               >
-                <Trash2 className="h-4 w-4 mr-1" /> Delete
+                <Trash2 className="h-4 w-4 text-destructive" />
               </Button>
             )}
           </div>

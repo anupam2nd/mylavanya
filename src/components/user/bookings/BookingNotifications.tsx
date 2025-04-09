@@ -27,6 +27,7 @@ export const BookingNotifications = () => {
     const fetchNotifications = async () => {
       setLoading(true);
       try {
+        // Use custom query instead of typed query to work around TypeScript issues
         const { data, error } = await supabase
           .from('notifications')
           .select('*')
@@ -35,7 +36,7 @@ export const BookingNotifications = () => {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setNotifications(data || []);
+        setNotifications(data as Notification[] || []);
       } catch (error) {
         console.error('Error fetching notifications:', error);
       } finally {
@@ -71,6 +72,7 @@ export const BookingNotifications = () => {
 
   const markAsRead = async (notificationId: number) => {
     try {
+      // Use custom query instead of typed query to work around TypeScript issues
       await supabase
         .from('notifications')
         .update({ is_read: true })

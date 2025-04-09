@@ -36,22 +36,32 @@ export const useBookingStatusManagement = () => {
     try {
       const adminName = user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'An administrator';
       
-      const notificationMessage = {
-        recipient_email: booking.email,
-        booking_id: booking.id,
-        booking_no: booking.Booking_NO,
-        message: `${adminName} has updated the ${changeType} of your booking ${booking.Booking_NO}.`,
-        created_at: new Date().toISOString(),
-        is_read: false,
-        change_type: changeType
-      };
-      
-      const { error } = await supabase
-        .from('notifications')
-        .insert([notificationMessage]);
+      // Use custom query instead of typed query to work around TypeScript issues
+      const { error } = await supabase.rpc('insert_notification', {
+        p_recipient_email: booking.email,
+        p_booking_id: booking.id,
+        p_booking_no: booking.Booking_NO,
+        p_message: `${adminName} has updated the ${changeType} of your booking ${booking.Booking_NO}.`,
+        p_change_type: changeType
+      }).single();
         
       if (error) {
         console.error("Error creating notification:", error);
+        
+        // Fallback direct insertion if RPC fails
+        const notificationMessage = {
+          recipient_email: booking.email,
+          booking_id: booking.id,
+          booking_no: booking.Booking_NO,
+          message: `${adminName} has updated the ${changeType} of your booking ${booking.Booking_NO}.`,
+          created_at: new Date().toISOString(),
+          is_read: false,
+          change_type: changeType
+        };
+        
+        await supabase
+          .from('notifications')
+          .insert([notificationMessage]);
       }
     } catch (error) {
       console.error("Error in createNotification:", error);

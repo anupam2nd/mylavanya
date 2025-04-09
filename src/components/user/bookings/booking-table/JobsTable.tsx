@@ -57,6 +57,7 @@ export const JobsTable = ({
             statusOptions={statusOptions}
             artists={artists}
             showDeleteButton={bookingsGroup.length > 1}
+            showActions={!isMember}
           />
         ))}
       </TableBody>

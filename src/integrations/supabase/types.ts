@@ -180,6 +180,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          booking_id: number
+          booking_no: string
+          change_type: string
+          created_at: string
+          id: number
+          is_read: boolean
+          message: string
+          recipient_email: string
+        }
+        Insert: {
+          booking_id: number
+          booking_no: string
+          change_type: string
+          created_at?: string
+          id?: number
+          is_read?: boolean
+          message: string
+          recipient_email: string
+        }
+        Update: {
+          booking_id?: number
+          booking_no?: string
+          change_type?: string
+          created_at?: string
+          id?: number
+          is_read?: boolean
+          message?: string
+          recipient_email?: string
+        }
+        Relationships: []
+      }
       PriceMST: {
         Row: {
           active: boolean | null
