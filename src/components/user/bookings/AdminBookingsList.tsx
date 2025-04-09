@@ -1,8 +1,8 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Edit, ChevronDown, ChevronUp, MapPin, Phone, Plus } from "lucide-react";
+import { Calendar, Clock, Edit, ChevronDown, ChevronUp, MapPin, Phone, Plus, Check } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format } from "date-fns";
@@ -15,6 +15,9 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 interface BookingsListProps {
   bookings: Booking[];
@@ -27,8 +30,60 @@ interface GroupedBookings {
   [key: string]: Booking[];
 }
 
+interface Artist {
+  ArtistId: number;
+  ArtistFirstName: string;
+  ArtistLastName: string;
+}
+
 const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: BookingsListProps) => {
   const [expandedBookings, setExpandedBookings] = useState<string[]>([]);
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [statusOptions, setStatusOptions] = useState<{status_code: string; status_name: string}[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Fetch artists from ArtistMST
+    const fetchArtists = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('ArtistMST')
+          .select('ArtistId, ArtistFirstName, ArtistLastName')
+          .eq('Active', true);
+
+        if (error) {
+          console.error("Error fetching artists:", error);
+          return;
+        }
+
+        setArtists(data || []);
+      } catch (error) {
+        console.error("Error in fetchArtists:", error);
+      }
+    };
+
+    // Fetch status options
+    const fetchStatusOptions = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('statusmst')
+          .select('status_code, status_name')
+          .eq('active', true);
+
+        if (error) {
+          console.error("Error fetching status options:", error);
+          return;
+        }
+
+        setStatusOptions(data || []);
+      } catch (error) {
+        console.error("Error in fetchStatusOptions:", error);
+      }
+    };
+
+    fetchArtists();
+    fetchStatusOptions();
+  }, []);
 
   const toggleBooking = (bookingNo: string) => {
     setExpandedBookings(prev => 
@@ -36,6 +91,76 @@ const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: Book
         ? prev.filter(id => id !== bookingNo) 
         : [...prev, bookingNo]
     );
+  };
+
+  const handleStatusChange = async (booking: Booking, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('BookMST')
+        .update({ Status: newStatus, StatusUpdated: new Date().toISOString() })
+        .eq('id', booking.id);
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Failed to update status",
+          description: error.message,
+        });
+        return;
+      }
+
+      toast({
+        title: "Status updated",
+        description: `Booking status changed to ${newStatus}`,
+      });
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast({
+        variant: "destructive",
+        title: "Error updating status",
+        description: "An unexpected error occurred",
+      });
+    }
+  };
+
+  const handleArtistAssignment = async (booking: Booking, artistId: number) => {
+    try {
+      // Find the selected artist
+      const selectedArtist = artists.find(artist => artist.ArtistId === artistId);
+      if (!selectedArtist) return;
+
+      const artistName = `${selectedArtist.ArtistFirstName || ''} ${selectedArtist.ArtistLastName || ''}`.trim();
+      
+      const { error } = await supabase
+        .from('BookMST')
+        .update({ 
+          ArtistId: artistId,
+          Assignedto: artistName,
+          AssingnedON: new Date().toISOString()
+        })
+        .eq('id', booking.id);
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Failed to assign artist",
+          description: error.message,
+        });
+        return;
+      }
+
+      toast({
+        title: "Artist assigned",
+        description: `Booking assigned to ${artistName}`,
+      });
+    } catch (error) {
+      console.error("Error assigning artist:", error);
+      toast({
+        variant: "destructive",
+        title: "Error assigning artist",
+        description: "An unexpected error occurred",
+      });
+    }
   };
 
   if (loading) {
@@ -164,7 +289,7 @@ const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: Book
                               <TableHead>Date & Time</TableHead>
                               <TableHead>Status</TableHead>
                               <TableHead>Assigned To</TableHead>
-                              {!isEditingDisabled && <TableHead>Actions</TableHead>}
+                              <TableHead>Actions</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -203,23 +328,65 @@ const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: Book
                                   </div>
                                 </TableCell>
                                 <TableCell>
-                                  <StatusBadge status={booking.Status || 'pending'} />
+                                  <div className="flex flex-col gap-1">
+                                    <StatusBadge status={booking.Status || 'pending'} />
+                                    {!isEditingDisabled && (
+                                      <Select
+                                        onValueChange={(value) => handleStatusChange(booking, value)}
+                                        defaultValue={booking.Status || 'pending'}
+                                      >
+                                        <SelectTrigger className="h-7 text-xs">
+                                          <SelectValue placeholder="Change Status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {statusOptions.map((option) => (
+                                            <SelectItem 
+                                              key={option.status_code} 
+                                              value={option.status_code}
+                                            >
+                                              {option.status_name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    )}
+                                  </div>
                                 </TableCell>
                                 <TableCell>
-                                  {booking.Assignedto || 'Not assigned'}
+                                  <div className="flex flex-col gap-1">
+                                    <div>{booking.Assignedto || 'Not assigned'}</div>
+                                    {!isEditingDisabled && (
+                                      <Select
+                                        onValueChange={(value) => handleArtistAssignment(booking, parseInt(value))}
+                                      >
+                                        <SelectTrigger className="h-7 text-xs">
+                                          <SelectValue placeholder="Assign Artist" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {artists.map((artist) => (
+                                            <SelectItem 
+                                              key={artist.ArtistId} 
+                                              value={artist.ArtistId.toString()}
+                                            >
+                                              {`${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || `Artist #${artist.ArtistId}`}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    )}
+                                  </div>
                                 </TableCell>
-                                {!isEditingDisabled && (
-                                  <TableCell>
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
-                                      onClick={() => onEditClick(booking)}
-                                      className="h-8"
-                                    >
-                                      <Edit className="h-4 w-4 mr-1" /> Edit
-                                    </Button>
-                                  </TableCell>
-                                )}
+                                <TableCell>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => onEditClick(booking)}
+                                    className="h-8"
+                                    disabled={isEditingDisabled}
+                                  >
+                                    <Edit className="h-4 w-4 mr-1" /> Edit
+                                  </Button>
+                                </TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
