@@ -17,6 +17,7 @@ export const ArtistAssignmentSelect = ({
   return (
     <Select
       onValueChange={(value) => onArtistAssign(booking, parseInt(value))}
+      defaultValue={booking.ArtistId?.toString()}
     >
       <SelectTrigger className="h-7 text-xs">
         <SelectValue placeholder="Assign Artist" />

@@ -29,7 +29,7 @@ const TimePickerField = () => {
             </FormControl>
             <SelectContent>
               {timeSlots.map((time) => (
-                <SelectItem key={time} value={time}>
+                <SelectItem key={time} value={time || "not_specified"}>
                   {time}
                 </SelectItem>
               ))}

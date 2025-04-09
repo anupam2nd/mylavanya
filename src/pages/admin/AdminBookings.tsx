@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,7 +60,6 @@ const AdminBookings = () => {
     clearFilters
   } = useBookingFilters(bookings);
 
-  // Fetch current user data
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -134,9 +132,8 @@ const AdminBookings = () => {
   };
 
   const handleArtistAssignWithUser = async (booking: Booking, artistId: number) => {
-    await handleArtistAssignment(booking, artistId, artists);
+    await handleArtistAssignment(booking, artistId);
     
-    // Refresh bookings after assignment
     const bookingIndex = bookings.findIndex(b => b.id === booking.id);
     if (bookingIndex !== -1) {
       const updatedBooking = {
@@ -153,7 +150,6 @@ const AdminBookings = () => {
     }
   };
 
-  // New function to handle job deletion
   const handleDeleteJob = async (booking: Booking) => {
     try {
       const { error } = await supabase
@@ -165,7 +161,6 @@ const AdminBookings = () => {
         throw error;
       }
 
-      // Update local state
       setBookings(bookings.filter(b => b.id !== booking.id));
       
       toast({
@@ -182,7 +177,6 @@ const AdminBookings = () => {
     }
   };
 
-  // New function to handle schedule changes
   const handleScheduleChange = async (booking: Booking, date: string, time: string) => {
     try {
       const { error } = await supabase
@@ -197,7 +191,6 @@ const AdminBookings = () => {
         throw error;
       }
 
-      // Update local state
       const bookingIndex = bookings.findIndex(b => b.id === booking.id);
       if (bookingIndex !== -1) {
         const updatedBooking = {

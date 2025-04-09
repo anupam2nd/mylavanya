@@ -26,7 +26,7 @@ export const BookingStatusSelect = ({
         {statusOptions.map((option) => (
           <SelectItem 
             key={option.status_code} 
-            value={option.status_code}
+            value={option.status_code || 'pending'} // Ensure value is never empty
           >
             {option.status_name}
           </SelectItem>

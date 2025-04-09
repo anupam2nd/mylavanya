@@ -86,7 +86,7 @@ export const BookingListHeader = ({
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
             {formattedStatusOptions.map(option => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
