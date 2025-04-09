@@ -1,93 +1,61 @@
 
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Badge, BadgeProps } from "./badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
 
-export type StatusType = "completed" | "pending" | "cancelled" | "processing" | string;
-
-interface StatusBadgeProps extends Omit<BadgeProps, "variant"> {
-  status: StatusType;
-  description?: string;
-  showTooltip?: boolean;
-  classNames?: {
-    root?: string;
-    text?: string;
-  };
+interface StatusBadgeProps {
+  status: string;
+  className?: string;
 }
 
-const getStatusStyles = (status: StatusType) => {
-  const normalizedStatus = status.toLowerCase();
-  
-  switch (normalizedStatus) {
-    case "completed":
-      return {
-        bg: "bg-green-100",
-        text: "text-green-800",
-      };
-    case "pending":
-      return {
-        bg: "bg-yellow-100",
-        text: "text-yellow-800",
-      };
-    case "processing":
-      return {
-        bg: "bg-blue-100",
-        text: "text-blue-800",
-      };
-    case "cancelled":
-      return {
-        bg: "bg-red-100",
-        text: "text-red-800",
-      };
-    default:
-      return {
-        bg: "bg-gray-100",
-        text: "text-gray-800",
-      };
-  }
-};
+export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
+  const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+    pending: {
+      label: "Pending",
+      variant: "outline",
+    },
+    approve: {
+      label: "Approved",
+      variant: "secondary",
+    },
+    process: {
+      label: "In Process",
+      variant: "default",
+    },
+    service_started: {
+      label: "Service Started",
+      variant: "default",
+    },
+    ontheway: {
+      label: "On the Way",
+      variant: "default",
+    },
+    done: {
+      label: "Completed",
+      variant: "default",
+    },
+    cancel: {
+      label: "Cancelled",
+      variant: "destructive",
+    },
+  };
 
-export const StatusBadge = ({ 
-  status, 
-  description, 
-  showTooltip = false, 
-  classNames, 
-  className, 
-  ...props 
-}: StatusBadgeProps) => {
-  const styles = getStatusStyles(status);
-  
-  const badge = (
-    <Badge
-      {...props}
+  const statusInfo = statusMap[status] || {
+    label: status.charAt(0).toUpperCase() + status.slice(1),
+    variant: "outline",
+  };
+
+  return (
+    <Badge 
+      variant={statusInfo.variant}
       className={cn(
-        "px-3 py-1 rounded-full font-medium border-0",
-        styles.bg,
-        styles.text,
-        classNames?.root,
+        status === "done" && "bg-green-600",
+        status === "process" && "bg-blue-600",
+        status === "ontheway" && "bg-amber-600",
+        status === "service_started" && "bg-indigo-600",
         className
       )}
     >
-      <span className={cn(classNames?.text)}>
-        {status.toUpperCase()}
-      </span>
+      {statusInfo.label}
     </Badge>
   );
-
-  if (showTooltip && description) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {badge}
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{description}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
-  
-  return badge;
 };
