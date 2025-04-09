@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock, User, Mail, MapPin, Phone, Package, Plus } from "lucide-react";
@@ -360,7 +361,7 @@ const EditBookingDialog = ({
                       </SelectTrigger>
                       <SelectContent>
                         {statusOptions.map((option) => (
-                          <SelectItem key={option.status_code} value={option.status_code}>
+                          <SelectItem key={option.status_code} value={option.status_code || 'pending'}>
                             {option.status_name}
                           </SelectItem>
                         ))}
@@ -382,7 +383,7 @@ const EditBookingDialog = ({
                         <SelectValue placeholder="Select artist" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Unassigned</SelectItem>
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
                         {artistOptions.map((artist) => (
                           <SelectItem key={artist.ArtistId} value={artist.ArtistId.toString()}>
                             {artist.displayName || `Artist ${artist.ArtistId}`}

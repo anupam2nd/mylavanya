@@ -83,7 +83,7 @@ const TimeSlotPicker = ({ value, onChange }: TimeSlotPickerProps) => {
         </SelectTrigger>
         <SelectContent>
           {timeSlots.map((timeSlot) => (
-            <SelectItem key={timeSlot} value={timeSlot}>
+            <SelectItem key={timeSlot} value={timeSlot || "default_time_slot"}>
               {timeSlot}
             </SelectItem>
           ))}
