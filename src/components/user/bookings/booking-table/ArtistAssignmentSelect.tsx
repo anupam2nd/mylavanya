@@ -6,7 +6,7 @@ import { Booking } from "@/hooks/useBookings";
 interface ArtistAssignmentSelectProps {
   booking: Booking;
   artists: {ArtistId: number; ArtistFirstName: string; ArtistLastName: string}[];
-  onArtistAssignment: (booking: Booking, artistId: number) => Promise<void>;
+  onArtistAssignment: (artistId: number) => Promise<void>;
   isDisabled: boolean;
 }
 
@@ -23,7 +23,7 @@ export const ArtistAssignmentSelect = ({
           // Handle the unassigned case differently if needed
           return;
         }
-        onArtistAssignment(booking, parseInt(value));
+        onArtistAssignment(parseInt(value));
       }}
       defaultValue={booking.ArtistId?.toString() || "unassigned"}
       disabled={isDisabled}

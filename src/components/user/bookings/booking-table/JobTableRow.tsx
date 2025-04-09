@@ -55,7 +55,7 @@ export const JobTableRow = ({
     }
   };
 
-  // Fix: Update the function to pass artistId correctly
+  // Handle artist assignment with correct parameter order
   const handleArtistAssignmentWrapper = async (artistId: number) => {
     if (isAssigningArtist) return;
     
@@ -127,7 +127,7 @@ export const JobTableRow = ({
           <BookingStatusSelect 
             currentStatus={booking.Status} 
             statusOptions={statusOptions} 
-            onStatusChange={(newStatus) => handleStatusChangeWrapper(newStatus)}
+            onStatusChange={handleStatusChangeWrapper}
             isDisabled={isEditingDisabled || isUpdatingStatus}
           />
         )}
