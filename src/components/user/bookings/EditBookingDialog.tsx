@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock, User, Mail, MapPin, Phone, Package, Plus } from "lucide-react";
@@ -154,23 +153,26 @@ const EditBookingDialog = ({
       updates.Qty = editQty;
     }
     
-    // Note: Service, SubService, and Product fields are now read-only
-    // No updates to those fields should be made
-    
-    if (requiresArtist(editStatus)) {
-      if (editArtist) {
-        updates.ArtistId = editArtist;
-        
-        const selectedArtist = artistOptions.find(a => a.ArtistId === editArtist);
-        if (selectedArtist) {
-          updates.Assignedto = selectedArtist.displayName;
-        }
-        
-        updates.AssignedBY = currentUser?.Username || 'admin';
-        updates.AssingnedON = new Date().toISOString();
+    if (editArtist !== booking.ArtistId) {
+      updates.ArtistId = editArtist;
+      
+      const selectedArtist = artistOptions.find(a => a.ArtistId === editArtist);
+      if (selectedArtist) {
+        updates.Assignedto = selectedArtist.displayName || 'Assigned Artist';
       }
+      
+      updates.AssignedBY = currentUser?.Username || 'admin';
+      updates.AssingnedON = new Date().toISOString();
+      
+      console.log("Artist assignment update:", {
+        ArtistId: editArtist,
+        Assignedto: updates.Assignedto,
+        AssignedBY: updates.AssignedBY
+      });
     }
 
+    console.log("Saving booking updates:", updates);
+    
     await onSave(booking, updates);
   };
 
@@ -178,8 +180,6 @@ const EditBookingDialog = ({
     if (!booking) return;
     
     try {
-      // Create a new job with the same booking number but allow selecting a new service/product
-      // This will be implemented in a separate function/component
       setShowNewJobDialog(true);
     } catch (error) {
       console.error('Error starting new job:', error);
@@ -377,12 +377,12 @@ const EditBookingDialog = ({
                     <Select
                       value={editArtist?.toString() || ""}
                       onValueChange={(value) => setEditArtist(value ? parseInt(value, 10) : null)}
-                      disabled={!requiresArtist(editStatus)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select artist" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="">Unassigned</SelectItem>
                         {artistOptions.map((artist) => (
                           <SelectItem key={artist.ArtistId} value={artist.ArtistId.toString()}>
                             {artist.displayName || `Artist ${artist.ArtistId}`}
@@ -390,18 +390,6 @@ const EditBookingDialog = ({
                         ))}
                       </SelectContent>
                     </Select>
-                    
-                    {(requiresArtist(editStatus) && !editArtist) && (
-                      <p className="text-xs text-destructive mt-1">
-                        Artist assignment is required for this status
-                      </p>
-                    )}
-                    
-                    {!requiresArtist(editStatus) && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Artist assignment available when status is "Beautician Assigned" or later
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -413,7 +401,6 @@ const EditBookingDialog = ({
           <Button 
             type="submit" 
             onClick={handleSaveChanges}
-            disabled={requiresArtist(editStatus) && !editArtist}
           >
             Save changes
           </Button>

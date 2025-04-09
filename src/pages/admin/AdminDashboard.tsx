@@ -1,168 +1,127 @@
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useBookings } from "@/hooks/useBookings";
-import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPieChart";
-import MonthlyBookingTrendsChart from "@/components/admin/dashboard/MonthlyBookingTrendsChart";
-import BeauticianBookingsBarChart from "@/components/admin/dashboard/BeauticianBookingsBarChart";
-import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { parseISO, subDays, format, isToday, isSameDay } from "date-fns";
-import { CalendarDays } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Calendar, CalendarCheck, Users, Clock, Activity } from "lucide-react";
+import MonthlyBookingsChart from "@/components/admin/dashboard/MonthlyBookingsChart";
+import MonthlyBookingTrendsChart from "@/components/admin/dashboard/MonthlyBookingTrendsChart";
+import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPieChart";
+import BookingStatsPieChart from "@/components/admin/dashboard/BookingStatsPieChart";
+import ChartFilters from "@/components/admin/dashboard/ChartFilters";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard = () => {
-  const { bookings, loading } = useBookings();
-  
-  // Initialize with last 30 days as default
-  const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
-  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
-  
-  // Track if filters have been applied
-  const [filtersApplied, setFiltersApplied] = useState(false);
-  
-  // For displaying the filter state
-  const [appliedStartDate, setAppliedStartDate] = useState<Date | undefined>(startDate);
-  const [appliedEndDate, setAppliedEndDate] = useState<Date | undefined>(endDate);
-  
-  // Selected date for bookings card
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  
-  // Apply filters action
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [totalBookings, setTotalBookings] = useState<number>(0);
+  const [pendingBookings, setPendingBookings] = useState<number>(0);
+  const [completedBookings, setCompletedBookings] = useState<number>(0);
+  const [inProgressBookings, setInProgressBookings] = useState<number>(0);
+
+  // Function to fetch booking statistics
+  const fetchBookingStats = async () => {
+    try {
+      // Get total bookings
+      const { count: totalCount, error: totalError } = await supabase
+        .from('BookMST')
+        .select('*', { count: 'exact', head: true });
+      
+      if (totalError) throw totalError;
+      setTotalBookings(totalCount || 0);
+
+      // Get pending bookings
+      const { count: pendingCount, error: pendingError } = await supabase
+        .from('BookMST')
+        .select('*', { count: 'exact', head: true })
+        .eq('Status', 'pending');
+      
+      if (pendingError) throw pendingError;
+      setPendingBookings(pendingCount || 0);
+
+      // Get completed bookings
+      const { count: completedCount, error: completedError } = await supabase
+        .from('BookMST')
+        .select('*', { count: 'exact', head: true })
+        .eq('Status', 'done');
+      
+      if (completedError) throw completedError;
+      setCompletedBookings(completedCount || 0);
+
+      // Get in-progress bookings (approve, process, ontheway, service_started)
+      const { count: inProgressCount, error: inProgressError } = await supabase
+        .from('BookMST')
+        .select('*', { count: 'exact', head: true })
+        .in('Status', ['approve', 'process', 'ontheway', 'service_started']);
+      
+      if (inProgressError) throw inProgressError;
+      setInProgressBookings(inProgressCount || 0);
+    } catch (error) {
+      console.error("Error fetching booking stats:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookingStats();
+  }, []);
+
   const applyFilters = () => {
-    setAppliedStartDate(startDate);
-    setAppliedEndDate(endDate);
-    setFiltersApplied(true);
+    // Filter charts based on selected date range
+    console.log("Applying date filters:", { startDate, endDate });
   };
-  
-  // Reset filters action
+
   const resetFilters = () => {
-    const defaultStart = subDays(new Date(), 30);
-    const defaultEnd = new Date();
-    
-    setStartDate(defaultStart);
-    setEndDate(defaultEnd);
-    setAppliedStartDate(defaultStart);
-    setAppliedEndDate(defaultEnd);
-    setFiltersApplied(false);
+    setStartDate(undefined);
+    setEndDate(undefined);
   };
-  
-  // Calculate recent bookings for the card
-  const recentBookings = useMemo(() => {
-    const thirtyDaysAgo = subDays(new Date(), 30);
-    return bookings.filter(booking => {
-      const date = booking.Booking_date ? parseISO(booking.Booking_date) : null;
-      return date && date >= thirtyDaysAgo;
-    }).length;
-  }, [bookings]);
-  
-  // Calculate selected date's bookings (excluding pending and cancelled)
-  const selectedDateBookings = useMemo(() => {
-    return bookings.filter(booking => {
-      const date = booking.Booking_date ? parseISO(booking.Booking_date) : null;
-      // Filter by date and exclude pending (P) and cancelled (C) statuses
-      return date && 
-             isSameDay(date, selectedDate) && 
-             booking.Status !== "P" && 
-             booking.Status !== "Pending" && 
-             booking.Status !== "C" && 
-             booking.Status !== "Cancelled";
-    }).length;
-  }, [bookings, selectedDate]);
 
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
-      <DashboardLayout title="Dashboard">
-        {/* Summary Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <DashboardLayout title="Admin Dashboard">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{bookings.length}</div>
-              <p className="text-xs text-muted-foreground">
-                All time booking records
-              </p>
+              <div className="text-2xl font-bold">{totalBookings}</div>
+              <p className="text-xs text-muted-foreground">All-time bookings in the system</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Recent Bookings</CardTitle>
+              <CardTitle className="text-sm font-medium">Pending Bookings</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {loading ? '...' : recentBookings}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Last 30 days
-              </p>
+              <div className="text-2xl font-bold">{pendingBookings}</div>
+              <p className="text-xs text-muted-foreground">Awaiting approval or assignment</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Bookings for {isToday(selectedDate) ? "Today" : format(selectedDate, 'dd MMM yyyy')}
-              </CardTitle>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 p-0"
-                  >
-                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                    <span className="sr-only">Select date</span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => date && setSelectedDate(date)}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+              <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {loading ? '...' : selectedDateBookings}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Active bookings for {format(selectedDate, 'dd MMM yyyy')}
-              </p>
+              <div className="text-2xl font-bold">{inProgressBookings}</div>
+              <p className="text-xs text-muted-foreground">Currently being serviced</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Completed Services</CardTitle>
+              <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{completedBookings}</div>
+              <p className="text-xs text-muted-foreground">Successfully completed bookings</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Monthly Booking Trends Chart */}
-        <div className="mb-8 mt-6">
-          <MonthlyBookingTrendsChart 
-            bookings={bookings} 
-            loading={loading}
-            startDate={appliedStartDate}
-            endDate={appliedEndDate}
-          />
-        </div>
-
-        {/* Beautician Bookings Bar Chart */}
-        <div className="mb-8">
-          <BeauticianBookingsBarChart
-            bookings={bookings}
-            loading={loading}
-            startDate={appliedStartDate}
-            endDate={appliedEndDate}
-          />
-        </div>
-
-        {/* Chart Filters - Moved here above the pie charts */}
-        <div className="mb-4">
+        <div className="mt-6">
           <ChartFilters
             startDate={startDate}
             setStartDate={setStartDate}
@@ -173,29 +132,39 @@ const AdminDashboard = () => {
           />
         </div>
 
-        {/* Dashboard Charts Layout */}
-        <div className="grid gap-8 grid-cols-1 md:grid-cols-2">
-          {/* Booking Status Pie Chart based on booking date */}
-          <BookingStatusPieChart 
-            bookings={bookings} 
-            loading={loading} 
-            startDate={appliedStartDate}
-            endDate={appliedEndDate}
-            title="Status by Booking Date"
-            description="Distribution based on when services are scheduled"
-            filterField="Booking_date"
-          />
-
-          {/* Booking Status Pie Chart based on creation date */}
-          <BookingStatusPieChart 
-            bookings={bookings} 
-            loading={loading}
-            startDate={appliedStartDate}
-            endDate={appliedEndDate}
-            title="Status by Creation Date"
-            description="Distribution based on when bookings were created"
-            filterField="created_at"
-          />
+        <div className="grid gap-4 md:grid-cols-2 mt-2">
+          <Card className="col-span-1">
+            <CardHeader>
+              <CardTitle>Monthly Booking Trends</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MonthlyBookingTrendsChart startDate={startDate} endDate={endDate} />
+            </CardContent>
+          </Card>
+          <Card className="col-span-1">
+            <CardHeader>
+              <CardTitle>Booking Status Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <BookingStatusPieChart startDate={startDate} endDate={endDate} />
+            </CardContent>
+          </Card>
+          <Card className="col-span-1">
+            <CardHeader>
+              <CardTitle>Monthly Bookings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MonthlyBookingsChart startDate={startDate} endDate={endDate} />
+            </CardContent>
+          </Card>
+          <Card className="col-span-1">
+            <CardHeader>
+              <CardTitle>Service Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <BookingStatsPieChart startDate={startDate} endDate={endDate} />
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     </ProtectedRoute>

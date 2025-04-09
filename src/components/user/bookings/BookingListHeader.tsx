@@ -99,7 +99,7 @@ export const BookingListHeader = ({
                   format(startDate, "MMM d, yyyy")
                 )
               ) : (
-                "Show Date Filters"
+                "Choose Daterange"
               )}
             </Button>
           </PopoverTrigger>
