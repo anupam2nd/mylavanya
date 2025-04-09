@@ -1,25 +1,26 @@
 
 import React from "react";
-import AdminBookingsList from "@/components/user/bookings/AdminBookingsList";
+import AdminBookingsList from "./AdminBookingsList";
+import { Booking } from "@/hooks/useBookings";
 
 interface BookingListContentProps {
   loading: boolean;
-  bookings: any[];
-  filteredBookings: any[];
-  handleEditClick: (booking: any) => void;
-  handleAddNewJob: (booking: any) => void;
-  statusOptions: any[];
-  artists: any[];
-  handleStatusChange: (booking: any, status: string) => Promise<void>;
-  handleArtistAssignment: (booking: any, artistId: number) => Promise<void>;
+  bookings: Booking[];
+  filteredBookings: Booking[];
+  handleEditClick: (booking: Booking) => void;
+  handleAddNewJob?: (booking: Booking) => void;
+  statusOptions: {status_code: string; status_name: string}[];
+  artists: {ArtistId: number; ArtistFirstName: string; ArtistLastName: string}[];
+  handleStatusChange: (booking: Booking, newStatus: string) => Promise<void>;
+  handleArtistAssignment: (booking: Booking, artistId: number) => Promise<void>;
   isEditingDisabled: boolean;
-  handleDeleteJob: (booking: any) => Promise<void>;
-  handleScheduleChange: (booking: any, date: string, time: string) => Promise<void>;
+  handleDeleteJob?: (booking: Booking) => Promise<void>;
+  handleScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;
   sortField: string;
-  sortDirection: string;
+  sortDirection: 'asc' | 'desc';
 }
 
-export const BookingListContent: React.FC<BookingListContentProps> = ({
+export const BookingListContent = ({
   loading,
   bookings,
   filteredBookings,
@@ -34,37 +35,29 @@ export const BookingListContent: React.FC<BookingListContentProps> = ({
   handleScheduleChange,
   sortField,
   sortDirection
-}) => {
-  if (loading) {
-    return (
-      <div className="p-8 flex justify-center items-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+}: BookingListContentProps) => {
+  // Display info about the filtered bookings
+  const displayText = filteredBookings.length < bookings.length
+    ? `Showing ${filteredBookings.length} of ${bookings.length} bookings`
+    : `Showing ${bookings.length} bookings`;
 
-  if (bookings.length === 0) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground">No bookings found in the system.</p>
-      </div>
-    );
-  }
+  const sortText = sortField === "created_at" 
+    ? "creation date"
+    : "booking date";
 
   return (
-    <>
-      <div className="mb-4 text-sm text-muted-foreground">
-        Showing {filteredBookings.length} of {bookings.length} bookings
-        {sortField && (
-          <span className="ml-2">
-            sorted by {sortField === "creation_date" ? "creation date" : "booking date"} ({sortDirection === "desc" ? "newest first" : "oldest first"})
-          </span>
-        )}
+    <div className="space-y-4">
+      <div className="text-sm text-muted-foreground">
+        {displayText}
+        <span className="ml-2">
+          sorted by {sortText} ({sortDirection === "desc" ? "newest first" : "oldest first"})
+        </span>
       </div>
-      <AdminBookingsList 
-        bookings={filteredBookings} 
-        loading={loading} 
-        onEditClick={handleEditClick} 
+      
+      <AdminBookingsList
+        bookings={filteredBookings}
+        loading={loading}
+        onEditClick={handleEditClick}
         onAddNewJob={handleAddNewJob}
         statusOptions={statusOptions}
         artists={artists}
@@ -74,6 +67,6 @@ export const BookingListContent: React.FC<BookingListContentProps> = ({
         onDeleteJob={handleDeleteJob}
         onScheduleChange={handleScheduleChange}
       />
-    </>
+    </div>
   );
 };

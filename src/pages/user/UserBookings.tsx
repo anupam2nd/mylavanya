@@ -51,7 +51,7 @@ const UserBookings = () => {
     handleSaveChanges
   } = useBookingEdit(bookings, setBookings);
   
-  // Booking filters hook
+  // Booking filters hook - simplified to only include status and date filters
   const {
     filteredBookings,
     startDate,
@@ -64,35 +64,11 @@ const UserBookings = () => {
     setSearchQuery,
     showDateFilter,
     setShowDateFilter,
-    filterDateType,
-    setFilterDateType,
-    sortDirection,
-    setSortDirection,
-    sortField,
-    setSortField,
     clearFilters
   } = useBookingFilters(bookings);
 
-  const bookingHeaders = {
-    id: 'ID',
-    Booking_NO: 'Booking Number',
-    Booking_date: 'Booking Date',
-    booking_time: 'Booking Time',
-    name: 'Customer Name',
-    email: 'Email',
-    Phone_no: 'Phone Number',
-    Address: 'Address',
-    Pincode: 'Pin Code',
-    Purpose: 'Purpose',
-    Product: 'Product ID',
-    price: 'Price',
-    Qty: 'Quantity',
-    Status: 'Status',
-    created_at: 'Created At'
-  };
-
-  const isArtist = user?.role === 'artist';
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  // Determine if the current user is allowed to edit bookings (admin, superadmin, or user from UserMST)
+  const canEdit = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'user';
 
   return (
     <ProtectedRoute>
@@ -100,8 +76,6 @@ const UserBookings = () => {
         <Card>
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
             <BookingListHeader 
-              filteredBookings={filteredBookings}
-              bookings={bookings}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
               startDate={startDate}
@@ -114,13 +88,6 @@ const UserBookings = () => {
               formattedStatusOptions={formattedStatusOptions}
               showDateFilter={showDateFilter}
               setShowDateFilter={setShowDateFilter}
-              filterDateType={filterDateType}
-              setFilterDateType={setFilterDateType}
-              sortDirection={sortDirection}
-              setSortDirection={setSortDirection}
-              sortField={sortField}
-              setSortField={setSortField}
-              bookingHeaders={bookingHeaders}
             />
           </CardHeader>
           <CardContent>
@@ -128,22 +95,22 @@ const UserBookings = () => {
               loading={loading}
               bookings={bookings}
               filteredBookings={filteredBookings}
-              handleEditClick={isAdmin ? handleEditClick : () => {}}
-              handleAddNewJob={isAdmin ? handleAddNewJob : undefined}
+              handleEditClick={canEdit ? handleEditClick : () => {}}
+              handleAddNewJob={canEdit ? handleAddNewJob : undefined}
               statusOptions={statusOptions}
               artists={artists}
               handleStatusChange={handleStatusChange}
               handleArtistAssignment={handleArtistAssignWithUser}
-              isEditingDisabled={!isAdmin}
-              handleDeleteJob={isAdmin ? handleDeleteJob : undefined}
-              handleScheduleChange={isAdmin ? handleScheduleChange : undefined}
-              sortField={sortField}
-              sortDirection={sortDirection}
+              isEditingDisabled={!canEdit}
+              handleDeleteJob={canEdit ? handleDeleteJob : undefined}
+              handleScheduleChange={canEdit ? handleScheduleChange : undefined}
+              sortField="created_at"
+              sortDirection="desc"
             />
           </CardContent>
         </Card>
 
-        {isAdmin && (
+        {canEdit && (
           <>
             <EditBookingDialog
               booking={editBooking}

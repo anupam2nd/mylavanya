@@ -16,7 +16,13 @@ export const ArtistAssignmentSelect = ({
 }: ArtistAssignmentSelectProps) => {
   return (
     <Select
-      onValueChange={(value) => onArtistAssign(booking, parseInt(value))}
+      onValueChange={(value) => {
+        if (value === "unassigned") {
+          // Handle the unassigned case differently if needed
+          return;
+        }
+        onArtistAssign(booking, parseInt(value));
+      }}
       defaultValue={booking.ArtistId?.toString() || "unassigned"}
     >
       <SelectTrigger className="h-7 text-xs">

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { Separator } from "@/components/ui/separator";
 import { JobsTable } from "./JobsTable";
@@ -43,7 +43,7 @@ export const BookingDetailRow = ({
           <div className="flex justify-between items-center mb-4">
             <Collapsible open={isExpanded} onOpenChange={setIsExpanded} className="w-full">
               <div className="flex justify-between items-center">
-                <div className="flex-1"></div> {/* Empty div to replace the header */}
+                <div className="flex-1"></div> {/* Empty div where the header used to be */}
                 <div className="flex items-center gap-2">
                   {onAddNewJob && !isEditingDisabled && (
                     <Button 
@@ -54,14 +54,7 @@ export const BookingDetailRow = ({
                       <Plus className="h-3 w-3 mr-1" /> Add New Job
                     </Button>
                   )}
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      {isExpanded ? 
-                        <ChevronUp className="h-4 w-4" /> : 
-                        <ChevronDown className="h-4 w-4" />
-                      }
-                    </Button>
-                  </CollapsibleTrigger>
+                  {/* Removed the chevron trigger button */}
                 </div>
               </div>
               

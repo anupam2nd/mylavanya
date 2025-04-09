@@ -14,10 +14,13 @@ export const BookingStatusSelect = ({
   statusOptions, 
   onStatusChange 
 }: BookingStatusSelectProps) => {
+  // Ensure we have a valid default value
+  const defaultValue = booking.Status || 'pending';
+  
   return (
     <Select
       onValueChange={(value) => onStatusChange(booking, value)}
-      defaultValue={booking.Status || 'pending'}
+      defaultValue={defaultValue}
     >
       <SelectTrigger className="h-7 text-xs">
         <SelectValue placeholder="Change Status" />
