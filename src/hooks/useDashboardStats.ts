@@ -10,6 +10,7 @@ export interface DashboardStats {
   pendingBookings: number;
   completedBookings: number;
   inProgressBookings: number;
+  totalRevenue: number;
   statusCounts: Record<string, number>;
   loading: boolean;
 }
@@ -19,6 +20,7 @@ export const useDashboardStats = (): DashboardStats => {
   const [pendingBookings, setPendingBookings] = useState<number>(0);
   const [completedBookings, setCompletedBookings] = useState<number>(0);
   const [inProgressBookings, setInProgressBookings] = useState<number>(0);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
   const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const { statusOptions } = useStatusOptions();
@@ -63,6 +65,20 @@ export const useDashboardStats = (): DashboardStats => {
         
         if (inProgressError) throw inProgressError;
         setInProgressBookings(inProgressCount || 0);
+
+        // Get total revenue from completed bookings
+        const { data: revenueData, error: revenueError } = await supabase
+          .from('BookMST')
+          .select('price')
+          .eq('Status', 'done');
+        
+        if (revenueError) throw revenueError;
+        
+        const revenue = revenueData
+          ? revenueData.reduce((sum, booking) => sum + (booking.price || 0), 0)
+          : 0;
+        
+        setTotalRevenue(revenue);
 
         // Get count for each status using RPC function
         const { data: statusData, error: statusError } = await (supabase.rpc as any)(
@@ -125,6 +141,7 @@ export const useDashboardStats = (): DashboardStats => {
     pendingBookings,
     completedBookings,
     inProgressBookings,
+    totalRevenue,
     statusCounts,
     loading
   };

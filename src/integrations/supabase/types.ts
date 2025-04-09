@@ -352,7 +352,41 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_to_wishlist: {
+        Args: { service_id_param: number; user_id_param: string }
+        Returns: undefined
+      }
+      get_booking_counts_by_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          status: string
+          count: number
+        }[]
+      }
+      get_revenue_by_service: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          service_name: string
+          total_revenue: number
+        }[]
+      }
+      get_user_wishlist: {
+        Args: { user_uuid: string }
+        Returns: {
+          id: number
+          user_id: string
+          service_id: number
+          created_at: string
+          service_name: string
+          service_price: number
+          service_category: string
+          service_description: string
+        }[]
+      }
+      remove_from_wishlist: {
+        Args: { wishlist_id_param: number; user_id_param: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

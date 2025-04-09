@@ -1,13 +1,15 @@
 
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Calendar, CalendarCheck, Users, Clock, Activity } from "lucide-react";
+import { Calendar, CalendarCheck, Clock, Activity, Banknote } from "lucide-react";
+import { Rupee } from "@/components/icons/Rupee";
 
 interface StatCardsProps {
   totalBookings: number;
   pendingBookings: number;
   completedBookings: number;
   inProgressBookings: number;
+  totalRevenue: number;
   loading?: boolean;
 }
 
@@ -16,10 +18,11 @@ export const StatCards: React.FC<StatCardsProps> = ({
   pendingBookings,
   completedBookings,
   inProgressBookings,
+  totalRevenue,
   loading = false
 }) => {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
@@ -58,6 +61,19 @@ export const StatCards: React.FC<StatCardsProps> = ({
         <CardContent>
           <div className="text-2xl font-bold">{loading ? "..." : completedBookings}</div>
           <p className="text-xs text-muted-foreground">Successfully completed bookings</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+          <Banknote className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold flex items-center">
+            <Rupee className="h-5 w-5 mr-0.5" />
+            {loading ? "..." : totalRevenue.toLocaleString()}
+          </div>
+          <p className="text-xs text-muted-foreground">From completed services</p>
         </CardContent>
       </Card>
     </div>

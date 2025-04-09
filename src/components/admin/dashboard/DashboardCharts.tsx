@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import MonthlyBookingsChart from "@/components/admin/dashboard/MonthlyBookingsChart";
 import MonthlyBookingTrendsChart from "@/components/admin/dashboard/MonthlyBookingTrendsChart";
 import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPieChart";
-import BookingStatsPieChart from "@/components/admin/dashboard/BookingStatsPieChart";
+import RevenueByServiceChart from "@/components/admin/dashboard/RevenueByServiceChart";
 import { Booking } from "@/hooks/useBookings";
 
 interface DashboardChartsProps {
@@ -47,21 +47,21 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
       </Card>
       <Card className="col-span-1">
         <CardContent className="p-6">
-          <MonthlyBookingsChart 
-            startDate={startDate} 
-            endDate={endDate}
+          <RevenueByServiceChart 
             bookings={bookings}
             loading={loading}
+            startDate={startDate}
+            endDate={endDate}
           />
         </CardContent>
       </Card>
       <Card className="col-span-1">
         <CardContent className="p-6">
-          <BookingStatsPieChart 
+          <MonthlyBookingsChart 
+            startDate={startDate} 
+            endDate={endDate}
             bookings={bookings}
             loading={loading}
-            startDate={startDate}
-            endDate={endDate}
           />
         </CardContent>
       </Card>
