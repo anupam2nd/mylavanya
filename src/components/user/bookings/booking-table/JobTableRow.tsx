@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { BookingStatusSelect } from "./BookingStatusSelect";
 import { ArtistAssignmentSelect } from "./ArtistAssignmentSelect";
 import { JobScheduleCell } from "./JobScheduleCell";
+import { useAuth } from "@/context/AuthContext";
 
 interface JobTableRowProps {
   booking: Booking;
@@ -34,6 +35,9 @@ export const JobTableRow = ({
   artists,
   showDeleteButton
 }: JobTableRowProps) => {
+  const { user } = useAuth();
+  const isMember = user?.role === 'member';
+  
   return (
     <TableRow>
       <TableCell>
@@ -55,12 +59,12 @@ export const JobTableRow = ({
       <JobScheduleCell 
         booking={booking} 
         onScheduleChange={onScheduleChange}
-        isEditingDisabled={isEditingDisabled}
+        isEditingDisabled={isEditingDisabled || isMember}
       />
       <TableCell>
         <div>
           <StatusBadge status={booking.Status || 'pending'} />
-          {!isEditingDisabled && (
+          {!isEditingDisabled && !isMember && (
             <div className="mt-2">
               <BookingStatusSelect
                 booking={booking}
@@ -73,7 +77,7 @@ export const JobTableRow = ({
       </TableCell>
       <TableCell>
         <div>{booking.Assignedto || 'Not assigned'}</div>
-        {!isEditingDisabled && (
+        {!isEditingDisabled && !isMember && (
           <div className="mt-2">
             <ArtistAssignmentSelect
               booking={booking}
@@ -83,30 +87,32 @@ export const JobTableRow = ({
           </div>
         )}
       </TableCell>
-      <TableCell>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => onEditClick(booking)}
-            className="h-8"
-            disabled={isEditingDisabled}
-          >
-            <Edit className="h-4 w-4 mr-1" /> Edit
-          </Button>
-          
-          {!isEditingDisabled && onDeleteJob && showDeleteButton && (
+      {!isMember && (
+        <TableCell>
+          <div className="flex gap-2">
             <Button 
-              variant="destructive" 
+              variant="outline" 
               size="sm" 
-              onClick={() => onDeleteJob(booking)}
+              onClick={() => onEditClick(booking)}
               className="h-8"
+              disabled={isEditingDisabled}
             >
-              <Trash2 className="h-4 w-4 mr-1" /> Delete
+              <Edit className="h-4 w-4 mr-1" /> Edit
             </Button>
-          )}
-        </div>
-      </TableCell>
+            
+            {!isEditingDisabled && onDeleteJob && showDeleteButton && (
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={() => onDeleteJob(booking)}
+                className="h-8"
+              >
+                <Trash2 className="h-4 w-4 mr-1" /> Delete
+              </Button>
+            )}
+          </div>
+        </TableCell>
+      )}
     </TableRow>
   );
 };

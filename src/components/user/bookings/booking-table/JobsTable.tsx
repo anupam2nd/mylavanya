@@ -3,6 +3,7 @@ import React from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Booking } from "@/hooks/useBookings";
 import { JobTableRow } from "./JobTableRow";
+import { useAuth } from "@/context/AuthContext";
 
 interface JobsTableProps {
   bookingsGroup: Booking[];
@@ -27,6 +28,9 @@ export const JobsTable = ({
   statusOptions,
   artists
 }: JobsTableProps) => {
+  const { user } = useAuth();
+  const isMember = user?.role === 'member';
+  
   return (
     <Table>
       <TableHeader>
@@ -36,7 +40,7 @@ export const JobsTable = ({
           <TableHead>Date & Time</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Assigned To</TableHead>
-          <TableHead>Actions</TableHead>
+          {!isMember && <TableHead>Actions</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>

@@ -6,7 +6,8 @@ import { Plus } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { Separator } from "@/components/ui/separator";
 import { JobsTable } from "./JobsTable";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { useAuth } from "@/context/AuthContext";
 
 interface BookingDetailRowProps {
   bookingsGroup: Booking[];
@@ -35,6 +36,8 @@ export const BookingDetailRow = ({
 }: BookingDetailRowProps) => {
   const mainBooking = bookingsGroup[0];
   const [isExpanded, setIsExpanded] = useState(true);
+  const { user } = useAuth();
+  const isMember = user?.role === 'member';
   
   return (
     <TableRow>
@@ -44,8 +47,8 @@ export const BookingDetailRow = ({
             <Collapsible open={isExpanded} onOpenChange={setIsExpanded} className="w-full">
               <div className="flex justify-between items-center">
                 <div className="flex-1"></div> {/* Empty div where the header used to be */}
-                <div className="flex items-center gap-2">
-                  {onAddNewJob && !isEditingDisabled && (
+                {!isMember && onAddNewJob && !isEditingDisabled && (
+                  <div className="flex items-center gap-2">
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -53,9 +56,8 @@ export const BookingDetailRow = ({
                     >
                       <Plus className="h-3 w-3 mr-1" /> Add New Job
                     </Button>
-                  )}
-                  {/* Removed the chevron trigger button */}
-                </div>
+                  </div>
+                )}
               </div>
               
               <CollapsibleContent>

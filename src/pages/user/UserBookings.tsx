@@ -16,6 +16,7 @@ import { useJobOperations } from "@/hooks/useJobOperations";
 import { useArtistAssignment } from "@/hooks/useArtistAssignment";
 import { BookingListHeader } from "@/components/user/bookings/BookingListHeader";
 import { BookingListContent } from "@/components/user/bookings/BookingListContent";
+import { BookingNotifications } from "@/components/user/bookings/BookingNotifications";
 
 const UserBookings = () => {
   const { user } = useAuth();
@@ -69,6 +70,7 @@ const UserBookings = () => {
 
   // Determine if the current user is allowed to edit bookings (admin, superadmin, or user from UserMST)
   const canEdit = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'user';
+  const isMember = user?.role === 'member';
 
   return (
     <ProtectedRoute>
@@ -91,6 +93,8 @@ const UserBookings = () => {
             />
           </CardHeader>
           <CardContent>
+            {isMember && <BookingNotifications />}
+            
             <BookingListContent 
               loading={loading}
               bookings={bookings}

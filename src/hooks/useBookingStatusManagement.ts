@@ -3,9 +3,11 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Booking } from "@/hooks/useBookings";
+import { useAuth } from "@/context/AuthContext";
 
 export const useBookingStatusManagement = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [statusOptions, setStatusOptions] = useState<{status_code: string; status_name: string}[]>([]);
 
   // Fetch status options from the database
@@ -27,6 +29,35 @@ export const useBookingStatusManagement = () => {
     }
   };
 
+  // Create notification for booking changes
+  const createNotification = async (booking: Booking, changeType: string) => {
+    if (!booking.email) return;
+    
+    try {
+      const adminName = user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'An administrator';
+      
+      const notificationMessage = {
+        recipient_email: booking.email,
+        booking_id: booking.id,
+        booking_no: booking.Booking_NO,
+        message: `${adminName} has updated the ${changeType} of your booking ${booking.Booking_NO}.`,
+        created_at: new Date().toISOString(),
+        is_read: false,
+        change_type: changeType
+      };
+      
+      const { error } = await supabase
+        .from('notifications')
+        .insert([notificationMessage]);
+        
+      if (error) {
+        console.error("Error creating notification:", error);
+      }
+    } catch (error) {
+      console.error("Error in createNotification:", error);
+    }
+  };
+
   // Handle status change for a booking
   const handleStatusChange = async (booking: Booking, newStatus: string) => {
     try {
@@ -42,6 +73,11 @@ export const useBookingStatusManagement = () => {
           description: error.message,
         });
         return;
+      }
+
+      // Create notification for status change
+      if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'user') {
+        await createNotification(booking, 'status');
       }
 
       toast({
@@ -107,6 +143,11 @@ export const useBookingStatusManagement = () => {
           description: error.message,
         });
         return;
+      }
+
+      // Create notification for artist assignment
+      if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'user') {
+        await createNotification(booking, 'artist assignment');
       }
 
       toast({
