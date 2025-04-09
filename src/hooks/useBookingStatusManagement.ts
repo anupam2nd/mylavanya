@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Booking } from "@/hooks/useBookings";
-import { Artist } from "./useBookingArtists";
 
 export const useBookingStatusManagement = () => {
   const { toast } = useToast();

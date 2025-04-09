@@ -116,7 +116,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
         <PopoverTrigger asChild>
           <Button variant="outline" className="h-9 px-4">
             <CalendarIcon className="mr-2 h-4 w-4" /> 
-            {showDateFilter ? `${filterDateType === "booking" ? "Booking" : "Creation"} date` : "Date range"}
+            {showDateFilter ? `${filterDateType === "booking_date" ? "Booking" : "Creation"} date` : "Date range"}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="end">
@@ -129,8 +129,8 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
                 <SelectValue placeholder="Date type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="booking">Booking date</SelectItem>
-                <SelectItem value="creation">Creation date</SelectItem>
+                <SelectItem value="booking_date">Booking date</SelectItem>
+                <SelectItem value="creation_date">Creation date</SelectItem>
               </SelectContent>
             </Select>
           </div>

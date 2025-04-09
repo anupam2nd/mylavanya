@@ -8,7 +8,7 @@ export interface StatusBadgeProps {
   className?: string;
   description?: string;
   showTooltip?: boolean;
-  children?: React.ReactNode; // Added children property to fix type error
+  children?: React.ReactNode;
 }
 
 export const StatusBadge = ({ status, className, description, showTooltip = false, children }: StatusBadgeProps) => {

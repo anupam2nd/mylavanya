@@ -19,11 +19,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-
-// Define proper types for the filters
-export type FilterDateType = "booking_date" | "creation_date";
-export type SortDirection = "asc" | "desc";
-export type SortField = "creation_date" | "booking_date"; 
+import { FilterDateType, SortDirection, SortField } from "@/hooks/useBookingFilters";
 
 interface BookingListHeaderProps {
   filteredBookings: any[];
@@ -118,7 +114,10 @@ export const BookingListHeader = ({
         <div className="flex flex-wrap gap-2 mt-2 w-full">
           <div className="flex items-center gap-2">
             <p className="text-sm text-muted-foreground whitespace-nowrap">Filter by:</p>
-            <Select value={filterDateType} onValueChange={(value: string) => setFilterDateType(value as FilterDateType)}>
+            <Select 
+              value={filterDateType} 
+              onValueChange={(value) => setFilterDateType(value as FilterDateType)}
+            >
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Date field" />
               </SelectTrigger>
@@ -175,7 +174,10 @@ export const BookingListHeader = ({
           
           <div className="flex items-center gap-2">
             <p className="text-sm text-muted-foreground whitespace-nowrap">Sort by:</p>
-            <Select value={sortField} onValueChange={(value: string) => setSortField(value as SortField)}>
+            <Select 
+              value={sortField} 
+              onValueChange={(value) => setSortField(value as SortField)}
+            >
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Sort field" />
               </SelectTrigger>
@@ -186,7 +188,10 @@ export const BookingListHeader = ({
             </Select>
           </div>
           
-          <Select value={sortDirection} onValueChange={(value: string) => setSortDirection(value as SortDirection)}>
+          <Select 
+            value={sortDirection} 
+            onValueChange={(value) => setSortDirection(value as SortDirection)}
+          >
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Sort direction" />
             </SelectTrigger>
