@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,10 +90,14 @@ const UserBookings = () => {
 
   useEffect(() => {
     const fetchBookings = async () => {
+      if (!user) return;
+
+      setLoading(true);
       try {
-        setLoading(true);
-        
-        let query = supabase.from('BookMST').select('*');
+        let query = supabase
+          .from('BookMST')
+          .select('*')
+          .order('Booking_date', { ascending: false });
         
         // Filter bookings based on user role
         if (user?.role === 'artist') {
@@ -114,12 +119,9 @@ const UserBookings = () => {
         
         const { data, error } = await query;
 
-        if (error) {
-          console.error('Error fetching bookings:', error);
-          throw error;
-        }
-        
+        if (error) throw error;
         console.log("Bookings fetched:", data?.length || 0);
+
         setBookings(data || []);
       } catch (error) {
         console.error('Error fetching bookings:', error);
