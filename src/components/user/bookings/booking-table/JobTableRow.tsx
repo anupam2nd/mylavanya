@@ -55,6 +55,7 @@ export const JobTableRow = ({
     }
   };
 
+  // Fix: Update the function to pass artistId correctly
   const handleArtistAssignmentWrapper = async (artistId: number) => {
     if (isAssigningArtist) return;
     
@@ -141,7 +142,7 @@ export const JobTableRow = ({
           <ArtistAssignmentSelect 
             booking={booking}
             artists={artists}
-            onArtistAssignment={(artistId) => handleArtistAssignmentWrapper(artistId)}
+            onArtistAssignment={handleArtistAssignmentWrapper}
             isDisabled={isEditingDisabled || isAssigningArtist}
           />
         )}
