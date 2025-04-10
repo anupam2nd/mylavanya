@@ -31,11 +31,11 @@ export const useWishlist = () => {
     try {
       setLoading(true);
       
-      // Get user ID from auth context
-      const userId = user.id;
+      // Get user ID from auth context - ensure it's a string
+      const userId = user.id.toString();
       console.log("Fetching wishlist for user:", userId);
       
-      // Direct query for all user types
+      // Direct query using TEXT user_id
       const response = await supabase
         .from('wishlist')
         .select(`
@@ -101,10 +101,11 @@ export const useWishlist = () => {
         return true;
       }
 
-      const userId = user.id;
+      // Convert user ID to string to ensure compatibility with TEXT column type
+      const userId = user.id.toString();
       console.log("Adding to wishlist for user:", userId, "service:", serviceId);
       
-      // Direct insert for all user types
+      // Insert with TEXT user_id
       const response = await supabase
         .from('wishlist')
         .insert([
@@ -134,10 +135,11 @@ export const useWishlist = () => {
     }
 
     try {
-      const userId = user.id;
+      // Convert user ID to string for compatibility with TEXT column type
+      const userId = user.id.toString();
       console.log("Removing from wishlist for user:", userId, "item:", wishlistItemId);
       
-      // Direct delete for all user types
+      // Delete with TEXT user_id
       const response = await supabase
         .from('wishlist')
         .delete()

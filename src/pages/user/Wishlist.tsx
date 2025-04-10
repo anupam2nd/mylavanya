@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,19 @@ import { Heart, Trash2, CalendarPlus, Loader } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useNavigate } from "react-router-dom";
-import { Separator } from "@/components/ui/separator";
 
 const Wishlist = () => {
-  const { user } = useAuth();
-  const { wishlistItems, loading, removeFromWishlist } = useWishlist();
+  const { user, isAuthenticated } = useAuth();
+  const { wishlistItems, loading, removeFromWishlist, fetchWishlist } = useWishlist();
   const navigate = useNavigate();
+
+  // Ensure wishlist is refreshed when the component mounts
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log("Refreshing wishlist for user:", user.id);
+      fetchWishlist();
+    }
+  }, [isAuthenticated, user, fetchWishlist]);
 
   if (loading) {
     return (
