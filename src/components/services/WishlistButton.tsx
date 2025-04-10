@@ -17,7 +17,7 @@ interface WishlistButtonProps {
 
 const WishlistButton = ({ serviceId, variant = "icon", className }: WishlistButtonProps) => {
   const { isAuthenticated, user } = useAuth();
-  const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
+  const { addToWishlist, isInWishlist, removeFromWishlist, wishlistItems } = useWishlist();
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -39,17 +39,19 @@ const WishlistButton = ({ serviceId, variant = "icon", className }: WishlistButt
     try {
       if (inWishlist) {
         // Find the wishlist item ID
-        const wishlistItem = user ? (useWishlist().wishlistItems.find(item => 
-          item.service_id === serviceId && item.user_id === user.id
-        )) : null;
+        const wishlistItem = wishlistItems.find(item => 
+          item.service_id === serviceId && item.user_id === user?.id
+        );
         
         if (wishlistItem) {
           await removeFromWishlist(wishlistItem.id);
+          toast.success("Removed from wishlist");
         } else {
           toast.error("Could not find wishlist item to remove");
         }
       } else {
         await addToWishlist(serviceId);
+        toast.success("Added to wishlist");
       }
     } catch (error) {
       console.error("Error managing wishlist:", error);

@@ -40,15 +40,22 @@ export const useWishlist = () => {
       
       if (isUuid) {
         // User has UUID format ID (from auth.users)
-        const response = await (supabase.rpc as any)(
-          'get_user_wishlist',
-          { user_uuid: userId }
-        ) as { data: WishlistItem[] | null; error: any };
-        
-        data = response.data;
-        error = response.error;
+        console.log("Fetching wishlist for UUID user:", userId);
+        try {
+          const response = await supabase.rpc(
+            'get_user_wishlist',
+            { user_uuid: userId }
+          );
+          
+          data = response.data;
+          error = response.error;
+        } catch (rpcError) {
+          console.error("RPC error:", rpcError);
+          error = rpcError;
+        }
       } else {
         // Regular user with string/numeric ID
+        console.log("Fetching wishlist for regular user:", userId);
         // Use direct query for non-UUID users
         const response = await supabase
           .from('wishlist')
@@ -90,8 +97,10 @@ export const useWishlist = () => {
 
       // Set wishlist items if data exists
       if (data) {
+        console.log("Wishlist data received:", data);
         setWishlistItems(data);
       } else {
+        console.log("No wishlist data received");
         setWishlistItems([]);
       }
     } catch (error) {
@@ -125,17 +134,24 @@ export const useWishlist = () => {
       
       if (isUuid) {
         // Add to wishlist using RPC function for UUID users
-        const response = await (supabase.rpc as any)(
-          'add_to_wishlist',
-          {
-            service_id_param: serviceId,
-            user_id_param: userId
-          }
-        ) as { data: null; error: any };
-        
-        error = response.error;
+        console.log("Adding to wishlist for UUID user:", userId, "service:", serviceId);
+        try {
+          const response = await supabase.rpc(
+            'add_to_wishlist',
+            {
+              service_id_param: serviceId,
+              user_id_param: userId
+            }
+          );
+          
+          error = response.error;
+        } catch (rpcError) {
+          console.error("RPC error:", rpcError);
+          error = rpcError;
+        }
       } else {
         // Direct insert for non-UUID users
+        console.log("Adding to wishlist for regular user:", userId, "service:", serviceId);
         const response = await supabase
           .from('wishlist')
           .insert([
@@ -147,7 +163,6 @@ export const useWishlist = () => {
 
       if (error) throw error;
 
-      toast.success("Added to wishlist");
       fetchWishlist(); // Refresh the wishlist
       return true;
     } catch (error) {
@@ -171,17 +186,24 @@ export const useWishlist = () => {
       
       if (isUuid) {
         // Remove from wishlist using RPC function for UUID users
-        const response = await (supabase.rpc as any)(
-          'remove_from_wishlist',
-          {
-            wishlist_id_param: wishlistItemId,
-            user_id_param: userId
-          }
-        ) as { data: null; error: any };
-        
-        error = response.error;
+        console.log("Removing from wishlist for UUID user:", userId, "item:", wishlistItemId);
+        try {
+          const response = await supabase.rpc(
+            'remove_from_wishlist',
+            {
+              wishlist_id_param: wishlistItemId,
+              user_id_param: userId
+            }
+          );
+          
+          error = response.error;
+        } catch (rpcError) {
+          console.error("RPC error:", rpcError);
+          error = rpcError;
+        }
       } else {
         // Direct delete for non-UUID users
+        console.log("Removing from wishlist for regular user:", userId, "item:", wishlistItemId);
         const response = await supabase
           .from('wishlist')
           .delete()
@@ -193,7 +215,6 @@ export const useWishlist = () => {
 
       if (error) throw error;
 
-      toast.success("Removed from wishlist");
       // Update local state
       setWishlistItems(prev => prev.filter(item => item.id !== wishlistItemId));
       return true;
@@ -211,7 +232,12 @@ export const useWishlist = () => {
 
   // Load wishlist on auth state change
   useEffect(() => {
-    fetchWishlist();
+    if (isAuthenticated && user) {
+      fetchWishlist();
+    } else {
+      setWishlistItems([]);
+      setLoading(false);
+    }
   }, [user, isAuthenticated]);
 
   return {
