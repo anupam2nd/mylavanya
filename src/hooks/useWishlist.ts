@@ -31,11 +31,11 @@ export const useWishlist = () => {
     try {
       setLoading(true);
       
-      // Get user ID as a string
-      const userId = user.id.toString();
+      // Get user ID
+      const userId = user.id;
       console.log("Fetching wishlist for user:", userId);
       
-      // Using TEXT format for user_id
+      // Query with UUID user_id
       const response = await supabase
         .from('wishlist')
         .select(`
@@ -101,11 +101,11 @@ export const useWishlist = () => {
         return true;
       }
 
-      // User ID as string for TEXT column type
-      const userId = user.id.toString();
+      // Use the user ID as is, without converting to string
+      const userId = user.id;
       console.log("Adding to wishlist for user:", userId, "service:", serviceId);
       
-      // Insert with TEXT user_id
+      // Insert with UUID user_id
       const response = await supabase
         .from('wishlist')
         .insert([
@@ -117,7 +117,7 @@ export const useWishlist = () => {
         throw response.error;
       }
 
-      await fetchWishlist(); // Make sure to refresh the wishlist before showing success message
+      await fetchWishlist(); // Refresh wishlist
       toast.success("Added to wishlist");
       return true;
     } catch (error) {
@@ -135,11 +135,10 @@ export const useWishlist = () => {
     }
 
     try {
-      // User ID as string for TEXT column type
-      const userId = user.id.toString();
+      const userId = user.id; // Use UUID directly
       console.log("Removing from wishlist for user:", userId, "item:", wishlistItemId);
       
-      // Delete with TEXT user_id
+      // Delete with UUID user_id
       const response = await supabase
         .from('wishlist')
         .delete()

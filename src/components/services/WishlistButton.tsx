@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,7 @@ interface WishlistButtonProps {
 
 const WishlistButton = ({ serviceId, variant = "icon", className }: WishlistButtonProps) => {
   const { isAuthenticated, user } = useAuth();
-  const { addToWishlist, isInWishlist, removeFromWishlist, wishlistItems, fetchWishlist } = useWishlist();
+  const { addToWishlist, isInWishlist, removeFromWishlist, wishlistItems } = useWishlist();
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const navigate = useNavigate();
