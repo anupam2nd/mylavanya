@@ -8,7 +8,7 @@ interface BookingBannerProps {
 
 const BookingBanner = ({ onBookNow }: BookingBannerProps) => {
   return (
-    <div className="relative overflow-hidden py-20">
+    <div className="relative overflow-hidden py-20 bg-gradient-to-br from-gray-500 to-gray-900">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-primary to-rose-400 -z-10"></div>
       
