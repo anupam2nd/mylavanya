@@ -117,8 +117,7 @@ export const useWishlist = () => {
         throw response.error;
       }
 
-      // Refresh the wishlist
-      fetchWishlist();
+      await fetchWishlist(); // Use await to ensure the wishlist is updated before showing success
       toast.success("Added to wishlist");
       return true;
     } catch (error) {
