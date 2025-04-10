@@ -31,11 +31,57 @@ export const useWishlist = () => {
     try {
       setLoading(true);
       
-      // Use a typed function call to override TypeScript's type checking
-      const { data, error } = await (supabase.rpc as any)(
-        'get_user_wishlist',
-        { user_uuid: user.id }
-      ) as { data: WishlistItem[] | null; error: any };
+      // Handle different user types (auth.users UUID or regular user with string ID)
+      const userId = user.id;
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+      
+      let data = null;
+      let error = null;
+      
+      if (isUuid) {
+        // User has UUID format ID (from auth.users)
+        const response = await (supabase.rpc as any)(
+          'get_user_wishlist',
+          { user_uuid: userId }
+        ) as { data: WishlistItem[] | null; error: any };
+        
+        data = response.data;
+        error = response.error;
+      } else {
+        // Regular user with string/numeric ID
+        // Use direct query for non-UUID users
+        const response = await supabase
+          .from('wishlist')
+          .select(`
+            id,
+            user_id,
+            service_id,
+            created_at,
+            PriceMST!inner (
+              ProductName,
+              Price,
+              Category,
+              Description
+            )
+          `)
+          .eq('user_id', userId);
+          
+        if (response.error) {
+          error = response.error;
+        } else if (response.data) {
+          // Transform data to match expected format
+          data = response.data.map(item => ({
+            id: item.id,
+            user_id: item.user_id,
+            service_id: item.service_id,
+            created_at: item.created_at,
+            service_name: item.PriceMST?.ProductName || '',
+            service_price: item.PriceMST?.Price,
+            service_category: item.PriceMST?.Category,
+            service_description: item.PriceMST?.Description
+          }));
+        }
+      }
 
       if (error) {
         console.error("Error fetching wishlist:", error);
@@ -73,14 +119,31 @@ export const useWishlist = () => {
         return true;
       }
 
-      // Add to wishlist using RPC function
-      const { error } = await (supabase.rpc as any)(
-        'add_to_wishlist',
-        {
-          service_id_param: serviceId,
-          user_id_param: user.id
-        }
-      ) as { data: null; error: any };
+      const userId = user.id;
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+      let error = null;
+      
+      if (isUuid) {
+        // Add to wishlist using RPC function for UUID users
+        const response = await (supabase.rpc as any)(
+          'add_to_wishlist',
+          {
+            service_id_param: serviceId,
+            user_id_param: userId
+          }
+        ) as { data: null; error: any };
+        
+        error = response.error;
+      } else {
+        // Direct insert for non-UUID users
+        const response = await supabase
+          .from('wishlist')
+          .insert([
+            { service_id: serviceId, user_id: userId }
+          ]);
+          
+        error = response.error;
+      }
 
       if (error) throw error;
 
@@ -102,14 +165,31 @@ export const useWishlist = () => {
     }
 
     try {
-      // Remove from wishlist using RPC function
-      const { error } = await (supabase.rpc as any)(
-        'remove_from_wishlist',
-        {
-          wishlist_id_param: wishlistItemId,
-          user_id_param: user.id
-        }
-      ) as { data: null; error: any };
+      const userId = user.id;
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+      let error = null;
+      
+      if (isUuid) {
+        // Remove from wishlist using RPC function for UUID users
+        const response = await (supabase.rpc as any)(
+          'remove_from_wishlist',
+          {
+            wishlist_id_param: wishlistItemId,
+            user_id_param: userId
+          }
+        ) as { data: null; error: any };
+        
+        error = response.error;
+      } else {
+        // Direct delete for non-UUID users
+        const response = await supabase
+          .from('wishlist')
+          .delete()
+          .eq('id', wishlistItemId)
+          .eq('user_id', userId);
+          
+        error = response.error;
+      }
 
       if (error) throw error;
 
