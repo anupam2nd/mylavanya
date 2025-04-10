@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
@@ -21,7 +21,7 @@ export const useWishlist = () => {
   const { user, isAuthenticated } = useAuth();
 
   // Fetch wishlist items
-  const fetchWishlist = async () => {
+  const fetchWishlist = useCallback(async () => {
     if (!isAuthenticated || !user) {
       setWishlistItems([]);
       setLoading(false);
@@ -83,7 +83,7 @@ export const useWishlist = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, user]);
 
   // Add item to wishlist
   const addToWishlist = async (serviceId: number) => {
@@ -119,6 +119,7 @@ export const useWishlist = () => {
 
       // Refresh the wishlist
       fetchWishlist();
+      toast.success("Added to wishlist");
       return true;
     } catch (error) {
       console.error("Error adding to wishlist:", error);
@@ -153,6 +154,7 @@ export const useWishlist = () => {
 
       // Update local state
       setWishlistItems(prev => prev.filter(item => item.id !== wishlistItemId));
+      toast.success("Removed from wishlist");
       return true;
     } catch (error) {
       console.error("Error removing from wishlist:", error);
@@ -174,7 +176,7 @@ export const useWishlist = () => {
       setWishlistItems([]);
       setLoading(false);
     }
-  }, [user, isAuthenticated]);
+  }, [user, isAuthenticated, fetchWishlist]);
 
   return {
     wishlistItems,
