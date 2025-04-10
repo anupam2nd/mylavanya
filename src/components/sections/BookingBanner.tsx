@@ -17,7 +17,7 @@ const BookingBanner = ({ onBookNow }: BookingBannerProps) => {
       <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-white opacity-10 blur-3xl"></div>
       <div className="absolute bottom-10 right-10 w-60 h-60 rounded-full bg-white opacity-10 blur-3xl"></div>
       
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/20 text-white text-sm mb-6 backdrop-blur-sm border border-white/30">
             <Sparkles size={16} className="mr-2" />
