@@ -17,7 +17,7 @@ interface WishlistButtonProps {
 
 const WishlistButton = ({ serviceId, variant = "icon", className }: WishlistButtonProps) => {
   const { isAuthenticated, user } = useAuth();
-  const { addToWishlist, isInWishlist, removeFromWishlist, wishlistItems } = useWishlist();
+  const { addToWishlist, isInWishlist, removeFromWishlist, wishlistItems, fetchWishlist } = useWishlist();
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -45,14 +45,14 @@ const WishlistButton = ({ serviceId, variant = "icon", className }: WishlistButt
         
         if (wishlistItem) {
           await removeFromWishlist(wishlistItem.id);
-          toast.success("Removed from wishlist");
         } else {
           toast.error("Could not find wishlist item to remove");
         }
       } else {
         await addToWishlist(serviceId);
-        toast.success("Added to wishlist");
       }
+      
+      // No need for additional toast messages as they're handled in the hook methods
     } catch (error) {
       console.error("Error managing wishlist:", error);
       toast.error("Failed to update wishlist");

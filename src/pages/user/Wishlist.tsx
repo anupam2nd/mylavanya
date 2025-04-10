@@ -14,7 +14,7 @@ const Wishlist = () => {
   const { wishlistItems, loading, removeFromWishlist, fetchWishlist } = useWishlist();
   const navigate = useNavigate();
 
-  // Ensure wishlist is refreshed when the component mounts
+  // Force refresh the wishlist when the component mounts
   useEffect(() => {
     if (isAuthenticated && user) {
       console.log("Refreshing wishlist for user:", user.id);

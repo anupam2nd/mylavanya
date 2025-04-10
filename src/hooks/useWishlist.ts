@@ -31,11 +31,11 @@ export const useWishlist = () => {
     try {
       setLoading(true);
       
-      // Get user ID from auth context - ensure it's a string
+      // Get user ID as a string
       const userId = user.id.toString();
       console.log("Fetching wishlist for user:", userId);
       
-      // Direct query using TEXT user_id
+      // Using TEXT format for user_id
       const response = await supabase
         .from('wishlist')
         .select(`
@@ -101,7 +101,7 @@ export const useWishlist = () => {
         return true;
       }
 
-      // Convert user ID to string to ensure compatibility with TEXT column type
+      // User ID as string for TEXT column type
       const userId = user.id.toString();
       console.log("Adding to wishlist for user:", userId, "service:", serviceId);
       
@@ -117,7 +117,7 @@ export const useWishlist = () => {
         throw response.error;
       }
 
-      await fetchWishlist(); // Use await to ensure the wishlist is updated before showing success
+      await fetchWishlist(); // Make sure to refresh the wishlist before showing success message
       toast.success("Added to wishlist");
       return true;
     } catch (error) {
@@ -135,7 +135,7 @@ export const useWishlist = () => {
     }
 
     try {
-      // Convert user ID to string for compatibility with TEXT column type
+      // User ID as string for TEXT column type
       const userId = user.id.toString();
       console.log("Removing from wishlist for user:", userId, "item:", wishlistItemId);
       
