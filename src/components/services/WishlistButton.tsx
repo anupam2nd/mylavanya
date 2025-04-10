@@ -40,7 +40,7 @@ const WishlistButton = ({ serviceId, variant = "icon", className }: WishlistButt
       if (inWishlist) {
         // Find the wishlist item ID
         const wishlistItem = wishlistItems.find(item => 
-          item.service_id === serviceId && item.user_id === user?.id
+          item.service_id === serviceId
         );
         
         if (wishlistItem) {

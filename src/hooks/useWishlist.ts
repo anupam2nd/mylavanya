@@ -31,74 +31,47 @@ export const useWishlist = () => {
     try {
       setLoading(true);
       
-      // Handle different user types (auth.users UUID or regular user with string ID)
+      // Get user ID from auth context
       const userId = user.id;
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+      console.log("Fetching wishlist for user:", userId);
       
-      let data = null;
-      let error = null;
-      
-      if (isUuid) {
-        // User has UUID format ID (from auth.users)
-        console.log("Fetching wishlist for UUID user:", userId);
-        try {
-          const response = await supabase.rpc(
-            'get_user_wishlist',
-            { user_uuid: userId }
-          );
-          
-          data = response.data;
-          error = response.error;
-        } catch (rpcError) {
-          console.error("RPC error:", rpcError);
-          error = rpcError;
-        }
-      } else {
-        // Regular user with string/numeric ID
-        console.log("Fetching wishlist for regular user:", userId);
-        // Use direct query for non-UUID users
-        const response = await supabase
-          .from('wishlist')
-          .select(`
-            id,
-            user_id,
-            service_id,
-            created_at,
-            PriceMST!inner (
-              ProductName,
-              Price,
-              Category,
-              Description
-            )
-          `)
-          .eq('user_id', userId);
-          
-        if (response.error) {
-          error = response.error;
-        } else if (response.data) {
-          // Transform data to match expected format
-          data = response.data.map(item => ({
-            id: item.id,
-            user_id: item.user_id,
-            service_id: item.service_id,
-            created_at: item.created_at,
-            service_name: item.PriceMST?.ProductName || '',
-            service_price: item.PriceMST?.Price,
-            service_category: item.PriceMST?.Category,
-            service_description: item.PriceMST?.Description
-          }));
-        }
+      // Direct query for all user types
+      const response = await supabase
+        .from('wishlist')
+        .select(`
+          id,
+          user_id,
+          service_id,
+          created_at,
+          PriceMST!inner (
+            ProductName,
+            Price,
+            Category,
+            Description
+          )
+        `)
+        .eq('user_id', userId);
+        
+      if (response.error) {
+        console.error("Error fetching wishlist:", response.error);
+        throw response.error;
       }
 
-      if (error) {
-        console.error("Error fetching wishlist:", error);
-        throw error;
-      }
-
-      // Set wishlist items if data exists
-      if (data) {
-        console.log("Wishlist data received:", data);
-        setWishlistItems(data);
+      if (response.data) {
+        // Transform data to match expected format
+        const transformedData = response.data.map(item => ({
+          id: item.id,
+          user_id: item.user_id,
+          service_id: item.service_id,
+          created_at: item.created_at,
+          service_name: item.PriceMST?.ProductName || '',
+          service_price: item.PriceMST?.Price,
+          service_category: item.PriceMST?.Category,
+          service_description: item.PriceMST?.Description
+        }));
+        
+        console.log("Wishlist data received:", transformedData);
+        setWishlistItems(transformedData);
       } else {
         console.log("No wishlist data received");
         setWishlistItems([]);
@@ -129,41 +102,22 @@ export const useWishlist = () => {
       }
 
       const userId = user.id;
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
-      let error = null;
+      console.log("Adding to wishlist for user:", userId, "service:", serviceId);
       
-      if (isUuid) {
-        // Add to wishlist using RPC function for UUID users
-        console.log("Adding to wishlist for UUID user:", userId, "service:", serviceId);
-        try {
-          const response = await supabase.rpc(
-            'add_to_wishlist',
-            {
-              service_id_param: serviceId,
-              user_id_param: userId
-            }
-          );
-          
-          error = response.error;
-        } catch (rpcError) {
-          console.error("RPC error:", rpcError);
-          error = rpcError;
-        }
-      } else {
-        // Direct insert for non-UUID users
-        console.log("Adding to wishlist for regular user:", userId, "service:", serviceId);
-        const response = await supabase
-          .from('wishlist')
-          .insert([
-            { service_id: serviceId, user_id: userId }
-          ]);
-          
-        error = response.error;
+      // Direct insert for all user types
+      const response = await supabase
+        .from('wishlist')
+        .insert([
+          { service_id: serviceId, user_id: userId }
+        ]);
+        
+      if (response.error) {
+        console.error("Error in addToWishlist:", response.error);
+        throw response.error;
       }
 
-      if (error) throw error;
-
-      fetchWishlist(); // Refresh the wishlist
+      // Refresh the wishlist
+      fetchWishlist();
       return true;
     } catch (error) {
       console.error("Error adding to wishlist:", error);
@@ -181,39 +135,19 @@ export const useWishlist = () => {
 
     try {
       const userId = user.id;
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
-      let error = null;
+      console.log("Removing from wishlist for user:", userId, "item:", wishlistItemId);
       
-      if (isUuid) {
-        // Remove from wishlist using RPC function for UUID users
-        console.log("Removing from wishlist for UUID user:", userId, "item:", wishlistItemId);
-        try {
-          const response = await supabase.rpc(
-            'remove_from_wishlist',
-            {
-              wishlist_id_param: wishlistItemId,
-              user_id_param: userId
-            }
-          );
-          
-          error = response.error;
-        } catch (rpcError) {
-          console.error("RPC error:", rpcError);
-          error = rpcError;
-        }
-      } else {
-        // Direct delete for non-UUID users
-        console.log("Removing from wishlist for regular user:", userId, "item:", wishlistItemId);
-        const response = await supabase
-          .from('wishlist')
-          .delete()
-          .eq('id', wishlistItemId)
-          .eq('user_id', userId);
-          
-        error = response.error;
+      // Direct delete for all user types
+      const response = await supabase
+        .from('wishlist')
+        .delete()
+        .eq('id', wishlistItemId)
+        .eq('user_id', userId);
+        
+      if (response.error) {
+        console.error("Error in removeFromWishlist:", response.error);
+        throw response.error;
       }
-
-      if (error) throw error;
 
       // Update local state
       setWishlistItems(prev => prev.filter(item => item.id !== wishlistItemId));
