@@ -1,12 +1,16 @@
 
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { Calendar, Sparkles } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 interface BookingBannerProps {
   onBookNow: () => void;
 }
 
 const BookingBanner = ({ onBookNow }: BookingBannerProps) => {
+  const { user } = useAuth();
+  const isMember = user?.role === 'member';
+  
   return (
     <div className="relative overflow-hidden py-20 bg-gradient-to-br from-gray-500 to-gray-900">
       {/* Background gradient */}
@@ -31,15 +35,23 @@ const BookingBanner = ({ onBookNow }: BookingBannerProps) => {
             Our team of professional makeup artists and hair stylists are ready to transform your look for any special occasion.
           </p>
           
-          <ButtonCustom
-            variant="glass"
-            size="lg"
-            onClick={onBookNow}
-            className="hover:bg-blue-100/70 bg-blue-100"
-          >
-            <Calendar className="mr-2" size={18} />
-            Schedule Appointment
-          </ButtonCustom>
+          {isMember && (
+            <ButtonCustom
+              variant="glass"
+              size="lg"
+              onClick={onBookNow}
+              className="hover:bg-blue-100/70 bg-blue-100"
+            >
+              <Calendar className="mr-2" size={18} />
+              Schedule Appointment
+            </ButtonCustom>
+          )}
+          
+          {!isMember && user && (
+            <p className="text-white text-sm mt-4">
+              Note: Only members can book services. Please login as a member to make a booking.
+            </p>
+          )}
         </div>
       </div>
     </div>

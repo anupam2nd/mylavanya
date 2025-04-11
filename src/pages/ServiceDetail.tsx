@@ -6,6 +6,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 import BookingForm from "@/components/booking/BookingForm";
 import { toast } from "@/hooks/use-toast";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { useAuth } from "@/context/AuthContext";
 
 const getServiceImage = (serviceId: number, serviceName: string | null) => {
   switch (serviceId) {
@@ -38,6 +39,8 @@ const ServiceDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const { user } = useAuth();
+  const isMember = user?.role === 'member';
 
   useEffect(() => {
     const fetchServiceDetails = async () => {
@@ -148,7 +151,6 @@ const ServiceDetail = () => {
               <div className="text-base text-gray-500">{service.ProductName}</div>
             )}
             
-            {/* Price display with discount if available */}
             {service.Discount || (service.NetPayable !== null && service.NetPayable !== undefined) ? (
               <div className="flex items-center space-x-2 mt-1">
                 <span className="line-through text-gray-500">₹{service.Price.toFixed(2)}</span>
@@ -199,16 +201,39 @@ const ServiceDetail = () => {
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
               <h2 className="text-lg font-semibold mb-3 text-center">Book This Service</h2>
               
-              {!showBookingForm ? <ButtonCustom variant="primary-gradient" className="w-full" size="lg" onClick={() => setShowBookingForm(true)}>
-                  Book Now
-                </ButtonCustom> : <BookingForm 
-                  serviceId={service.prod_id} 
-                  serviceName={formattedServiceName} 
-                  servicePrice={finalPrice}
-                  serviceOriginalPrice={service.Price}
-                  onCancel={() => setShowBookingForm(false)} 
-                  onSuccess={handleBookingSuccess} 
-                />}
+              {isMember ? (
+                !showBookingForm ? (
+                  <ButtonCustom 
+                    variant="primary-gradient" 
+                    className="w-full" 
+                    size="lg" 
+                    onClick={() => setShowBookingForm(true)}
+                  >
+                    Book Now
+                  </ButtonCustom>
+                ) : (
+                  <BookingForm 
+                    serviceId={service.prod_id} 
+                    serviceName={formattedServiceName} 
+                    servicePrice={finalPrice}
+                    serviceOriginalPrice={service.Price}
+                    onCancel={() => setShowBookingForm(false)} 
+                    onSuccess={handleBookingSuccess} 
+                  />
+                )
+              ) : (
+                <div className="text-center p-4 bg-gray-50 rounded-md">
+                  <p className="text-gray-600 mb-2">Only members can book services</p>
+                  {!user && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate("/auth")}
+                    >
+                      Login as Member
+                    </Button>
+                  )}
+                </div>
+              )}
               
               <div className="border-t mt-6 pt-6">
                 <h3 className="font-medium text-center mb-4">Need Help?</h3>

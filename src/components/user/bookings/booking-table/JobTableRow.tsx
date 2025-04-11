@@ -42,7 +42,8 @@ export const JobTableRow = ({
   const [isUpdatingSchedule, setIsUpdatingSchedule] = useState(false);
   const { user } = useAuth();
   const isMember = user?.role === 'member';
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'user';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const isArtist = user?.role === 'artist';
 
   const handleStatusChangeWrapper = async (newStatus: string) => {
     if (isUpdatingStatus) return;
@@ -96,8 +97,15 @@ export const JobTableRow = ({
       </TableCell>
 
       <TableCell>
-        {/* Show schedule data only for members, and JobScheduleCell with edit for admins */}
-        {isMember ? (
+        {/* Show schedule data for all users, but JobScheduleCell with edit for admins only */}
+        {isAdmin && !isArtist ? (
+          <JobScheduleCell 
+            booking={booking}
+            isEditingDisabled={isEditingDisabled}
+            onScheduleChange={onScheduleChange}
+            isUpdating={isUpdatingSchedule}
+          />
+        ) : (
           <div>
             <div className="flex items-center">
               <span className="text-sm">{booking.Booking_date}</span>
@@ -106,24 +114,15 @@ export const JobTableRow = ({
               <span className="text-sm">{booking.booking_time}</span>
             </div>
           </div>
-        ) : (
-          <JobScheduleCell 
-            booking={booking}
-            isEditingDisabled={isEditingDisabled}
-            onScheduleChange={isAdmin ? 
-              (date, time) => onScheduleChange && onScheduleChange(booking, date, time) : 
-              undefined}
-            isUpdating={isUpdatingSchedule}
-          />
         )}
       </TableCell>
 
       <TableCell>
-        {/* Show status badge for members and admins */}
+        {/* Show status badge for all users */}
         <StatusBadge status={booking.Status || 'pending'} />
         
-        {/* Only show dropdown for specific non-member users (hidden as requested) */}
-        {false && !isMember && (
+        {/* Only show dropdown for admins (hidden by default) */}
+        {isAdmin && false && (
           <BookingStatusSelect 
             currentStatus={booking.Status || 'pending'} 
             statusOptions={statusOptions} 
@@ -137,8 +136,8 @@ export const JobTableRow = ({
         {/* Show assigned artist name for all users */}
         {getArtistName()}
         
-        {/* Only show artist assignment dropdown for specific non-member users (hidden as requested) */}
-        {false && !isMember && (
+        {/* Only show artist assignment dropdown for admins (hidden by default) */}
+        {isAdmin && false && (
           <ArtistAssignmentSelect 
             booking={booking}
             artists={artists}
@@ -148,8 +147,8 @@ export const JobTableRow = ({
         )}
       </TableCell>
       
-      {/* Only show actions column for non-members */}
-      {showActions && !isMember && (
+      {/* Only show actions column for admins */}
+      {showActions && isAdmin && (
         <TableCell>
           <div className="flex gap-2">
             <Button
@@ -171,6 +170,15 @@ export const JobTableRow = ({
                 <Trash2 className="h-4 w-4 text-destructive" />
               </Button>
             )}
+          </div>
+        </TableCell>
+      )}
+      
+      {/* Hide actions completely for members and artists */}
+      {showActions && !isAdmin && (
+        <TableCell>
+          <div className="text-xs text-muted-foreground">
+            {isMember ? "View only" : isArtist ? "Assigned to you" : ""}
           </div>
         </TableCell>
       )}

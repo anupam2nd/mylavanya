@@ -15,10 +15,27 @@ import { useBookingSubmit } from "./form/useBookingSubmit";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPrice, onCancel, onSuccess }: BookingFormProps) => {
   const [bookingCompleted, setBookingCompleted] = useState(false);
   const [bookingRef, setBookingRef] = useState<string | null>(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  // Check if user is a member
+  if (user && user.role !== 'member') {
+    return (
+      <div className="p-6 bg-amber-50 border border-amber-200 rounded-lg">
+        <h3 className="text-lg font-medium text-amber-800 mb-2">Members Only</h3>
+        <p className="text-amber-700 mb-4">Only members can book services. Please login as a member to continue.</p>
+        <Button variant="outline" onClick={() => navigate("/")}>
+          Return to Home
+        </Button>
+      </div>
+    );
+  }
 
   // Prepare initial selected service if provided as prop
   const initialSelectedService = serviceId && serviceName && servicePrice 
@@ -48,6 +65,11 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
   const { isSubmitting, submitBooking } = useBookingSubmit();
 
   const onSubmit = async (data: BookingFormValues) => {
+    if (!user || user.role !== 'member') {
+      // Double check to prevent non-members from submitting
+      return;
+    }
+    
     const result = await submitBooking(data);
     if (result.success) {
       setBookingRef(result.bookingRef);

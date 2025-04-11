@@ -22,19 +22,30 @@ export const useUserBookings = () => {
           .select('*')
           .order('Booking_date', { ascending: false });
         
-        if (user?.role === 'artist') {
+        // Apply different filters based on user role
+        if (user.role === 'artist') {
+          // For artists, only show bookings assigned to them
           const artistId = parseInt(user.id, 10);
           if (!isNaN(artistId)) {
             console.log("Filtering bookings by artist ID:", artistId);
             query = query.eq('ArtistId', artistId);
           }
         } 
-        else if (user?.role === 'member') {
+        else if (user.role === 'member') {
+          // For members, only show their own bookings
           console.log("Filtering bookings by member email:", user.email);
           query = query.eq('email', user.email);
         }
-        else if (user?.role === 'admin') {
+        // For admins, show all bookings (no filter)
+        else if (user.role === 'admin' || user.role === 'superadmin') {
           console.log("Showing all bookings for admin");
+        }
+        else {
+          // For any other role that shouldn't see bookings, return empty
+          console.log("User role has no permissions to view bookings");
+          setBookings([]);
+          setLoading(false);
+          return;
         }
         
         query = query.order('Booking_date', { ascending: false });
