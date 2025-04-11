@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/context/AuthContext";
 
 const formSchema = z.object({
   status_code: z.string().min(1, "Status code is required"),
@@ -30,11 +30,14 @@ interface StatusListProps {
 
 const StatusList = ({ statuses, onUpdate, isSuperAdmin = false }: StatusListProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [editStatus, setEditStatus] = useState<StatusOption | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [statusToDelete, setStatusToDelete] = useState<StatusOption | null>(null);
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
   const [statusToDeactivate, setStatusToDeactivate] = useState<StatusOption | null>(null);
+  
+  const canDeleteStatus = isSuperAdmin || user?.role === 'controller';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -194,7 +197,7 @@ const StatusList = ({ statuses, onUpdate, isSuperAdmin = false }: StatusListProp
                       <Edit className="h-4 w-4" />
                     </Button>
                     
-                    {isSuperAdmin && (
+                    {canDeleteStatus && (
                       <Button variant="outline" size="sm" onClick={() => handleDelete(status)}>
                         <Trash className="h-4 w-4" />
                       </Button>
