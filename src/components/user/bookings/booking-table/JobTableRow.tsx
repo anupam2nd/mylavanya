@@ -102,7 +102,7 @@ export const JobTableRow = ({
           <JobScheduleCell 
             booking={booking}
             isEditingDisabled={isEditingDisabled}
-            onScheduleChange={onScheduleChange}
+            onScheduleChange={handleScheduleChangeWrapper}
             isUpdating={isUpdatingSchedule}
           />
         ) : (

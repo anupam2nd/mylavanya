@@ -1,6 +1,5 @@
 
 import React, { useState } from "react";
-import { TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
