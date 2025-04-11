@@ -37,7 +37,7 @@ export const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
       
       // Using raw query since booking_otps is not in TypeScript definitions
       const { data, error } = await supabase
-        .rpc('verify_booking_otp', {
+        .rpc('verify_booking_otp' as any, {
           p_booking_id: bookingId,
           p_otp: otp
         });
