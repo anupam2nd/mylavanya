@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -108,7 +109,7 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
   };
   
   // Determine if actions should be enabled based on booking status
-  const canConfirm = booking.Status === "approve" || booking.Status === "pending";
+  const canSendOTP = booking.Status === "Beautician_assigned" || booking.Status === "approve" || booking.Status === "pending";
   const canComplete = booking.Status === "confirm" || booking.Status === "service_started" || booking.Status === "ontheway";
 
   return (
@@ -185,13 +186,13 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
         </CardContent>
         
         <CardFooter className="flex flex-col sm:flex-row gap-3 pt-2">
-          {canConfirm && (
+          {canSendOTP && (
             <Button 
               onClick={sendOTP} 
               disabled={isConfirming}
               className="w-full sm:w-auto"
             >
-              {isConfirming ? "Sending OTP..." : "Confirm Service"}
+              {isConfirming ? "Sending OTP..." : "Send OTP to Customer"}
             </Button>
           )}
           
