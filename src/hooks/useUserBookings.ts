@@ -37,8 +37,8 @@ export const useUserBookings = () => {
           query = query.eq('email', user.email);
         }
         // For admins, show all bookings (no filter)
-        else if (user.role === 'admin' || user.role === 'superadmin') {
-          console.log("Showing all bookings for admin");
+        else if (user.role === 'admin' || user.role === 'superadmin' || user.role === 'controller') {
+          console.log("Showing all bookings for admin/controller");
         }
         else {
           // For any other role that shouldn't see bookings, return empty

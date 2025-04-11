@@ -32,7 +32,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller';
   const isSuperAdmin = user?.role === 'superadmin';
   const isMember = user?.role === 'member';
 
@@ -80,7 +80,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
             <span>Wishlist</span>
           </Link>
 
-          {(isAdmin || isSuperAdmin) && (
+          {isAdmin && (
             <>
               <Link to="/admin/services"
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
@@ -96,7 +96,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
             </>
           )}
 
-          {isSuperAdmin && (
+          {(isSuperAdmin || user?.role === 'controller') && (
             <>
               <Link to="/admin/users"
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">

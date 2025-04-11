@@ -42,7 +42,7 @@ export const JobTableRow = ({
   const [isUpdatingSchedule, setIsUpdatingSchedule] = useState(false);
   const { user } = useAuth();
   const isMember = user?.role === 'member';
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller';
   const isArtist = user?.role === 'artist';
 
   const handleStatusChangeWrapper = async (newStatus: string) => {

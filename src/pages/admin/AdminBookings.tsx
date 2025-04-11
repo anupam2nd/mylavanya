@@ -57,7 +57,7 @@ const AdminBookings = () => {
   } = useBookingFilters(bookings);
 
   return (
-    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+    <ProtectedRoute allowedRoles={["admin", "superadmin", "controller"]}>
       <DashboardLayout title="Manage Bookings">
         <Card>
           <BookingHeader 

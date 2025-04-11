@@ -36,7 +36,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+    <ProtectedRoute allowedRoles={["admin", "superadmin", "controller"]}>
       <DashboardLayout title="Admin Dashboard">
         <StatCards 
           totalBookings={totalBookings}

@@ -18,11 +18,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   // But NOT for members who should stay on the homepage
   useEffect(() => {
     if (user) {
-      // Only redirect admin, superadmin, or artist roles
-      if (user.role === 'superadmin' || user.role === 'admin' || user.role === 'artist') {
+      // Only redirect admin, superadmin, controller, or artist roles
+      if (user.role === 'superadmin' || user.role === 'admin' || user.role === 'artist' || user.role === 'controller') {
         let redirectPath = '/user/bookings'; // Default for artists and others
         
-        if (user.role === 'superadmin') {
+        if (user.role === 'superadmin' || user.role === 'controller') {
           redirectPath = '/admin/status';
         } else if (user.role === 'admin') {
           redirectPath = '/admin/dashboard';
