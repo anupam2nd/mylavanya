@@ -79,7 +79,7 @@ const BookingsList = ({
     }
   };
 
-  const updateBookingSchedule = async (booking: Booking, date: string, time: string) => {
+  const updateBookingSchedule = async (booking: Booking, date: string, time: string): Promise<void> => {
     try {
       const { error } = await supabase
         .from('BookMST')
@@ -95,15 +95,12 @@ const BookingsList = ({
       setBookings(prevBookings => 
         prevBookings.map(b => b.id === booking.id ? { ...b, Booking_date: date, booking_time: time } : b)
       );
-      
-      return true;
     } catch (error) {
       console.error("Error updating booking schedule:", error);
-      return false;
     }
   };
 
-  const deleteJob = async (booking: Booking) => {
+  const deleteJob = async (booking: Booking): Promise<void> => {
     try {
       const { error } = await supabase
         .from('BookMST')
@@ -116,11 +113,8 @@ const BookingsList = ({
       setBookings(prevBookings => 
         prevBookings.filter(b => b.id !== booking.id)
       );
-      
-      return true;
     } catch (error) {
       console.error("Error deleting job:", error);
-      return false;
     }
   };
 
@@ -135,7 +129,7 @@ const BookingsList = ({
     }
   };
 
-  const handleDeleteJobWrapper = async (booking: Booking) => {
+  const handleDeleteJobWrapper = async (booking: Booking): Promise<void> => {
     if (window.confirm(`Are you sure you want to delete job #${booking.jobno}?`)) {
       await deleteJob(booking);
     }
@@ -180,7 +174,8 @@ const BookingsList = ({
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <EditBookingDialog 
             booking={selectedBooking}
-            onClose={() => setIsEditDialogOpen(false)}
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
           />
         </Dialog>
       )}

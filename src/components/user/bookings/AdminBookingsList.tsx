@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Booking } from "@/hooks/useBookings";
 import { BookingTableRow } from "./booking-table/BookingTableRow";
-import { BookingDetailRow } from "./booking-table/BookingDetailRow";
+import { JobsTable } from "./booking-table/JobsTable";
 import { StatusOption } from "@/hooks/useStatusOptions";
 import { Artist } from "@/hooks/useBookingArtists";
 
@@ -112,18 +112,21 @@ const AdminBookingsList = ({
                 />
                 
                 {isExpanded && (
-                  <BookingDetailRow
-                    bookingsGroup={bookingsGroup}
-                    onEditClick={onEditClick}
-                    onAddNewJob={onAddNewJob}
-                    isEditingDisabled={checkEditingDisabled}
-                    handleStatusChange={handleStatusChange}
-                    handleArtistAssignment={handleArtistAssignment}
-                    statusOptions={statusOptions}
-                    artists={artists}
-                    onDeleteJob={onDeleteJob}
-                    onScheduleChange={onScheduleChange}
-                  />
+                  <TableRow>
+                    <TableHead colSpan={7} className="p-0">
+                      <JobsTable
+                        bookingsGroup={bookingsGroup}
+                        onEditClick={onEditClick}
+                        onDeleteJob={onDeleteJob}
+                        isEditingDisabled={checkEditingDisabled}
+                        handleStatusChange={handleStatusChange}
+                        handleArtistAssignment={handleArtistAssignment}
+                        onScheduleChange={onScheduleChange}
+                        statusOptions={statusOptions}
+                        artists={artists}
+                      />
+                    </TableHead>
+                  </TableRow>
                 )}
               </React.Fragment>
             );
