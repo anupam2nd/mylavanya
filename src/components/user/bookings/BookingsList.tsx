@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,13 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { BookingData } from "@/components/tracking/BookingDetails";
 import UserBookingFilters from './UserBookingFilters';
 import { useBookingFilters } from '@/hooks/useBookingFilters';
 import { useStatusOptions } from '@/hooks/useStatusOptions';
 import { Booking } from '@/hooks/useBookings';
 
-const BookingsList = () => {
+interface BookingsListProps {
+  customBookings?: Booking[];
+  customLoading?: boolean;
+  userRole?: string;
+}
+
+const BookingsList: React.FC<BookingsListProps> = ({ customBookings, customLoading, userRole }) => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -27,6 +31,16 @@ const BookingsList = () => {
   }, [isAuthenticated, navigate]);
 
   useEffect(() => {
+    if (customBookings) {
+      setBookings(customBookings);
+      setIsLoading(false);
+      
+      const confirmedCount = customBookings.filter(booking => 
+        booking.Status === 'confirmed').length;
+      setConfirmedBookingsCount(confirmedCount);
+      return;
+    }
+
     const fetchBookings = async () => {
       if (!user) return;
 
@@ -37,7 +51,6 @@ const BookingsList = () => {
           .select('*')
           .order('Booking_date', { ascending: false });
         
-        // If the user is an artist, only show bookings assigned to them
         if (user.role === 'artist') {
           const artistId = parseInt(user.id, 10);
           if (!isNaN(artistId)) {
@@ -45,19 +58,16 @@ const BookingsList = () => {
             query = query.eq('ArtistId', artistId);
           }
         } 
-        // If the user is a member, only show bookings with their email
         else if (user.role === 'member') {
           console.log("Filtering bookings by member email:", user.email);
           query = query.eq('email', user.email);
         }
-        // For admins, show all bookings (no additional filter)
         
         const { data, error } = await query;
 
         if (error) throw error;
         console.log("Bookings fetched:", data?.length || 0);
 
-        // Transform the data to match the Booking interface
         const transformedData = data?.map(booking => ({
           id: booking.id,
           Booking_NO: booking.Booking_NO || '',
@@ -76,7 +86,6 @@ const BookingsList = () => {
 
         setBookings(transformedData);
         
-        // Count confirmed bookings
         const confirmedCount = transformedData.filter(booking => 
           booking.Status === 'confirmed').length;
         setConfirmedBookingsCount(confirmedCount);
@@ -88,9 +97,10 @@ const BookingsList = () => {
     };
 
     fetchBookings();
-  }, [user, isAuthenticated, navigate]);
+  }, [user, isAuthenticated, navigate, customBookings]);
   
-  // Add these new hooks for filtering
+  const loading = customLoading !== undefined ? customLoading : isLoading;
+  
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
   const {
     filteredBookings,
@@ -113,11 +123,13 @@ const BookingsList = () => {
     clearFilters
   } = useBookingFilters(bookings);
   
+  const title = userRole === 'artist' ? 'My Assigned Bookings' : 'Your Bookings';
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
         <div>
-          <h2 className="text-2xl font-semibold">Your Bookings</h2>
+          <h2 className="text-2xl font-semibold">{title}</h2>
           <div className="mt-1 inline-flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full">
             <span className="font-medium mr-1">{confirmedBookingsCount}</span> 
             <span>confirmed {confirmedBookingsCount === 1 ? 'booking' : 'bookings'}</span>
@@ -145,7 +157,7 @@ const BookingsList = () => {
         />
       </div>
       
-      {isLoading ? (
+      {loading ? (
         <div className="flex justify-center items-center py-10">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
         </div>

@@ -36,10 +36,11 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   const isSuperAdmin = user?.role === 'superadmin';
   const isController = user?.role === 'controller';
   const isMember = user?.role === 'member';
+  const isArtist = user?.role === 'artist';
 
   // Function to get the correct route based on user role
   const getRouteForRole = (baseRoute: string) => {
-    if (user?.role === 'artist') {
+    if (isArtist) {
       return `/artist${baseRoute}`;
     } else if (isAdmin) {
       return `/admin${baseRoute}`;

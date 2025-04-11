@@ -26,6 +26,7 @@ import UserBookings from "./pages/user/UserBookings";
 import Profile from "./pages/user/Profile";
 import Settings from "./pages/user/Settings";
 import ArtistDashboard from "./pages/artist/ArtistDashboard";
+import ArtistBookings from "./pages/artist/ArtistBookings";
 import Wishlist from "./pages/user/Wishlist";
 
 // Log to confirm App is being loaded
@@ -75,6 +76,7 @@ const App = () => (
             
             {/* Artist Routes */}
             <Route path="/artist/dashboard" element={<ArtistDashboard />} />
+            <Route path="/artist/bookings" element={<ArtistBookings />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
