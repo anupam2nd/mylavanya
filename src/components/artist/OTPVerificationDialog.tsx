@@ -35,14 +35,12 @@ export const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
     try {
       setIsVerifying(true);
       
-      // Check if OTP exists and is valid using direct query
+      // Using raw query since booking_otps is not in TypeScript definitions
       const { data, error } = await supabase
-        .from('booking_otps')
-        .select('*')
-        .eq('booking_id', bookingId)
-        .eq('otp', otp)
-        .gt('expires_at', new Date().toISOString())
-        .single();
+        .rpc('verify_booking_otp', {
+          p_booking_id: bookingId,
+          p_otp: otp
+        });
       
       if (error || !data) {
         toast({
@@ -52,12 +50,6 @@ export const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
         });
         return;
       }
-      
-      // Delete the used OTP
-      await supabase
-        .from('booking_otps')
-        .delete()
-        .eq('booking_id', bookingId);
       
       // OTP verified successfully
       toast({

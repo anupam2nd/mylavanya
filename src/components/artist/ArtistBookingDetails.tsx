@@ -29,14 +29,12 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       
       // Store OTP in the database with expiry (5 minutes)
-      // Using raw SQL query since the types don't know about the booking_otps table yet
+      // Using RPC function since booking_otps is not in TypeScript definitions
       const { error } = await supabase
-        .from('booking_otps')
-        .insert({
-          booking_id: booking.id,
-          otp: otp,
-          created_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString()
+        .rpc('insert_booking_otp', {
+          p_booking_id: booking.id,
+          p_otp: otp,
+          p_expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString()
         });
         
       if (error) throw error;

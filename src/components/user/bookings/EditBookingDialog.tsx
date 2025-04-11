@@ -175,6 +175,15 @@ const EditBookingDialog = ({
     onOpenChange(false);
   };
 
+  const handleAddNewJob = () => {
+    setShowNewJobDialog(true);
+    console.log("Add new job clicked");
+    toast({
+      title: "Feature Not Implemented",
+      description: "Adding new jobs functionality is not implemented yet.",
+    });
+  };
+
   return (
     <DialogContent className="sm:max-w-[600px] max-h-[90vh]">
       <DialogHeader>
