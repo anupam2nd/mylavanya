@@ -10,6 +10,8 @@ import ServiceInfoCard from "@/components/artist/booking-details/ServiceInfoCard
 import BookingNotes from "@/components/artist/booking-details/BookingNotes";
 import BookingActions from "@/components/artist/booking-details/BookingActions";
 import EditServiceDialog from "@/components/artist/EditServiceDialog";
+import { toast } from "@/components/ui/use-toast";
+import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
 
 interface ArtistBookingDetailsProps {
   booking: Booking;
@@ -19,6 +21,8 @@ interface ArtistBookingDetailsProps {
 const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, onBack }) => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showAddJobDialog, setShowAddJobDialog] = useState(false);
+  const { handleStatusChange } = useBookingStatusManagement();
   
   const {
     showOtpDialog,
@@ -37,6 +41,16 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
   const handleEditComplete = () => {
     setShowEditDialog(false);
     setIsEditing(false);
+  };
+
+  const handleAddNewJob = () => {
+    // For now, just show a toast since we don't have the "Add Job" dialog implemented
+    toast({
+      title: "Add New Job",
+      description: "This feature will be implemented in the future.",
+    });
+    // In a real implementation, we would show the add job dialog:
+    // setShowAddJobDialog(true);
   };
   
   return (
@@ -59,6 +73,7 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
             onSendOTP={sendOTP}
             onCompleteService={handleCompleteService}
             onEditService={handleEditService}
+            onAddNewJob={handleAddNewJob}
             isConfirming={isConfirming}
             isCompleting={isCompleting}
             isEditing={isEditing}
@@ -78,6 +93,8 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
         onClose={handleEditComplete}
         booking={booking}
       />
+
+      {/* Add New Job Dialog would go here in a future implementation */}
     </div>
   );
 };

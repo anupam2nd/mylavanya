@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Check, SendHorizonal, Edit } from "lucide-react";
+import { Check, SendHorizonal, PlusCircle } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 
 interface BookingActionsProps {
@@ -9,6 +9,7 @@ interface BookingActionsProps {
   onSendOTP: () => void;
   onCompleteService: () => void;
   onEditService: () => void;
+  onAddNewJob?: () => void;
   isConfirming: boolean;
   isCompleting: boolean;
   isEditing: boolean;
@@ -19,6 +20,7 @@ const BookingActions: React.FC<BookingActionsProps> = ({
   onSendOTP, 
   onCompleteService,
   onEditService,
+  onAddNewJob,
   isConfirming,
   isCompleting,
   isEditing
@@ -27,9 +29,10 @@ const BookingActions: React.FC<BookingActionsProps> = ({
   const canSendOTP = booking.Status === "Beautician_assigned" || booking.Status === "approve" || booking.Status === "pending";
   const canComplete = booking.Status === "confirm" || booking.Status === "service_started" || booking.Status === "ontheway";
   const canEdit = booking.Status !== "done" && booking.Status !== "cancelled";
+  const canAddNewJob = booking.Status !== "done" && booking.Status !== "cancelled";
 
   return (
-    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+    <div className="flex flex-col sm:flex-row gap-3 pt-2 flex-wrap">
       {canSendOTP && (
         <Button 
           onClick={onSendOTP} 
@@ -42,18 +45,6 @@ const BookingActions: React.FC<BookingActionsProps> = ({
         </Button>
       )}
       
-      {canEdit && (
-        <Button 
-          onClick={onEditService} 
-          disabled={isEditing}
-          className="w-full sm:w-auto"
-          variant="secondary"
-        >
-          <Edit className="h-4 w-4 mr-2" />
-          {isEditing ? "Processing..." : "Edit Service"}
-        </Button>
-      )}
-      
       {canComplete && (
         <Button 
           onClick={onCompleteService} 
@@ -63,6 +54,29 @@ const BookingActions: React.FC<BookingActionsProps> = ({
         >
           <Check className="h-4 w-4 mr-2" />
           {isCompleting ? "Updating..." : "Mark Service as Complete"}
+        </Button>
+      )}
+      
+      {canEdit && (
+        <Button 
+          onClick={onEditService} 
+          disabled={isEditing}
+          className="w-full sm:w-auto"
+          variant="secondary"
+        >
+          <Check className="h-4 w-4 mr-2" />
+          {isEditing ? "Processing..." : "Update Status"}
+        </Button>
+      )}
+
+      {canAddNewJob && onAddNewJob && (
+        <Button 
+          onClick={onAddNewJob} 
+          className="w-full sm:w-auto"
+          variant="outline"
+        >
+          <PlusCircle className="h-4 w-4 mr-2" />
+          Add New Job
         </Button>
       )}
     </div>

@@ -151,14 +151,14 @@ const BookingsList = ({
             <div key={bookingNo} className="border rounded-lg overflow-hidden">
               <BookingDetailRow 
                 booking={bookingsGroup[0]} 
-                onEdit={handleEditClick}
-                onView={isArtist && onViewBooking ? handleViewBookingClick : undefined}
+                onEdit={isArtist ? undefined : handleEditClick}  // Hide edit for artists
+                onView={onViewBooking ? handleViewBookingClick : undefined}
               />
               <JobsTable 
                 bookingsGroup={bookingsGroup}
-                onEditClick={handleEditClick}
-                onDeleteJob={deleteJob ? handleDeleteJobWrapper : undefined}
-                isEditingDisabled={false}
+                onEditClick={isArtist ? undefined : handleEditClick}  // Hide edit for artists
+                onDeleteJob={!isArtist && deleteJob ? handleDeleteJobWrapper : undefined} // Hide delete for artists
+                isEditingDisabled={isArtist}  // Disable editing for artists
                 handleStatusChange={handleStatusChangeWrapper}
                 handleArtistAssignment={handleArtistAssignmentWrapper}
                 onScheduleChange={updateBookingSchedule}
@@ -170,7 +170,7 @@ const BookingsList = ({
         </div>
       )}
 
-      {selectedBooking && (
+      {selectedBooking && !isArtist && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <EditBookingDialog 
             booking={selectedBooking}
