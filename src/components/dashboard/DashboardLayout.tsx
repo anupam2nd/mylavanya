@@ -34,7 +34,19 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
 
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller';
   const isSuperAdmin = user?.role === 'superadmin';
+  const isController = user?.role === 'controller';
   const isMember = user?.role === 'member';
+
+  // Function to get the correct route based on user role
+  const getRouteForRole = (baseRoute: string) => {
+    if (user?.role === 'artist') {
+      return `/artist${baseRoute}`;
+    } else if (isAdmin) {
+      return `/admin${baseRoute}`;
+    } else {
+      return `/user${baseRoute}`;
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -60,14 +72,14 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
         <nav className="p-4 space-y-1">
           {/* Only show Dashboard for non-member users */}
           {!isMember && (
-            <Link to={isAdmin ? "/admin/dashboard" : "/user/dashboard"} 
+            <Link to={getRouteForRole("/dashboard")} 
               className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
               <Home className="w-5 h-5 mr-3" />
               <span>Dashboard</span>
             </Link>
           )}
 
-          <Link to={isAdmin ? "/admin/bookings" : "/user/bookings"}
+          <Link to={getRouteForRole("/bookings")}
             className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
             <Calendar className="w-5 h-5 mr-3" />
             <span>Bookings</span>
@@ -96,7 +108,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
             </>
           )}
 
-          {(isSuperAdmin || user?.role === 'controller') && (
+          {(isSuperAdmin || isController) && (
             <>
               <Link to="/admin/users"
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
