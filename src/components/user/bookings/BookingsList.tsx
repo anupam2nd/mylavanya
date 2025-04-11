@@ -1,204 +1,159 @@
+
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Booking } from "@/hooks/useBookings";
+import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
+import { useBookingArtists } from "@/hooks/useBookingArtists";
+import { JobsTable } from "./booking-table/JobsTable";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
+import { BookingDetailRow } from "./booking-table/BookingDetailRow";
+import { EditBookingDialog } from "./EditBookingDialog";
+import { useBookingEdit } from "@/hooks/useBookingEdit";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import UserBookingFilters from './UserBookingFilters';
-import { useBookingFilters } from '@/hooks/useBookingFilters';
-import { useStatusOptions } from '@/hooks/useStatusOptions';
-import { Booking } from '@/hooks/useBookings';
 
 interface BookingsListProps {
   customBookings?: Booking[];
   customLoading?: boolean;
   userRole?: string;
+  onViewBooking?: (booking: Booking) => void;
 }
 
-const BookingsList: React.FC<BookingsListProps> = ({ customBookings, customLoading, userRole }) => {
-  const { user, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+const BookingsList = ({
+  customBookings,
+  customLoading,
+  userRole = "user",
+  onViewBooking
+}: BookingsListProps) => {
+  const { statusOptions, fetchStatusOptions, handleStatusChange, handleArtistAssignment } = useBookingStatusManagement();
+  const { artists, fetchArtists } = useBookingArtists();
+  const { updateBookingSchedule, deleteJob } = useBookingEdit();
+  const { user } = useAuth();
+  const isArtist = userRole === "artist" || user?.role === "artist";
+
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [confirmedBookingsCount, setConfirmedBookingsCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/");
-      return;
+  // Group bookings by Booking_NO to identify related jobs
+  const bookingGroups = bookings.reduce((groups: Record<string, Booking[]>, booking) => {
+    const key = booking.Booking_NO || '';
+    if (!groups[key]) {
+      groups[key] = [];
     }
-  }, [isAuthenticated, navigate]);
+    groups[key].push(booking);
+    return groups;
+  }, {});
 
   useEffect(() => {
-    if (customBookings) {
+    fetchStatusOptions();
+    fetchArtists();
+  }, []);
+
+  useEffect(() => {
+    // Use custom bookings if provided
+    if (customBookings !== undefined) {
       setBookings(customBookings);
-      setIsLoading(false);
-      
-      const confirmedCount = customBookings.filter(booking => 
-        booking.Status === 'confirmed').length;
-      setConfirmedBookingsCount(confirmedCount);
-      return;
+      setLoading(customLoading || false);
     }
+  }, [customBookings, customLoading]);
 
-    const fetchBookings = async () => {
-      if (!user) return;
+  const handleStatusChangeWrapper = async (booking: Booking, newStatus: string) => {
+    await handleStatusChange(booking, newStatus);
+    
+    // Update local state
+    setBookings(prevBookings => 
+      prevBookings.map(b => b.id === booking.id ? { ...b, Status: newStatus } : b)
+    );
+  };
 
-      setIsLoading(true);
-      try {
-        let query = supabase
-          .from('BookMST')
-          .select('*')
-          .order('Booking_date', { ascending: false });
-        
-        if (user.role === 'artist') {
-          const artistId = parseInt(user.id, 10);
-          if (!isNaN(artistId)) {
-            console.log("Filtering bookings by ArtistId:", artistId);
-            query = query.eq('ArtistId', artistId);
-          }
-        } 
-        else if (user.role === 'member') {
-          console.log("Filtering bookings by member email:", user.email);
-          query = query.eq('email', user.email);
-        }
-        
-        const { data, error } = await query;
+  const handleArtistAssignmentWrapper = async (booking: Booking, artistId: number) => {
+    await handleArtistAssignment(booking, artistId);
+    
+    // Update local state based on the artist assigned
+    const artist = artists.find(a => a.ArtistId === artistId);
+    if (artist) {
+      const artistName = `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim();
+      setBookings(prevBookings => 
+        prevBookings.map(b => b.id === booking.id ? { ...b, ArtistId: artistId, Assignedto: artistName } : b)
+      );
+    }
+  };
 
-        if (error) throw error;
-        console.log("Bookings fetched:", data?.length || 0);
+  const handleScheduleChangeWrapper = async (booking: Booking, date: string, time: string) => {
+    await updateBookingSchedule(booking, date, time);
+    
+    // Update local state
+    setBookings(prevBookings => 
+      prevBookings.map(b => b.id === booking.id ? { ...b, Booking_date: date, booking_time: time } : b)
+    );
+  };
 
-        const transformedData = data?.map(booking => ({
-          id: booking.id,
-          Booking_NO: booking.Booking_NO || '',
-          name: booking.name || '',
-          email: booking.email || '',
-          Phone_no: booking.Phone_no,
-          Booking_date: booking.Booking_date,
-          booking_time: booking.booking_time,
-          Purpose: booking.Purpose,
-          Status: booking.Status || '',
-          price: booking.price || 0,
-          Address: booking.Address,
-          Pincode: booking.Pincode,
-          created_at: booking.created_at
-        })) || [];
+  const handleEditClick = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setIsEditDialogOpen(true);
+  };
 
-        setBookings(transformedData);
-        
-        const confirmedCount = transformedData.filter(booking => 
-          booking.Status === 'confirmed').length;
-        setConfirmedBookingsCount(confirmedCount);
-      } catch (error) {
-        console.error('Error fetching bookings:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const handleViewBookingClick = (booking: Booking) => {
+    if (onViewBooking) {
+      onViewBooking(booking);
+    }
+  };
 
-    fetchBookings();
-  }, [user, isAuthenticated, navigate, customBookings]);
-  
-  const loading = customLoading !== undefined ? customLoading : isLoading;
-  
-  const { statusOptions, formattedStatusOptions } = useStatusOptions();
-  const {
-    filteredBookings,
-    startDate,
-    setStartDate,
-    endDate,
-    setEndDate,
-    statusFilter,
-    setStatusFilter,
-    searchQuery,
-    setSearchQuery,
-    showDateFilter,
-    setShowDateFilter,
-    filterDateType,
-    setFilterDateType,
-    sortDirection,
-    setSortDirection,
-    sortField,
-    setSortField,
-    clearFilters
-  } = useBookingFilters(bookings);
-  
-  const title = userRole === 'artist' ? 'My Assigned Bookings' : 'Your Bookings';
-  
+  const handleDeleteJobWrapper = async (booking: Booking) => {
+    if (window.confirm(`Are you sure you want to delete job #${booking.jobno}?`)) {
+      await deleteJob(booking);
+      
+      // Update local state
+      setBookings(prevBookings => 
+        prevBookings.filter(b => b.id !== booking.id)
+      );
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
-        <div>
-          <h2 className="text-2xl font-semibold">{title}</h2>
-          <div className="mt-1 inline-flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full">
-            <span className="font-medium mr-1">{confirmedBookingsCount}</span> 
-            <span>confirmed {confirmedBookingsCount === 1 ? 'booking' : 'bookings'}</span>
-          </div>
-        </div>
-        <UserBookingFilters
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          startDate={startDate}
-          setStartDate={setStartDate}
-          endDate={endDate}
-          setEndDate={setEndDate}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          clearFilters={clearFilters}
-          statusOptions={formattedStatusOptions}
-          showDateFilter={showDateFilter}
-          setShowDateFilter={setShowDateFilter}
-          filterDateType={filterDateType}
-          setFilterDateType={setFilterDateType}
-          sortDirection={sortDirection}
-          setSortDirection={setSortDirection}
-          sortField={sortField}
-          setSortField={setSortField}
-        />
-      </div>
-      
       {loading ? (
         <div className="flex justify-center items-center py-10">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      ) : filteredBookings.length === 0 ? (
+      ) : bookings.length === 0 ? (
         <div className="text-center py-10">
           <p className="text-muted-foreground">No bookings found.</p>
-          {bookings.length > 0 && filteredBookings.length === 0 && (
-            <Button variant="outline" className="mt-4" onClick={clearFilters}>
-              Clear Filters
-            </Button>
-          )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {filteredBookings.map((booking) => (
-            <Card key={booking.Booking_NO}>
-              <CardHeader>
-                <CardTitle>{booking.Purpose}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center text-sm text-muted-foreground mb-2">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  <span>{booking.Booking_date}</span>
-                  <Clock className="w-4 h-4 ml-3 mr-1" />
-                  <span>{booking.booking_time}</span>
-                </div>
-                <div className="text-sm text-muted-foreground mb-2">
-                  <span>Phone: {booking.Phone_no}</span>
-                </div>
-                <div className={`px-3 py-1 text-xs font-medium rounded-full inline-block
-                      ${booking.Status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        booking.Status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                          booking.Status === 'beautician_assigned' ? 'bg-purple-100 text-purple-800' :
-                            booking.Status === 'done' ? 'bg-green-100 text-green-800' :
-                              'bg-red-100 text-red-800'}`}>
-                  {booking.Status?.toUpperCase() || 'PENDING'}
-                </div>
-              </CardContent>
-            </Card>
+        <div className="space-y-6">
+          {Object.entries(bookingGroups).map(([bookingNo, bookingsGroup]) => (
+            <div key={bookingNo} className="border rounded-lg overflow-hidden">
+              <BookingDetailRow 
+                booking={bookingsGroup[0]} 
+                onEdit={handleEditClick}
+                onView={isArtist && onViewBooking ? handleViewBookingClick : undefined}
+              />
+              <JobsTable 
+                bookingsGroup={bookingsGroup}
+                onEditClick={handleEditClick}
+                onDeleteJob={deleteJob ? handleDeleteJobWrapper : undefined}
+                isEditingDisabled={false}
+                handleStatusChange={handleStatusChangeWrapper}
+                handleArtistAssignment={handleArtistAssignmentWrapper}
+                onScheduleChange={handleScheduleChangeWrapper}
+                statusOptions={statusOptions}
+                artists={artists}
+              />
+            </div>
           ))}
         </div>
+      )}
+
+      {selectedBooking && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <EditBookingDialog 
+            booking={selectedBooking}
+            onClose={() => setIsEditDialogOpen(false)}
+          />
+        </Dialog>
       )}
     </div>
   );

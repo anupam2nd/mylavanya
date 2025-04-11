@@ -1,83 +1,76 @@
 
-import React, { useState } from "react";
-import { TableCell, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import React from "react";
 import { Booking } from "@/hooks/useBookings";
-import { Separator } from "@/components/ui/separator";
-import { JobsTable } from "./JobsTable";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
-import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Calendar, Phone, Mail, Home, Edit, Eye } from "lucide-react";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 interface BookingDetailRowProps {
-  bookingsGroup: Booking[];
-  onEditClick: (booking: Booking) => void;
-  onAddNewJob?: (booking: Booking) => void;
-  isEditingDisabled: boolean;
-  handleStatusChange: (booking: Booking, newStatus: string) => Promise<void>;
-  handleArtistAssignment: (booking: Booking, artistId: number) => Promise<void>;
-  statusOptions: {status_code: string; status_name: string}[];
-  artists: {ArtistId: number; ArtistFirstName: string; ArtistLastName: string}[];
-  onDeleteJob?: (booking: Booking) => Promise<void>;
-  onScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;
+  booking: Booking;
+  onEdit?: (booking: Booking) => void;
+  onView?: (booking: Booking) => void;
 }
 
-export const BookingDetailRow = ({
-  bookingsGroup,
-  onEditClick,
-  onAddNewJob,
-  isEditingDisabled,
-  handleStatusChange,
-  handleArtistAssignment,
-  statusOptions,
-  artists,
-  onDeleteJob,
-  onScheduleChange
-}: BookingDetailRowProps) => {
-  const mainBooking = bookingsGroup[0];
-  const [isExpanded, setIsExpanded] = useState(true);
-  const { user } = useAuth();
-  const isMember = user?.role === 'member';
-  
+export const BookingDetailRow: React.FC<BookingDetailRowProps> = ({ booking, onEdit, onView }) => {
   return (
-    <TableRow>
-      <TableCell colSpan={7} className="p-0 border-t-0">
-        <div className="bg-muted/20 p-4 rounded-md">
-          <div className="flex justify-between items-center mb-4">
-            <Collapsible open={isExpanded} onOpenChange={setIsExpanded} className="w-full">
-              <div className="flex justify-between items-center">
-                <div className="flex-1"></div> {/* Empty div where the header used to be */}
-                {!isMember && onAddNewJob && !isEditingDisabled && (
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => onAddNewJob(mainBooking)}
-                    >
-                      <Plus className="h-3 w-3 mr-1" /> Add New Job
-                    </Button>
-                  </div>
-                )}
-              </div>
-              
-              <CollapsibleContent>
-                <Separator className="my-4" />
-                <JobsTable 
-                  bookingsGroup={bookingsGroup} 
-                  onEditClick={onEditClick} 
-                  onDeleteJob={onDeleteJob} 
-                  isEditingDisabled={isEditingDisabled}
-                  handleStatusChange={handleStatusChange}
-                  handleArtistAssignment={handleArtistAssignment}
-                  onScheduleChange={onScheduleChange}
-                  statusOptions={statusOptions}
-                  artists={artists}
-                />
-              </CollapsibleContent>
-            </Collapsible>
+    <div className="bg-muted/40 p-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 md:mb-0">
+          <div>
+            <h4 className="font-semibold text-sm flex items-center">
+              <span className="mr-2">Booking #{booking.Booking_NO}</span>
+              <StatusBadge status={booking.Status || 'pending'} />
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              <Calendar className="h-3 w-3 inline mr-1" />
+              {booking.Booking_date}
+            </p>
           </div>
+          
+          <div>
+            <p className="text-sm font-medium">{booking.name}</p>
+            <p className="text-xs text-muted-foreground flex items-center">
+              <Phone className="h-3 w-3 mr-1" />
+              {booking.Phone_no}
+            </p>
+            <p className="text-xs text-muted-foreground flex items-center">
+              <Mail className="h-3 w-3 mr-1" />
+              {booking.email}
+            </p>
+          </div>
+          
+          {booking.Address && (
+            <div>
+              <p className="text-xs text-muted-foreground flex items-start">
+                <Home className="h-3 w-3 mr-1 mt-0.5" />
+                <span>{booking.Address} {booking.Pincode && `- ${booking.Pincode}`}</span>
+              </p>
+            </div>
+          )}
         </div>
-      </TableCell>
-    </TableRow>
+        
+        <div className="flex space-x-2">
+          {onView && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onView(booking)}
+            >
+              <Eye className="h-4 w-4 mr-1" /> View
+            </Button>
+          )}
+          
+          {onEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(booking)}
+            >
+              <Edit className="h-4 w-4 mr-1" /> Edit
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
