@@ -35,7 +35,7 @@ const BookingBanner = ({ onBookNow }: BookingBannerProps) => {
             variant="glass"
             size="lg"
             onClick={onBookNow}
-            className="hover:bg-white/30 backdrop-blur-md"
+            className="hover:bg-blue-100/70 bg-blue-100"
           >
             <Calendar className="mr-2" size={18} />
             Schedule Appointment
