@@ -1,7 +1,7 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, User, Settings, Home, Calendar, List, Package, Users, Palette, Heart } from "lucide-react";
+import { Menu, X, LogOut, User, Settings, Home, Calendar, List, Package, Users, Palette, Heart, BarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
@@ -91,6 +91,15 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
             <Heart className="w-5 h-5 mr-3" />
             <span>Wishlist</span>
           </Link>
+          
+          {/* Wishlist insights link for controller and superadmin */}
+          {(isController || isSuperAdmin) && (
+            <Link to="/admin/wishlist-insights"
+              className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <BarChart className="w-5 h-5 mr-3" />
+              <span>Wishlist Insights</span>
+            </Link>
+          )}
 
           {isAdmin && (
             <>
