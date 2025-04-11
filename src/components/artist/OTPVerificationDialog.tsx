@@ -35,14 +35,12 @@ export const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
     try {
       setIsVerifying(true);
       
-      // Check if OTP exists and is valid
+      // Check if OTP exists and is valid using a stored procedure
       const { data, error } = await supabase
-        .from('booking_otps')
-        .select('*')
-        .eq('booking_id', bookingId)
-        .eq('otp', otp)
-        .gt('expires_at', new Date().toISOString())
-        .maybeSingle();
+        .rpc('verify_booking_otp', { 
+          p_booking_id: bookingId,
+          p_otp: otp
+        });
       
       if (error) throw error;
       
@@ -54,12 +52,6 @@ export const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
         });
         return;
       }
-      
-      // Delete the used OTP
-      await supabase
-        .from('booking_otps')
-        .delete()
-        .eq('id', data.id);
       
       // OTP verified successfully
       toast({
@@ -121,7 +113,7 @@ export const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
             disabled={otp.length !== 6 || isVerifying}
             className="sm:w-auto w-full"
           >
-            {isVerifying ? "Verifying..." : "Verify & Start Service"}
+            {isVerifying ? "Verifying..." : "Verify OTP"}
           </Button>
         </DialogFooter>
       </DialogContent>

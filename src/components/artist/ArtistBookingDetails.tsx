@@ -29,15 +29,13 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       
       // Store OTP in the database with expiry (5 minutes)
+      // Using raw SQL query since the types don't know about the booking_otps table yet
       const { error } = await supabase
-        .from('booking_otps')
-        .insert([
-          { 
-            booking_id: booking.id, 
-            otp: otp,
-            expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString() 
-          }
-        ]);
+        .rpc('insert_booking_otp', { 
+          p_booking_id: booking.id, 
+          p_otp: otp,
+          p_expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString() 
+        });
         
       if (error) throw error;
       
@@ -69,12 +67,12 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
     setShowOtpDialog(false);
     
     try {
-      // Update booking status to service_started
-      await handleStatusChange(booking, "service_started");
+      // Update booking status to confirm after OTP verification
+      await handleStatusChange(booking, "confirm");
       
       toast({
-        title: "Service Started",
-        description: "The service has been confirmed and started successfully.",
+        title: "Service Confirmed",
+        description: "The service has been confirmed successfully.",
       });
     } catch (error) {
       console.error("Error confirming service:", error);
@@ -111,7 +109,7 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
   
   // Determine if actions should be enabled based on booking status
   const canConfirm = booking.Status === "approve" || booking.Status === "pending";
-  const canComplete = booking.Status === "service_started" || booking.Status === "ontheway";
+  const canComplete = booking.Status === "confirm" || booking.Status === "service_started" || booking.Status === "ontheway";
 
   return (
     <div className="space-y-4">
@@ -193,7 +191,7 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
               disabled={isConfirming}
               className="w-full sm:w-auto"
             >
-              {isConfirming ? "Sending OTP..." : "Confirm & Start Service"}
+              {isConfirming ? "Sending OTP..." : "Confirm Service"}
             </Button>
           )}
           

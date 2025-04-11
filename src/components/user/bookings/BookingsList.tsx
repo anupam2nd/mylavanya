@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { BookingDetailRow } from "./booking-table/BookingDetailRow";
-import { EditBookingDialog } from "./EditBookingDialog";
-import { useBookingEdit } from "@/hooks/useBookingEdit";
+import EditBookingDialog from "./EditBookingDialog"; 
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BookingsListProps {
   customBookings?: Booking[];
@@ -26,8 +26,7 @@ const BookingsList = ({
   onViewBooking
 }: BookingsListProps) => {
   const { statusOptions, fetchStatusOptions, handleStatusChange, handleArtistAssignment } = useBookingStatusManagement();
-  const { artists, fetchArtists } = useBookingArtists();
-  const { updateBookingSchedule, deleteJob } = useBookingEdit();
+  const { artists } = useBookingArtists();
   const { user } = useAuth();
   const isArtist = userRole === "artist" || user?.role === "artist";
 
@@ -48,7 +47,6 @@ const BookingsList = ({
 
   useEffect(() => {
     fetchStatusOptions();
-    fetchArtists();
   }, []);
 
   useEffect(() => {
@@ -81,13 +79,49 @@ const BookingsList = ({
     }
   };
 
-  const handleScheduleChangeWrapper = async (booking: Booking, date: string, time: string) => {
-    await updateBookingSchedule(booking, date, time);
-    
-    // Update local state
-    setBookings(prevBookings => 
-      prevBookings.map(b => b.id === booking.id ? { ...b, Booking_date: date, booking_time: time } : b)
-    );
+  const updateBookingSchedule = async (booking: Booking, date: string, time: string) => {
+    try {
+      const { error } = await supabase
+        .from('BookMST')
+        .update({ 
+          Booking_date: date, 
+          booking_time: time 
+        })
+        .eq('id', booking.id);
+
+      if (error) throw error;
+      
+      // Update local state
+      setBookings(prevBookings => 
+        prevBookings.map(b => b.id === booking.id ? { ...b, Booking_date: date, booking_time: time } : b)
+      );
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating booking schedule:", error);
+      return false;
+    }
+  };
+
+  const deleteJob = async (booking: Booking) => {
+    try {
+      const { error } = await supabase
+        .from('BookMST')
+        .delete()
+        .eq('id', booking.id);
+
+      if (error) throw error;
+      
+      // Update local state
+      setBookings(prevBookings => 
+        prevBookings.filter(b => b.id !== booking.id)
+      );
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      return false;
+    }
   };
 
   const handleEditClick = (booking: Booking) => {
@@ -104,11 +138,6 @@ const BookingsList = ({
   const handleDeleteJobWrapper = async (booking: Booking) => {
     if (window.confirm(`Are you sure you want to delete job #${booking.jobno}?`)) {
       await deleteJob(booking);
-      
-      // Update local state
-      setBookings(prevBookings => 
-        prevBookings.filter(b => b.id !== booking.id)
-      );
     }
   };
 
@@ -138,7 +167,7 @@ const BookingsList = ({
                 isEditingDisabled={false}
                 handleStatusChange={handleStatusChangeWrapper}
                 handleArtistAssignment={handleArtistAssignmentWrapper}
-                onScheduleChange={handleScheduleChangeWrapper}
+                onScheduleChange={updateBookingSchedule}
                 statusOptions={statusOptions}
                 artists={artists}
               />

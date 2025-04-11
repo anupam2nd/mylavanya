@@ -21,6 +21,10 @@ export const StatusBadge = ({ status, className, description, showTooltip = fals
       label: "Approved",
       variant: "secondary",
     },
+    confirm: {
+      label: "Confirmed",
+      variant: "secondary",
+    },
     process: {
       label: "In Process",
       variant: "default",
@@ -56,6 +60,7 @@ export const StatusBadge = ({ status, className, description, showTooltip = fals
         status === "process" && "bg-blue-600",
         status === "ontheway" && "bg-amber-600",
         status === "service_started" && "bg-indigo-600",
+        status === "confirm" && "bg-purple-600",
         className
       )}
     >
