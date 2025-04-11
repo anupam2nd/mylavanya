@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -28,14 +27,15 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
       // Generate a random 6-digit OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // Store OTP in the database with expiry (5 minutes)
-      // Using RPC function since booking_otps is not in TypeScript definitions
-      const { error } = await supabase
-        .rpc('insert_booking_otp', {
+      // Using a raw query with PostgreSQL function to bypass TypeScript definition limitations
+      const { error } = await supabase.rpc(
+        'insert_booking_otp' as any, 
+        {
           p_booking_id: booking.id,
           p_otp: otp,
           p_expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString()
-        });
+        }
+      );
         
       if (error) throw error;
       
