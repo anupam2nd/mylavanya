@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WishlistInsight } from "@/pages/admin/AdminWishlistInsights";
 import { ChartContainer } from "@/components/ui/chart";
