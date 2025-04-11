@@ -24,7 +24,7 @@ export const useOTPManagement = (booking: Booking) => {
         {
           p_booking_id: booking.id,
           p_otp: otp,
-          p_expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString()
+          p_expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString() // Extended to 15 minutes
         }
       );
         
