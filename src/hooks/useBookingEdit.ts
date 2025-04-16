@@ -59,7 +59,7 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
         updates.Status = values.status;
       }
       
-      // Handle artist assignment - Fix: Ensure artistId is properly handled
+      // Handle artist assignment - Now uses UUID string
       if (values.artistId !== undefined) {
         console.log("Artist ID in handleSaveChanges:", values.artistId);
         updates.ArtistId = values.artistId;

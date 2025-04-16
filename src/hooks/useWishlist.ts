@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -7,7 +6,7 @@ import { toast } from "sonner";
 export interface WishlistItem {
   id: number;
   user_id: string;
-  service_id: number;
+  service_id: string;
   created_at: string;
   service_name: string;
   service_price?: number;
@@ -20,7 +19,6 @@ export const useWishlist = () => {
   const [loading, setLoading] = useState(true);
   const { user, isAuthenticated } = useAuth();
 
-  // Fetch wishlist items
   const fetchWishlist = useCallback(async () => {
     if (!isAuthenticated || !user) {
       setWishlistItems([]);
@@ -31,11 +29,9 @@ export const useWishlist = () => {
     try {
       setLoading(true);
       
-      // Get user ID
       const userId = user.id;
       console.log("Fetching wishlist for user:", userId);
       
-      // Query with UUID user_id
       const response = await supabase
         .from('wishlist')
         .select(`
@@ -58,7 +54,6 @@ export const useWishlist = () => {
       }
 
       if (response.data) {
-        // Transform data to match expected format
         const transformedData = response.data.map(item => ({
           id: item.id,
           user_id: item.user_id,
@@ -85,15 +80,13 @@ export const useWishlist = () => {
     }
   }, [isAuthenticated, user]);
 
-  // Add item to wishlist
-  const addToWishlist = async (serviceId: number) => {
+  const addToWishlist = async (serviceId: string) => {
     if (!isAuthenticated || !user) {
       toast.error("Please log in to add to wishlist");
       return false;
     }
 
     try {
-      // Check if the item is already in the wishlist
       const existingItem = wishlistItems.find(item => item.service_id === serviceId);
 
       if (existingItem) {
@@ -101,11 +94,9 @@ export const useWishlist = () => {
         return true;
       }
 
-      // Use the user ID as is, without converting to string
       const userId = user.id;
       console.log("Adding to wishlist for user:", userId, "service:", serviceId);
       
-      // Insert with UUID user_id
       const response = await supabase
         .from('wishlist')
         .insert([
@@ -117,7 +108,7 @@ export const useWishlist = () => {
         throw response.error;
       }
 
-      await fetchWishlist(); // Refresh wishlist
+      await fetchWishlist();
       toast.success("Added to wishlist");
       return true;
     } catch (error) {
@@ -127,7 +118,6 @@ export const useWishlist = () => {
     }
   };
 
-  // Remove from wishlist
   const removeFromWishlist = async (wishlistItemId: number) => {
     if (!isAuthenticated || !user) {
       toast.error("Please log in to manage your wishlist");
@@ -135,10 +125,9 @@ export const useWishlist = () => {
     }
 
     try {
-      const userId = user.id; // Use UUID directly
+      const userId = user.id;
       console.log("Removing from wishlist for user:", userId, "item:", wishlistItemId);
       
-      // Delete with UUID user_id
       const response = await supabase
         .from('wishlist')
         .delete()
@@ -150,7 +139,6 @@ export const useWishlist = () => {
         throw response.error;
       }
 
-      // Update local state
       setWishlistItems(prev => prev.filter(item => item.id !== wishlistItemId));
       toast.success("Removed from wishlist");
       return true;
@@ -161,12 +149,10 @@ export const useWishlist = () => {
     }
   };
 
-  // Check if a service is in wishlist
-  const isInWishlist = (serviceId: number) => {
+  const isInWishlist = (serviceId: string) => {
     return wishlistItems.some(item => item.service_id === serviceId);
   };
 
-  // Load wishlist on auth state change
   useEffect(() => {
     if (isAuthenticated && user) {
       fetchWishlist();

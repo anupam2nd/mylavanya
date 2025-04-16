@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,18 +15,17 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
         const { data: authSession } = await supabase.auth.getSession();
         
         if (authSession?.session?.user?.id) {
-          const userId = parseInt(authSession.session.user.id, 10);
+          // User ID is now a UUID string, no need to parse as integer
+          const userId = authSession.session.user.id;
           
-          if (!isNaN(userId)) {
-            const { data, error } = await supabase
-              .from('UserMST')
-              .select('Username, FirstName, LastName')
-              .eq('id', userId)
-              .single();
+          const { data, error } = await supabase
+            .from('UserMST')
+            .select('Username, FirstName, LastName')
+            .eq('id', userId)
+            .single();
               
-            if (!error && data) {
-              setCurrentUser(data);
-            }
+          if (!error && data) {
+            setCurrentUser(data);
           }
         }
       } catch (error) {
@@ -36,7 +36,7 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
     fetchCurrentUser();
   }, []);
 
-  const handleArtistAssignWithUser = async (booking: Booking, artistId: number) => {
+  const handleArtistAssignWithUser = async (booking: Booking, artistId: string) => {
     try {
       const { data, error: artistError } = await supabase
         .from('ArtistMST')

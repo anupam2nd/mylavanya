@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBookings, Booking } from "@/hooks/useBookings";
@@ -33,31 +32,27 @@ export const useAdminBookings = () => {
         const { data: authSession } = await supabase.auth.getSession();
         
         if (authSession?.session?.user?.id) {
-          const userId = parseInt(authSession.session.user.id, 10);
+          const userId = authSession.session.user.id;
           
-          if (!isNaN(userId)) {
-            const { data, error } = await supabase
-              .from('UserMST')
-              .select('Username, FirstName, LastName, role')
-              .eq('id', userId)
-              .single();
+          const { data, error } = await supabase
+            .from('UserMST')
+            .select('Username, FirstName, LastName, role')
+            .eq('id', userId)
+            .single();
               
-            if (!error && data) {
-              console.log("Current user data fetched:", data);
-              setCurrentUser(data);
-            } else {
-              console.error("Error fetching user data:", error);
-              if (authUser) {
-                setCurrentUser({
-                  Username: authUser.email?.split('@')[0] || '',
-                  FirstName: '',
-                  LastName: '',
-                  role: authUser.role
-                });
-              }
-            }
+          if (!error && data) {
+            console.log("Current user data fetched:", data);
+            setCurrentUser(data);
           } else {
-            console.error("Invalid user ID format:", authSession.session.user.id);
+            console.error("Error fetching user data:", error);
+            if (authUser) {
+              setCurrentUser({
+                Username: authUser.email?.split('@')[0] || '',
+                FirstName: '',
+                LastName: '',
+                role: authUser.role
+              });
+            }
           }
         } else {
           console.warn("No active session found");
@@ -98,7 +93,7 @@ export const useAdminBookings = () => {
     });
   };
 
-  const handleArtistAssignWithUser = async (booking: Booking, artistId: number) => {
+  const handleArtistAssignWithUser = async (booking: Booking, artistId: string) => {
     await handleArtistAssignment(booking, artistId);
     
     const bookingIndex = bookings.findIndex(b => b.id === booking.id);
@@ -124,10 +119,7 @@ export const useAdminBookings = () => {
         .delete()
         .eq('id', booking.id);
 
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       setBookings(bookings.filter(b => b.id !== booking.id));
       
       toast({
@@ -154,23 +146,13 @@ export const useAdminBookings = () => {
         })
         .eq('id', booking.id);
 
-      if (error) {
-        throw error;
-      }
-
-      const bookingIndex = bookings.findIndex(b => b.id === booking.id);
-      if (bookingIndex !== -1) {
-        const updatedBooking = {
-          ...booking,
-          Booking_date: date,
-          booking_time: time
-        };
-        
-        const updatedBookings = [...bookings];
-        updatedBookings[bookingIndex] = updatedBooking;
-        setBookings(updatedBookings);
-      }
-      
+      if (error) throw error;
+      const updatedBookings = bookings.map(b => 
+        b.id === booking.id 
+          ? { ...b, Booking_date: date, booking_time: time } 
+          : b
+      );
+      setBookings(updatedBookings);
       toast({
         title: "Schedule updated",
         description: `Booking schedule has been updated to ${date} at ${time}`,

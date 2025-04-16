@@ -25,10 +25,9 @@ export const useUserBookings = () => {
         // Apply different filters based on user role
         if (user.role === 'artist') {
           // For artists, only show bookings assigned to them
-          const artistId = parseInt(user.id, 10);
-          if (!isNaN(artistId)) {
-            console.log("Filtering bookings by artist ID:", artistId);
-            query = query.eq('ArtistId', artistId);
+          if (user.id) {
+            console.log("Filtering bookings by artist ID:", user.id);
+            query = query.eq('ArtistId', user.id);
           }
         } 
         else if (user.role === 'member') {

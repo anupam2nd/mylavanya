@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Booking {
-  id: number;
+  id: string; // Changed from number to string for UUID
   Booking_NO: string;
   jobno?: number;
   name: string;
@@ -25,10 +25,10 @@ export interface Booking {
   Assignedto?: string;
   AssignedBY?: string;
   AssingnedON?: string;
-  ArtistId?: number;
+  ArtistId?: string; // Changed from number to string for UUID
   created_at?: string;
-  prod_id?: number; // Added this field to match with database schema
-  Scheme?: string;  // Added Scheme property to resolve TypeScript errors
+  Product?: string; // Changed from number to string for UUID
+  Scheme?: string;
 }
 
 export const useBookings = () => {

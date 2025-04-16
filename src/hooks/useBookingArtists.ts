@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Artist {
-  ArtistId: number;
+  ArtistId: string; // Changed from number to string for UUID
   ArtistFirstName: string;
   ArtistLastName: string;
 }

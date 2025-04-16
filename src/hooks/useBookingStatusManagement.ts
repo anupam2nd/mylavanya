@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -95,10 +94,10 @@ export const useBookingStatusManagement = () => {
     }
   };
 
-  // Handle artist assignment
-  const handleArtistAssignment = async (booking: Booking, artistId: number) => {
+  // Handle artist assignment - Now uses UUID string for artistId
+  const handleArtistAssignment = async (booking: Booking, artistId: string) => {
     try {
-      if (artistId === 0 || isNaN(artistId)) {
+      if (!artistId) {
         console.error("Invalid artist ID:", artistId);
         toast({
           variant: "destructive",
@@ -125,7 +124,7 @@ export const useBookingStatusManagement = () => {
         return;
       }
 
-      const artistName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim() || `Artist #${artistId}`;
+      const artistName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim() || `Artist ${artistId}`;
       
       const { error } = await supabase
         .from('BookMST')
@@ -167,7 +166,23 @@ export const useBookingStatusManagement = () => {
 
   return { 
     statusOptions, 
-    fetchStatusOptions, 
+    fetchStatusOptions: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('statusmst')
+          .select('status_code, status_name')
+          .eq('active', true);
+
+        if (error) {
+          console.error("Error fetching status options:", error);
+          return;
+        }
+
+        setStatusOptions(data || []);
+      } catch (error) {
+        console.error("Error in fetchStatusOptions:", error);
+      }
+    },
     handleStatusChange, 
     handleArtistAssignment 
   };
