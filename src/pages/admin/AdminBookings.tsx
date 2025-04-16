@@ -12,6 +12,8 @@ import BookingHeader from "@/components/admin/bookings/BookingHeader";
 import BookingSummary from "@/components/admin/bookings/BookingSummary";
 import { useAdminBookings } from "@/hooks/useAdminBookings";
 import { Booking } from "@/hooks/useBookings";
+import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
+import { useArtistAssignment } from "@/hooks/useArtistAssignment";
 
 const AdminBookings = () => {
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
@@ -25,8 +27,6 @@ const AdminBookings = () => {
     setOpenDialog,
     handleEditClick,
     handleSaveWithUserData,
-    handleStatusChange,
-    handleArtistAssignWithUser,
     handleDeleteJob,
     handleScheduleChange,
     handleAddNewJob,
@@ -35,6 +35,13 @@ const AdminBookings = () => {
     selectedBookingForNewJob,
     handleNewJobSuccess
   } = useAdminBookings();
+  
+  // Import these from the appropriate hooks
+  const { handleStatusChange } = useBookingStatusManagement();
+  const { handleArtistAssignWithUser } = useArtistAssignment(bookings, setBookings => {
+    // This is a placeholder function to pass to useArtistAssignment.
+    // The actual setBookings is handled in useAdminBookings
+  });
   
   const {
     filteredBookings,

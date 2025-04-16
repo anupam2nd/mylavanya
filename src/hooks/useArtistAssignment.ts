@@ -38,7 +38,6 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
 
   const handleArtistAssignWithUser = async (booking: Booking, artistId: string) => {
     try {
-      // Use artistId directly as string
       if (!artistId) {
         throw new Error("Invalid artist ID");
       }
