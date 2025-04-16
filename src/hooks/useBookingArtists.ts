@@ -26,7 +26,13 @@ export const useBookingArtists = () => {
           return;
         }
 
-        setArtists(data || []);
+        // Convert the numeric ArtistId to string if needed
+        const artistsWithStringIds = data?.map(artist => ({
+          ...artist,
+          ArtistId: artist.ArtistId.toString()
+        })) || [];
+
+        setArtists(artistsWithStringIds);
       } catch (error) {
         console.error("Error in fetchArtists:", error);
       } finally {

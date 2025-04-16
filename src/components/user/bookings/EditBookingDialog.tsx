@@ -89,7 +89,7 @@ const EditBookingDialog = ({
         if (error) throw error;
         
         const options = data.map(artist => ({
-          ArtistId: artist.ArtistId,
+          ArtistId: artist.ArtistId.toString(),
           displayName: `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim()
         }));
         

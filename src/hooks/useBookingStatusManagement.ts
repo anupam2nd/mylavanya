@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +36,7 @@ export const useBookingStatusManagement = () => {
       
       const notifications = booking.email ? [{
         recipient_email: booking.email,
-        booking_id: booking.id,
+        booking_id: booking.id.toString(), // Ensure booking_id is a string
         booking_no: booking.Booking_NO || '',
         message,
         is_read: false,

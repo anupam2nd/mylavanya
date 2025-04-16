@@ -11,7 +11,7 @@ export const EditBookingFormSchema = z.object({
   subService: z.string().optional(),
   product: z.string().optional(),
   quantity: z.number().optional(),
-  artistId: z.string().nullable(),
+  artistId: z.string().nullable(), // Changed from number to string
   currentUser: z.object({
     Username: z.string().optional(),
     FirstName: z.string().optional(),

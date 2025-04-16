@@ -101,7 +101,12 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
 
         if (error) throw error;
         
-        setProductOptions(data || []);
+        const productsWithStringIds = data.map(product => ({
+          ...product,
+          prod_id: product.prod_id.toString()
+        }));
+        
+        setProductOptions(productsWithStringIds);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
@@ -120,7 +125,12 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
 
         if (error) throw error;
         
-        setArtistOptions(data || []);
+        const artistsWithStringIds = data.map(artist => ({
+          ...artist,
+          ArtistId: artist.ArtistId.toString()
+        }));
+        
+        setArtistOptions(artistsWithStringIds);
       } catch (error) {
         console.error('Error fetching artists:', error);
       }

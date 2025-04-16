@@ -25,9 +25,9 @@ export interface Booking {
   Assignedto?: string;
   AssignedBY?: string;
   AssingnedON?: string;
-  ArtistId?: string; // UUID string type
+  ArtistId?: string; // Changed from number to string for UUID
   created_at?: string;
-  Product?: string; // UUID string type
+  Product?: string; // Changed from number to string for UUID
   Scheme?: string;
 }
 

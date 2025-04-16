@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { ArtistAssignmentSelect } from "./ArtistAssignmentSelect";
 import { JobScheduleCell } from "./JobScheduleCell";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useAuth } from "@/context/AuthContext";
+import { Artist } from "@/hooks/useBookingArtists";
 
 interface JobTableRowProps {
   booking: Booking;

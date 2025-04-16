@@ -4,6 +4,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@
 import { Booking } from "@/hooks/useBookings";
 import { JobTableRow } from "./JobTableRow";
 import { useAuth } from "@/context/AuthContext";
+import { Artist } from "@/hooks/useBookingArtists";
 
 interface JobsTableProps {
   bookingsGroup: Booking[];
@@ -11,10 +12,10 @@ interface JobsTableProps {
   onDeleteJob?: (booking: Booking) => Promise<void>;
   isEditingDisabled: boolean;
   handleStatusChange: (booking: Booking, newStatus: string) => Promise<void>;
-  handleArtistAssignment: (booking: Booking, artistId: number) => Promise<void>;
+  handleArtistAssignment: (booking: Booking, artistId: string) => Promise<void>;
   onScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;
   statusOptions: {status_code: string; status_name: string}[];
-  artists: {ArtistId: number; ArtistFirstName: string; ArtistLastName: string}[];
+  artists: Artist[];
 }
 
 export const JobsTable = ({

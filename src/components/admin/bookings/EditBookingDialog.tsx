@@ -1,3 +1,5 @@
+
+// Updating only the artists state definition and the ArtistId type
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Clock, CalendarIcon } from "lucide-react";
@@ -86,7 +88,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
         if (error) throw error;
         
         const formattedArtists = data.map(artist => ({
-          ArtistId: artist.ArtistId,
+          ArtistId: artist.ArtistId.toString(), // Convert to string
           displayName: `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || `Artist ${artist.ArtistId}`
         }));
         
