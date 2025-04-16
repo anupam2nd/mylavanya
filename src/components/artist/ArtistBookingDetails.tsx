@@ -10,6 +10,7 @@ import ServiceInfoCard from "@/components/artist/booking-details/ServiceInfoCard
 import BookingNotes from "@/components/artist/booking-details/BookingNotes";
 import BookingActions from "@/components/artist/booking-details/BookingActions";
 import EditServiceDialog from "@/components/artist/EditServiceDialog";
+import AddJobDialog from "@/components/artist/AddJobDialog";
 import { toast } from "@/components/ui/use-toast";
 import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
 
@@ -44,13 +45,7 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
   };
 
   const handleAddNewJob = () => {
-    // For now, just show a toast since we don't have the "Add Job" dialog implemented
-    toast({
-      title: "Add New Job",
-      description: "This feature will be implemented in the future.",
-    });
-    // In a real implementation, we would show the add job dialog:
-    // setShowAddJobDialog(true);
+    setShowAddJobDialog(true);
   };
   
   return (
@@ -94,7 +89,11 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
         booking={booking}
       />
 
-      {/* Add New Job Dialog would go here in a future implementation */}
+      <AddJobDialog
+        isOpen={showAddJobDialog}
+        onClose={() => setShowAddJobDialog(false)}
+        booking={booking}
+      />
     </div>
   );
 };
