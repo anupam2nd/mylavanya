@@ -38,10 +38,13 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
 
   const handleArtistAssignWithUser = async (booking: Booking, artistId: string) => {
     try {
+      // Convert artistId to number for database query
+      const numericArtistId = parseInt(artistId);
+      
       const { data, error: artistError } = await supabase
         .from('ArtistMST')
         .select('ArtistFirstName, ArtistLastName')
-        .eq('ArtistId', artistId)
+        .eq('ArtistId', numericArtistId)
         .single();
       
       if (artistError) {
@@ -50,13 +53,10 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
       
       const artistName = `${data.ArtistFirstName || ''} ${data.ArtistLastName || ''}`.trim();
       
-      // Convert artistId to number for database query if necessary
-      const numericArtistId = parseInt(artistId);
-      
       const { error } = await supabase
         .from('BookMST')
         .update({ 
-          ArtistId: numericArtistId, // Convert to number for storage
+          ArtistId: numericArtistId, // Store as number in database
           Assignedto: artistName,
           AssingnedON: new Date().toISOString(),
           AssignedBY: currentUser?.FirstName || currentUser?.Username || 'User'

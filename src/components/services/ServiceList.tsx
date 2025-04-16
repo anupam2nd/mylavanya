@@ -4,8 +4,13 @@ import { useServices } from "@/hooks/useServices";
 import { ServiceCard } from "@/components/services/ServiceCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const ServiceList = () => {
-  const { services, loading } = useServices();
+interface ServiceListProps {
+  categoryFilter?: string;
+  sortOrder?: 'asc' | 'desc' | 'none';
+}
+
+const ServiceList: React.FC<ServiceListProps> = ({ categoryFilter, sortOrder = 'none' }) => {
+  const { services, loading } = useServices(categoryFilter, sortOrder);
 
   if (loading) {
     return <div>Loading services...</div>;
@@ -17,7 +22,7 @@ const ServiceList = () => {
         {services.map((service) => (
           <ServiceCard
             key={service.id}
-            id={service.id.toString()}
+            id={service.id}
             title={service.title || service.name || "Unnamed Service"}
             price={service.price || 0}
             category={service.category}

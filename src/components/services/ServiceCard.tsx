@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/hooks/useWishlist";
 
 interface ServiceCardProps {
-  id: string; // Changed from number to string for UUID consistency
+  id: string;
   title: string;
   price: number;
   category?: string;
@@ -42,7 +42,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   // Check if service is in wishlist
   const serviceInWishlist = isWishlisted !== undefined 
     ? isWishlisted 
-    : wishlistItems.some(item => item.service_id.toString() === id.toString());
+    : wishlistItems.some(item => item.service_id === id);
   
   const handleToggleWishlist = async () => {
     if (onToggleWishlist) {
@@ -54,7 +54,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     
     try {
       if (serviceInWishlist) {
-        const wishlistEntry = wishlistItems.find(item => item.service_id.toString() === id.toString());
+        const wishlistEntry = wishlistItems.find(item => item.service_id === id);
         if (wishlistEntry) {
           await removeFromWishlist(wishlistEntry.id);
         }

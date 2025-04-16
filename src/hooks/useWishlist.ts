@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -57,7 +58,7 @@ export const useWishlist = () => {
         const transformedData = response.data.map(item => ({
           id: item.id,
           user_id: item.user_id,
-          service_id: item.service_id,
+          service_id: item.service_id.toString(), // Convert to string
           created_at: item.created_at,
           service_name: item.PriceMST?.ProductName || '',
           service_price: item.PriceMST?.Price,
@@ -97,10 +98,13 @@ export const useWishlist = () => {
       const userId = user.id;
       console.log("Adding to wishlist for user:", userId, "service:", serviceId);
       
+      // Convert string serviceId to number for database
+      const numericServiceId = parseInt(serviceId);
+      
       const response = await supabase
         .from('wishlist')
         .insert([
-          { service_id: serviceId, user_id: userId }
+          { service_id: numericServiceId, user_id: userId }
         ]);
         
       if (response.error) {
