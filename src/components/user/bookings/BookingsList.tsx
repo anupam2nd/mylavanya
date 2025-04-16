@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
-import { useBookingArtists } from "@/hooks/useBookingArtists";
+import { useBookingArtists, Artist } from "@/hooks/useBookingArtists";
 import { JobsTable } from "./booking-table/JobsTable";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -66,7 +66,7 @@ const BookingsList = ({
     );
   };
 
-  const handleArtistAssignmentWrapper = async (booking: Booking, artistId: number) => {
+  const handleArtistAssignmentWrapper = async (booking: Booking, artistId: string) => {
     await handleArtistAssignment(booking, artistId);
     
     // Update local state based on the artist assigned

@@ -57,7 +57,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   handleSaveChanges,
   statusOptions,
 }) => {
-  const [artists, setArtists] = useState<{ ArtistId: number; displayName: string }[]>([]);
+  const [artists, setArtists] = useState<{ ArtistId: string; displayName: string }[]>([]);
   const [requiresArtist, setRequiresArtist] = useState(false);
   
   const form = useForm<EditBookingFormValues>({
@@ -303,8 +303,8 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                         <FormLabel className="text-right">Assign Artist</FormLabel>
                         <div className="col-span-3">
                           <Select
-                            onValueChange={(value) => field.onChange(parseInt(value, 10))}
-                            value={field.value?.toString() || ""}
+                            onValueChange={(value) => field.onChange(value)}
+                            value={field.value || ""}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -313,7 +313,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                             </FormControl>
                             <SelectContent>
                               {artists.map((artist) => (
-                                <SelectItem key={artist.ArtistId} value={artist.ArtistId.toString()}>
+                                <SelectItem key={artist.ArtistId} value={artist.ArtistId}>
                                   {artist.displayName}
                                 </SelectItem>
                               ))}

@@ -2,6 +2,7 @@
 import React from "react";
 import AdminBookingsList from "./AdminBookingsList";
 import { Booking } from "@/hooks/useBookings";
+import { Artist } from "@/hooks/useBookingArtists";
 
 interface BookingListContentProps {
   loading: boolean;
@@ -10,9 +11,9 @@ interface BookingListContentProps {
   handleEditClick: (booking: Booking) => void;
   handleAddNewJob?: (booking: Booking) => void;
   statusOptions: {status_code: string; status_name: string}[];
-  artists: {ArtistId: number; ArtistFirstName: string; ArtistLastName: string}[];
+  artists: Artist[];
   handleStatusChange: (booking: Booking, newStatus: string) => Promise<void>;
-  handleArtistAssignment: (booking: Booking, artistId: number) => Promise<void>;
+  handleArtistAssignment: (booking: Booking, artistId: string) => Promise<void>;
   isEditingDisabled: boolean;
   handleDeleteJob?: (booking: Booking) => Promise<void>;
   handleScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;

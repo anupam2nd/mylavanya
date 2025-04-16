@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -34,7 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import TimeSlotPicker from "./TimeSlotPicker";
 
 interface ProductOption {
-  prod_id: number;
+  prod_id: string;
   ProductName: string;
   Services: string;
   Subservice: string;
@@ -44,7 +43,7 @@ interface ProductOption {
 }
 
 interface ArtistOption {
-  ArtistId: number;
+  ArtistId: string;
   ArtistFirstName: string | null;
   ArtistLastName: string | null;
 }
@@ -75,7 +74,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
   const [pincode, setPincode] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<string>("pending");
-  const [artistId, setArtistId] = useState<number | null>(null);
+  const [artistId, setArtistId] = useState<string | null>(null);
   
   const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
   const [artistOptions, setArtistOptions] = useState<ArtistOption[]>([]);
@@ -84,14 +83,12 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
   useEffect(() => {
     if (booking) {
       setDate(new Date());
-      // Set a default time like "09:00" (9 AM)
       setTime("09:00");
       setAddress(booking.Address || "");
       setPincode(booking.Pincode?.toString() || "");
     }
   }, [booking]);
 
-  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -112,7 +109,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     fetchProducts();
   }, []);
 
-  // Fetch artists
   useEffect(() => {
     const fetchArtists = async () => {
       try {
@@ -132,7 +128,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     fetchArtists();
   }, []);
 
-  // Fetch status options
   useEffect(() => {
     const fetchStatusOptions = async () => {
       try {
@@ -153,7 +148,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     fetchStatusOptions();
   }, []);
 
-  // Update selectedProductDetails when product changes
   useEffect(() => {
     if (product) {
       const productDetail = productOptions.find(p => p.ProductName === product);
@@ -166,13 +160,12 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     }
   }, [product, productOptions]);
 
-  // Check if status requires artist assignment
   const requiresArtist = (statusValue: string): boolean => {
     const artistRequiredStatuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done'];
     return artistRequiredStatuses.includes(statusValue);
   };
 
-  const getArtistName = (id: number): string => {
+  const getArtistName = (id: string): string => {
     const artist = artistOptions.find(a => a.ArtistId === id);
     if (!artist) return `Artist ${id}`;
     
@@ -192,7 +185,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       return;
     }
 
-    // Check if artist is required but not selected
     if (requiresArtist(status) && !artistId) {
       toast({
         title: "Artist required",
@@ -205,12 +197,10 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     setIsSubmitting(true);
 
     try {
-      // Calculate price
       const price = selectedProductDetails.NetPayable !== undefined && selectedProductDetails.NetPayable !== null 
         ? selectedProductDetails.NetPayable 
         : selectedProductDetails.Price;
 
-      // Find the highest job number for this booking
       const { data: existingJobs, error: queryError } = await supabase
         .from('BookMST')
         .select('jobno')
@@ -223,7 +213,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         throw queryError;
       }
       
-      // Calculate the next job number
       const highestJobNo = existingJobs && existingJobs.length > 0 && existingJobs[0].jobno !== null 
         ? Number(existingJobs[0].jobno) 
         : 0;
@@ -231,7 +220,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       const nextJobNo = highestJobNo + 1;
       console.log("Creating new job with job number:", nextJobNo);
 
-      // Create new booking record with same booking_no but new job
       const newBookingData: any = {
         Booking_NO: booking.Booking_NO,
         name: booking.name,
@@ -253,12 +241,10 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         jobno: nextJobNo,
       };
 
-      // Add artist assignment fields if required
       if (requiresArtist(status) && artistId) {
         newBookingData.ArtistId = artistId;
         newBookingData.Assignedto = getArtistName(artistId);
         
-        // Set AssignedBY to current user's full name instead of just username
         if (currentUser) {
           const firstName = currentUser.FirstName || '';
           const lastName = currentUser.LastName || '';
@@ -266,7 +252,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
           if (firstName || lastName) {
             newBookingData.AssignedBY = `${firstName} ${lastName}`.trim();
           } else {
-            // Fallback to username if no name is available
             newBookingData.AssignedBY = currentUser.Username || 'admin';
           }
         } else {
@@ -279,7 +264,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
 
       console.log("Creating new job with data:", newBookingData);
 
-      // Insert the new booking
       const { data: newBooking, error: insertError } = await supabase
         .from('BookMST')
         .insert(newBookingData)

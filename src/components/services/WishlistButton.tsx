@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import AuthModal from "@/components/auth/AuthModal";
 import { useNavigate } from "react-router-dom";
 
 interface WishlistButtonProps {
-  serviceId: number;
+  serviceId: string; // Changed to string for UUID
   variant?: "icon" | "button";
   className?: string;
 }

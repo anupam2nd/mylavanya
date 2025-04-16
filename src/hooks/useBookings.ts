@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Booking {
-  id: string; // Changed from number to string for UUID
+  id: string; // UUID string type
   Booking_NO: string;
   jobno?: number;
   name: string;
@@ -25,9 +25,9 @@ export interface Booking {
   Assignedto?: string;
   AssignedBY?: string;
   AssingnedON?: string;
-  ArtistId?: string; // Changed from number to string for UUID
+  ArtistId?: string; // UUID string type
   created_at?: string;
-  Product?: string; // Changed from number to string for UUID
+  Product?: string; // UUID string type
   Scheme?: string;
 }
 

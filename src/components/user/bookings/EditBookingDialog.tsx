@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock, User, Mail, MapPin, Phone, Package, Plus } from "lucide-react";
@@ -33,12 +34,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface ArtistOption {
-  ArtistId: number;
+  ArtistId: string;
   displayName: string;
 }
 
 interface ServiceOption {
-  prod_id: number;
+  prod_id: string;
   ProductName: string;
   Services: string;
   Subservice: string;
@@ -67,7 +68,7 @@ const EditBookingDialog = ({
   const [editStatus, setEditStatus] = useState<string>("");
   const [editAddress, setEditAddress] = useState<string>("");
   const [editPincode, setEditPincode] = useState<string>("");
-  const [editArtist, setEditArtist] = useState<number | null>(null);
+  const [editArtist, setEditArtist] = useState<string | null>(null);
   const [editQty, setEditQty] = useState<number>(1);
   const [showNewJobDialog, setShowNewJobDialog] = useState<boolean>(false);
   
@@ -146,7 +147,7 @@ const EditBookingDialog = ({
     }
     
     if (editPincode !== (booking.Pincode?.toString() || "")) {
-      updates.Pincode = editPincode ? parseInt(editPincode, 10) : null;
+      updates.Pincode = editPincode ? parseInt(editPincode, 10) : undefined;
     }
     
     if (editQty !== booking.Qty && editQty > 0) {

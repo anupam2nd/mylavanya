@@ -4,8 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface Artist {
   ArtistId: string; // Changed from number to string for UUID
-  ArtistFirstName: string;
-  ArtistLastName: string;
+  ArtistFirstName: string | null;
+  ArtistLastName: string | null;
 }
 
 export const useBookingArtists = () => {
