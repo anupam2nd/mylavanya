@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Booking {
-  id: string; // UUID string type
+  id: number; // Keep numeric ID for internal use
+  uuid: string; // New UUID field
   Booking_NO: string;
   jobno?: number;
   name: string;
@@ -25,9 +25,9 @@ export interface Booking {
   Assignedto?: string;
   AssignedBY?: string;
   AssingnedON?: string;
-  ArtistId?: string; // Changed from number to string for UUID
+  ArtistId?: string; // Updated to use string for UUID
   created_at?: string;
-  Product?: string; // Changed from number to string for UUID
+  Product?: string; // Updated to use string for UUID
   Scheme?: string;
 }
 
@@ -49,7 +49,8 @@ export const useBookings = () => {
       // Convert any numeric IDs to string types for consistency
       const formattedBookings = data?.map(booking => ({
         ...booking,
-        id: booking.id.toString(),
+        id: booking.id,
+        uuid: booking.id.toString(),
         ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
         Product: booking.Product ? booking.Product.toString() : undefined
       })) || [];

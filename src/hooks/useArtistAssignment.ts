@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,12 +37,10 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
 
   const handleArtistAssignWithUser = async (booking: Booking, artistId: string) => {
     try {
-      // Convert artistId to number for database query
+      // Convert artistId to number for database
       const numericArtistId = parseInt(artistId);
-      
-      // Handle potential NaN conversion
       if (isNaN(numericArtistId)) {
-        throw new Error("Invalid artist ID format");
+        throw new Error("Invalid artist ID");
       }
       
       const { data, error: artistError } = await supabase
@@ -58,43 +55,32 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
       
       const artistName = `${data.ArtistFirstName || ''} ${data.ArtistLastName || ''}`.trim();
       
-      // Convert booking.id to number if it's a string (as in our interface)
-      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
-      
       const { error } = await supabase
         .from('BookMST')
-        .update({ 
-          ArtistId: numericArtistId, // Store as number in database
+        .update({
+          ArtistId: numericArtistId,
           Assignedto: artistName,
-          AssingnedON: new Date().toISOString(),
-          AssignedBY: currentUser?.FirstName || currentUser?.Username || 'User'
-        })
-        .eq('id', bookingIdNumber);
-
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Failed to assign artist",
-          description: error.message,
-        });
-        return;
-      }
-
-      const bookingIndex = bookings.findIndex(b => b.id === booking.id);
-      if (bookingIndex !== -1) {
-        const updatedBooking = {
-          ...booking,
-          ArtistId: artistId, // Keep as string in frontend
-          Assignedto: artistName,
-          AssignedBY: currentUser?.FirstName || currentUser?.Username || 'User',
+          AssignedBY: currentUser?.FirstName || currentUser?.Username || 'Admin',
           AssingnedON: new Date().toISOString()
-        };
-        
-        const updatedBookings = [...bookings];
-        updatedBookings[bookingIndex] = updatedBooking;
-        setBookings(updatedBookings);
-      }
+        })
+        .eq('id', booking.id);
 
+      if (error) throw error;
+      
+      const updatedBookings = bookings.map(b => 
+        b.id === booking.id 
+          ? { 
+              ...b, 
+              ArtistId: artistId,
+              Assignedto: artistName,
+              AssignedBY: currentUser?.FirstName || currentUser?.Username || 'Admin',
+              AssingnedON: new Date().toISOString()
+            } 
+          : b
+      );
+      
+      setBookings(updatedBookings);
+      
       toast({
         title: "Artist assigned",
         description: `Booking assigned to ${artistName}`,

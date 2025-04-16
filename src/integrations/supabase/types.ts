@@ -24,6 +24,7 @@ export type Database = {
           password: string | null
           Source: string | null
           userid: string | null
+          uuid: string
         }
         Insert: {
           Active?: boolean | null
@@ -39,6 +40,7 @@ export type Database = {
           password?: string | null
           Source?: string | null
           userid?: string | null
+          uuid?: string
         }
         Update: {
           Active?: boolean | null
@@ -54,6 +56,7 @@ export type Database = {
           password?: string | null
           Source?: string | null
           userid?: string | null
+          uuid?: string
         }
         Relationships: []
       }
@@ -84,6 +87,7 @@ export type Database = {
           Status: string | null
           StatusUpdated: string | null
           SubService: string | null
+          uuid: string
         }
         Insert: {
           Address?: string | null
@@ -111,6 +115,7 @@ export type Database = {
           Status?: string | null
           StatusUpdated?: string | null
           SubService?: string | null
+          uuid?: string
         }
         Update: {
           Address?: string | null
@@ -138,6 +143,7 @@ export type Database = {
           Status?: string | null
           StatusUpdated?: string | null
           SubService?: string | null
+          uuid?: string
         }
         Relationships: []
       }
@@ -153,6 +159,7 @@ export type Database = {
           MemberPincode: string | null
           MemberSex: string | null
           password: string | null
+          uuid: string
         }
         Insert: {
           id?: number
@@ -165,6 +172,7 @@ export type Database = {
           MemberPincode?: string | null
           MemberSex?: string | null
           password?: string | null
+          uuid?: string
         }
         Update: {
           id?: number
@@ -177,6 +185,7 @@ export type Database = {
           MemberPincode?: string | null
           MemberSex?: string | null
           password?: string | null
+          uuid?: string
         }
         Relationships: []
       }
@@ -227,6 +236,7 @@ export type Database = {
           Scheme: string | null
           Services: string | null
           Subservice: string | null
+          uuid: string
         }
         Insert: {
           active?: boolean | null
@@ -241,6 +251,7 @@ export type Database = {
           Scheme?: string | null
           Services?: string | null
           Subservice?: string | null
+          uuid?: string
         }
         Update: {
           active?: boolean | null
@@ -255,6 +266,7 @@ export type Database = {
           Scheme?: string | null
           Services?: string | null
           Subservice?: string | null
+          uuid?: string
         }
         Relationships: []
       }
@@ -295,6 +307,7 @@ export type Database = {
           PhoneNo: number | null
           role: string | null
           Username: string | null
+          uuid: string
         }
         Insert: {
           active?: boolean
@@ -305,6 +318,7 @@ export type Database = {
           PhoneNo?: number | null
           role?: string | null
           Username?: string | null
+          uuid?: string
         }
         Update: {
           active?: boolean
@@ -315,6 +329,7 @@ export type Database = {
           PhoneNo?: number | null
           role?: string | null
           Username?: string | null
+          uuid?: string
         }
         Relationships: []
       }
