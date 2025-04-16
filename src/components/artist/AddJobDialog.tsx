@@ -49,6 +49,9 @@ const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking })
         ? Number(existingJobs[0].jobno) + 1 
         : 1;
       
+      // Convert ArtistId to string if it exists
+      const artistId = booking.ArtistId ? booking.ArtistId.toString() : undefined;
+      
       // Insert the new job
       const { error } = await supabase
         .from('BookMST')
@@ -65,7 +68,7 @@ const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking })
           Booking_date: booking.Booking_date,
           booking_time: booking.booking_time,
           Status: "pending", // New job starts with pending status
-          ArtistId: booking.ArtistId,
+          ArtistId: artistId,
           Assignedto: booking.Assignedto,
           AssignedBY: booking.AssignedBY,
           AssingnedON: booking.AssingnedON

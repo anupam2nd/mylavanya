@@ -45,7 +45,16 @@ export const useBookings = () => {
         .order('Booking_date', { ascending: false });
 
       if (error) throw error;
-      setBookings(data || []);
+      
+      // Convert any numeric IDs to string types for consistency
+      const formattedBookings = data?.map(booking => ({
+        ...booking,
+        id: booking.id.toString(),
+        ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
+        Product: booking.Product ? booking.Product.toString() : undefined
+      })) || [];
+      
+      setBookings(formattedBookings);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast({

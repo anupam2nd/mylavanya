@@ -1,80 +1,131 @@
 
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import React from "react";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Rupee } from "@/components/icons/Rupee";
-import { useNavigate } from "react-router-dom";
-import WishlistButton from "./WishlistButton";
+import { Heart, ShoppingCart } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
+import { useWishlist } from "@/hooks/useWishlist";
 
-export interface ServiceCardProps {
-  id: number;
-  name: string;
-  description: string;
+interface ServiceCardProps {
+  id: string; // Changed from number to string for UUID consistency
+  title: string;
   price: number;
   category?: string;
-  onBookNow?: () => void;
+  description?: string;
+  onClick?: () => void;
+  showAddToCart?: boolean;
+  showWishlist?: boolean;
+  isWishlisted?: boolean;
+  onAddToCart?: () => void;
+  onToggleWishlist?: () => void;
+  className?: string;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({
+export const ServiceCard: React.FC<ServiceCardProps> = ({
   id,
-  name,
-  description,
+  title,
   price,
   category,
-  onBookNow,
+  description,
+  onClick,
+  showAddToCart = true,
+  showWishlist = true,
+  isWishlisted,
+  onAddToCart,
+  onToggleWishlist,
+  className,
 }) => {
-  const navigate = useNavigate();
-
-  const handleCardClick = () => {
-    navigate(`/services/${id}`);
+  const { user } = useAuth();
+  const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  
+  // Check if service is in wishlist
+  const serviceInWishlist = isWishlisted !== undefined 
+    ? isWishlisted 
+    : wishlist.some(item => item.service_id.toString() === id.toString());
+  
+  const handleToggleWishlist = async () => {
+    if (onToggleWishlist) {
+      onToggleWishlist();
+      return;
+    }
+    
+    if (!user) return;
+    
+    try {
+      if (serviceInWishlist) {
+        const wishlistEntry = wishlist.find(item => item.service_id.toString() === id.toString());
+        if (wishlistEntry) {
+          await removeFromWishlist(wishlistEntry.id);
+        }
+      } else {
+        await addToWishlist(id);
+      }
+    } catch (error) {
+      console.error("Error toggling wishlist:", error);
+    }
   };
 
-  const handleBookNow = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onBookNow) onBookNow();
-    else navigate(`/services/${id}`);
+  const handleAddToCart = () => {
+    if (onAddToCart) {
+      onAddToCart();
+    }
   };
 
   return (
     <Card 
-      className="group h-full overflow-hidden cursor-pointer transition-all hover:shadow-md"
-      onClick={handleCardClick}
+      className={cn("overflow-hidden h-full flex flex-col", className)}
+      onClick={onClick}
     >
-      <CardHeader className="pb-3 relative">
-        {category && (
-          <span className="text-xs text-muted-foreground bg-primary/10 px-2 py-0.5 rounded-full">
-            {category}
-          </span>
-        )}
-        <div className="flex justify-between items-start">
-          <h3 className="text-lg font-semibold group-hover:text-primary transition-colors line-clamp-2">
-            {name}
-          </h3>
-          <div className="absolute top-3 right-3">
-            <WishlistButton serviceId={id} />
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="pb-4">
-        <p className="text-muted-foreground text-sm line-clamp-3">
-          {description || "Professional beauty service for all occasions."}
-        </p>
-        <div className="flex items-center mt-3">
-          <div className="flex items-center">
-            <Rupee className="h-4 w-4 mr-0.5" />
-            <span className="text-lg font-bold">{price}</span>
-          </div>
+      <CardContent className="p-4 flex-1">
+        <div className="space-y-1.5">
+          {category && (
+            <span className="text-xs text-muted-foreground uppercase">
+              {category}
+            </span>
+          )}
+          <h3 className="font-semibold text-lg leading-tight">{title}</h3>
+          <div className="text-lg font-medium">₹{price}</div>
+          {description && (
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
+              {description}
+            </p>
+          )}
         </div>
       </CardContent>
-      <CardFooter className="pt-0">
-        <Button 
-          className="w-full bg-primary text-white hover:bg-primary/90"
-          onClick={handleBookNow}
-        >
-          Book Now
-        </Button>
+      
+      <CardFooter className="p-4 pt-0 gap-2 flex-shrink-0">
+        {showAddToCart && (
+          <Button 
+            variant="default" 
+            className="flex-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddToCart();
+            }}
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" /> Add to Cart
+          </Button>
+        )}
+        
+        {showWishlist && user && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleWishlist();
+            }}
+          >
+            <Heart 
+              className={cn(
+                "h-4 w-4", 
+                serviceInWishlist ? "fill-primary text-primary" : ""
+              )} 
+            />
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
 };
-
-export default ServiceCard;

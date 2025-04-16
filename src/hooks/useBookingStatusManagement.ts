@@ -34,18 +34,18 @@ export const useBookingStatusManagement = () => {
     try {
       const adminName = user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'An administrator';
       
-      const notifications = booking.email ? [{
+      const notificationData = {
         recipient_email: booking.email,
-        booking_id: booking.id.toString(), // Ensure booking_id is a string
+        booking_id: booking.id, // Already a string from the updated Booking interface
         booking_no: booking.Booking_NO || '',
         message,
         is_read: false,
         change_type: changeType
-      }] : [];
+      };
       
       const { error } = await supabase
         .from('notifications')
-        .insert(notifications);
+        .insert([notificationData]);
         
       if (error) {
         console.error("Error creating notification:", error);
