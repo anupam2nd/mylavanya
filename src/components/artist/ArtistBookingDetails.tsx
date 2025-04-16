@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -80,7 +79,7 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
         isOpen={showOtpDialog} 
         onClose={() => setShowOtpDialog(false)}
         onVerify={handleOTPVerified}
-        bookingId={booking.id}
+        bookingId={parseInt(booking.id)}
       />
 
       <EditServiceDialog

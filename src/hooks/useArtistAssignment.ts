@@ -21,7 +21,7 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
           const { data, error } = await supabase
             .from('UserMST')
             .select('Username, FirstName, LastName')
-            .eq('id', userId)
+            .eq('id', parseInt(userId))
             .single();
               
           if (!error && data) {
@@ -42,10 +42,13 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
         throw new Error("Invalid artist ID");
       }
       
+      // Convert artistId to a number for the query
+      const numericArtistId = parseInt(artistId);
+      
       const { data, error: artistError } = await supabase
         .from('ArtistMST')
         .select('ArtistFirstName, ArtistLastName')
-        .eq('ArtistId', artistId)
+        .eq('ArtistId', numericArtistId)
         .single();
       
       if (artistError) {
@@ -54,15 +57,18 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
       
       const artistName = `${data.ArtistFirstName || ''} ${data.ArtistLastName || ''}`.trim();
       
+      // Convert booking.id to a number for the query if it's a string
+      const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .update({
-          ArtistId: artistId,
+          ArtistId: numericArtistId,
           Assignedto: artistName,
           AssignedBY: currentUser?.FirstName || currentUser?.Username || 'Admin',
           AssingnedON: new Date().toISOString()
         })
-        .eq('id', booking.id);
+        .eq('id', bookingId);
 
       if (error) throw error;
       

@@ -27,7 +27,9 @@ export const useUserBookings = () => {
           // For artists, only show bookings assigned to them
           if (user.id) {
             console.log("Filtering bookings by artist ID:", user.id);
-            query = query.eq('ArtistId', user.id);
+            // Convert user.id to a number for the query if it's a string
+            const artistId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+            query = query.eq('ArtistId', artistId);
           }
         } 
         else if (user.role === 'member') {

@@ -30,7 +30,7 @@ export const useBookingUpdate = (bookings: Booking[], setBookings: (bookings: Bo
       
       if (artistId !== undefined) {
         if (artistId) {
-          updates.ArtistId = artistId;
+          updates.ArtistId = parseInt(artistId);
           updates.Assignedto = formValues.currentUser?.Username || 'admin';
           updates.AssignedBY = formValues.currentUser?.Username || 'admin';
           updates.AssingnedON = new Date().toISOString();
@@ -40,10 +40,13 @@ export const useBookingUpdate = (bookings: Booking[], setBookings: (bookings: Bo
         }
       }
 
+      // Convert booking.id to a number for the query if it's a string
+      const bookingId = typeof editBooking.id === 'string' ? parseInt(editBooking.id) : editBooking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .update(updates)
-        .eq('id', editBooking.id);
+        .eq('id', bookingId);
 
       if (error) throw error;
       

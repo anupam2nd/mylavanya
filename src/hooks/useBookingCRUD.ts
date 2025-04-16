@@ -9,10 +9,13 @@ export const useBookingCRUD = (bookings: Booking[], setBookings: (bookings: Book
 
   const handleDeleteJob = async (booking: Booking) => {
     try {      
+      // Convert booking.id to a number for the query if it's a string
+      const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .delete()
-        .eq('id', booking.id);
+        .eq('id', bookingId);
 
       if (error) throw error;
       setBookings(bookings.filter(b => b.id !== booking.id));
@@ -33,13 +36,16 @@ export const useBookingCRUD = (bookings: Booking[], setBookings: (bookings: Book
 
   const handleScheduleChange = async (booking: Booking, date: string, time: string) => {
     try {      
+      // Convert booking.id to a number for the query if it's a string
+      const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .update({
           Booking_date: date,
           booking_time: time
         })
-        .eq('id', booking.id);
+        .eq('id', bookingId);
 
       if (error) throw error;
       const updatedBookings = bookings.map(b => 

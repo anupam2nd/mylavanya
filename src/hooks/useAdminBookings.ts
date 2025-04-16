@@ -38,12 +38,14 @@ export const useAdminBookings = () => {
         const { data: authSession } = await supabase.auth.getSession();
         
         if (authSession?.session?.user?.id) {
+          // Convert userId to a number for the query if needed
           const userId = authSession.session.user.id;
+          const numericUserId = typeof userId === 'string' ? parseInt(userId) : userId;
           
           const { data, error } = await supabase
             .from('UserMST')
             .select('Username, FirstName, LastName')
-            .eq('id', userId)
+            .eq('id', numericUserId)
             .single();
               
           if (!error && data) {

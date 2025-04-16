@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
@@ -76,13 +77,16 @@ const BookingsList = ({
 
   const updateBookingSchedule = async (booking: Booking, date: string, time: string): Promise<void> => {
     try {
+      // Convert booking ID to a number if it's a string
+      const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .update({ 
           Booking_date: date, 
           booking_time: time 
         })
-        .eq('id', booking.id);
+        .eq('id', bookingId);
 
       if (error) throw error;
       
@@ -96,10 +100,13 @@ const BookingsList = ({
 
   const deleteJob = async (booking: Booking): Promise<void> => {
     try {
+      // Convert booking ID to a number if it's a string
+      const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .delete()
-        .eq('id', booking.id);
+        .eq('id', bookingId);
 
       if (error) throw error;
       
