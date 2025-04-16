@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -228,13 +229,11 @@ export const useAdminBookings = () => {
   };
 
   const handleDeleteJob = async (booking: Booking) => {
-    try {
-      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
-      
+    try {      
       const { error } = await supabase
         .from('BookMST')
         .delete()
-        .eq('id', bookingIdNumber);
+        .eq('id', booking.id);
 
       if (error) throw error;
       setBookings(bookings.filter(b => b.id !== booking.id));
@@ -254,16 +253,14 @@ export const useAdminBookings = () => {
   };
 
   const handleScheduleChange = async (booking: Booking, date: string, time: string) => {
-    try {
-      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
-      
+    try {      
       const { error } = await supabase
         .from('BookMST')
         .update({
           Booking_date: date,
           booking_time: time
         })
-        .eq('id', bookingIdNumber);
+        .eq('id', booking.id);
 
       if (error) throw error;
       const updatedBookings = bookings.map(b => 
