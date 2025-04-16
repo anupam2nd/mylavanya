@@ -86,8 +86,6 @@ export const useAdminBookings = () => {
     try {
       if (!editBooking) return;
       
-      const bookingIdNumber = typeof editBooking.id === 'string' ? parseInt(editBooking.id) : editBooking.id;
-      
       const { date, time, status, address, pincode, artistId } = formValues;
       
       const updates: any = {};
@@ -100,8 +98,7 @@ export const useAdminBookings = () => {
       
       if (artistId !== undefined) {
         if (artistId) {
-          const numericArtistId = typeof artistId === 'string' ? parseInt(artistId) : artistId;
-          updates.ArtistId = numericArtistId;
+          updates.ArtistId = artistId;
           
           const artist = artists.find(a => a.ArtistId === artistId);
           updates.Assignedto = artist ? 
@@ -118,12 +115,12 @@ export const useAdminBookings = () => {
       const { error } = await supabase
         .from('BookMST')
         .update(updates)
-        .eq('id', bookingIdNumber);
+        .eq('id', editBooking.id);
 
       if (error) throw error;
       
       const updatedBookings = bookings.map(b => 
-        b.id === editBooking.id ? { ...b, ...updates, ArtistId: artistId } : b
+        b.id === editBooking.id ? { ...b, ...updates } : b
       );
       
       setBookings(updatedBookings);
@@ -144,15 +141,13 @@ export const useAdminBookings = () => {
 
   const handleStatusChange = async (booking: Booking, newStatus: string) => {
     try {
-      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
-      
       const { error } = await supabase
         .from('BookMST')
         .update({ 
           Status: newStatus,
           StatusUpdated: new Date().toISOString()
         })
-        .eq('id', bookingIdNumber);
+        .eq('id', booking.id);
 
       if (error) {
         toast({
@@ -185,25 +180,22 @@ export const useAdminBookings = () => {
 
   const handleArtistAssignWithUser = async (booking: Booking, artistId: string) => {
     try {
-      const numericArtistId = parseInt(artistId);
-      if (isNaN(numericArtistId)) throw new Error("Invalid artist ID");
+      if (!artistId) throw new Error("Invalid artist ID");
       
       const artist = artists.find(a => a.ArtistId === artistId);
       const artistName = artist 
         ? `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() 
         : `Artist #${artistId}`;
       
-      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
-      
       const { error } = await supabase
         .from('BookMST')
         .update({
-          ArtistId: numericArtistId,
+          ArtistId: artistId,
           Assignedto: artistName,
           AssignedBY: currentUser?.FirstName || currentUser?.Username || 'Admin',
           AssingnedON: new Date().toISOString()
         })
-        .eq('id', bookingIdNumber);
+        .eq('id', booking.id);
 
       if (error) throw error;
       

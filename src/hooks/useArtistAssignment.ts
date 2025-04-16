@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,16 +38,15 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
 
   const handleArtistAssignWithUser = async (booking: Booking, artistId: string) => {
     try {
-      // Convert artistId to number for database
-      const numericArtistId = parseInt(artistId);
-      if (isNaN(numericArtistId)) {
+      // Use artistId directly as string
+      if (!artistId) {
         throw new Error("Invalid artist ID");
       }
       
       const { data, error: artistError } = await supabase
         .from('ArtistMST')
         .select('ArtistFirstName, ArtistLastName')
-        .eq('ArtistId', numericArtistId)
+        .eq('ArtistId', artistId)
         .single();
       
       if (artistError) {
@@ -58,7 +58,7 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
       const { error } = await supabase
         .from('BookMST')
         .update({
-          ArtistId: numericArtistId,
+          ArtistId: artistId,
           Assignedto: artistName,
           AssignedBY: currentUser?.FirstName || currentUser?.Username || 'Admin',
           AssingnedON: new Date().toISOString()

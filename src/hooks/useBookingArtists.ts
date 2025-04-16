@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Artist {
-  ArtistId: number; // Keep numeric ID for internal use
-  uuid: string; // New UUID field
+  ArtistId: string; // Changed from number to string
+  uuid: string;
   ArtistFirstName: string | null;
   ArtistLastName: string | null;
 }
@@ -27,7 +27,13 @@ export const useBookingArtists = () => {
           return;
         }
 
-        setArtists(data || []);
+        // Convert numeric IDs to strings
+        const artistsWithStringIds = data?.map(artist => ({
+          ...artist,
+          ArtistId: artist.ArtistId.toString()
+        })) || [];
+
+        setArtists(artistsWithStringIds);
       } catch (error) {
         console.error("Error in fetchArtists:", error);
       } finally {
