@@ -50,10 +50,13 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
       
       const artistName = `${data.ArtistFirstName || ''} ${data.ArtistLastName || ''}`.trim();
       
+      // Convert artistId to number for database query if necessary
+      const numericArtistId = parseInt(artistId);
+      
       const { error } = await supabase
         .from('BookMST')
         .update({ 
-          ArtistId: artistId,
+          ArtistId: numericArtistId, // Convert to number for storage
           Assignedto: artistName,
           AssingnedON: new Date().toISOString(),
           AssignedBY: currentUser?.FirstName || currentUser?.Username || 'User'
@@ -73,7 +76,7 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
       if (bookingIndex !== -1) {
         const updatedBooking = {
           ...booking,
-          ArtistId: artistId,
+          ArtistId: artistId, // Keep as string in frontend
           Assignedto: artistName,
           AssignedBY: currentUser?.FirstName || currentUser?.Username || 'User',
           AssingnedON: new Date().toISOString()

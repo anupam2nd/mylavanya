@@ -54,7 +54,15 @@ export const useUserBookings = () => {
         if (error) throw error;
         console.log("Bookings fetched:", data?.length || 0);
 
-        setBookings(data || []);
+        // Ensure all IDs are strings for consistent typing
+        const processedBookings = data?.map(booking => ({
+          ...booking,
+          id: booking.id.toString(),
+          ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
+          Product: booking.Product ? booking.Product.toString() : undefined
+        })) || [];
+
+        setBookings(processedBookings);
       } catch (error) {
         console.error('Error fetching bookings:', error);
         toast({

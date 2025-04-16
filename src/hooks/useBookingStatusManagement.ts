@@ -36,7 +36,7 @@ export const useBookingStatusManagement = () => {
       
       const notificationData = {
         recipient_email: booking.email,
-        booking_id: booking.id, // Already a string from the updated Booking interface
+        booking_id: parseInt(booking.id), // Convert string to number for the notifications table
         booking_no: booking.Booking_NO || '',
         message,
         is_read: false,
@@ -104,6 +104,9 @@ export const useBookingStatusManagement = () => {
         return;
       }
 
+      // Convert string artistId to number for database
+      const numericArtistId = parseInt(artistId);
+
       const { data: artistData, error: artistError } = await supabase
         .from('ArtistMST')
         .select('ArtistFirstName, ArtistLastName')
@@ -125,7 +128,7 @@ export const useBookingStatusManagement = () => {
       const { error } = await supabase
         .from('BookMST')
         .update({ 
-          ArtistId: artistId,
+          ArtistId: numericArtistId, // Store as number in database
           Assignedto: artistName,
           AssingnedON: new Date().toISOString()
         })
@@ -161,23 +164,7 @@ export const useBookingStatusManagement = () => {
 
   return { 
     statusOptions, 
-    fetchStatusOptions: async () => {
-      try {
-        const { data, error } = await supabase
-          .from('statusmst')
-          .select('status_code, status_name')
-          .eq('active', true);
-
-        if (error) {
-          console.error("Error fetching status options:", error);
-          return;
-        }
-
-        setStatusOptions(data || []);
-      } catch (error) {
-        console.error("Error in fetchStatusOptions:", error);
-      }
-    },
+    fetchStatusOptions, 
     handleStatusChange, 
     handleArtistAssignment 
   };

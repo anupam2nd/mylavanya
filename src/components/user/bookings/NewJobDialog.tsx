@@ -292,7 +292,14 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       });
 
       if (newBooking) {
-        onSuccess(newBooking);
+        const formattedBooking: Booking = {
+          ...newBooking,
+          id: newBooking.id.toString(),
+          ArtistId: newBooking.ArtistId ? newBooking.ArtistId.toString() : undefined,
+          Product: newBooking.Product ? newBooking.Product.toString() : undefined
+        };
+        
+        onSuccess(formattedBooking);
       }
       
       onOpenChange(false);

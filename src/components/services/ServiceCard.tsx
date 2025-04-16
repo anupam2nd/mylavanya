@@ -37,12 +37,12 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   className,
 }) => {
   const { user } = useAuth();
-  const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { wishlistItems, addToWishlist, removeFromWishlist } = useWishlist();
   
   // Check if service is in wishlist
   const serviceInWishlist = isWishlisted !== undefined 
     ? isWishlisted 
-    : wishlist.some(item => item.service_id.toString() === id.toString());
+    : wishlistItems.some(item => item.service_id.toString() === id.toString());
   
   const handleToggleWishlist = async () => {
     if (onToggleWishlist) {
@@ -54,7 +54,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     
     try {
       if (serviceInWishlist) {
-        const wishlistEntry = wishlist.find(item => item.service_id.toString() === id.toString());
+        const wishlistEntry = wishlistItems.find(item => item.service_id.toString() === id.toString());
         if (wishlistEntry) {
           await removeFromWishlist(wishlistEntry.id);
         }

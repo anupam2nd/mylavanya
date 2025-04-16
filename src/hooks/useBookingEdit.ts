@@ -62,10 +62,12 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
       // Handle artist assignment - Using UUID string
       if (values.artistId !== undefined) {
         console.log("Artist ID in handleSaveChanges:", values.artistId);
-        updates.ArtistId = values.artistId;
         
-        // Try to get artist details if an artist ID was provided
+        // Convert string artistId to number for database
         if (values.artistId) {
+          updates.ArtistId = parseInt(values.artistId);
+          
+          // Try to get artist details if an artist ID was provided
           try {
             const { data: artistData, error: artistError } = await supabase
               .from('ArtistMST')
@@ -85,6 +87,7 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
         } else {
           // If artistId is null or undefined, clear the assignment
           updates.Assignedto = null;
+          updates.ArtistId = null;
         }
       }
       
@@ -133,10 +136,18 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
 
       if (error) throw error;
 
+      // For the local state update, convert any numeric ArtistId back to string
+      const updatedLocalBooking = {
+        ...editBooking,
+        ...updates,
+        // Ensure ArtistId is string in local state
+        ArtistId: updates.ArtistId ? updates.ArtistId.toString() : undefined
+      };
+
       // Update the local state
       setBookings(bookings.map(booking => 
         booking.id === editBooking.id 
-          ? { ...booking, ...updates } 
+          ? updatedLocalBooking
           : booking
       ));
 

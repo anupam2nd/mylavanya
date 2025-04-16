@@ -98,7 +98,7 @@ export const useJobOperations = (bookings: Booking[], setBookings: React.Dispatc
           
           const notificationData = {
             recipient_email: booking.email,
-            booking_id: booking.id,
+            booking_id: parseInt(booking.id), // Convert string to number for notifications table
             booking_no: booking.Booking_NO || '',
             message: `${adminName} has rescheduled your booking ${booking.Booking_NO || ''} to ${date} at ${time}.`,
             is_read: false,
