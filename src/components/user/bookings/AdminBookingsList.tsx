@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Table,
@@ -70,7 +69,6 @@ const AdminBookingsList: React.FC<AdminBookingsListProps> = ({
   const [assigningArtist, setAssigningArtist] = useState<Record<string, boolean>>({});
   const [schedulingBooking, setSchedulingBooking] = useState<Record<string, { isOpen: boolean, date: Date | undefined, time: string }>>({});
 
-  // Group bookings by Booking_NO
   const bookingGroups: Record<string, Booking[]> = {};
   bookings.forEach(booking => {
     const key = booking.Booking_NO || '';
@@ -80,7 +78,6 @@ const AdminBookingsList: React.FC<AdminBookingsListProps> = ({
     bookingGroups[key].push(booking);
   });
 
-  // Sort bookings by date, newest first
   const sortedBookingNumbers = Object.keys(bookingGroups).sort((a, b) => {
     const dateA = new Date(bookingGroups[a][0].Booking_date).getTime();
     const dateB = new Date(bookingGroups[b][0].Booking_date).getTime();
@@ -204,7 +201,6 @@ const AdminBookingsList: React.FC<AdminBookingsListProps> = ({
             const bookingGroup = bookingGroups[bookingNo];
             if (!bookingGroup || bookingGroup.length === 0) return null;
 
-            // Use the first booking in the group for shared details
             const firstBooking = bookingGroup[0];
 
             return bookingGroup.map(booking => (

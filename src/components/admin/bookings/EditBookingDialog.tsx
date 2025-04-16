@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Clock, CalendarIcon } from "lucide-react";
@@ -100,13 +99,11 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
     fetchArtists();
   }, []);
 
-  // Check if artist assignment is required based on status
   useEffect(() => {
     const statuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done', 'OnTheway', 'Start'];
     setRequiresArtist(statuses.includes(watchStatus));
   }, [watchStatus]);
 
-  // Reset form when booking changes
   useEffect(() => {
     if (editBooking) {
       form.reset({
@@ -124,7 +121,6 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   const onSubmit = (data: EditBookingFormValues) => {
     console.log("Submitting form data:", data);
     
-    // Check if artist is required but not selected
     if (requiresArtist && !data.artistId) {
       form.setError("artistId", { 
         type: "manual", 

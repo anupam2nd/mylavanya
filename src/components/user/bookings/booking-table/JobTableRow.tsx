@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -16,10 +15,10 @@ interface JobTableRowProps {
   onDeleteJob?: (booking: Booking) => Promise<void>;
   isEditingDisabled: boolean;
   handleStatusChange: (booking: Booking, newStatus: string) => Promise<void>;
-  handleArtistAssignment: (booking: Booking, artistId: number) => Promise<void>;
+  handleArtistAssignment: (booking: Booking, artistId: string) => Promise<void>;
   onScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;
   statusOptions: {status_code: string; status_name: string}[];
-  artists: {ArtistId: number; ArtistFirstName: string; ArtistLastName: string}[];
+  artists: Artist[];
   showDeleteButton: boolean;
   showActions?: boolean;
 }
@@ -56,8 +55,7 @@ export const JobTableRow = ({
     }
   };
 
-  // Handle artist assignment with correct parameter order
-  const handleArtistAssignmentWrapper = async (artistId: number) => {
+  const handleArtistAssignmentWrapper = async (artistId: string) => {
     if (isAssigningArtist) return;
     
     setIsAssigningArtist(true);
@@ -79,10 +77,9 @@ export const JobTableRow = ({
     }
   };
 
-  // Find artist name for display
   const getArtistName = () => {
     if (!booking.ArtistId) return 'Unassigned';
-    const artist = artists.find(a => a.ArtistId === Number(booking.ArtistId));
+    const artist = artists.find(a => a.ArtistId === booking.ArtistId);
     return artist ? 
       `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || `Artist #${artist.ArtistId}` 
       : booking.Assignedto || 'Assigned';
@@ -97,7 +94,6 @@ export const JobTableRow = ({
       </TableCell>
 
       <TableCell>
-        {/* Show schedule data for all users, but JobScheduleCell with edit for admins only */}
         {isAdmin && !isArtist ? (
           <JobScheduleCell 
             booking={booking}
@@ -118,10 +114,8 @@ export const JobTableRow = ({
       </TableCell>
 
       <TableCell>
-        {/* Show status badge for all users */}
         <StatusBadge status={booking.Status || 'pending'} />
         
-        {/* Only show dropdown for admins (hidden by default) */}
         {isAdmin && false && (
           <BookingStatusSelect 
             currentStatus={booking.Status || 'pending'} 
@@ -133,10 +127,8 @@ export const JobTableRow = ({
       </TableCell>
       
       <TableCell>
-        {/* Show assigned artist name for all users */}
         {getArtistName()}
         
-        {/* Only show artist assignment dropdown for admins (hidden by default) */}
         {isAdmin && false && (
           <ArtistAssignmentSelect 
             booking={booking}
@@ -147,7 +139,6 @@ export const JobTableRow = ({
         )}
       </TableCell>
       
-      {/* Only show actions column for admins */}
       {showActions && isAdmin && (
         <TableCell>
           <div className="flex gap-2">
@@ -174,7 +165,6 @@ export const JobTableRow = ({
         </TableCell>
       )}
       
-      {/* Hide actions completely for members and artists */}
       {showActions && !isAdmin && (
         <TableCell>
           <div className="text-xs text-muted-foreground">

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +9,6 @@ export const useBookingStatusManagement = () => {
   const { user } = useAuth();
   const [statusOptions, setStatusOptions] = useState<{status_code: string; status_name: string}[]>([]);
 
-  // Fetch status options from the database
   const fetchStatusOptions = async () => {
     try {
       const { data, error } = await supabase
@@ -29,27 +27,24 @@ export const useBookingStatusManagement = () => {
     }
   };
 
-  // Create notification using direct insert instead of RPC
-  const createNotification = async (booking: Booking, changeType: string) => {
+  const createNotification = async (booking: Booking, changeType: string, message: string) => {
     if (!booking.email) return;
     
     try {
       const adminName = user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'An administrator';
       
-      // Create notification message
-      const notificationData = {
+      const notifications = booking.email ? [{
         recipient_email: booking.email,
         booking_id: booking.id,
         booking_no: booking.Booking_NO || '',
-        message: `${adminName} has updated the ${changeType} of your booking ${booking.Booking_NO || ''}.`,
+        message,
         is_read: false,
         change_type: changeType
-      };
+      }] : [];
       
-      // Use direct insert
       const { error } = await supabase
         .from('notifications')
-        .insert([notificationData]);
+        .insert(notifications);
         
       if (error) {
         console.error("Error creating notification:", error);
@@ -59,12 +54,14 @@ export const useBookingStatusManagement = () => {
     }
   };
 
-  // Handle status change for a booking
   const handleStatusChange = async (booking: Booking, newStatus: string) => {
     try {
       const { error } = await supabase
         .from('BookMST')
-        .update({ Status: newStatus, StatusUpdated: new Date().toISOString() })
+        .update({ 
+          Status: newStatus,
+          StatusUpdated: new Date().toISOString()
+        })
         .eq('id', booking.id);
 
       if (error) {
@@ -76,9 +73,8 @@ export const useBookingStatusManagement = () => {
         return;
       }
 
-      // Create notification for status change
       if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'user') {
-        await createNotification(booking, 'status');
+        await createNotification(booking, 'status', `Booking status changed to ${newStatus}`);
       }
 
       toast({
@@ -95,7 +91,6 @@ export const useBookingStatusManagement = () => {
     }
   };
 
-  // Handle artist assignment - Now uses UUID string for artistId
   const handleArtistAssignment = async (booking: Booking, artistId: string) => {
     try {
       if (!artistId) {
@@ -108,7 +103,6 @@ export const useBookingStatusManagement = () => {
         return;
       }
 
-      // Get the artist from the database
       const { data: artistData, error: artistError } = await supabase
         .from('ArtistMST')
         .select('ArtistFirstName, ArtistLastName')
@@ -146,9 +140,8 @@ export const useBookingStatusManagement = () => {
         return;
       }
 
-      // Create notification for artist assignment
       if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'user') {
-        await createNotification(booking, 'artist assignment');
+        await createNotification(booking, 'artist assignment', `Booking assigned to ${artistName}`);
       }
 
       toast({

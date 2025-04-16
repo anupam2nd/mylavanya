@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
@@ -35,7 +34,6 @@ const BookingsList = ({
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Group bookings by Booking_NO to identify related jobs
   const bookingGroups = bookings.reduce((groups: Record<string, Booking[]>, booking) => {
     const key = booking.Booking_NO || '';
     if (!groups[key]) {
@@ -50,7 +48,6 @@ const BookingsList = ({
   }, []);
 
   useEffect(() => {
-    // Use custom bookings if provided
     if (customBookings !== undefined) {
       setBookings(customBookings);
       setLoading(customLoading || false);
@@ -60,7 +57,6 @@ const BookingsList = ({
   const handleStatusChangeWrapper = async (booking: Booking, newStatus: string) => {
     await handleStatusChange(booking, newStatus);
     
-    // Update local state
     setBookings(prevBookings => 
       prevBookings.map(b => b.id === booking.id ? { ...b, Status: newStatus } : b)
     );
@@ -69,7 +65,6 @@ const BookingsList = ({
   const handleArtistAssignmentWrapper = async (booking: Booking, artistId: string) => {
     await handleArtistAssignment(booking, artistId);
     
-    // Update local state based on the artist assigned
     const artist = artists.find(a => a.ArtistId === artistId);
     if (artist) {
       const artistName = `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim();
@@ -91,7 +86,6 @@ const BookingsList = ({
 
       if (error) throw error;
       
-      // Update local state
       setBookings(prevBookings => 
         prevBookings.map(b => b.id === booking.id ? { ...b, Booking_date: date, booking_time: time } : b)
       );
@@ -109,7 +103,6 @@ const BookingsList = ({
 
       if (error) throw error;
       
-      // Update local state
       setBookings(prevBookings => 
         prevBookings.filter(b => b.id !== booking.id)
       );

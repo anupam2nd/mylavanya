@@ -14,6 +14,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
   Popover,
@@ -483,10 +484,8 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
                   </Label>
                   <div className="col-span-3">
                     <Select
-                      value={artistId?.toString() || ""}
-                      onValueChange={(value) => {
-                        setArtistId(value ? parseInt(value, 10) : null);
-                      }}
+                      value={artistId || ""}
+                      onValueChange={setArtistId}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select an artist" />
@@ -495,7 +494,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
                         {artistOptions.map((artist) => (
                           <SelectItem 
                             key={artist.ArtistId} 
-                            value={artist.ArtistId.toString()}
+                            value={artist.ArtistId}
                           >
                             {`${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || `Artist #${artist.ArtistId}`}
                           </SelectItem>

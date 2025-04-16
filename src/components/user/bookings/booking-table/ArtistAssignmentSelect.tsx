@@ -2,11 +2,12 @@
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Booking } from "@/hooks/useBookings";
+import { Artist } from "@/hooks/useBookingArtists";
 
 interface ArtistAssignmentSelectProps {
   booking: Booking;
-  artists: {ArtistId: number; ArtistFirstName: string; ArtistLastName: string}[];
-  onArtistAssignment: (artistId: number) => Promise<void>;
+  artists: Artist[];
+  onArtistAssignment: (artistId: string) => Promise<void>;
   isDisabled: boolean;
 }
 
@@ -23,9 +24,9 @@ export const ArtistAssignmentSelect = ({
           // Handle the unassigned case differently if needed
           return;
         }
-        onArtistAssignment(parseInt(value));
+        onArtistAssignment(value);
       }}
-      defaultValue={booking.ArtistId?.toString() || "unassigned"}
+      defaultValue={booking.ArtistId || "unassigned"}
       disabled={isDisabled}
     >
       <SelectTrigger className="h-7 text-xs">
@@ -36,7 +37,7 @@ export const ArtistAssignmentSelect = ({
         {artists.map((artist) => (
           <SelectItem 
             key={artist.ArtistId} 
-            value={artist.ArtistId.toString()}
+            value={artist.ArtistId}
           >
             {`${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || `Artist #${artist.ArtistId}`}
           </SelectItem>

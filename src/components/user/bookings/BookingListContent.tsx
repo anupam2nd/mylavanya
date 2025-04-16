@@ -1,4 +1,3 @@
-
 import React from "react";
 import AdminBookingsList from "./AdminBookingsList";
 import { Booking } from "@/hooks/useBookings";
@@ -21,11 +20,11 @@ interface BookingListContentProps {
   sortDirection: 'asc' | 'desc';
 }
 
-export const BookingListContent = ({
+export function BookingListContent({ 
   loading,
   bookings,
   filteredBookings,
-  handleEditClick,
+  handleEditClick, 
   handleAddNewJob,
   statusOptions,
   artists,
@@ -34,10 +33,9 @@ export const BookingListContent = ({
   isEditingDisabled,
   handleDeleteJob,
   handleScheduleChange,
-  sortField,
-  sortDirection
-}: BookingListContentProps) => {
-  // Display info about the filtered bookings
+  sortField = "created_at",
+  sortDirection = "desc"
+}) {
   const displayText = filteredBookings.length < bookings.length
     ? `Showing ${filteredBookings.length} of ${bookings.length} bookings`
     : `Showing ${bookings.length} bookings`;
@@ -70,4 +68,4 @@ export const BookingListContent = ({
       />
     </div>
   );
-};
+}

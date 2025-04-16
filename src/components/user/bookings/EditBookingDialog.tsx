@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock, User, Mail, MapPin, Phone, Package, Plus } from "lucide-react";
@@ -72,7 +71,6 @@ const EditBookingDialog = ({
   const [editQty, setEditQty] = useState<number>(1);
   const [showNewJobDialog, setShowNewJobDialog] = useState<boolean>(false);
   
-  // These fields are now read-only
   const [editService, setEditService] = useState<string>("");
   const [editSubService, setEditSubService] = useState<string>("");
   const [editProductName, setEditProductName] = useState<string>("");
@@ -212,7 +210,6 @@ const EditBookingDialog = ({
                 </div>
               </div>
               
-              {/* Read-only service fields */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="service-info" className="text-right">
                   Service Information
@@ -368,16 +365,16 @@ const EditBookingDialog = ({
                 </Label>
                 <div className="col-span-3">
                   <Select
-                    value={editArtist?.toString() || ""}
-                    onValueChange={(value) => setEditArtist(value ? parseInt(value, 10) : null)}
+                    value={editArtist || ""}
+                    onValueChange={(value) => setEditArtist(value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select artist" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      <SelectItem value="">Unassigned</SelectItem>
                       {artistOptions.map((artist) => (
-                        <SelectItem key={artist.ArtistId} value={artist.ArtistId.toString()}>
+                        <SelectItem key={artist.ArtistId} value={artist.ArtistId}>
                           {artist.displayName || `Artist ${artist.ArtistId}`}
                         </SelectItem>
                       ))}
