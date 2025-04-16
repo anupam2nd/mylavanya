@@ -41,6 +41,11 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
       // Convert artistId to number for database query
       const numericArtistId = parseInt(artistId);
       
+      // Handle potential NaN conversion
+      if (isNaN(numericArtistId)) {
+        throw new Error("Invalid artist ID format");
+      }
+      
       const { data, error: artistError } = await supabase
         .from('ArtistMST')
         .select('ArtistFirstName, ArtistLastName')
@@ -53,6 +58,9 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
       
       const artistName = `${data.ArtistFirstName || ''} ${data.ArtistLastName || ''}`.trim();
       
+      // Convert booking.id to number if it's a string (as in our interface)
+      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .update({ 
@@ -61,7 +69,7 @@ export const useArtistAssignment = (bookings: Booking[], setBookings: React.Disp
           AssingnedON: new Date().toISOString(),
           AssignedBY: currentUser?.FirstName || currentUser?.Username || 'User'
         })
-        .eq('id', booking.id);
+        .eq('id', bookingIdNumber);
 
       if (error) {
         toast({

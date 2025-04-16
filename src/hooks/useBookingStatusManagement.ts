@@ -34,9 +34,12 @@ export const useBookingStatusManagement = () => {
     try {
       const adminName = user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'An administrator';
       
+      // Convert booking.id to number for the notification
+      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const notificationData = {
         recipient_email: booking.email,
-        booking_id: parseInt(booking.id), // Convert string to number for the notifications table
+        booking_id: bookingIdNumber,
         booking_no: booking.Booking_NO || '',
         message,
         is_read: false,
@@ -57,13 +60,16 @@ export const useBookingStatusManagement = () => {
 
   const handleStatusChange = async (booking: Booking, newStatus: string) => {
     try {
+      // Convert booking.id to number if it's a string
+      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+
       const { error } = await supabase
         .from('BookMST')
         .update({ 
           Status: newStatus,
           StatusUpdated: new Date().toISOString()
         })
-        .eq('id', booking.id);
+        .eq('id', bookingIdNumber);
 
       if (error) {
         toast({
@@ -106,11 +112,15 @@ export const useBookingStatusManagement = () => {
 
       // Convert string artistId to number for database
       const numericArtistId = parseInt(artistId);
+      
+      if (isNaN(numericArtistId)) {
+        throw new Error("Invalid artist ID format");
+      }
 
       const { data: artistData, error: artistError } = await supabase
         .from('ArtistMST')
         .select('ArtistFirstName, ArtistLastName')
-        .eq('ArtistId', artistId)
+        .eq('ArtistId', numericArtistId)
         .single();
 
       if (artistError) {
@@ -125,6 +135,9 @@ export const useBookingStatusManagement = () => {
 
       const artistName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim() || `Artist ${artistId}`;
       
+      // Convert booking.id to number if needed
+      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .update({ 
@@ -132,7 +145,7 @@ export const useBookingStatusManagement = () => {
           Assignedto: artistName,
           AssingnedON: new Date().toISOString()
         })
-        .eq('id', booking.id);
+        .eq('id', bookingIdNumber);
 
       if (error) {
         console.error("Error assigning artist:", error);

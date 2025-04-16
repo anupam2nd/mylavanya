@@ -1,170 +1,124 @@
-
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { Booking } from "@/hooks/useBookings";
+import { supabase } from "@/integrations/supabase/client";
+import { Booking } from "@/hooks/useBookings";
 
-export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<React.SetStateAction<Booking[]>>) => {
+interface FormValues {
+  date?: Date;
+  time?: string;
+  status?: string;
+  service?: string;
+  subService?: string;
+  product?: string;
+  quantity?: number;
+  address?: string;
+  pincode?: string;
+  artistId?: string | null;
+  currentUser?: { Username?: string } | null;
+}
+
+export const useBookingEdit = (
+  bookings: Booking[],
+  setBookings: React.Dispatch<React.SetStateAction<Booking[]>>
+) => {
+  const { toast } = useToast();
   const [editBooking, setEditBooking] = useState<Booking | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const { toast } = useToast();
 
   const handleEditClick = (booking: Booking) => {
     setEditBooking(booking);
     setOpenDialog(true);
   };
 
-  const handleSaveChanges = async (values: any) => {
+  const handleSaveChanges = async (formValues: FormValues) => {
     try {
       if (!editBooking) return;
 
-      const updates: any = {};
+      // Convert booking.id to number for database operation
+      const bookingIdNumber = typeof editBooking.id === 'string' ? parseInt(editBooking.id) : editBooking.id;
+      
+      const updates: Record<string, any> = {};
 
-      // Only add values to updates if they changed or exist
-      if (values.date) {
-        updates.Booking_date = values.date.toISOString().split('T')[0];
+      if (formValues.date) {
+        updates.Booking_date = formValues.date.toISOString().split('T')[0];
       }
-      
-      if (values.time) {
-        updates.booking_time = values.time;
+
+      if (formValues.time) {
+        updates.booking_time = formValues.time;
       }
-      
-      if (values.service) {
-        updates.ServiceName = values.service;
+
+      if (formValues.status) {
+        updates.Status = formValues.status;
+        updates.StatusUpdated = new Date().toISOString();
       }
-      
-      if (values.subService) {
-        updates.SubService = values.subService;
+
+      if (formValues.service) {
+        updates.ServiceName = formValues.service;
       }
-      
-      if (values.product) {
-        updates.ProductName = values.product;
+
+      if (formValues.subService !== undefined) {
+        updates.SubService = formValues.subService;
       }
-      
-      if (values.quantity) {
-        updates.Qty = values.quantity;
+
+      if (formValues.product !== undefined) {
+        updates.ProductName = formValues.product;
       }
-      
-      if (values.address) {
-        updates.Address = values.address;
+
+      if (formValues.quantity) {
+        updates.Qty = formValues.quantity;
       }
-      
-      if (values.pincode) {
-        updates.Pincode = values.pincode;
+
+      if (formValues.address !== undefined) {
+        updates.Address = formValues.address;
       }
-      
-      // Handle status update
-      if (values.status) {
-        // Update both status fields
-        updates.Status = values.status;
+
+      if (formValues.pincode !== undefined) {
+        updates.Pincode = formValues.pincode ? parseInt(formValues.pincode) : null;
       }
-      
-      // Handle artist assignment - Using UUID string
-      if (values.artistId !== undefined) {
-        console.log("Artist ID in handleSaveChanges:", values.artistId);
-        
-        // Convert string artistId to number for database
-        if (values.artistId) {
-          updates.ArtistId = parseInt(values.artistId);
-          
-          // Try to get artist details if an artist ID was provided
-          try {
-            const { data: artistData, error: artistError } = await supabase
-              .from('ArtistMST')
-              .select('ArtistFirstName, ArtistLastName, ArtistId')
-              .eq('ArtistId', values.artistId)
-              .single();
-              
-            if (!artistError && artistData) {
-              // Construct full name from first and last name fields
-              const artistFullName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim();
-              updates.Assignedto = artistFullName || `Artist ${artistData.ArtistId}`;
-              console.log(`Assigning artist ${artistFullName} to booking`);
-            }
-          } catch (error) {
-            console.error('Error fetching artist details:', error);
-          }
+
+      if (formValues.artistId !== undefined) {
+        if (formValues.artistId) {
+          // Convert artistId string to number for database
+          const numericArtistId = parseInt(formValues.artistId);
+          updates.ArtistId = numericArtistId;
+          updates.AssignedBY = formValues.currentUser?.Username || 'admin';
+          updates.AssingnedON = new Date().toISOString();
         } else {
-          // If artistId is null or undefined, clear the assignment
-          updates.Assignedto = null;
           updates.ArtistId = null;
+          updates.Assignedto = null;
         }
       }
-      
-      // Set AssignedBY from currentUser data
-      if (values.currentUser) {
-        // Debug the currentUser object to see what's available
-        console.log("Current User data for AssignedBY:", JSON.stringify(values.currentUser));
-        
-        // Use the user's role as AssignedBY, ensuring we use the correct property
-        if (values.currentUser.role) {
-          updates.AssignedBY = values.currentUser.role;
-          console.log("Setting AssignedBY to user role:", updates.AssignedBY);
-        } 
-        // If no role is available, fall back to name or username
-        else if (values.currentUser.FirstName || values.currentUser.LastName) {
-          const fullName = `${values.currentUser.FirstName || ''} ${values.currentUser.LastName || ''}`.trim();
-          updates.AssignedBY = fullName;
-          console.log("Falling back to user name for AssignedBY:", fullName);
-        } 
-        else if (values.currentUser.Username) {
-          updates.AssignedBY = values.currentUser.Username;
-          console.log("Falling back to username for AssignedBY:", values.currentUser.Username);
-        }
-        // Default if nothing else available
-        else {
-          updates.AssignedBY = 'unknown';
-          console.log("No user info available, defaulting AssignedBY to 'unknown'");
-        }
-      } else {
-        // No user data available
-        updates.AssignedBY = 'unknown';
-        console.log("No current user data, defaulting AssignedBY to 'unknown'");
-      }
-      
-      // Update AssingnedON timestamp if artist is being assigned
-      if (updates.ArtistId || updates.Assignedto) {
-        updates.AssingnedON = new Date().toISOString();
-      }
-      
-      console.log("Submitting booking updates:", updates);
-      
+
       const { error } = await supabase
         .from('BookMST')
         .update(updates)
-        .eq('id', editBooking.id);
+        .eq('id', bookingIdNumber);
 
       if (error) throw error;
 
-      // For the local state update, convert any numeric ArtistId back to string
-      const updatedLocalBooking = {
-        ...editBooking,
-        ...updates,
-        // Ensure ArtistId is string in local state
-        ArtistId: updates.ArtistId ? updates.ArtistId.toString() : undefined
-      };
+      const updatedBooking = { ...editBooking, ...updates };
+      
+      // For ArtistId, keep as string in the frontend
+      if (updates.ArtistId !== undefined) {
+        updatedBooking.ArtistId = formValues.artistId;
+      }
 
-      // Update the local state
-      setBookings(bookings.map(booking => 
-        booking.id === editBooking.id 
-          ? updatedLocalBooking
-          : booking
-      ));
+      const updatedBookings = bookings.map(b => 
+        b.id === editBooking.id ? updatedBooking : b
+      );
+      
+      setBookings(updatedBookings);
 
       toast({
-        title: "Success!",
-        description: "Booking has been updated",
+        title: "Booking updated",
+        description: "The booking has been successfully updated.",
       });
-
-      setOpenDialog(false);
-      
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating booking:', error);
-      
       toast({
-        title: "Error updating booking",
-        description: error.message || "An unknown error occurred",
         variant: "destructive",
+        title: "Update failed",
+        description: "There was an error updating the booking.",
       });
     }
   };

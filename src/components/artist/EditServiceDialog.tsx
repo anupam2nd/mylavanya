@@ -82,11 +82,14 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
         return;
       }
       
+      // Convert booking.id to number for database operation
+      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       // Update the booking
       const { error } = await supabase
         .from('BookMST')
         .update(updateData)
-        .eq('id', booking.id);
+        .eq('id', bookingIdNumber);
       
       if (error) {
         throw error;

@@ -77,13 +77,16 @@ const BookingsList = ({
 
   const updateBookingSchedule = async (booking: Booking, date: string, time: string): Promise<void> => {
     try {
+      // Convert booking.id to number for database operation
+      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .update({ 
           Booking_date: date, 
           booking_time: time 
         })
-        .eq('id', booking.id);
+        .eq('id', bookingIdNumber);
 
       if (error) throw error;
       
@@ -97,10 +100,13 @@ const BookingsList = ({
 
   const deleteJob = async (booking: Booking): Promise<void> => {
     try {
+      // Convert booking.id to number for database operation
+      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .delete()
-        .eq('id', booking.id);
+        .eq('id', bookingIdNumber);
 
       if (error) throw error;
       
