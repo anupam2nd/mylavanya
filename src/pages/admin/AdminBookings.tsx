@@ -11,6 +11,7 @@ import AdminBookingsList from "@/components/user/bookings/AdminBookingsList";
 import BookingHeader from "@/components/admin/bookings/BookingHeader";
 import BookingSummary from "@/components/admin/bookings/BookingSummary";
 import { useAdminBookings } from "@/hooks/useAdminBookings";
+import { Booking } from "@/hooks/useBookings";
 
 const AdminBookings = () => {
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
@@ -56,6 +57,19 @@ const AdminBookings = () => {
     clearFilters
   } = useBookingFilters(bookings);
 
+  // Add these wrapper functions with proper Promise<void> return types
+  const handleArtistAssignmentWrapper = async (booking: Booking, artistId: string): Promise<void> => {
+    return handleArtistAssignWithUser(booking, artistId);
+  };
+
+  const handleDeleteJobWrapper = async (booking: Booking): Promise<void> => {
+    return handleDeleteJob(booking);
+  };
+
+  const handleScheduleChangeWrapper = async (booking: Booking, date: string, time: string): Promise<void> => {
+    return handleScheduleChange(booking, date, time);
+  };
+
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin", "controller"]}>
       <DashboardLayout title="Manage Bookings">
@@ -98,9 +112,9 @@ const AdminBookings = () => {
               statusOptions={statusOptions}
               artists={artists}
               handleStatusChange={handleStatusChange}
-              handleArtistAssignment={handleArtistAssignWithUser}
-              onDeleteJob={handleDeleteJob}
-              onScheduleChange={handleScheduleChange}
+              handleArtistAssignment={handleArtistAssignmentWrapper}
+              onDeleteJob={handleDeleteJobWrapper}
+              onScheduleChange={handleScheduleChangeWrapper}
             />
           </CardContent>
         </Card>

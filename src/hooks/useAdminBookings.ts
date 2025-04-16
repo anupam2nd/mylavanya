@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -184,30 +185,67 @@ export const useAdminBookings = () => {
   };
 
   const handleArtistAssignWithUser = async (booking: Booking, artistId: string) => {
-    await handleArtistAssignment(booking, artistId);
-    
-    const bookingIndex = bookings.findIndex(b => b.id === booking.id);
-    if (bookingIndex !== -1) {
-      const updatedBooking = {
-        ...booking,
-        ArtistId: artistId,
-        Assignedto: artists.find(a => a.ArtistId === artistId)?.ArtistFirstName || 'Artist',
-        AssignedBY: currentUser?.FirstName || currentUser?.Username || 'Admin',
-        AssingnedON: new Date().toISOString()
-      };
+    try {
+      // Convert artistId to number for database
+      const numericArtistId = parseInt(artistId);
+      if (isNaN(numericArtistId)) throw new Error("Invalid artist ID");
       
-      const updatedBookings = [...bookings];
-      updatedBookings[bookingIndex] = updatedBooking;
+      const artist = artists.find(a => a.ArtistId === artistId);
+      const artistName = artist 
+        ? `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() 
+        : `Artist #${artistId}`;
+      
+      // Convert booking.id to number for database
+      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
+      const { error } = await supabase
+        .from('BookMST')
+        .update({
+          ArtistId: numericArtistId,
+          Assignedto: artistName,
+          AssignedBY: currentUser?.FirstName || currentUser?.Username || 'Admin',
+          AssingnedON: new Date().toISOString()
+        })
+        .eq('id', bookingIdNumber);
+
+      if (error) throw error;
+      
+      const updatedBookings = bookings.map(b => 
+        b.id === booking.id 
+          ? { 
+              ...b, 
+              ArtistId: artistId, 
+              Assignedto: artistName,
+              AssignedBY: currentUser?.FirstName || currentUser?.Username || 'Admin',
+              AssingnedON: new Date().toISOString()
+            } 
+          : b
+      );
+      
       setBookings(updatedBookings);
+      
+      toast({
+        title: "Artist assigned",
+        description: `Booking assigned to ${artistName}`,
+      });
+    } catch (error) {
+      console.error("Error assigning artist:", error);
+      toast({
+        variant: "destructive",
+        title: "Error assigning artist",
+        description: "An unexpected error occurred",
+      });
     }
   };
 
   const handleDeleteJob = async (booking: Booking) => {
     try {
+      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .delete()
-        .eq('id', booking.id);
+        .eq('id', bookingIdNumber);
 
       if (error) throw error;
       setBookings(bookings.filter(b => b.id !== booking.id));
@@ -228,13 +266,15 @@ export const useAdminBookings = () => {
 
   const handleScheduleChange = async (booking: Booking, date: string, time: string) => {
     try {
+      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .update({
           Booking_date: date,
           booking_time: time
         })
-        .eq('id', booking.id);
+        .eq('id', bookingIdNumber);
 
       if (error) throw error;
       const updatedBookings = bookings.map(b => 
@@ -283,13 +323,13 @@ export const useAdminBookings = () => {
     handleEditClick,
     handleSaveWithUserData,
     handleStatusChange,
-    handleArtistAssignWithUser: () => {}, // This would be implemented elsewhere
-    handleDeleteJob: () => {}, // This would be implemented elsewhere
-    handleScheduleChange: () => {}, // This would be implemented elsewhere
-    handleAddNewJob: () => {}, // This would be implemented elsewhere
+    handleArtistAssignWithUser,
+    handleDeleteJob,
+    handleScheduleChange,
+    handleAddNewJob,
     showNewJobDialog,
     setShowNewJobDialog,
     selectedBookingForNewJob,
-    handleNewJobSuccess: () => {} // This would be implemented elsewhere
+    handleNewJobSuccess
   };
 };

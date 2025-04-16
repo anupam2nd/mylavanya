@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";

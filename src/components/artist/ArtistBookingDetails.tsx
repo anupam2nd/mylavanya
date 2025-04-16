@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -24,14 +23,6 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
   const [isEditing, setIsEditing] = useState(false);
   const [showAddJobDialog, setShowAddJobDialog] = useState(false);
   const { handleStatusChange } = useBookingStatusManagement();
-  
-  // Convert booking.id to number for OTPManagement if needed
-  const bookingWithNumberId = {
-    ...booking,
-    // This is only needed if your OTPManagement hook requires a number type for ID
-    // Commented out to avoid type mismatch with Booking interface
-    // id: typeof booking.id === 'string' ? parseInt(booking.id) : booking.id
-  };
   
   const {
     showOtpDialog,
