@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +48,18 @@ export default function RegisterForm({ onSuccess, userType = "member" }: Registe
       
       console.log(`Attempting to register ${userType}:`, email);
       
+      // Hash password using the edge function
+      const { data: hashData, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: registerData.password }
+      });
+
+      if (hashError) {
+        console.error("Error hashing password:", hashError);
+        throw new Error('Error securing password');
+      }
+
+      const hashedPassword = hashData.hashedPassword;
+      
       if (userType === "member") {
         // Check if member already exists
         const { data: existingMembers, error: checkError } = await supabase
@@ -68,13 +79,13 @@ export default function RegisterForm({ onSuccess, userType = "member" }: Registe
           throw new Error('User already exists');
         }
         
-        // Insert new member
+        // Insert new member with hashed password
         const { data, error: insertError } = await supabase
           .from('MemberMST')
           .insert([
             { 
               MemberEmailId: email,
-              password: registerData.password,
+              password: hashedPassword,
               MemberFirstName: registerData.firstName, 
               MemberLastName: registerData.lastName,
               MemberPhNo: registerData.phone,
@@ -110,16 +121,16 @@ export default function RegisterForm({ onSuccess, userType = "member" }: Registe
           throw new Error('User already exists');
         }
         
-        // Insert new user
+        // Insert new user with hashed password
         const { data, error: insertError } = await supabase
           .from('UserMST')
           .insert([
             { 
               Username: email,
-              password: registerData.password,
+              password: hashedPassword,
               FirstName: registerData.firstName, 
               LastName: registerData.lastName,
-              role: userType === "artist" ? "artist" : "admin" // Default to admin if not specified
+              role: userType === "artist" ? "artist" : "admin"
             }
           ])
           .select();

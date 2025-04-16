@@ -23,37 +23,31 @@ export function useMemberLogin() {
       // Explicitly convert email to lowercase for consistent matching
       const normalizedEmail = email.trim().toLowerCase();
       
-      const { data, error } = await supabase
-        .from('MemberMST')
-        .select('id, MemberFirstName, MemberLastName, MemberEmailId, MemberPhNo, MemberAdress, MemberPincode')
-        .ilike('MemberEmailId', normalizedEmail)
-        .eq('password', password)
-        .maybeSingle();
+      // First, get the hashed password for comparison
+      const { data, error } = await supabase.functions.invoke('verify-password', {
+        body: { 
+          email: normalizedEmail,
+          password,
+          type: 'member'
+        }
+      });
       
-      console.log("Member query result:", data, error);
-      
-      if (error) {
-        console.error("Supabase query error:", error);
-        throw new Error('Error querying member');
-      }
-      
-      if (!data) {
+      if (error || !data.isValid) {
         throw new Error('Invalid credentials');
       }
+
+      const userData = data.user;
       
       // Login using the context function
       login({
-        id: data.id.toString(),
-        email: data.MemberEmailId,
+        id: userData.id.toString(),
+        email: userData.MemberEmailId,
         role: 'member',
-        firstName: data.MemberFirstName,
-        lastName: data.MemberLastName
+        firstName: userData.MemberFirstName,
+        lastName: userData.MemberLastName
       });
       
       toast.success("Login successful. Welcome back!");
-      
-      // No redirection, stay on current page
-      // Removed the navigate('/') line to prevent redirect
 
       return true;
     } catch (error) {
