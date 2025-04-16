@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Table,
@@ -33,7 +34,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, MoreHorizontal, Plus, Loader2 } from "lucide-react";
+import { CalendarIcon, MoreHorizontal, Plus, Loader2, Pencil, Trash2 } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { Artist } from "@/hooks/useBookingArtists";
 import { StatusBadge } from "@/components/ui/status-badge";
