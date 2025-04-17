@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 export const useBookingStatusManagement = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [statusOptions, setStatusOptions] = useState<{status_code: string; status_name: string}[]>([]);
+  const [statusOptions, setStatusOptions] = useState<{status_code: string; status_name: string; description?: string; active?: boolean}[]>([]);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export const useBookingStatusManagement = () => {
     try {
       const { data, error } = await supabase
         .from('statusmst')
-        .select('status_code, status_name')
+        .select('status_code, status_name, description, active')
         .eq('active', true);
 
       if (error) {
@@ -112,10 +112,52 @@ export const useBookingStatusManagement = () => {
     }
   };
 
+  // Add handleArtistAssignment to fix the reference error
+  const handleArtistAssignment = async (booking: Booking, artistId: string): Promise<void> => {
+    try {
+      // Convert booking.id to number if it's a string
+      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
+      const { error } = await supabase
+        .from('BookMST')
+        .update({ 
+          ArtistId: artistId,
+          AssignedBY: user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'Admin',
+          AssingnedON: new Date().toISOString()
+        })
+        .eq('id', bookingIdNumber);
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Failed to assign artist",
+          description: error.message,
+        });
+        return Promise.reject(error);
+      }
+
+      toast({
+        title: "Artist assigned",
+        description: `Artist has been assigned to this booking`,
+      });
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error assigning artist:", error);
+      toast({
+        variant: "destructive",
+        title: "Error assigning artist",
+        description: "An unexpected error occurred",
+      });
+      return Promise.reject(error);
+    }
+  };
+
   return { 
     statusOptions, 
     fetchStatusOptions, 
     handleStatusChange,
+    handleArtistAssignment,
     isUpdatingStatus
   };
 };

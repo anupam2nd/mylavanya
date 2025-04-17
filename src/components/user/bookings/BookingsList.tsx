@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
@@ -25,7 +24,7 @@ const BookingsList = ({
   userRole = "user",
   onViewBooking
 }: BookingsListProps) => {
-  const { statusOptions, fetchStatusOptions, handleStatusChange, handleArtistAssignment } = useBookingStatusManagement();
+  const { statusOptions, fetchStatusOptions, handleStatusChange } = useBookingStatusManagement();
   const { artists } = useBookingArtists();
   const { user } = useAuth();
   const isArtist = userRole === "artist" || user?.role === "artist";
@@ -64,20 +63,34 @@ const BookingsList = ({
   };
 
   const handleArtistAssignmentWrapper = async (booking: Booking, artistId: string) => {
-    await handleArtistAssignment(booking, artistId);
+    try {
+      const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
+      const { error } = await supabase
+        .from('BookMST')
+        .update({ 
+          ArtistId: artistId,
+          AssignedBY: user?.email || 'admin',
+          AssingnedON: new Date().toISOString()
+        })
+        .eq('id', bookingId);
+      
+      if (error) throw error;
     
-    const artist = artists.find(a => a.ArtistId === artistId);
-    if (artist) {
-      const artistName = `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim();
-      setBookings(prevBookings => 
-        prevBookings.map(b => b.id === booking.id ? { ...b, ArtistId: artistId, Assignedto: artistName } : b)
-      );
+      const artist = artists.find(a => a.ArtistId === artistId);
+      if (artist) {
+        const artistName = `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim();
+        setBookings(prevBookings => 
+          prevBookings.map(b => b.id === booking.id ? { ...b, ArtistId: artistId, Assignedto: artistName } : b)
+        );
+      }
+    } catch (error) {
+      console.error("Error assigning artist:", error);
     }
   };
 
   const updateBookingSchedule = async (booking: Booking, date: string, time: string): Promise<void> => {
     try {
-      // Convert booking ID to a number if it's a string
       const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
       
       const { error } = await supabase
@@ -100,7 +113,6 @@ const BookingsList = ({
 
   const deleteJob = async (booking: Booking): Promise<void> => {
     try {
-      // Convert booking ID to a number if it's a string
       const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
       
       const { error } = await supabase

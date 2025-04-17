@@ -5,11 +5,19 @@ import { supabase } from "@/integrations/supabase/client";
 export interface StatusOption {
   status_code: string;
   status_name: string;
+  description?: string;
+  active?: boolean;
+  id?: number;
+}
+
+export interface FormattedStatusOption {
+  label: string;
+  value: string;
 }
 
 export const useStatusOptions = () => {
   const [statusOptions, setStatusOptions] = useState<StatusOption[]>([]);
-  const [formattedStatusOptions, setFormattedStatusOptions] = useState<{ label: string; value: string }[]>([]);
+  const [formattedStatusOptions, setFormattedStatusOptions] = useState<FormattedStatusOption[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,7 +29,7 @@ export const useStatusOptions = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('statusmst')
-        .select('status_code, status_name')
+        .select('status_code, status_name, description, active, id')
         .eq('active', true);
 
       if (error) {
