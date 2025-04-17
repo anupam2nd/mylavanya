@@ -16,7 +16,7 @@ interface AdminBookingsListProps {
   isEditingDisabled: boolean;
   onDeleteJob?: (booking: Booking) => Promise<void>;
   onScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;
-  onViewBooking?: (booking: Booking) => void;  // Add this prop
+  onViewBooking?: (booking: Booking) => void;
 }
 
 const AdminBookingsList: React.FC<AdminBookingsListProps> = ({
@@ -31,7 +31,7 @@ const AdminBookingsList: React.FC<AdminBookingsListProps> = ({
   isEditingDisabled,
   onDeleteJob,
   onScheduleChange,
-  onViewBooking,  // Add this parameter
+  onViewBooking,
 }) => {
   return (
     <BookingsList
@@ -39,15 +39,15 @@ const AdminBookingsList: React.FC<AdminBookingsListProps> = ({
       customLoading={loading}
       userRole="admin"
       onEditClick={onEditClick}
-      handleAddNewJob={onAddNewJob}
+      onAddNewJob={onAddNewJob}
       statusOptions={statusOptions}
       artists={artists}
       handleStatusChange={handleStatusChange}
       handleArtistAssignment={handleArtistAssignment}
       isEditingDisabled={isEditingDisabled}
-      handleDeleteJob={onDeleteJob}
-      handleScheduleChange={onScheduleChange}
-      onViewBooking={onViewBooking}  // Pass the onViewBooking prop
+      onDeleteJob={onDeleteJob}
+      onScheduleChange={onScheduleChange}
+      onViewBooking={onViewBooking}
     />
   );
 };

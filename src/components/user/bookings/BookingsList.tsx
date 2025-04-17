@@ -4,7 +4,6 @@ import { Booking } from "@/hooks/useBookings";
 import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
 import { useBookingArtists, Artist } from "@/hooks/useBookingArtists";
 import { JobsTable } from "./booking-table/JobsTable";
-import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { BookingDetailRow } from "./booking-table/BookingDetailRow";
@@ -16,6 +15,15 @@ interface BookingsListProps {
   customBookings?: Booking[];
   customLoading?: boolean;
   userRole?: string;
+  onEditClick?: (booking: Booking) => void;
+  onAddNewJob?: (booking: Booking) => void;
+  statusOptions?: {status_code: string; status_name: string}[];
+  artists?: Artist[];
+  handleStatusChange?: (booking: Booking, newStatus: string) => Promise<void>;
+  handleArtistAssignment?: (booking: Booking, artistId: string) => Promise<void>;
+  isEditingDisabled?: boolean;
+  onDeleteJob?: (booking: Booking) => Promise<void>;
+  onScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;
   onViewBooking?: (booking: Booking) => void;
 }
 
@@ -23,10 +31,19 @@ const BookingsList = ({
   customBookings,
   customLoading,
   userRole = "user",
+  onEditClick,
+  onAddNewJob,
+  statusOptions: externalStatusOptions,
+  artists: externalArtists,
+  handleStatusChange: externalStatusChange,
+  handleArtistAssignment: externalArtistAssignment,
+  isEditingDisabled: externalEditingDisabled,
+  onDeleteJob: externalDeleteJob,
+  onScheduleChange: externalScheduleChange,
   onViewBooking
 }: BookingsListProps) => {
-  const { statusOptions, fetchStatusOptions, handleStatusChange, handleArtistAssignment } = useBookingStatusManagement();
-  const { artists } = useBookingArtists();
+  const { statusOptions: internalStatusOptions, fetchStatusOptions, handleStatusChange: internalStatusChange, handleArtistAssignment: internalArtistAssignment } = useBookingStatusManagement();
+  const { artists: internalArtists } = useBookingArtists();
   const { user } = useAuth();
   const isArtist = userRole === "artist" || user?.role === "artist";
 
@@ -34,6 +51,11 @@ const BookingsList = ({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Use external props if provided, otherwise use internal state
+  const statusOptions = externalStatusOptions || internalStatusOptions;
+  const artists = externalArtists || internalArtists;
+  const isEditingDisabled = externalEditingDisabled !== undefined ? externalEditingDisabled : isArtist;
 
   const bookingGroups = bookings.reduce((groups: Record<string, Booking[]>, booking) => {
     const key = booking.Booking_NO || '';
@@ -56,23 +78,31 @@ const BookingsList = ({
   }, [customBookings, customLoading]);
 
   const handleStatusChangeWrapper = async (booking: Booking, newStatus: string) => {
-    await handleStatusChange(booking, newStatus);
-    
-    setBookings(prevBookings => 
-      prevBookings.map(b => b.id === booking.id ? { ...b, Status: newStatus } : b)
-    );
+    if (externalStatusChange) {
+      await externalStatusChange(booking, newStatus);
+    } else {
+      await internalStatusChange(booking, newStatus);
+      
+      setBookings(prevBookings => 
+        prevBookings.map(b => b.id === booking.id ? { ...b, Status: newStatus } : b)
+      );
+    }
   };
 
   const handleArtistAssignmentWrapper = async (booking: Booking, artistId: string) => {
     try {
-      await handleArtistAssignment(booking, artistId);
-    
-      const artist = artists.find(a => a.ArtistId === artistId);
-      if (artist) {
-        const artistName = `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim();
-        setBookings(prevBookings => 
-          prevBookings.map(b => b.id === booking.id ? { ...b, ArtistId: artistId, Assignedto: artistName } : b)
-        );
+      if (externalArtistAssignment) {
+        await externalArtistAssignment(booking, artistId);
+      } else {
+        await internalArtistAssignment(booking, artistId);
+      
+        const artist = artists.find(a => a.ArtistId === artistId);
+        if (artist) {
+          const artistName = `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim();
+          setBookings(prevBookings => 
+            prevBookings.map(b => b.id === booking.id ? { ...b, ArtistId: artistId, Assignedto: artistName } : b)
+          );
+        }
       }
     } catch (error) {
       console.error("Error assigning artist:", error);
@@ -80,6 +110,10 @@ const BookingsList = ({
   };
 
   const updateBookingSchedule = async (booking: Booking, date: string, time: string): Promise<void> => {
+    if (externalScheduleChange) {
+      return externalScheduleChange(booking, date, time);
+    }
+    
     try {
       const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
       
@@ -102,6 +136,10 @@ const BookingsList = ({
   };
 
   const deleteJob = async (booking: Booking): Promise<void> => {
+    if (externalDeleteJob) {
+      return externalDeleteJob(booking);
+    }
+    
     try {
       const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
       
@@ -121,8 +159,18 @@ const BookingsList = ({
   };
 
   const handleEditClick = (booking: Booking) => {
-    setSelectedBooking(booking);
-    setIsEditDialogOpen(true);
+    if (onEditClick) {
+      onEditClick(booking);
+    } else {
+      setSelectedBooking(booking);
+      setIsEditDialogOpen(true);
+    }
+  };
+
+  const handleAddNewJob = (booking: Booking) => {
+    if (onAddNewJob) {
+      onAddNewJob(booking);
+    }
   };
 
   const handleViewBookingClick = (booking: Booking) => {
@@ -160,7 +208,7 @@ const BookingsList = ({
                 bookingsGroup={bookingsGroup}
                 onEditClick={isArtist ? undefined : handleEditClick}
                 onDeleteJob={!isArtist && deleteJob ? handleDeleteJobWrapper : undefined}
-                isEditingDisabled={isArtist}
+                isEditingDisabled={isEditingDisabled}
                 handleStatusChange={handleStatusChangeWrapper}
                 handleArtistAssignment={handleArtistAssignmentWrapper}
                 onScheduleChange={updateBookingSchedule}
