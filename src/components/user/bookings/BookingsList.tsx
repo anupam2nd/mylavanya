@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
@@ -54,12 +53,10 @@ const BookingsList = ({
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Use external props if provided, otherwise use internal state
   const statusOptions = externalStatusOptions || internalStatusOptions;
   const artists = externalArtists || internalArtists;
   const isEditingDisabled = externalEditingDisabled !== undefined ? externalEditingDisabled : (isArtist || isMember);
 
-  // Group bookings by Booking_NO
   const bookingGroups = bookings.reduce((groups: Record<string, Booking[]>, booking) => {
     const key = booking.Booking_NO || '';
     if (!groups[key]) {
@@ -69,7 +66,6 @@ const BookingsList = ({
     return groups;
   }, {});
 
-  // For members, we need to create a unique set of primary bookings (one per Booking_NO)
   const primaryBookings = isMember ? 
     Object.values(bookingGroups).map(group => ({
       ...group[0],
@@ -169,7 +165,6 @@ const BookingsList = ({
     }
   };
 
-  // Handle edit click
   const handleEditClick = (booking: Booking) => {
     if (!isMember && onEditClick) {
       onEditClick(booking);
@@ -196,7 +191,12 @@ const BookingsList = ({
           {isMember ? (
             <MemberBookingsList 
               primaryBookings={primaryBookings} 
-              onViewBooking={onViewBooking} 
+              bookingGroups={bookingGroups}
+              onViewBooking={onViewBooking}
+              statusOptions={statusOptions}
+              artists={artists}
+              handleStatusChange={handleStatusChangeWrapper}
+              handleArtistAssignment={handleArtistAssignmentWrapper}
             />
           ) : (
             <AdminBookingsView 
