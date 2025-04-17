@@ -53,22 +53,30 @@ export function useRegisterForm({ userType, onSuccess }: UseRegisterFormProps) {
       
       console.log(`Attempting to register ${userType}:`, email);
       
-      // Hash password using the edge function
-      const { data: hashData, error: hashError } = await supabase.functions.invoke('hash-password', {
-        body: { password: formData.password }
-      });
+      // Try to hash password with improved error handling
+      let hashedPassword;
+      try {
+        // Hash password using the edge function
+        const { data: hashData, error: hashError } = await supabase.functions.invoke('hash-password', {
+          body: { password: formData.password }
+        });
 
-      if (hashError) {
-        console.error("Error hashing password:", hashError);
-        throw new Error('Error securing password. Please try again.');
+        if (hashError) {
+          console.error("Error hashing password:", hashError);
+          throw new Error(`Password encryption failed: ${hashError.message || 'Unknown error'}`);
+        }
+
+        if (!hashData || !hashData.hashedPassword) {
+          console.error("No hashed password returned:", hashData);
+          throw new Error('Password encryption service unavailable. Please try again later.');
+        }
+
+        hashedPassword = hashData.hashedPassword;
+        console.log("Password hashed successfully");
+      } catch (hashingError) {
+        console.error("Password hashing failed:", hashingError);
+        throw new Error('Unable to secure your password. Please try again in a few moments.');
       }
-
-      if (!hashData || !hashData.hashedPassword) {
-        console.error("No hashed password returned:", hashData);
-        throw new Error('Error securing password. Please try again.');
-      }
-
-      const hashedPassword = hashData.hashedPassword;
       
       if (userType === "member") {
         // Check if member already exists
