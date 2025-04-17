@@ -46,6 +46,7 @@ const BookingsList = ({
   const { artists: internalArtists } = useBookingArtists();
   const { user } = useAuth();
   const isArtist = userRole === "artist" || user?.role === "artist";
+  const isMember = userRole === "member" || user?.role === "member";
 
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -55,8 +56,9 @@ const BookingsList = ({
   // Use external props if provided, otherwise use internal state
   const statusOptions = externalStatusOptions || internalStatusOptions;
   const artists = externalArtists || internalArtists;
-  const isEditingDisabled = externalEditingDisabled !== undefined ? externalEditingDisabled : isArtist;
+  const isEditingDisabled = externalEditingDisabled !== undefined ? externalEditingDisabled : (isArtist || isMember);
 
+  // Group bookings by Booking_NO
   const bookingGroups = bookings.reduce((groups: Record<string, Booking[]>, booking) => {
     const key = booking.Booking_NO || '';
     if (!groups[key]) {
@@ -65,6 +67,14 @@ const BookingsList = ({
     groups[key].push(booking);
     return groups;
   }, {});
+
+  // For members, we need to create a unique set of primary bookings (one per Booking_NO)
+  const primaryBookings = isMember ? 
+    Object.values(bookingGroups).map(group => ({
+      ...group[0],
+      serviceCount: group.length
+    })) : 
+    bookings;
 
   useEffect(() => {
     fetchStatusOptions();
@@ -195,7 +205,20 @@ const BookingsList = ({
         <div className="text-center py-10">
           <p className="text-muted-foreground">No bookings found.</p>
         </div>
+      ) : isMember ? (
+        // Member view - show one row per booking number with a View button
+        <div className="space-y-6">
+          {primaryBookings.map((booking: any) => (
+            <div key={booking.Booking_NO} className="border rounded-lg overflow-hidden">
+              <BookingDetailRow 
+                booking={booking} 
+                onView={onViewBooking ? handleViewBookingClick : undefined}
+              />
+            </div>
+          ))}
+        </div>
       ) : (
+        // Default view for other roles
         <div className="space-y-6">
           {Object.entries(bookingGroups).map(([bookingNo, bookingsGroup]) => (
             <div key={bookingNo} className="border rounded-lg overflow-hidden">
@@ -214,14 +237,15 @@ const BookingsList = ({
                 onScheduleChange={updateBookingSchedule}
                 statusOptions={statusOptions}
                 artists={artists}
-                onViewBooking={onViewBooking}  // Pass the onViewBooking prop
+                onViewBooking={onViewBooking}
+                showActions={!isMember}
               />
             </div>
           ))}
         </div>
       )}
 
-      {selectedBooking && !isArtist && (
+      {selectedBooking && !isEditingDisabled && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <EditBookingDialog 
             booking={selectedBooking}
