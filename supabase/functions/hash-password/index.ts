@@ -47,7 +47,10 @@ async function hashPassword(password: string, saltRounds = 10): Promise<string> 
     const hashString = encodeBase64(hashArray);
     
     // Return in a format with algorithm, iterations, salt and hash
-    return `$pbkdf2-sha256$i=${iterations}$${saltString}$${hashString}`;
+    // Final format: $pbkdf2-sha256$i=100000$<salt>$<hash>
+    const hashedPassword = `$pbkdf2-sha256$i=${iterations}$${saltString}$${hashString}`;
+    console.log('Generated hash format:', hashedPassword);
+    return hashedPassword;
   } catch (error) {
     console.error('Error in hashPassword function:', error);
     throw new Error(`Failed to hash password: ${error.message}`);

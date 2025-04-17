@@ -27,9 +27,15 @@ async function verifyPassword(password: string, hashedPassword: string): Promise
     
     // Parse the stored hash
     const parts = hashedPassword.split('$');
-    console.log('parts', parts);
+    console.log('Parts split by $:', parts);
+    console.log('Number of parts:', parts.length);
     
-    // We should have 5 parts ($, pbkdf2-sha256, i=iterations, salt, hash)
+    // We should have 5 parts: 
+    // [0]: empty string (before first $)
+    // [1]: pbkdf2-sha256 (algorithm)
+    // [2]: i=iterations (parameters)
+    // [3]: salt (base64)
+    // [4]: hash (base64)
     if (parts.length !== 5) {
       console.error('Invalid hash format, expected 5 parts but got', parts.length);
       return false;
@@ -49,14 +55,20 @@ async function verifyPassword(password: string, hashedPassword: string): Promise
       return false;
     }
     
-    const iterations = parseInt(params.substring(2)); // Use substring instead of split
+    // Extract iterations using substring instead of split to avoid errors
+    const iterations = parseInt(params.substring(2));
     if (isNaN(iterations)) {
-      console.error('Invalid iterations value');
+      console.error('Invalid iterations value:', params.substring(2));
       return false;
     }
     
+    // Extract salt and hash
     const saltString = parts[3];
     const storedHash = parts[4];
+    
+    console.log('Extracted iterations:', iterations);
+    console.log('Extracted saltString:', saltString);
+    console.log('Extracted storedHash:', storedHash);
     
     if (!saltString || !storedHash) {
       console.error('Missing salt or hash in stored password', { saltString, storedHash });
@@ -94,7 +106,8 @@ async function verifyPassword(password: string, hashedPassword: string): Promise
       const hashArray = new Uint8Array(derivedBits);
       const hashString = encodeBase64(hashArray);
       
-      // Add debug logging
+      // Debug logging
+      console.log('Input password:', password);
       console.log('Computed hash:', hashString);
       console.log('Stored hash:', storedHash);
       
@@ -179,7 +192,7 @@ serve(async (req) => {
       });
     }
 
-    console.log('Attempting to verify stored hash');
+    console.log('Stored hash format:', storedHash);
     
     // Verify the password
     const isValid = await verifyPassword(password, storedHash);
