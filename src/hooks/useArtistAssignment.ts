@@ -21,7 +21,7 @@ export const useArtistAssignment = (
       const { data, error } = await supabase
         .from('UserMST')
         .select('Username, FirstName, LastName')
-        .eq('id', user.id)
+        .eq('id', parseInt(user.id)) // Convert string to number
         .single();
       
       if (error) throw error;
@@ -83,7 +83,7 @@ export const useArtistAssignment = (
       const { data: artistData, error: artistError } = await supabase
         .from('ArtistMST')
         .select('ArtistFirstName, ArtistLastName')
-        .eq('ArtistId', parseInt(artistId))
+        .eq('ArtistId', parseInt(artistId)) // Convert string to number
         .single();
       
       if (artistError) throw artistError;
