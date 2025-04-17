@@ -1,10 +1,51 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts" // Using a different bcrypt library
+import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
+import { encode as encodeBase64 } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+/**
+ * Custom password hashing function for Deno environment
+ * This uses a more direct approach without relying on bcrypt's Worker implementation
+ */
+async function hashPassword(password: string, saltRounds = 10): Promise<string> {
+  // Generate a random salt
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const saltString = encodeBase64(salt);
+  
+  // Encode password as UTF-8
+  const encoder = new TextEncoder();
+  const passwordData = encoder.encode(password + saltString);
+  
+  // Use PBKDF2 for password hashing (more compatible with Deno than bcrypt)
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    passwordData,
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits"]
+  );
+  
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: salt,
+      iterations: 10000 * saltRounds, // Increase iterations for more security
+      hash: "SHA-256",
+    },
+    keyMaterial,
+    256
+  );
+  
+  const hashArray = new Uint8Array(derivedBits);
+  const hashString = encodeBase64(hashArray);
+  
+  // Return in a format with algorithm, iterations, salt and hash
+  return `$pbkdf2-sha256$i=${10000 * saltRounds}$${saltString}$${hashString}`;
 }
 
 serve(async (req) => {
@@ -14,6 +55,7 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Received hash-password request');
     const { password } = await req.json()
 
     if (!password) {
@@ -25,22 +67,18 @@ serve(async (req) => {
       })
     }
 
-    console.log('Attempting to hash password...')
+    console.log('Attempting to hash password...');
     
-    // Generate salt and hash password with more robust error handling
     try {
-      const salt = await bcrypt.genSalt(10)
-      console.log('Salt generated successfully')
-      
-      const hashedPassword = await bcrypt.hash(password, salt)
-      console.log('Password hashed successfully')
+      const hashedPassword = await hashPassword(password);
+      console.log('Password hashed successfully');
 
       return new Response(
         JSON.stringify({ hashedPassword }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     } catch (hashError) {
-      console.error('Error during password hashing process:', hashError)
+      console.error('Error during password hashing process:', hashError);
       return new Response(
         JSON.stringify({ error: 'Failed to hash password', details: hashError.message }), {
         status: 500,
@@ -48,8 +86,7 @@ serve(async (req) => {
       })
     }
   } catch (error) {
-    // Log the actual error for debugging
-    console.error('Error in hash-password function:', error)
+    console.error('Error in hash-password function:', error);
     
     return new Response(
       JSON.stringify({ error: error.message }), {
