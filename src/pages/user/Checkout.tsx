@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -196,7 +195,7 @@ const Checkout = () => {
                 </div>
               </div>
               
-              <Alert variant="warning">
+              <Alert variant="default">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Important</AlertTitle>
                 <AlertDescription>
