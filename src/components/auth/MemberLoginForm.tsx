@@ -17,6 +17,7 @@ export default function MemberLoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Submitting member login form", loginData);
     const success = await handleLogin(loginData);
     
     // If login was successful, close the modal by dispatching a custom event

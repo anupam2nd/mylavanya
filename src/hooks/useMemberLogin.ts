@@ -23,7 +23,7 @@ export function useMemberLogin() {
       // Explicitly convert email to lowercase for consistent matching
       const normalizedEmail = email.trim().toLowerCase();
       
-      // First, get the hashed password for comparison
+      // First, verify password through edge function
       const { data, error } = await supabase.functions.invoke('verify-password', {
         body: { 
           email: normalizedEmail,
@@ -32,7 +32,10 @@ export function useMemberLogin() {
         }
       });
       
+      console.log("Login verification response:", data);
+      
       if (error || !data.isValid) {
+        console.error("Login verification error:", error || "Invalid credentials");
         throw new Error('Invalid credentials');
       }
 
@@ -48,6 +51,7 @@ export function useMemberLogin() {
       });
       
       toast.success("Login successful. Welcome back!");
+      navigate('/user/bookings');
 
       return true;
     } catch (error) {

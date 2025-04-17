@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 
 interface RegisterFormProps {
@@ -32,11 +33,7 @@ export default function RegisterForm({ onSuccess, userType = "member" }: Registe
     
     // Check if passwords match
     if (registerData.password !== registerData.confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "Passwords don't match",
-        description: "Please ensure your passwords match.",
-      });
+      toast.error("Passwords don't match. Please ensure your passwords match.");
       return;
     }
     
@@ -76,7 +73,7 @@ export default function RegisterForm({ onSuccess, userType = "member" }: Registe
         
         if (existingMembers && existingMembers.length > 0) {
           console.log("Member already exists:", existingMembers);
-          throw new Error('User already exists');
+          throw new Error('Email already registered. Please login instead.');
         }
         
         // Insert new member with hashed password
@@ -118,7 +115,7 @@ export default function RegisterForm({ onSuccess, userType = "member" }: Registe
         
         if (existingUsers && existingUsers.length > 0) {
           console.log("User already exists:", existingUsers);
-          throw new Error('User already exists');
+          throw new Error('Email already registered. Please login instead.');
         }
         
         // Insert new user with hashed password
@@ -143,20 +140,13 @@ export default function RegisterForm({ onSuccess, userType = "member" }: Registe
         }
       }
       
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created. You can now log in.",
-      });
+      toast.success("Registration successful! You can now log in.");
       
       // Pass credentials back to parent for auto-login
       onSuccess(email, registerData.password);
     } catch (error: any) {
       console.error('Registration error:', error);
-      toast({
-        variant: "destructive",
-        title: "Registration failed",
-        description: error.message || "Something went wrong. Please try again.",
-      });
+      toast.error(error.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
