@@ -19,50 +19,84 @@ const supabase = createClient(supabaseUrl, supabaseKey)
  */
 async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
   try {
+    // Check if the hash format matches what we expect
+    if (!hashedPassword.startsWith('$pbkdf2-sha256$')) {
+      console.error('Unsupported hash format:', hashedPassword);
+      return false;
+    }
+    
     // Parse the stored hash
-    const [algorithm, params] = hashedPassword.split('$').slice(1);
+    const parts = hashedPassword.split('$');
+    if (parts.length !== 4) {
+      console.error('Invalid hash format, expected 4 parts but got', parts.length);
+      return false;
+    }
+    
+    const algorithm = parts[1];
+    const params = parts[2];
     
     if (algorithm !== 'pbkdf2-sha256') {
-      throw new Error('Unsupported algorithm');
+      console.error('Unsupported algorithm:', algorithm);
+      return false;
     }
     
     // Extract parameters
-    const iterations = parseInt(params.split('i=')[1].split('$')[0]);
-    const storedSalt = params.split('$')[1];
-    const storedHash = params.split('$')[2];
+    if (!params.startsWith('i=')) {
+      console.error('Invalid parameters format:', params);
+      return false;
+    }
     
-    // Decode the salt
-    const salt = decodeBase64(storedSalt);
+    const iterations = parseInt(params.split('i=')[1]);
+    if (isNaN(iterations)) {
+      console.error('Invalid iterations value');
+      return false;
+    }
     
-    // Encode password as UTF-8
-    const encoder = new TextEncoder();
-    const passwordData = encoder.encode(password + storedSalt);
+    const storedSalt = parts[3].split('$')[0];
+    const storedHash = parts[3].split('$')[1];
     
-    // Use PBKDF2 to derive bits
-    const keyMaterial = await crypto.subtle.importKey(
-      "raw",
-      passwordData,
-      { name: "PBKDF2" },
-      false,
-      ["deriveBits"]
-    );
+    if (!storedSalt || !storedHash) {
+      console.error('Missing salt or hash in stored password');
+      return false;
+    }
     
-    const derivedBits = await crypto.subtle.deriveBits(
-      {
-        name: "PBKDF2",
-        salt: salt,
-        iterations: iterations,
-        hash: "SHA-256",
-      },
-      keyMaterial,
-      256
-    );
-    
-    const hashArray = new Uint8Array(derivedBits);
-    const hashString = encodeBase64(hashArray);
-    
-    // Compare the calculated hash with the stored hash
-    return hashString === storedHash;
+    try {
+      // Decode the salt
+      const salt = decodeBase64(storedSalt);
+      
+      // Encode password as UTF-8
+      const encoder = new TextEncoder();
+      const passwordData = encoder.encode(password);
+      
+      // Use PBKDF2 to derive bits
+      const keyMaterial = await crypto.subtle.importKey(
+        "raw",
+        passwordData,
+        { name: "PBKDF2" },
+        false,
+        ["deriveBits"]
+      );
+      
+      const derivedBits = await crypto.subtle.deriveBits(
+        {
+          name: "PBKDF2",
+          salt: salt,
+          iterations: iterations,
+          hash: "SHA-256",
+        },
+        keyMaterial,
+        256
+      );
+      
+      const hashArray = new Uint8Array(derivedBits);
+      const hashString = encodeBase64(hashArray);
+      
+      // Compare the calculated hash with the stored hash
+      return hashString === storedHash;
+    } catch (error) {
+      console.error('Error in base64 decoding or hash computation:', error);
+      return false;
+    }
   } catch (error) {
     console.error('Error verifying password:', error);
     return false;
@@ -129,6 +163,17 @@ serve(async (req) => {
       storedHash = data.password;
     }
 
+    // Check if we have a stored hash
+    if (!storedHash) {
+      console.error('No password hash found for user');
+      return new Response(
+        JSON.stringify({ isValid: false, error: 'Invalid credentials' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Attempting to verify stored hash');
+    
     // Verify the password
     const isValid = await verifyPassword(password, storedHash);
 

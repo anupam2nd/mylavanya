@@ -10,42 +10,48 @@ const corsHeaders = {
 
 /**
  * Custom password hashing function for Deno environment
- * This uses a more direct approach without relying on bcrypt's Worker implementation
+ * Uses PBKDF2 with SHA-256 for secure password hashing
  */
 async function hashPassword(password: string, saltRounds = 10): Promise<string> {
-  // Generate a random salt
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const saltString = encodeBase64(salt);
-  
-  // Encode password as UTF-8
-  const encoder = new TextEncoder();
-  const passwordData = encoder.encode(password + saltString);
-  
-  // Use PBKDF2 for password hashing (more compatible with Deno than bcrypt)
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    passwordData,
-    { name: "PBKDF2" },
-    false,
-    ["deriveBits"]
-  );
-  
-  const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt: salt,
-      iterations: 10000 * saltRounds, // Increase iterations for more security
-      hash: "SHA-256",
-    },
-    keyMaterial,
-    256
-  );
-  
-  const hashArray = new Uint8Array(derivedBits);
-  const hashString = encodeBase64(hashArray);
-  
-  // Return in a format with algorithm, iterations, salt and hash
-  return `$pbkdf2-sha256$i=${10000 * saltRounds}$${saltString}$${hashString}`;
+  try {
+    // Generate a random salt
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const saltString = encodeBase64(salt);
+    
+    // Encode password as UTF-8
+    const encoder = new TextEncoder();
+    const passwordData = encoder.encode(password);
+    
+    // Use PBKDF2 for password hashing
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      passwordData,
+      { name: "PBKDF2" },
+      false,
+      ["deriveBits"]
+    );
+    
+    const iterations = 10000 * saltRounds;
+    const derivedBits = await crypto.subtle.deriveBits(
+      {
+        name: "PBKDF2",
+        salt: salt,
+        iterations: iterations,
+        hash: "SHA-256",
+      },
+      keyMaterial,
+      256
+    );
+    
+    const hashArray = new Uint8Array(derivedBits);
+    const hashString = encodeBase64(hashArray);
+    
+    // Return in a format with algorithm, iterations, salt and hash
+    return `$pbkdf2-sha256$i=${iterations}$${saltString}$${hashString}`;
+  } catch (error) {
+    console.error('Error in hashPassword function:', error);
+    throw new Error(`Failed to hash password: ${error.message}`);
+  }
 }
 
 serve(async (req) => {
