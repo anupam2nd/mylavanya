@@ -60,7 +60,12 @@ export function useRegisterForm({ userType, onSuccess }: UseRegisterFormProps) {
 
       if (hashError) {
         console.error("Error hashing password:", hashError);
-        throw new Error('Error securing password');
+        throw new Error('Error securing password. Please try again.');
+      }
+
+      if (!hashData || !hashData.hashedPassword) {
+        console.error("No hashed password returned:", hashData);
+        throw new Error('Error securing password. Please try again.');
       }
 
       const hashedPassword = hashData.hashedPassword;

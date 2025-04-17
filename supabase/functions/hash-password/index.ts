@@ -28,11 +28,17 @@ serve(async (req) => {
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(password, salt)
 
+    // Log success for debugging
+    console.log('Password hashed successfully')
+
     return new Response(
       JSON.stringify({ hashedPassword }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {
+    // Log the actual error for debugging
+    console.error('Error in hash-password function:', error)
+    
     return new Response(
       JSON.stringify({ error: error.message }), {
       status: 500,
