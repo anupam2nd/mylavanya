@@ -83,7 +83,7 @@ export const useArtistAssignment = (
       const { data: artistData, error: artistError } = await supabase
         .from('ArtistMST')
         .select('ArtistFirstName, ArtistLastName')
-        .eq('ArtistId', artistId)
+        .eq('ArtistId', parseInt(artistId))
         .single();
       
       if (artistError) throw artistError;
@@ -93,11 +93,14 @@ export const useArtistAssignment = (
         ? `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim() || `Artist #${artistId}`
         : `Artist #${artistId}`;
       
+      // Convert artistId to number for Supabase
+      const artistIdNumber = parseInt(artistId);
+      
       // Update the booking with the new artist
       const { error } = await supabase
         .from('BookMST')
         .update({ 
-          ArtistId: artistId, 
+          ArtistId: artistIdNumber, 
           Assignedto: artistName,
           AssignedBY: currentUser?.Username || user?.email || 'admin',
           AssingnedON: new Date().toISOString()
@@ -111,7 +114,7 @@ export const useArtistAssignment = (
         b.id === booking.id 
           ? { 
               ...b, 
-              ArtistId: artistId, 
+              ArtistId: artistId, // Keep as string in the frontend state
               Assignedto: artistName,
               AssignedBY: currentUser?.Username || user?.email || 'admin',
               AssingnedON: new Date().toISOString()

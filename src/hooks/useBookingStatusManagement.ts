@@ -118,10 +118,13 @@ export const useBookingStatusManagement = () => {
       // Convert booking.id to number if it's a string
       const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
       
+      // Convert artistId to number if needed for the database
+      const artistIdNumber = artistId ? parseInt(artistId) : null;
+      
       const { error } = await supabase
         .from('BookMST')
         .update({ 
-          ArtistId: artistId,
+          ArtistId: artistIdNumber,
           AssignedBY: user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'Admin',
           AssingnedON: new Date().toISOString()
         })
