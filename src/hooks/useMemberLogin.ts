@@ -51,7 +51,15 @@ export function useMemberLogin() {
       });
       
       toast.success("Login successful. Welcome back!");
-      navigate('/');
+      
+      // If there was a previous page where the user tried to book a service, redirect there
+      const previousPath = sessionStorage.getItem('bookingRedirectPath');
+      if (previousPath) {
+        sessionStorage.removeItem('bookingRedirectPath');
+        navigate(previousPath);
+      } else {
+        navigate('/');
+      }
 
       return true;
     } catch (error) {

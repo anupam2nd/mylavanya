@@ -3,6 +3,7 @@ import React from "react";
 import { useServices } from "@/hooks/useServices";
 import { ServiceCard } from "@/components/services/ServiceCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useNavigate } from "react-router-dom";
 
 interface ServiceListProps {
   categoryFilter?: string;
@@ -11,10 +12,15 @@ interface ServiceListProps {
 
 const ServiceList: React.FC<ServiceListProps> = ({ categoryFilter, sortOrder = 'none' }) => {
   const { services, loading } = useServices(categoryFilter, sortOrder);
+  const navigate = useNavigate();
 
   if (loading) {
     return <div>Loading services...</div>;
   }
+
+  const handleServiceClick = (serviceId: string) => {
+    navigate(`/service/${serviceId}`);
+  };
 
   return (
     <ScrollArea className="h-full">
@@ -27,7 +33,7 @@ const ServiceList: React.FC<ServiceListProps> = ({ categoryFilter, sortOrder = '
             price={service.price || 0}
             category={service.category}
             description={service.description}
-            onClick={() => console.log("Service clicked:", service)}
+            onClick={() => handleServiceClick(service.id)}
           />
         ))}
       </div>

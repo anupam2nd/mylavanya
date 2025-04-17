@@ -6,6 +6,7 @@ import { Heart, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/hooks/useWishlist";
+import { useNavigate } from "react-router-dom";
 
 interface ServiceCardProps {
   id: string;
@@ -38,6 +39,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
 }) => {
   const { user } = useAuth();
   const { wishlistItems, addToWishlist, removeFromWishlist } = useWishlist();
+  const navigate = useNavigate();
   
   // Check if service is in wishlist
   const serviceInWishlist = isWishlisted !== undefined 
@@ -69,7 +71,11 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   const handleAddToCart = () => {
     if (onAddToCart) {
       onAddToCart();
+      return;
     }
+    
+    // Navigate to service detail page for booking
+    navigate(`/service/${id}`);
   };
 
   return (
