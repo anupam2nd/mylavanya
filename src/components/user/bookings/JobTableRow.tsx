@@ -3,9 +3,9 @@ import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
-import { BookingStatusSelect } from "./BookingStatusSelect";
-import { ArtistAssignmentSelect } from "./ArtistAssignmentSelect";
-import { JobScheduleCell } from "./JobScheduleCell";
+import { BookingStatusSelect } from "@/components/user/bookings/booking-table/BookingStatusSelect";
+import { ArtistAssignmentSelect } from "@/components/user/bookings/booking-table/ArtistAssignmentSelect";
+import { JobScheduleCell } from "@/components/user/bookings/booking-table/JobScheduleCell";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useAuth } from "@/context/AuthContext";
 import { Artist } from "@/hooks/useBookingArtists";
@@ -142,7 +142,7 @@ export const JobTableRow = ({
         )}
       </TableCell>
       
-      {showActions && (
+      {showActions && !isAdmin && (
         <TableCell>
           {onViewBooking && (
             <Button 
@@ -155,34 +155,36 @@ export const JobTableRow = ({
               View Details
             </Button>
           )}
-          
-          {isAdmin && (
-            <>
+        </TableCell>
+      )}
+      
+      {showActions && isAdmin && (
+        <TableCell>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEditClick(booking)}
+              disabled={isEditingDisabled}
+              className="flex items-center"
+            >
+              <Pencil className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+            
+            {onDeleteJob && showDeleteButton && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onEditClick(booking)}
+                onClick={() => onDeleteJob && onDeleteJob(booking)}
                 disabled={isEditingDisabled}
-                className="flex items-center ml-2"
+                className="flex items-center text-destructive"
               >
-                <Pencil className="h-4 w-4 mr-1" />
-                Edit
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
               </Button>
-              
-              {onDeleteJob && showDeleteButton && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onDeleteJob && onDeleteJob(booking)}
-                  disabled={isEditingDisabled}
-                  className="flex items-center text-destructive ml-2"
-                >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Delete
-                </Button>
-              )}
-            </>
-          )}
+            )}
+          </div>
         </TableCell>
       )}
     </TableRow>
