@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Booking } from "@/hooks/useBookings";
@@ -9,6 +9,11 @@ export const useBookingStatusManagement = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [statusOptions, setStatusOptions] = useState<{status_code: string; status_name: string}[]>([]);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  useEffect(() => {
+    fetchStatusOptions();
+  }, []);
 
   const fetchStatusOptions = async () => {
     try {
@@ -58,8 +63,12 @@ export const useBookingStatusManagement = () => {
     }
   };
 
-  const handleStatusChange = async (booking: Booking, newStatus: string) => {
+  const handleStatusChange = async (booking: Booking, newStatus: string): Promise<void> => {
+    if (isUpdatingStatus) return Promise.resolve();
+    
     try {
+      setIsUpdatingStatus(true);
+      
       // Convert booking.id to number if it's a string
       const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
 
@@ -77,10 +86,10 @@ export const useBookingStatusManagement = () => {
           title: "Failed to update status",
           description: error.message,
         });
-        return;
+        return Promise.reject(error);
       }
 
-      if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'user') {
+      if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller') {
         await createNotification(booking, 'status', `Booking status changed to ${newStatus}`);
       }
 
@@ -88,6 +97,8 @@ export const useBookingStatusManagement = () => {
         title: "Status updated",
         description: `Booking status changed to ${newStatus}`,
       });
+      
+      return Promise.resolve();
     } catch (error) {
       console.error("Error updating status:", error);
       toast({
@@ -95,90 +106,16 @@ export const useBookingStatusManagement = () => {
         title: "Error updating status",
         description: "An unexpected error occurred",
       });
-    }
-  };
-
-  const handleArtistAssignment = async (booking: Booking, artistId: string) => {
-    try {
-      if (!artistId) {
-        console.error("Invalid artist ID:", artistId);
-        toast({
-          variant: "destructive",
-          title: "Invalid artist selection",
-          description: "Please select a valid artist",
-        });
-        return;
-      }
-
-      // Convert string artistId to number for database
-      const numericArtistId = parseInt(artistId);
-      
-      if (isNaN(numericArtistId)) {
-        throw new Error("Invalid artist ID format");
-      }
-
-      const { data: artistData, error: artistError } = await supabase
-        .from('ArtistMST')
-        .select('ArtistFirstName, ArtistLastName')
-        .eq('ArtistId', numericArtistId)
-        .single();
-
-      if (artistError) {
-        console.error("Error fetching artist:", artistError);
-        toast({
-          variant: "destructive",
-          title: "Failed to find artist",
-          description: artistError.message,
-        });
-        return;
-      }
-
-      const artistName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim() || `Artist ${artistId}`;
-      
-      // Convert booking.id to number if needed
-      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
-      
-      const { error } = await supabase
-        .from('BookMST')
-        .update({ 
-          ArtistId: numericArtistId, // Store as number in database
-          Assignedto: artistName,
-          AssingnedON: new Date().toISOString()
-        })
-        .eq('id', bookingIdNumber);
-
-      if (error) {
-        console.error("Error assigning artist:", error);
-        toast({
-          variant: "destructive",
-          title: "Failed to assign artist",
-          description: error.message,
-        });
-        return;
-      }
-
-      if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'user') {
-        await createNotification(booking, 'artist assignment', `Booking assigned to ${artistName}`);
-      }
-
-      toast({
-        title: "Artist assigned",
-        description: `Booking assigned to ${artistName}`,
-      });
-    } catch (error) {
-      console.error("Error assigning artist:", error);
-      toast({
-        variant: "destructive",
-        title: "Error assigning artist",
-        description: "An unexpected error occurred",
-      });
+      return Promise.reject(error);
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
   return { 
     statusOptions, 
     fetchStatusOptions, 
-    handleStatusChange, 
-    handleArtistAssignment 
+    handleStatusChange,
+    isUpdatingStatus
   };
 };
