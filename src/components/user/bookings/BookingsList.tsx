@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
@@ -42,11 +41,14 @@ const BookingsList = ({
   onScheduleChange: externalScheduleChange,
   onViewBooking
 }: BookingsListProps) => {
+  const { user } = useAuth();
   const { statusOptions: internalStatusOptions, fetchStatusOptions, handleStatusChange: internalStatusChange, handleArtistAssignment: internalArtistAssignment } = useBookingStatusManagement();
   const { artists: internalArtists } = useBookingArtists();
-  const { user } = useAuth();
+  const { user: currentUser } = useAuth();
+  
   const isArtist = userRole === "artist" || user?.role === "artist";
   const isMember = userRole === "member" || user?.role === "member";
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller';
 
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -168,8 +170,9 @@ const BookingsList = ({
     }
   };
 
+  // Handle edit click to prevent editing for members
   const handleEditClick = (booking: Booking) => {
-    if (onEditClick) {
+    if (!isMember && onEditClick) {
       onEditClick(booking);
     } else {
       setSelectedBooking(booking);
