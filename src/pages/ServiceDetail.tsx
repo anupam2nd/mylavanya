@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,6 +88,22 @@ const ServiceDetail = () => {
 
   const handleBookingSuccess = () => {
     setShowBookingForm(false);
+  };
+
+  const handleBookNowClick = () => {
+    if (!user) {
+      // Store current path for redirect after login
+      sessionStorage.setItem('bookingRedirectPath', window.location.pathname);
+      navigate('/');
+      toast({
+        title: "Login Required",
+        description: "Please login as a member to book services",
+        variant: "default"
+      });
+      return;
+    }
+    
+    setShowBookingForm(true);
   };
 
   if (loading) {
@@ -207,7 +224,7 @@ const ServiceDetail = () => {
                     variant="primary-gradient" 
                     className="w-full" 
                     size="lg" 
-                    onClick={() => setShowBookingForm(true)}
+                    onClick={handleBookNowClick}
                   >
                     Book Now
                   </ButtonCustom>
@@ -227,7 +244,11 @@ const ServiceDetail = () => {
                   {!user && (
                     <Button 
                       variant="outline" 
-                      onClick={() => navigate("/auth")}
+                      onClick={() => {
+                        // Store current path for redirect after login
+                        sessionStorage.setItem('bookingRedirectPath', window.location.pathname);
+                        navigate("/auth");
+                      }}
                     >
                       Login as Member
                     </Button>

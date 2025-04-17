@@ -74,8 +74,8 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
       return;
     }
     
-    // Navigate to service detail page for booking
-    navigate(`/service/${id}`);
+    // Navigate to service detail page for booking - fixed path
+    navigate(`/services/${id}`);
   };
 
   return (

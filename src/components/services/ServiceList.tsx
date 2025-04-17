@@ -19,7 +19,7 @@ const ServiceList: React.FC<ServiceListProps> = ({ categoryFilter, sortOrder = '
   }
 
   const handleServiceClick = (serviceId: string) => {
-    navigate(`/service/${serviceId}`);
+    navigate(`/services/${serviceId}`);
   };
 
   return (
