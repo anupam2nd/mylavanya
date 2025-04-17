@@ -68,8 +68,8 @@ const UserBookings = () => {
     clearFilters
   } = useBookingFilters(bookings);
 
-  // Determine if the current user is allowed to edit bookings (admin, superadmin, or user from UserMST)
-  const canEdit = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'user';
+  // Determine if the current user is allowed to edit bookings (admin, superadmin, controller, or user from UserMST)
+  const canEdit = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller' || user?.role === 'user';
   const isMember = user?.role === 'member';
   
   // Set the title based on user role

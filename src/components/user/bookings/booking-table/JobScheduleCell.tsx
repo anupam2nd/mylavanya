@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, Loader2 } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { DateTimePicker } from "./DateTimePicker";
 
@@ -50,6 +50,9 @@ export const JobScheduleCell = ({
               onClick={toggleScheduleEdit}
               disabled={isUpdating}
             >
+              {isUpdating ? (
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+              ) : null}
               Change schedule
             </Button>
           )}

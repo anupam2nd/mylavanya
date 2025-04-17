@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Booking } from "@/hooks/useBookings";
 
 interface BookingStatusSelectProps {
   currentStatus: string;
@@ -25,7 +24,7 @@ export const BookingStatusSelect = ({
       defaultValue={defaultValue}
       disabled={isDisabled}
     >
-      <SelectTrigger className="h-7 text-xs">
+      <SelectTrigger className="h-7 text-xs mt-2">
         <SelectValue placeholder="Change Status" />
       </SelectTrigger>
       <SelectContent>

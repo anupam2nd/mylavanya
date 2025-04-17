@@ -3,19 +3,15 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar as CalendarIcon, X, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { CalendarIcon, Check, X } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
+import { cn } from "@/lib/utils";
 
 interface DateTimePickerProps {
   booking: Booking;
-  onSave: (date: string, time: string) => void;
+  onSave: (date: string, time: string) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -23,65 +19,69 @@ export const DateTimePicker = ({ booking, onSave, onCancel }: DateTimePickerProp
   const [date, setDate] = useState<Date | undefined>(
     booking.Booking_date ? new Date(booking.Booking_date) : undefined
   );
-  const [time, setTime] = useState(booking.booking_time?.substring(0, 5) || "");
+  const [time, setTime] = useState(booking.booking_time?.substring(0, 5) || "09:00");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!date) return;
+    
+    setIsSaving(true);
+    try {
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      await onSave(formattedDate, time);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
-    <div className="flex flex-col space-y-2">
+    <div className="space-y-2">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left text-xs",
+              !date && "text-muted-foreground"
+            )}
+            size="sm"
+          >
+            <CalendarIcon className="mr-2 h-3 w-3" />
+            {date ? format(date, 'PPP') : "Select date"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+
       <div className="flex items-center space-x-2">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-full justify-start text-left text-xs h-7",
-                !date && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-1 h-3 w-3" />
-              {date ? format(date, "yyyy-MM-dd") : <span>Select date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-      
-      <div>
         <Input
           type="time"
           value={time}
           onChange={(e) => setTime(e.target.value)}
-          className="h-7 text-xs"
+          className="h-8 text-xs"
         />
       </div>
-      
-      <div className="flex justify-end space-x-2">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onCancel} 
-          className="h-7 text-xs"
-        >
-          <X className="h-3 w-3 mr-1" /> Cancel
+
+      <div className="flex justify-between">
+        <Button variant="outline" size="sm" onClick={onCancel} className="text-xs">
+          <X className="h-3 w-3 mr-1" />
+          Cancel
         </Button>
         <Button 
-          variant="default" 
           size="sm" 
-          onClick={() => {
-            if (date) {
-              onSave(format(date, "yyyy-MM-dd"), time);
-            }
-          }}
-          disabled={!date || !time} 
-          className="h-7 text-xs"
+          onClick={handleSave} 
+          disabled={!date || isSaving}
+          className="text-xs"
         >
-          <Check className="h-3 w-3 mr-1" /> Save
+          <Check className="h-3 w-3 mr-1" />
+          Save
         </Button>
       </div>
     </div>

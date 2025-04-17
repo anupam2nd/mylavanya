@@ -96,7 +96,7 @@ export const JobTableRow = ({
       </TableCell>
 
       <TableCell>
-        {isAdmin && !isArtist ? (
+        {isAdmin ? (
           <JobScheduleCell 
             booking={booking}
             isEditingDisabled={isEditingDisabled}
@@ -118,7 +118,7 @@ export const JobTableRow = ({
       <TableCell>
         <StatusBadge status={booking.Status || 'pending'} />
         
-        {isAdmin && false && (
+        {isAdmin && (
           <BookingStatusSelect 
             currentStatus={booking.Status || 'pending'} 
             statusOptions={statusOptions} 
@@ -131,7 +131,7 @@ export const JobTableRow = ({
       <TableCell>
         {getArtistName()}
         
-        {isAdmin && false && (
+        {isAdmin && (
           <ArtistAssignmentSelect 
             booking={booking}
             artists={artists}
