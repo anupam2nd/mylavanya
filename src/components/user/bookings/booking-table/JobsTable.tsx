@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Booking } from "@/hooks/useBookings";
@@ -16,6 +15,7 @@ interface JobsTableProps {
   onScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;
   statusOptions: {status_code: string; status_name: string}[];
   artists: Artist[];
+  onViewBooking?: (booking: Booking) => void;
 }
 
 export const JobsTable = ({
@@ -27,7 +27,8 @@ export const JobsTable = ({
   handleArtistAssignment,
   onScheduleChange,
   statusOptions,
-  artists
+  artists,
+  onViewBooking
 }: JobsTableProps) => {
   const { user } = useAuth();
   const isMember = user?.role === 'member';
@@ -59,6 +60,7 @@ export const JobsTable = ({
             artists={artists}
             showDeleteButton={bookingsGroup.length > 1}
             showActions={!isMember}
+            onViewBooking={onViewBooking}
           />
         ))}
       </TableBody>

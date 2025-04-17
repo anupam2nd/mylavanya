@@ -153,19 +153,20 @@ const BookingsList = ({
             <div key={bookingNo} className="border rounded-lg overflow-hidden">
               <BookingDetailRow 
                 booking={bookingsGroup[0]} 
-                onEdit={isArtist ? undefined : handleEditClick}  // Hide edit for artists
+                onEdit={isArtist ? undefined : handleEditClick}
                 onView={onViewBooking ? handleViewBookingClick : undefined}
               />
               <JobsTable 
                 bookingsGroup={bookingsGroup}
-                onEditClick={isArtist ? undefined : handleEditClick}  // Hide edit for artists
-                onDeleteJob={!isArtist && deleteJob ? handleDeleteJobWrapper : undefined} // Hide delete for artists
-                isEditingDisabled={isArtist}  // Disable editing for artists
+                onEditClick={isArtist ? undefined : handleEditClick}
+                onDeleteJob={!isArtist && deleteJob ? handleDeleteJobWrapper : undefined}
+                isEditingDisabled={isArtist}
                 handleStatusChange={handleStatusChangeWrapper}
                 handleArtistAssignment={handleArtistAssignmentWrapper}
                 onScheduleChange={updateBookingSchedule}
                 statusOptions={statusOptions}
                 artists={artists}
+                onViewBooking={onViewBooking}  // Pass the onViewBooking prop
               />
             </div>
           ))}

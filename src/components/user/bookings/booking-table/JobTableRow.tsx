@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { BookingStatusSelect } from "./BookingStatusSelect";
 import { ArtistAssignmentSelect } from "./ArtistAssignmentSelect";
@@ -23,6 +22,7 @@ interface JobTableRowProps {
   artists: Artist[];
   showDeleteButton: boolean;
   showActions?: boolean;
+  onViewBooking?: (booking: Booking) => void;
 }
 
 export const JobTableRow = ({
@@ -36,7 +36,8 @@ export const JobTableRow = ({
   statusOptions,
   artists,
   showDeleteButton,
-  showActions = true
+  showActions = true,
+  onViewBooking,
 }: JobTableRowProps) => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isAssigningArtist, setIsAssigningArtist] = useState(false);
@@ -141,36 +142,48 @@ export const JobTableRow = ({
         )}
       </TableCell>
       
+      {showActions && !isAdmin && (
+        <TableCell>
+          {onViewBooking && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => onViewBooking(booking)}
+              className="flex items-center"
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              View Details
+            </Button>
+          )}
+        </TableCell>
+      )}
+      
       {showActions && isAdmin && (
         <TableCell>
           <div className="flex gap-2">
             <Button
-              variant="ghost"
-              size="icon"
+              variant="outline"
+              size="sm"
               onClick={() => onEditClick(booking)}
               disabled={isEditingDisabled}
+              className="flex items-center"
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-4 w-4 mr-1" />
+              Edit
             </Button>
             
             {onDeleteJob && showDeleteButton && (
               <Button
-                variant="ghost"
-                size="icon"
+                variant="outline"
+                size="sm"
                 onClick={() => onDeleteJob && onDeleteJob(booking)}
                 disabled={isEditingDisabled}
+                className="flex items-center text-destructive"
               >
-                <Trash2 className="h-4 w-4 text-destructive" />
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
               </Button>
             )}
-          </div>
-        </TableCell>
-      )}
-      
-      {showActions && !isAdmin && (
-        <TableCell>
-          <div className="text-xs text-muted-foreground">
-            {isMember ? "View only" : isArtist ? "Assigned to you" : ""}
           </div>
         </TableCell>
       )}
