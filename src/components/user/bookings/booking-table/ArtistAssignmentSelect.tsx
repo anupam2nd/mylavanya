@@ -37,7 +37,7 @@ export const ArtistAssignmentSelect = ({
         {artists.map((artist) => (
           <SelectItem 
             key={artist.ArtistId} 
-            value={artist.ArtistId}
+            value={artist.ArtistId || `artist_${artist.ArtistId}`} // Ensure value is never empty
           >
             {`${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || `Artist #${artist.ArtistId}`}
           </SelectItem>

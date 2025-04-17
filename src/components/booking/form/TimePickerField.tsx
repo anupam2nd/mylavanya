@@ -30,7 +30,7 @@ const TimePickerField = () => {
             <SelectContent>
               {timeSlots.map((time) => (
                 <SelectItem 
-                  key={time} 
+                  key={time || "not_specified"} 
                   value={time || "not_specified"}
                 >
                   {time || "Not specified"}

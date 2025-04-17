@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -245,7 +244,7 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                           : "Unassigned"}
                       </span>
                       <Select
-                        value={service.ArtistId || ""}
+                        value={service.ArtistId || "unassigned"}
                         onValueChange={(value) => handleArtistAssignmentWrapper(service, value)}
                         disabled={isUpdating[`artist-${service.id}`]}
                       >
@@ -253,9 +252,9 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                           <SelectValue placeholder="Assign artist" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Unassigned</SelectItem>
+                          <SelectItem value="unassigned">Unassigned</SelectItem>
                           {artists.map((artist) => (
-                            <SelectItem key={artist.ArtistId} value={artist.ArtistId}>
+                            <SelectItem key={artist.ArtistId} value={artist.ArtistId || `artist_${artist.ArtistId}`}>
                               {`${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() ||
                                 `Artist #${artist.ArtistId}`}
                             </SelectItem>
