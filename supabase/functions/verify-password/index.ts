@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
 import { encode as encodeBase64, decode as decodeBase64 } from "https://deno.land/std@0.168.0/encoding/base64.ts";
@@ -92,6 +93,10 @@ async function verifyPassword(password: string, hashedPassword: string): Promise
       
       const hashArray = new Uint8Array(derivedBits);
       const hashString = encodeBase64(hashArray);
+      
+      // Add debug logging
+      console.log('Computed hash:', hashString);
+      console.log('Stored hash:', storedHash);
       
       // Compare the calculated hash with the stored hash
       return hashString === storedHash;
