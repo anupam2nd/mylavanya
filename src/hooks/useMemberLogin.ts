@@ -51,7 +51,7 @@ export function useMemberLogin() {
       });
       
       toast.success("Login successful. Welcome back!");
-      navigate('/user/bookings');
+      navigate('/');
 
       return true;
     } catch (error) {
