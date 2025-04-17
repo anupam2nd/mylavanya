@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
 import { encode as encodeBase64, decode as decodeBase64 } from "https://deno.land/std@0.168.0/encoding/base64.ts";
@@ -25,46 +24,41 @@ async function verifyPassword(password: string, hashedPassword: string): Promise
       return false;
     }
     
-    // Parse the stored hash - Modified to be more flexible with parsing
+    // Parse the stored hash
     const parts = hashedPassword.split('$');
+    console.log('parts', parts);
     
-    // We should have at least 3 parts (empty, algorithm, params+salt+hash)
-    if (parts.length < 3) {
-      console.error('Invalid hash format, expected at least 3 parts but got', parts.length);
+    // We should have 5 parts ($, pbkdf2-sha256, i=iterations, salt, hash)
+    if (parts.length !== 5) {
+      console.error('Invalid hash format, expected 5 parts but got', parts.length);
       return false;
     }
     
     const algorithm = parts[1];
+    const params = parts[2];
     
     if (algorithm !== 'pbkdf2-sha256') {
       console.error('Unsupported algorithm:', algorithm);
       return false;
     }
-
-    // The format should be $pbkdf2-sha256$i=iterations$salt$hash
-    // Find the iterations part
-    let iterations = 0;
-    let saltString = '';
-    let storedHash = '';
     
-    // Loop through remaining parts to extract parameters
-    for (let i = 2; i < parts.length; i++) {
-      const part = parts[i];
-      if (part.startsWith('i=')) {
-        iterations = parseInt(part.substring(2));
-      } else if (!saltString && part.length > 0) {
-        saltString = part;
-      } else if (!storedHash && part.length > 0) {
-        storedHash = part;
-      }
+    // Extract parameters
+    if (!params.startsWith('i=')) {
+      console.error('Invalid parameters format:', params);
+      return false;
     }
     
-    if (iterations === 0 || !saltString || !storedHash) {
-      console.error('Missing required hash components', {
-        hasIterations: iterations > 0,
-        hasSalt: !!saltString,
-        hasHash: !!storedHash
-      });
+    const iterations = parseInt(params.substring(2)); // Use substring instead of split
+    if (isNaN(iterations)) {
+      console.error('Invalid iterations value');
+      return false;
+    }
+    
+    const saltString = parts[3];
+    const storedHash = parts[4];
+    
+    if (!saltString || !storedHash) {
+      console.error('Missing salt or hash in stored password', { saltString, storedHash });
       return false;
     }
     
