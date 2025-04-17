@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, ShoppingCart } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/hooks/useWishlist";
@@ -104,7 +104,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
               handleAddToCart();
             }}
           >
-            <ShoppingCart className="h-4 w-4 mr-2" /> Add to Cart
+            <ShoppingBag className="h-4 w-4 mr-2" /> Book Service
           </Button>
         )}
         
