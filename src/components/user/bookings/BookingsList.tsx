@@ -1,14 +1,14 @@
+
 import React, { useState, useEffect } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
 import { useBookingArtists, Artist } from "@/hooks/useBookingArtists";
-import { JobsTable } from "./booking-table/JobsTable";
-import { Loader2 } from "lucide-react";
-import { Dialog } from "@/components/ui/dialog";
-import { BookingDetailRow } from "./booking-table/BookingDetailRow";
-import EditBookingDialog from "./EditBookingDialog"; 
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { BookingsFallback } from "./components/BookingsFallback";
+import { MemberBookingsList } from "./components/MemberBookingsList";
+import { AdminBookingsView } from "./components/AdminBookingsList";
+import { BookingEditDialog } from "./components/BookingEditDialog";
 
 interface BookingsListProps {
   customBookings?: Booking[];
@@ -44,7 +44,6 @@ const BookingsList = ({
   const { user } = useAuth();
   const { statusOptions: internalStatusOptions, fetchStatusOptions, handleStatusChange: internalStatusChange, handleArtistAssignment: internalArtistAssignment } = useBookingStatusManagement();
   const { artists: internalArtists } = useBookingArtists();
-  const { user: currentUser } = useAuth();
   
   const isArtist = userRole === "artist" || user?.role === "artist";
   const isMember = userRole === "member" || user?.role === "member";
@@ -170,7 +169,7 @@ const BookingsList = ({
     }
   };
 
-  // Handle edit click to prevent editing for members
+  // Handle edit click
   const handleEditClick = (booking: Booking) => {
     if (!isMember && onEditClick) {
       onEditClick(booking);
@@ -180,83 +179,48 @@ const BookingsList = ({
     }
   };
 
-  const handleAddNewJob = (booking: Booking) => {
-    if (onAddNewJob) {
-      onAddNewJob(booking);
-    }
-  };
-
-  const handleViewBookingClick = (booking: Booking) => {
-    if (onViewBooking) {
-      onViewBooking(booking);
-    }
-  };
-
   const handleDeleteJobWrapper = async (booking: Booking): Promise<void> => {
     if (window.confirm(`Are you sure you want to delete job #${booking.jobno}?`)) {
       await deleteJob(booking);
     }
   };
 
+  const isEmpty = bookings.length === 0;
+
   return (
     <div className="space-y-6">
-      {loading ? (
-        <div className="flex justify-center items-center py-10">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : bookings.length === 0 ? (
-        <div className="text-center py-10">
-          <p className="text-muted-foreground">No bookings found.</p>
-        </div>
-      ) : isMember ? (
-        // Member view - show one row per booking number with a View button
-        <div className="space-y-6">
-          {primaryBookings.map((booking: any) => (
-            <div key={booking.Booking_NO} className="border rounded-lg overflow-hidden">
-              <BookingDetailRow 
-                booking={booking} 
-                onView={onViewBooking ? handleViewBookingClick : undefined}
-              />
-            </div>
-          ))}
-        </div>
-      ) : (
-        // Default view for other roles
-        <div className="space-y-6">
-          {Object.entries(bookingGroups).map(([bookingNo, bookingsGroup]) => (
-            <div key={bookingNo} className="border rounded-lg overflow-hidden">
-              <BookingDetailRow 
-                booking={bookingsGroup[0]} 
-                onEdit={isArtist ? undefined : handleEditClick}
-                onView={onViewBooking ? handleViewBookingClick : undefined}
-              />
-              <JobsTable 
-                bookingsGroup={bookingsGroup}
-                onEditClick={isArtist ? undefined : handleEditClick}
-                onDeleteJob={!isArtist && deleteJob ? handleDeleteJobWrapper : undefined}
-                isEditingDisabled={isEditingDisabled}
-                handleStatusChange={handleStatusChangeWrapper}
-                handleArtistAssignment={handleArtistAssignmentWrapper}
-                onScheduleChange={updateBookingSchedule}
-                statusOptions={statusOptions}
-                artists={artists}
-                onViewBooking={onViewBooking}
-                showActions={!isMember}
-              />
-            </div>
-          ))}
-        </div>
+      <BookingsFallback loading={loading} isEmpty={isEmpty} />
+      
+      {!loading && !isEmpty && (
+        <>
+          {isMember ? (
+            <MemberBookingsList 
+              primaryBookings={primaryBookings} 
+              onViewBooking={onViewBooking} 
+            />
+          ) : (
+            <AdminBookingsView 
+              bookingGroups={bookingGroups}
+              onEditClick={handleEditClick}
+              onDeleteJob={handleDeleteJobWrapper}
+              isEditingDisabled={isEditingDisabled}
+              handleStatusChange={handleStatusChangeWrapper}
+              handleArtistAssignment={handleArtistAssignmentWrapper}
+              updateBookingSchedule={updateBookingSchedule}
+              statusOptions={statusOptions}
+              artists={artists}
+              onViewBooking={onViewBooking}
+              isMember={isMember}
+            />
+          )}
+        </>
       )}
 
-      {selectedBooking && !isEditingDisabled && (
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <EditBookingDialog 
-            booking={selectedBooking}
-            open={isEditDialogOpen}
-            onOpenChange={setIsEditDialogOpen}
-          />
-        </Dialog>
-      )}
+      <BookingEditDialog 
+        selectedBooking={selectedBooking}
+        isDialogOpen={isEditDialogOpen}
+        setIsDialogOpen={setIsEditDialogOpen}
+      />
     </div>
   );
 };
