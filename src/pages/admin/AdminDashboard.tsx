@@ -20,6 +20,7 @@ const AdminDashboard = () => {
     completedBookings, 
     inProgressBookings,
     totalRevenue,
+    totalServices,
     statusCounts,
     loading: statsLoading 
   } = useDashboardStats();
@@ -43,6 +44,7 @@ const AdminDashboard = () => {
           pendingBookings={pendingBookings}
           completedBookings={completedBookings}
           inProgressBookings={inProgressBookings}
+          totalServices={totalServices}
           totalRevenue={totalRevenue}
           loading={statsLoading}
         />

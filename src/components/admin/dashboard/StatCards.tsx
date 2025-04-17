@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Calendar, CalendarCheck, Clock, Activity, Banknote } from "lucide-react";
+import { Calendar, CalendarCheck, Clock, Activity, Banknote, Layers } from "lucide-react";
 import { Rupee } from "@/components/icons/Rupee";
 
 interface StatCardsProps {
@@ -9,6 +9,7 @@ interface StatCardsProps {
   pendingBookings: number;
   completedBookings: number;
   inProgressBookings: number;
+  totalServices: number;
   totalRevenue: number;
   loading?: boolean;
 }
@@ -18,11 +19,12 @@ export const StatCards: React.FC<StatCardsProps> = ({
   pendingBookings,
   completedBookings,
   inProgressBookings,
+  totalServices,
   totalRevenue,
   loading = false
 }) => {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
@@ -30,7 +32,7 @@ export const StatCards: React.FC<StatCardsProps> = ({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{loading ? "..." : totalBookings}</div>
-          <p className="text-xs text-muted-foreground">All-time bookings in the system</p>
+          <p className="text-xs text-muted-foreground">Unique bookings in the system</p>
         </CardContent>
       </Card>
       <Card>
@@ -61,6 +63,16 @@ export const StatCards: React.FC<StatCardsProps> = ({
         <CardContent>
           <div className="text-2xl font-bold">{loading ? "..." : completedBookings}</div>
           <p className="text-xs text-muted-foreground">Successfully completed bookings</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Services</CardTitle>
+          <Layers className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{loading ? "..." : totalServices}</div>
+          <p className="text-xs text-muted-foreground">Unique services offered</p>
         </CardContent>
       </Card>
       <Card>

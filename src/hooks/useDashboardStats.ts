@@ -11,6 +11,7 @@ export interface DashboardStats {
   completedBookings: number;
   inProgressBookings: number;
   totalRevenue: number;
+  totalServices: number;
   statusCounts: Record<string, number>;
   loading: boolean;
 }
@@ -21,6 +22,7 @@ export const useDashboardStats = (): DashboardStats => {
   const [completedBookings, setCompletedBookings] = useState<number>(0);
   const [inProgressBookings, setInProgressBookings] = useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [totalServices, setTotalServices] = useState<number>(0);
   const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const { statusOptions } = useStatusOptions();
@@ -31,40 +33,62 @@ export const useDashboardStats = (): DashboardStats => {
       try {
         setLoading(true);
         
-        // Get total bookings
-        const { count: totalCount, error: totalError } = await supabase
+        // Get unique bookings based on Booking_NO
+        const { data: bookingsData, error: bookingsError } = await supabase
           .from('BookMST')
-          .select('*', { count: 'exact', head: true });
+          .select('Booking_NO')
+          .not('Booking_NO', 'is', null);
         
-        if (totalError) throw totalError;
-        setTotalBookings(totalCount || 0);
+        if (bookingsError) throw bookingsError;
+        
+        // Count unique booking numbers
+        const uniqueBookingNos = new Set(bookingsData.map(b => b.Booking_NO));
+        setTotalBookings(uniqueBookingNos.size);
 
-        // Get pending bookings
-        const { count: pendingCount, error: pendingError } = await supabase
+        // Get total service count based on ProductName
+        const { data: servicesData, error: servicesError } = await supabase
           .from('BookMST')
-          .select('*', { count: 'exact', head: true })
+          .select('ProductName')
+          .not('ProductName', 'is', null);
+          
+        if (servicesError) throw servicesError;
+        
+        // Count unique service names
+        const uniqueServiceNames = new Set(servicesData.filter(s => s.ProductName).map(s => s.ProductName));
+        setTotalServices(uniqueServiceNames.size);
+
+        // Get pending bookings (unique by Booking_NO)
+        const { data: pendingData, error: pendingError } = await supabase
+          .from('BookMST')
+          .select('Booking_NO')
           .eq('Status', 'pending');
         
         if (pendingError) throw pendingError;
-        setPendingBookings(pendingCount || 0);
+        
+        const uniquePendingBookings = new Set(pendingData.map(b => b.Booking_NO));
+        setPendingBookings(uniquePendingBookings.size);
 
-        // Get completed bookings
-        const { count: completedCount, error: completedError } = await supabase
+        // Get completed bookings (unique by Booking_NO)
+        const { data: completedData, error: completedError } = await supabase
           .from('BookMST')
-          .select('*', { count: 'exact', head: true })
+          .select('Booking_NO')
           .eq('Status', 'done');
         
         if (completedError) throw completedError;
-        setCompletedBookings(completedCount || 0);
+        
+        const uniqueCompletedBookings = new Set(completedData.map(b => b.Booking_NO));
+        setCompletedBookings(uniqueCompletedBookings.size);
 
-        // Get in-progress bookings (approve, process, ontheway, service_started)
-        const { count: inProgressCount, error: inProgressError } = await supabase
+        // Get in-progress bookings (unique by Booking_NO)
+        const { data: inProgressData, error: inProgressError } = await supabase
           .from('BookMST')
-          .select('*', { count: 'exact', head: true })
+          .select('Booking_NO')
           .in('Status', ['approve', 'process', 'ontheway', 'service_started']);
         
         if (inProgressError) throw inProgressError;
-        setInProgressBookings(inProgressCount || 0);
+        
+        const uniqueInProgressBookings = new Set(inProgressData.map(b => b.Booking_NO));
+        setInProgressBookings(uniqueInProgressBookings.size);
 
         // Get total revenue from completed bookings
         const { data: revenueData, error: revenueError } = await supabase
@@ -80,7 +104,7 @@ export const useDashboardStats = (): DashboardStats => {
         
         setTotalRevenue(revenue);
 
-        // Get count for each status using RPC function
+        // Get count for each status using RPC function or fallback
         const { data: statusData, error: statusError } = await (supabase.rpc as any)(
           'get_booking_counts_by_status'
         ) as { data: Array<{ status: string; count: number }> | null; error: any };
@@ -142,6 +166,7 @@ export const useDashboardStats = (): DashboardStats => {
     completedBookings,
     inProgressBookings,
     totalRevenue,
+    totalServices,
     statusCounts,
     loading
   };
