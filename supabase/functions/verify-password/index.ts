@@ -25,44 +25,52 @@ async function verifyPassword(password: string, hashedPassword: string): Promise
       return false;
     }
     
-    // Parse the stored hash
+    // Parse the stored hash - Modified to be more flexible with parsing
     const parts = hashedPassword.split('$');
-    if (parts.length !== 4) {
-      console.error('Invalid hash format, expected 4 parts but got', parts.length);
+    
+    // We should have at least 3 parts (empty, algorithm, params+salt+hash)
+    if (parts.length < 3) {
+      console.error('Invalid hash format, expected at least 3 parts but got', parts.length);
       return false;
     }
     
     const algorithm = parts[1];
-    const params = parts[2];
     
     if (algorithm !== 'pbkdf2-sha256') {
       console.error('Unsupported algorithm:', algorithm);
       return false;
     }
+
+    // The format should be $pbkdf2-sha256$i=iterations$salt$hash
+    // Find the iterations part
+    let iterations = 0;
+    let saltString = '';
+    let storedHash = '';
     
-    // Extract parameters
-    if (!params.startsWith('i=')) {
-      console.error('Invalid parameters format:', params);
-      return false;
+    // Loop through remaining parts to extract parameters
+    for (let i = 2; i < parts.length; i++) {
+      const part = parts[i];
+      if (part.startsWith('i=')) {
+        iterations = parseInt(part.substring(2));
+      } else if (!saltString && part.length > 0) {
+        saltString = part;
+      } else if (!storedHash && part.length > 0) {
+        storedHash = part;
+      }
     }
     
-    const iterations = parseInt(params.split('i=')[1]);
-    if (isNaN(iterations)) {
-      console.error('Invalid iterations value');
-      return false;
-    }
-    
-    const storedSalt = parts[3].split('$')[0];
-    const storedHash = parts[3].split('$')[1];
-    
-    if (!storedSalt || !storedHash) {
-      console.error('Missing salt or hash in stored password');
+    if (iterations === 0 || !saltString || !storedHash) {
+      console.error('Missing required hash components', {
+        hasIterations: iterations > 0,
+        hasSalt: !!saltString,
+        hasHash: !!storedHash
+      });
       return false;
     }
     
     try {
       // Decode the salt
-      const salt = decodeBase64(storedSalt);
+      const salt = decodeBase64(saltString);
       
       // Encode password as UTF-8
       const encoder = new TextEncoder();
