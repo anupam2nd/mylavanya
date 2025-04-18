@@ -8,7 +8,10 @@ import {
   User,
   Settings,
   ClipboardList,
-  Heart
+  Heart,
+  Calendar,
+  Palette,
+  Shield
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -32,15 +35,15 @@ export const SidebarNavigation = () => {
   const { user, logout } = useAuth();
   
   const isSuperAdmin = user?.role === 'superadmin';
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller';
-  const isController = user?.role === 'controller' || user?.role === 'superadmin';
-  const isMember = user?.role === 'member';
+  const isAdmin = user?.role === 'admin';
+  const isController = user?.role === 'controller';
   const isArtist = user?.role === 'artist';
+  const isMember = user?.role === 'member';
 
   const getRouteForRole = (baseRoute: string) => {
     if (isArtist) {
       return `/artist${baseRoute}`;
-    } else if (isAdmin || isController) {
+    } else if (isAdmin || isController || isSuperAdmin) {
       return `/admin${baseRoute}`;
     } else {
       return `/user${baseRoute}`;
@@ -49,12 +52,21 @@ export const SidebarNavigation = () => {
 
   return (
     <nav className="p-4 space-y-1">
+      {/* Dashboard is available for all except members */}
       {!isMember && (
         <NavItem to={getRouteForRole("/dashboard")} icon={Home}>
           Dashboard
         </NavItem>
       )}
 
+      {/* Bookings - For admin and controller */}
+      {(isAdmin || isController) && (
+        <NavItem to="/admin/bookings" icon={Calendar}>
+          Bookings
+        </NavItem>
+      )}
+
+      {/* SuperAdmin specific options */}
       {isSuperAdmin && (
         <>
           <NavItem to="/admin/services" icon={Package}>
@@ -72,6 +84,25 @@ export const SidebarNavigation = () => {
         </>
       )}
 
+      {/* Admin specific options */}
+      {isAdmin && !isSuperAdmin && (
+        <>
+          <NavItem to="/admin/services" icon={Package}>
+            Services
+          </NavItem>
+          <NavItem to="/admin/artists" icon={Palette}>
+            Artists
+          </NavItem>
+          <NavItem to="/admin/members" icon={Users}>
+            Members
+          </NavItem>
+          <NavItem to="/admin/controllers" icon={Shield}>
+            Controllers
+          </NavItem>
+        </>
+      )}
+
+      {/* Common options for all users */}
       <div className="pt-4 mt-4 border-t border-gray-200">
         <NavItem to="/profile" icon={User}>
           Profile
