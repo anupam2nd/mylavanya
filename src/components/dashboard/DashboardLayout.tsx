@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, User, Settings, Home, Calendar, List, Package, Users, Palette, Heart, BarChart } from "lucide-react";
+import { Menu, X, LogOut, User, Settings, Home, Calendar, Package, Users, List, BarChart, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
@@ -32,7 +32,6 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   }, []);
 
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller';
-  const isSuperAdmin = user?.role === 'superadmin';
   const isController = user?.role === 'controller';
   const isMember = user?.role === 'member';
   const isArtist = user?.role === 'artist';
@@ -41,7 +40,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   const getRouteForRole = (baseRoute: string) => {
     if (isArtist) {
       return `/artist${baseRoute}`;
-    } else if (isAdmin) {
+    } else if (isAdmin || isController) {
       return `/admin${baseRoute}`;
     } else {
       return `/user${baseRoute}`;
@@ -69,6 +68,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
             <X size={20} />
           </Button>
         </div>
+
         <nav className="p-4 space-y-1">
           {/* Only show Dashboard for non-member users */}
           {!isMember && (
@@ -85,39 +85,17 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
             <span>Bookings</span>
           </Link>
 
-          {/* Wishlist link for all users */}
-          <Link to="/wishlist"
-            className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-            <Heart className="w-5 h-5 mr-3" />
-            <span>Wishlist</span>
-          </Link>
-          
-          {/* Wishlist insights link for controller and superadmin */}
-          {(isController || isSuperAdmin) && (
-            <Link to="/admin/wishlist-insights"
+          {/* Show services link for admin and controller */}
+          {(isAdmin || isController) && (
+            <Link to="/admin/services"
               className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-              <BarChart className="w-5 h-5 mr-3" />
-              <span>Wishlist Insights</span>
+              <Package className="w-5 h-5 mr-3" />
+              <span>Services</span>
             </Link>
           )}
 
-          {isAdmin && (
-            <>
-              <Link to="/admin/services"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Package className="w-5 h-5 mr-3" />
-                <span>Services</span>
-              </Link>
-              
-              <Link to="/admin/artists"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Palette className="w-5 h-5 mr-3" />
-                <span>Artists</span>
-              </Link>
-            </>
-          )}
-
-          {(isSuperAdmin || isController) && (
+          {/* Show users and members management for controller */}
+          {isController && (
             <>
               <Link to="/admin/users"
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
@@ -125,6 +103,18 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                 <span>Users</span>
               </Link>
               
+              <Link to="/admin/members"
+                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <Users className="w-5 h-5 mr-3" />
+                <span>Members</span>
+              </Link>
+
+              <Link to="/admin/artists"
+                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <Palette className="w-5 h-5 mr-3" />
+                <span>Artists</span>
+              </Link>
+
               <Link to="/admin/status"
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
                 <List className="w-5 h-5 mr-3" />
@@ -133,20 +123,13 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
             </>
           )}
 
+          {/* Show wishlist insights for controller */}
           {isController && (
-            <>
-              <Link to="/admin/members"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Users className="w-5 h-5 mr-3" />
-                <span>Members</span>
-              </Link>
-              
-              <Link to="/admin/artists"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Palette className="w-5 h-5 mr-3" />
-                <span>Artists</span>
-              </Link>
-            </>
+            <Link to="/admin/wishlist-insights"
+              className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <BarChart className="w-5 h-5 mr-3" />
+              <span>Wishlist Insights</span>
+            </Link>
           )}
 
           <div className="pt-4 mt-4 border-t border-gray-200">
