@@ -1,6 +1,5 @@
 
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { ShoppingBag } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 import { ButtonCustom } from "@/components/ui/button-custom";
