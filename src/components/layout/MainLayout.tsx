@@ -23,7 +23,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         let redirectPath = '/user/bookings'; // Default for artists and others
         
         if (user.role === 'superadmin' || user.role === 'controller') {
-          redirectPath = '/admin/status';
+          redirectPath = '/admin/dashboard';
         } else if (user.role === 'admin') {
           redirectPath = '/admin/dashboard';
         }
