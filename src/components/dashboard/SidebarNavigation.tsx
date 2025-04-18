@@ -66,7 +66,7 @@ export const SidebarNavigation = () => {
         </NavItem>
       )}
 
-      {isController && (
+      {/* {isController && (
         <>
           <NavItem to="/admin/users" icon={Users}>
             Users
@@ -88,7 +88,7 @@ export const SidebarNavigation = () => {
             Wishlist Insights
           </NavItem>
         </>
-      )}
+      )} */}
 
       <div className="pt-4 mt-4 border-t border-gray-200">
         <NavItem to="/profile" icon={User}>
