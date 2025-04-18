@@ -1,15 +1,15 @@
-
 import { Link } from "react-router-dom";
 import {
   Home,
+  Calendar,
   Package,
   Users,
   List,
   BarChart,
+  Palette,
   User,
   Settings,
-  LogOut,
-  Calendar
+  LogOut
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -82,11 +82,9 @@ export const SidebarNavigation = () => {
             Members
           </NavItem>
 
-          {!isSuperAdmin && (
             <NavItem to="/admin/status" icon={List}>
               Status Management
             </NavItem>
-          )}
 
           <NavItem to="/admin/wishlist-insights" icon={BarChart}>
             Wishlist Insights
