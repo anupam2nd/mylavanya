@@ -29,10 +29,8 @@ export const useUserBookings = () => {
           }
         } 
         else if (user.role === 'member') {
-          // For members, only show bookings that have been checked out (not pending)
-          query = query
-            .eq('email', user.email)
-            .neq('Status', 'pending');
+          // For members, show all bookings including pending ones that need checkout
+          query = query.eq('email', user.email);
         }
         else if (user.role === 'admin' || user.role === 'superadmin' || user.role === 'controller') {
           console.log("Showing all bookings for admin/controller");
