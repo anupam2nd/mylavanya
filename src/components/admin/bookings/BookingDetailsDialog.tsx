@@ -201,9 +201,9 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                   <div className="flex items-center space-x-2">
                     <span>
                       {currentArtistId
-                        ? artists.find((a) => a.ArtistId === parseInt(currentArtistId))
-                          ? `${artists.find((a) => a.ArtistId === parseInt(currentArtistId))?.ArtistFirstName || ''} ${
-                              artists.find((a) => a.ArtistId === parseInt(currentArtistId))?.ArtistLastName || ''
+                        ? artists.find((a) => a.ArtistId.toString() === currentArtistId)
+                          ? `${artists.find((a) => a.ArtistId.toString() === currentArtistId)?.ArtistFirstName || ''} ${
+                              artists.find((a) => a.ArtistId.toString() === currentArtistId)?.ArtistLastName || ''
                             }`.trim()
                           : booking.Assignedto || "Assigned"
                         : "Unassigned"}
@@ -309,9 +309,9 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                   </TableCell>
                   <TableCell>
                     {service.ArtistId
-                      ? artists.find((a) => a.ArtistId === service.ArtistId)
-                        ? `${artists.find((a) => a.ArtistId === service.ArtistId)?.ArtistFirstName || ''} ${
-                            artists.find((a) => a.ArtistId === service.ArtistId)?.ArtistLastName || ''
+                      ? artists.find((a) => a.ArtistId.toString() === service.ArtistId?.toString())
+                        ? `${artists.find((a) => a.ArtistId.toString() === service.ArtistId?.toString())?.ArtistFirstName || ''} ${
+                            artists.find((a) => a.ArtistId.toString() === service.ArtistId?.toString())?.ArtistLastName || ''
                           }`.trim()
                         : service.Assignedto || "Assigned"
                       : "Unassigned"}
