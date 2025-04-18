@@ -1,15 +1,12 @@
 import { Link } from "react-router-dom";
 import {
   Home,
-  Calendar,
   Package,
   Users,
-  List,
-  BarChart,
-  Palette,
+  LogOut,
   User,
   Settings,
-  LogOut
+  Palette
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -38,7 +35,6 @@ export const SidebarNavigation = () => {
   const isMember = user?.role === 'member';
   const isArtist = user?.role === 'artist';
 
-  // Function to get the correct route based on user role
   const getRouteForRole = (baseRoute: string) => {
     if (isArtist) {
       return `/artist${baseRoute}`;
@@ -57,36 +53,20 @@ export const SidebarNavigation = () => {
         </NavItem>
       )}
 
-      {/* Remove bookings for superadmin */}
-      {!isSuperAdmin && (
-        <NavItem to={getRouteForRole("/bookings")} icon={Calendar}>
-          Bookings
-        </NavItem>
-      )}
-
-      {(isAdmin || isController) && !isSuperAdmin && (
+      {isAdmin && !isSuperAdmin && (
         <>
           <NavItem to="/admin/services" icon={Package}>
             Services
           </NavItem>
+          <NavItem to="/admin/artists" icon={Palette}>
+            Artists
+          </NavItem>
         </>
       )}
 
-      {(isController || isSuperAdmin) && (
+      {isController && (
         <>
-          <NavItem to="/admin/users" icon={Users}>
-            Users
-          </NavItem>
-
-          <NavItem to="/admin/members" icon={Users}>
-            Members
-          </NavItem>
-
-            <NavItem to="/admin/status" icon={List}>
-              Status Management
-            </NavItem>
-
-          <NavItem to="/admin/wishlist-insights" icon={BarChart}>
+          <NavItem to="/admin/wishlist-insights" icon={Users}>
             Wishlist Insights
           </NavItem>
         </>
