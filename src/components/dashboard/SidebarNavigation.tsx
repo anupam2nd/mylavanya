@@ -33,7 +33,7 @@ export const SidebarNavigation = () => {
   const { user, logout } = useAuth();
   
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller';
-  // const isController = user?.role === 'controller';
+  const isController = user?.role === 'controller';
   const isMember = user?.role === 'member';
   const isArtist = user?.role === 'artist';
 
@@ -66,7 +66,7 @@ export const SidebarNavigation = () => {
         </NavItem>
       )}
 
-      {/* {isController && (
+      {isController && (
         <>
           <NavItem to="/admin/users" icon={Users}>
             Users
@@ -88,7 +88,7 @@ export const SidebarNavigation = () => {
             Wishlist Insights
           </NavItem>
         </>
-      )} */}
+      )}
 
       <div className="pt-4 mt-4 border-t border-gray-200">
         <NavItem to="/profile" icon={User}>
