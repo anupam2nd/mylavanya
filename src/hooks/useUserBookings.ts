@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,41 +21,31 @@ export const useUserBookings = () => {
           .select('*')
           .order('Booking_date', { ascending: false });
         
-        // Apply different filters based on user role
         if (user.role === 'artist') {
-          // For artists, only show bookings assigned to them
           if (user.id) {
-            console.log("Filtering bookings by artist ID:", user.id);
-            // Convert user.id to a number for the query if it's a string
             const artistId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
             query = query.eq('ArtistId', artistId);
           }
         } 
         else if (user.role === 'member') {
-          // For members, only show their own bookings
-          console.log("Filtering bookings by member email:", user.email);
-          query = query.eq('email', user.email);
+          query = query
+            .eq('email', user.email)
+            .eq('Status', 'pending');
         }
-        // For admins, show all bookings (no filter)
         else if (user.role === 'admin' || user.role === 'superadmin' || user.role === 'controller') {
           console.log("Showing all bookings for admin/controller");
         }
         else {
-          // For any other role that shouldn't see bookings, return empty
-          console.log("User role has no permissions to view bookings");
           setBookings([]);
           setLoading(false);
           return;
         }
-        
-        query = query.order('Booking_date', { ascending: false });
         
         const { data, error } = await query;
 
         if (error) throw error;
         console.log("Bookings fetched:", data?.length || 0);
 
-        // Ensure all IDs are strings for consistent typing
         const processedBookings = data?.map(booking => ({
           ...booking,
           id: booking.id.toString(),

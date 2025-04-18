@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -6,6 +5,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,12 +14,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
-import { CalendarIcon, Clock, Loader2 } from "lucide-react";
+import { CalendarIcon, Clock, Loader2, Plus, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Booking } from "@/hooks/useBookings";
 import { Artist } from "@/hooks/useBookingArtists";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface BookingDetailsDialogProps {
   isOpen: boolean;
@@ -51,9 +53,31 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
   });
   const [currentStatus, setCurrentStatus] = useState<string>("");
   const [currentArtistId, setCurrentArtistId] = useState<string>("");
+  const [showAddService, setShowAddService] = useState(false);
+  const [availableServices, setAvailableServices] = useState<any[]>([]);
+  const [selectedService, setSelectedService] = useState("");
 
   useEffect(() => {
-    // Initialize schedule and status data for the booking
+    const fetchServices = async () => {
+      const { data, error } = await supabase
+        .from('PriceMST')
+        .select('*')
+        .eq('active', true);
+      
+      if (error) {
+        console.error('Error fetching services:', error);
+        return;
+      }
+      
+      setAvailableServices(data || []);
+    };
+
+    if (showAddService) {
+      fetchServices();
+    }
+  }, [showAddService]);
+
+  useEffect(() => {
     if (booking) {
       setScheduleData({
         date: booking.Booking_date ? new Date(booking.Booking_date) : undefined,
@@ -73,7 +97,6 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
       await onStatusChange(booking, newStatus);
       setCurrentStatus(newStatus);
       
-      // Update status for all related bookings with same booking number
       if (booking.Booking_NO) {
         await Promise.all(
           relatedBookings.map(async (service) => {
@@ -96,7 +119,6 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
       await onArtistAssignment(booking, artistId);
       setCurrentArtistId(artistId);
       
-      // Update artist for all related bookings with same booking number
       if (booking.Booking_NO) {
         await Promise.all(
           relatedBookings.map(async (service) => {
@@ -111,6 +133,47 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
     }
   };
 
+  const handleAddNewService = async () => {
+    if (!booking?.Booking_NO || !selectedService) return;
+
+    try {
+      const selectedServiceData = availableServices.find(s => s.prod_id.toString() === selectedService);
+      if (!selectedServiceData) return;
+
+      const newBooking = {
+        ...booking,
+        id: undefined,
+        ServiceName: selectedServiceData.Services,
+        SubService: selectedServiceData.Subservice,
+        ProductName: selectedServiceData.ProductName,
+        price: selectedServiceData.Price,
+        Product: selectedServiceData.prod_id,
+      };
+
+      const { error } = await supabase
+        .from('BookMST')
+        .insert([newBooking]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Service added successfully",
+        description: "The new service has been added to the booking",
+      });
+
+      setShowAddService(false);
+      setSelectedService("");
+      window.location.reload();
+    } catch (error) {
+      console.error('Error adding service:', error);
+      toast({
+        title: "Error adding service",
+        description: "There was an error adding the new service",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleScheduleChangeWrapper = async () => {
     if (!booking || isUpdating["schedule"] || !scheduleData.date) return;
     
@@ -119,7 +182,6 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
       const formattedDate = format(scheduleData.date, "yyyy-MM-dd");
       await onScheduleChange(booking, formattedDate, scheduleData.time);
       
-      // Update schedule for all related bookings with same booking number
       if (booking.Booking_NO) {
         await Promise.all(
           relatedBookings.map(async (service) => {
@@ -148,7 +210,14 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Booking Details #{booking.Booking_NO}</DialogTitle>
+          <div className="flex justify-between items-center">
+            <DialogTitle>Booking Details #{booking.Booking_NO}</DialogTitle>
+            <DialogClose asChild>
+              <Button variant="ghost" size="icon">
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogClose>
+          </div>
           <DialogDescription>
             Manage services, schedules, and assignments for this booking
           </DialogDescription>
@@ -280,6 +349,51 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
         </div>
 
         <div className="my-4">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-lg font-semibold">Services</h3>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowAddService(true)}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Service
+            </Button>
+          </div>
+
+          {showAddService && (
+            <Card className="mb-4">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <Select value={selectedService} onValueChange={setSelectedService}>
+                    <SelectTrigger className="w-[300px]">
+                      <SelectValue placeholder="Select a service" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableServices.map((service) => (
+                        <SelectItem key={service.prod_id} value={service.prod_id.toString()}>
+                          {service.ProductName} - {service.Services}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    onClick={handleAddNewService}
+                    disabled={!selectedService}
+                  >
+                    Add Service
+                  </Button>
+                  <Button 
+                    variant="ghost"
+                    onClick={() => setShowAddService(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <h3 className="text-lg font-semibold mb-2">Services</h3>
           <Table>
             <TableHeader>
