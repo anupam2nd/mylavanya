@@ -61,9 +61,14 @@ export const SidebarNavigation = () => {
       </NavItem>
 
       {(isAdmin || isController) && (
+      <>
         <NavItem to="/admin/services" icon={Package}>
           Services
         </NavItem>
+                <NavItem to="/admin/artists" icon={Palette}>
+            Artists
+          </NavItem>
+      </>
       )}
 
       {isController && (
