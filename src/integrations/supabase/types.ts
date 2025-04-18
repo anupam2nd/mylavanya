@@ -158,6 +158,7 @@ export type Database = {
           MemberPhNo: string | null
           MemberPincode: string | null
           MemberSex: string | null
+          MemberStatus: boolean | null
           password: string | null
           uuid: string
         }
@@ -171,6 +172,7 @@ export type Database = {
           MemberPhNo?: string | null
           MemberPincode?: string | null
           MemberSex?: string | null
+          MemberStatus?: boolean | null
           password?: string | null
           uuid?: string
         }
@@ -184,6 +186,7 @@ export type Database = {
           MemberPhNo?: string | null
           MemberPincode?: string | null
           MemberSex?: string | null
+          MemberStatus?: boolean | null
           password?: string | null
           uuid?: string
         }

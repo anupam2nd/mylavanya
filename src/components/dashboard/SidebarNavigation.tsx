@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import {
   Home,
@@ -32,8 +33,9 @@ const NavItem = ({ to, icon: Icon, children }: NavItemProps) => (
 export const SidebarNavigation = () => {
   const { user, logout } = useAuth();
   
+  const isSuperAdmin = user?.role === 'superadmin';
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller';
-  const isController = user?.role === 'controller';
+  const isController = user?.role === 'controller' || user?.role === 'superadmin';
   const isMember = user?.role === 'member';
   const isArtist = user?.role === 'artist';
 
@@ -65,13 +67,16 @@ export const SidebarNavigation = () => {
         <NavItem to="/admin/services" icon={Package}>
           Services
         </NavItem>
-                <NavItem to="/admin/artists" icon={Palette}>
+        
+        {(isController || isSuperAdmin) && (
+          <NavItem to="/admin/artists" icon={Palette}>
             Artists
           </NavItem>
+        )}
       </>
       )}
 
-      {isController && (
+      {(isController || isSuperAdmin) && (
         <>
           <NavItem to="/admin/users" icon={Users}>
             Users
@@ -81,9 +86,11 @@ export const SidebarNavigation = () => {
             Members
           </NavItem>
 
-          <NavItem to="/admin/artists" icon={Palette}>
-            Artists
-          </NavItem>
+          {!isController && (
+            <NavItem to="/admin/artists" icon={Palette}>
+              Artists
+            </NavItem>
+          )}
 
           <NavItem to="/admin/status" icon={List}>
             Status Management
