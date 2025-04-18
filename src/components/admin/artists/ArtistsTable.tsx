@@ -3,6 +3,8 @@ import { Edit, Trash2 } from "lucide-react";
 import { Artist } from "@/types/artist";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableBody,
@@ -27,6 +29,33 @@ export const ArtistsTable = ({
   onDelete,
   onToggleStatus
 }: ArtistsTableProps) => {
+  const { toast } = useToast();
+
+  const handleStatusChange = async (artist: Artist) => {
+    try {
+      const { error } = await supabase
+        .from('ArtistMST')
+        .update({ Active: !artist.Active })
+        .eq('ArtistId', artist.ArtistId);
+
+      if (error) throw error;
+
+      onToggleStatus(artist);
+      
+      toast({
+        title: `Artist ${artist.Active ? 'deactivated' : 'activated'} successfully`,
+        description: `${artist.ArtistFirstName} ${artist.ArtistLastName} is now ${artist.Active ? 'inactive' : 'active'}`,
+      });
+    } catch (error) {
+      console.error('Error updating artist status:', error);
+      toast({
+        title: "Failed to update artist status",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -61,7 +90,7 @@ export const ArtistsTable = ({
                 <div className="flex items-center space-x-2">
                   <Switch 
                     checked={artist.Active === true} 
-                    onCheckedChange={() => onToggleStatus(artist)}
+                    onCheckedChange={() => handleStatusChange(artist)}
                   />
                   <span className={artist.Active ? "text-green-600" : "text-red-600"}>
                     {artist.Active ? 'Active' : 'Inactive'}

@@ -59,6 +59,13 @@ export const SidebarNavigation = () => {
         </NavItem>
       )}
 
+      {/* Artist specific options */}
+      {isArtist && (
+        <NavItem to="/artist/bookings" icon={Calendar}>
+          Bookings
+        </NavItem>
+      )}
+
       {/* Bookings - For admin and controller */}
       {(isAdmin || isController) && (
         <NavItem to="/admin/bookings" icon={Calendar}>
