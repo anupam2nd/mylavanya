@@ -1,9 +1,8 @@
 
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Info } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { useUserBookings } from "@/hooks/useUserBookings";
-import CheckoutButton from "./CheckoutButton";
 
 export const BookingNotifications = () => {
   const { bookings } = useUserBookings();
@@ -22,7 +21,7 @@ export const BookingNotifications = () => {
   }
   
   return (
-    <Alert className="mb-6 flex justify-between items-center">
+    <Alert className="mb-6">
       <div className="flex items-start gap-2">
         <AlertTriangle className="h-5 w-5 text-amber-600" />
         <div>
@@ -33,9 +32,7 @@ export const BookingNotifications = () => {
           </AlertDescription>
         </div>
       </div>
-      <div className="flex-shrink-0 ml-4">
-        <CheckoutButton bookings={bookings} count={pendingBookings} />
-      </div>
     </Alert>
   );
 };
+
