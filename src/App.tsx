@@ -28,6 +28,7 @@ import ArtistDashboard from "./pages/artist/ArtistDashboard";
 import ArtistBookings from "./pages/artist/ArtistBookings";
 import Wishlist from "./pages/user/Wishlist";
 import Checkout from "./pages/user/Checkout";
+import MemberManagement from "./pages/admin/MemberManagement";
 
 // Log to confirm App is being loaded
 console.log("App component rendering");
@@ -67,6 +68,7 @@ function App() {
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/status" element={<AdminStatus />} />
               <Route path="/admin/artists" element={<AdminArtists />} />
+              <Route path="/admin/members" element={<MemberManagement />} />
               <Route path="/admin/wishlist-insights" element={<AdminWishlistInsights />} />
               
               {/* User Routes */}

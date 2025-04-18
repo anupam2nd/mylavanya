@@ -1,4 +1,3 @@
-
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, LogOut, User, Settings, Home, Calendar, List, Package, Users, Palette, Heart, BarChart } from "lucide-react";
@@ -130,6 +129,22 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
                 <List className="w-5 h-5 mr-3" />
                 <span>Status Management</span>
+              </Link>
+            </>
+          )}
+
+          {isController && (
+            <>
+              <Link to="/admin/members"
+                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <Users className="w-5 h-5 mr-3" />
+                <span>Members</span>
+              </Link>
+              
+              <Link to="/admin/artists"
+                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <Palette className="w-5 h-5 mr-3" />
+                <span>Artists</span>
               </Link>
             </>
           )}
