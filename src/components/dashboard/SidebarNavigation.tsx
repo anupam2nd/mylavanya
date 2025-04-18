@@ -2,12 +2,10 @@
 import { Link } from "react-router-dom";
 import {
   Home,
-  Calendar,
   Package,
   Users,
   List,
   BarChart,
-  Palette,
   User,
   Settings,
   LogOut
@@ -58,22 +56,19 @@ export const SidebarNavigation = () => {
         </NavItem>
       )}
 
-      <NavItem to={getRouteForRole("/bookings")} icon={Calendar}>
-        Bookings
-      </NavItem>
-
-      {(isAdmin || isController) && (
-      <>
-        <NavItem to="/admin/services" icon={Package}>
-          Services
+      {/* Remove bookings for superadmin */}
+      {!isSuperAdmin && (
+        <NavItem to={getRouteForRole("/bookings")} icon={Calendar}>
+          Bookings
         </NavItem>
-        
-        {(isController || isSuperAdmin) && (
-          <NavItem to="/admin/artists" icon={Palette}>
-            Artists
+      )}
+
+      {(isAdmin || isController) && !isSuperAdmin && (
+        <>
+          <NavItem to="/admin/services" icon={Package}>
+            Services
           </NavItem>
-        )}
-      </>
+        </>
       )}
 
       {(isController || isSuperAdmin) && (
@@ -81,20 +76,16 @@ export const SidebarNavigation = () => {
           <NavItem to="/admin/users" icon={Users}>
             Users
           </NavItem>
-          
+
           <NavItem to="/admin/members" icon={Users}>
             Members
           </NavItem>
 
-          {!isController && (
-            <NavItem to="/admin/artists" icon={Palette}>
-              Artists
+          {!isSuperAdmin && (
+            <NavItem to="/admin/status" icon={List}>
+              Status Management
             </NavItem>
           )}
-
-          <NavItem to="/admin/status" icon={List}>
-            Status Management
-          </NavItem>
 
           <NavItem to="/admin/wishlist-insights" icon={BarChart}>
             Wishlist Insights

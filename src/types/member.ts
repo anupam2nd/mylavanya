@@ -9,7 +9,8 @@ export interface Member {
   MemberPincode: string | null;
   MemberDOB: string | null;
   MemberSex: string | null;
-  Active: boolean; // We'll add this as a calculated property
+  MemberStatus: boolean | null;
+  Active: boolean; // We'll use this as a computed property from MemberStatus
   uuid: string;
 }
 
