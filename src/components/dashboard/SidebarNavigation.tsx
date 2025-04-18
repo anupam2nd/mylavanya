@@ -8,7 +8,8 @@ import {
   BarChart,
   User,
   Settings,
-  LogOut
+  LogOut,
+  Calendar
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
