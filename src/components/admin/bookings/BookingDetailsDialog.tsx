@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -46,6 +47,7 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
   statusOptions,
   artists,
 }) => {
+  const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({});
   const [scheduleData, setScheduleData] = useState<{ date: Date | undefined; time: string }>({
     date: undefined,
@@ -140,19 +142,29 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
       const selectedServiceData = availableServices.find(s => s.prod_id.toString() === selectedService);
       if (!selectedServiceData) return;
 
-      const newBooking = {
-        ...booking,
-        id: undefined,
+      // Create a new booking object with the required fields
+      const newBookingData = {
+        Booking_NO: booking.Booking_NO,
+        name: booking.name,
+        email: booking.email,
+        Phone_no: booking.Phone_no, 
+        Address: booking.Address,
+        Pincode: booking.Pincode,
+        Booking_date: booking.Booking_date,
+        booking_time: booking.booking_time,
+        Purpose: booking.Purpose || "Beauty Service",
         ServiceName: selectedServiceData.Services,
         SubService: selectedServiceData.Subservice,
         ProductName: selectedServiceData.ProductName,
         price: selectedServiceData.Price,
-        Product: selectedServiceData.prod_id,
+        Product: parseInt(selectedServiceData.prod_id),
+        Status: booking.Status || "pending",
+        ArtistId: booking.ArtistId ? parseInt(booking.ArtistId.toString()) : null
       };
 
       const { error } = await supabase
         .from('BookMST')
-        .insert([newBooking]);
+        .insert([newBookingData]);
 
       if (error) throw error;
 

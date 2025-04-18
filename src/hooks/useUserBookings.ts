@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,9 +29,10 @@ export const useUserBookings = () => {
           }
         } 
         else if (user.role === 'member') {
+          // For members, only show bookings that have been checked out (not pending)
           query = query
             .eq('email', user.email)
-            .eq('Status', 'pending');
+            .neq('Status', 'pending');
         }
         else if (user.role === 'admin' || user.role === 'superadmin' || user.role === 'controller') {
           console.log("Showing all bookings for admin/controller");
