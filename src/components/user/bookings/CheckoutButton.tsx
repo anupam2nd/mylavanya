@@ -20,13 +20,6 @@ const CheckoutButton = ({ bookings, count }: CheckoutButtonProps) => {
   // Count pending bookings if count is not provided
   const pendingCount = count !== undefined ? count : pendingBookings.length;
   
-  // Calculate total amount for pending bookings
-  const totalAmount = pendingBookings.reduce((sum, booking) => {
-    const price = booking.price || 0;
-    const quantity = booking.Qty || 1;
-    return sum + (price * quantity);
-  }, 0);
-  
   if (pendingCount === 0) {
     return null;
   }
@@ -36,7 +29,11 @@ const CheckoutButton = ({ bookings, count }: CheckoutButtonProps) => {
       variant="primary-gradient"
       size="sm"
       className="flex items-center gap-2"
-      onClick={() => navigate('/user/checkout')}
+      onClick={() => navigate('/user/checkout', { 
+        state: { 
+          pendingBookings: pendingBookings 
+        } 
+      })}
     >
       <ShoppingBag className="h-4 w-4" />
       <span>Checkout</span>
