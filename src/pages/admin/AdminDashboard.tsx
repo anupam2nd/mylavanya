@@ -52,13 +52,13 @@ const AdminDashboard = () => {
         <div className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Booking Counts by Status</CardTitle>
+              <CardTitle>Service Counts By Status</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {statusOptions.map((status) => (
                   <div key={status.status_code} className="flex flex-col p-4 rounded-md border">
-                    <span className="text-sm text-muted-foreground">{status.status_name} Bookings</span>
+                    <span className="text-sm text-muted-foreground">{status.status_name} Services</span>
                     <span className="text-2xl font-bold">
                       {statsLoading ? "..." : statusCounts[status.status_code] || 0}
                     </span>

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
@@ -17,10 +17,12 @@ import { CheckCircle2 } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPrice, onCancel, onSuccess }: BookingFormProps) => {
   const [bookingCompleted, setBookingCompleted] = useState(false);
   const [bookingRef, setBookingRef] = useState<string | null>(null);
+  const [isLoadingMemberData, setIsLoadingMemberData] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -62,12 +64,72 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
     },
   });
 
+  // Load member data when component mounts
+  useEffect(() => {
+    const fetchMemberData = async () => {
+      if (!user || user.role !== 'member' || user.email === undefined) return;
+      
+      try {
+        setIsLoadingMemberData(true);
+        const { data, error } = await supabase
+          .from('MemberMST')
+          .select('*')
+          .eq('MemberEmailId', user.email)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching member data:', error);
+          return;
+        }
+        
+        if (data) {
+          // Update form values with member data
+          const fullName = `${data.MemberFirstName || ''} ${data.MemberLastName || ''}`.trim();
+          form.setValue('name', fullName);
+          form.setValue('email', data.MemberEmailId || user.email);
+          form.setValue('phone', data.MemberPhNo || '');
+          form.setValue('address', data.MemberAdress || '');
+          form.setValue('pincode', data.MemberPincode || '');
+        }
+      } catch (error) {
+        console.error('Error in fetching member data:', error);
+      } finally {
+        setIsLoadingMemberData(false);
+      }
+    };
+
+    fetchMemberData();
+  }, [user, form]);
+
   const { isSubmitting, submitBooking } = useBookingSubmit();
 
   const onSubmit = async (data: BookingFormValues) => {
     if (!user || user.role !== 'member') {
       // Double check to prevent non-members from submitting
       return;
+    }
+    
+    // If user has updated their details, update MemberMST table
+    if (user.email) {
+      try {
+        const nameParts = data.name.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        await supabase
+          .from('MemberMST')
+          .update({
+            MemberFirstName: firstName,
+            MemberLastName: lastName,
+            MemberPhNo: data.phone,
+            MemberAdress: data.address,
+            MemberPincode: data.pincode
+          })
+          .eq('MemberEmailId', user.email);
+      } catch (error) {
+        console.error('Error updating member information:', error);
+        // Continue with booking even if update fails
+      }
     }
     
     const result = await submitBooking(data);
@@ -113,6 +175,12 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
 
   return (
     <div className="bg-white rounded-lg p-6">
+      {isLoadingMemberData && (
+        <div className="mb-4 p-2 bg-blue-50 text-blue-700 rounded">
+          Loading your information...
+        </div>
+      )}
+      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <ServiceSelectionField initialSelectedService={initialSelectedService} />

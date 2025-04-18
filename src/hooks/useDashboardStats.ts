@@ -104,50 +104,44 @@ export const useDashboardStats = (): DashboardStats => {
         
         setTotalRevenue(revenue);
 
-        // Get count for each status using RPC function or fallback
-        const { data: statusData, error: statusError } = await (supabase.rpc as any)(
-          'get_booking_counts_by_status'
-        ) as { data: Array<{ status: string; count: number }> | null; error: any };
+        // Initialize counts with 0 for all statuses
+        const statusCountsObj: Record<string, number> = {};
+        statusOptions.forEach(status => {
+          statusCountsObj[status.status_code] = 0;
+        });
         
-        if (statusError) {
-          console.error("Error fetching status counts:", statusError);
-          
-          // Initialize counts with 0 for all statuses
-          const statusCountsObj: Record<string, number> = {};
-          statusOptions.forEach(status => {
-            statusCountsObj[status.status_code] = 0;
-          });
-          
-          // Fallback: perform individual queries for each status
+        // Get count for each status - counting individual services instead of unique booking numbers
+        try {
           await Promise.all(statusOptions.map(async (status) => {
-            const { count, error } = await supabase
+            const { data, error } = await supabase
               .from('BookMST')
               .select('*', { count: 'exact', head: true })
               .eq('Status', status.status_code);
             
-            if (!error && count !== null) {
-              statusCountsObj[status.status_code] = count;
+            if (!error && data !== null) {
+              statusCountsObj[status.status_code] = data.length;
             }
           }));
           
           setStatusCounts(statusCountsObj);
-        } else if (statusData) {
-          // Process the status count data from RPC
-          const statusCountsObj: Record<string, number> = {};
+        } catch (error) {
+          console.error("Error fetching status counts:", error);
           
-          statusOptions.forEach(status => {
-            statusCountsObj[status.status_code] = 0;
-          });
-          
-          if (Array.isArray(statusData)) {
-            statusData.forEach((item: { status: string; count: number }) => {
-              if (item && item.status) {
-                statusCountsObj[item.status] = item.count;
+          // Fallback to fetching all statuses at once if individual queries fail
+          const { data: allStatusData, error: allStatusError } = await supabase
+            .from('BookMST')
+            .select('Status');
+            
+          if (!allStatusError && allStatusData) {
+            // Count services by status
+            allStatusData.forEach(booking => {
+              if (booking.Status && statusCountsObj[booking.Status] !== undefined) {
+                statusCountsObj[booking.Status]++;
               }
             });
+            
+            setStatusCounts(statusCountsObj);
           }
-          
-          setStatusCounts(statusCountsObj);
         }
       } catch (error) {
         console.error("Error fetching booking stats:", error);
