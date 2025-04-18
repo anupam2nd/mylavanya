@@ -72,6 +72,32 @@ const Checkout = () => {
   const deselectAllBookings = () => {
     setSelectedBookings([]);
   };
+
+  // Add function to handle service deletion
+  const handleDeleteService = async (booking: any) => {
+    if (!window.confirm('Are you sure you want to remove this service?')) {
+      return;
+    }
+
+    try {
+      const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
+      const { error } = await supabase
+        .from('BookMST')
+        .delete()
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      // Show success message
+      toast.success("Service removed successfully");
+      
+      // Refresh bookings list (handled by useUserBookings hook)
+    } catch (error) {
+      console.error('Error deleting service:', error);
+      toast.error("Failed to remove service");
+    }
+  };
   
   // Process payment for selected bookings
   const handlePayment = async () => {
@@ -252,7 +278,7 @@ const Checkout = () => {
                     <ul className="divide-y">
                       {group.map(booking => (
                         <li key={booking.id} className="py-2">
-                          <div className="flex justify-between">
+                          <div className="flex justify-between items-center">
                             <div>
                               <p className="font-medium">{booking.Purpose}</p>
                               <div className="text-sm text-muted-foreground">
@@ -260,9 +286,19 @@ const Checkout = () => {
                                 {booking.SubService && <span> - {booking.SubService}</span>}
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p>₹{booking.price} × {booking.Qty || 1}</p>
-                              <p className="font-medium">₹{((booking.price || 0) * (booking.Qty || 1)).toFixed(2)}</p>
+                            <div className="flex items-center gap-4">
+                              <div className="text-right">
+                                <p>₹{booking.price} × {booking.Qty || 1}</p>
+                                <p className="font-medium">₹{((booking.price || 0) * (booking.Qty || 1)).toFixed(2)}</p>
+                              </div>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="text-red-500 hover:text-red-700"
+                                onClick={() => handleDeleteService(booking)}
+                              >
+                                Delete
+                              </Button>
                             </div>
                           </div>
                         </li>
