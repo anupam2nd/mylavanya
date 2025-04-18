@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import {
   Home,
@@ -6,7 +7,8 @@ import {
   LogOut,
   User,
   Settings,
-  Palette
+  ClipboardList,
+  Heart
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -53,20 +55,18 @@ export const SidebarNavigation = () => {
         </NavItem>
       )}
 
-      {isAdmin && !isSuperAdmin && (
+      {isSuperAdmin && (
         <>
           <NavItem to="/admin/services" icon={Package}>
             Services
           </NavItem>
-          <NavItem to="/admin/artists" icon={Palette}>
-            Artists
+          <NavItem to="/admin/users" icon={Users}>
+            Users
           </NavItem>
-        </>
-      )}
-
-      {isController && (
-        <>
-          <NavItem to="/admin/wishlist-insights" icon={Users}>
+          <NavItem to="/admin/status" icon={ClipboardList}>
+            Status Management
+          </NavItem>
+          <NavItem to="/admin/wishlist-insights" icon={Heart}>
             Wishlist Insights
           </NavItem>
         </>
