@@ -8,9 +8,13 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast"
+import { Button } from "@/components/ui/button"
+import { useNavigate } from "react-router-dom"
+import { ShoppingBag } from "lucide-react"
 
 export function Toaster() {
   const { toasts } = useToast()
+  const navigate = useNavigate()
 
   return (
     <ToastProvider>
@@ -45,8 +49,16 @@ export function Toaster() {
                 // If this is the payment note
                 else if (line.includes('not confirmed')) {
                   return (
-                    <div key={index} className="font-semibold text-lg bg-red-50 p-2 rounded border border-red-200 text-red-700 mt-2">
-                      {line}
+                    <div key={index} className="font-semibold text-lg bg-red-50 p-2 rounded border border-red-200 text-red-700 mt-2 flex justify-between items-center">
+                      <span>{line}</span>
+                      <Button 
+                        onClick={() => navigate('/user/checkout')} 
+                        className="ml-4 flex items-center gap-2"
+                        size="sm"
+                      >
+                        <ShoppingBag className="h-4 w-4" />
+                        Checkout
+                      </Button>
                     </div>
                   );
                 }
