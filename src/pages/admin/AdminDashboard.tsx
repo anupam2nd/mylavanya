@@ -7,7 +7,6 @@ import { useBookings } from "@/hooks/useBookings";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { StatCards } from "@/components/admin/dashboard/StatCards";
 import { DashboardCharts } from "@/components/admin/dashboard/DashboardCharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
 
 const AdminDashboard = () => {
@@ -21,7 +20,6 @@ const AdminDashboard = () => {
     inProgressBookings,
     totalRevenue,
     totalServices,
-    statusCounts,
     loading: statsLoading 
   } = useDashboardStats();
   const { statusOptions } = useStatusOptions();
@@ -48,26 +46,6 @@ const AdminDashboard = () => {
           totalRevenue={totalRevenue}
           loading={statsLoading}
         />
-
-        <div className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Service Counts By Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {statusOptions.map((status) => (
-                  <div key={status.status_code} className="flex flex-col p-4 rounded-md border">
-                    <span className="text-sm text-muted-foreground">{status.status_name} Services</span>
-                    <span className="text-2xl font-bold">
-                      {statsLoading ? "..." : statusCounts[status.status_code] || 0}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         <div className="mt-6">
           <ChartFilters

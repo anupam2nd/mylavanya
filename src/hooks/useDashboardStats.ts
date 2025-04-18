@@ -12,7 +12,6 @@ export interface DashboardStats {
   inProgressBookings: number;
   totalRevenue: number;
   totalServices: number;
-  statusCounts: Record<string, number>;
   loading: boolean;
 }
 
@@ -23,7 +22,6 @@ export const useDashboardStats = (): DashboardStats => {
   const [inProgressBookings, setInProgressBookings] = useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
   const [totalServices, setTotalServices] = useState<number>(0);
-  const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const { statusOptions } = useStatusOptions();
   const { toast: uiToast } = useToast();
@@ -103,46 +101,6 @@ export const useDashboardStats = (): DashboardStats => {
           : 0;
         
         setTotalRevenue(revenue);
-
-        // Initialize counts with 0 for all statuses
-        const statusCountsObj: Record<string, number> = {};
-        statusOptions.forEach(status => {
-          statusCountsObj[status.status_code] = 0;
-        });
-        
-        // Get count for each status - counting individual services instead of unique booking numbers
-        try {
-          await Promise.all(statusOptions.map(async (status) => {
-            const { data, error } = await supabase
-              .from('BookMST')
-              .select('*', { count: 'exact', head: true })
-              .eq('Status', status.status_code);
-            
-            if (!error && data !== null) {
-              statusCountsObj[status.status_code] = data.length;
-            }
-          }));
-          
-          setStatusCounts(statusCountsObj);
-        } catch (error) {
-          console.error("Error fetching status counts:", error);
-          
-          // Fallback to fetching all statuses at once if individual queries fail
-          const { data: allStatusData, error: allStatusError } = await supabase
-            .from('BookMST')
-            .select('Status');
-            
-          if (!allStatusError && allStatusData) {
-            // Count services by status
-            allStatusData.forEach(booking => {
-              if (booking.Status && statusCountsObj[booking.Status] !== undefined) {
-                statusCountsObj[booking.Status]++;
-              }
-            });
-            
-            setStatusCounts(statusCountsObj);
-          }
-        }
       } catch (error) {
         console.error("Error fetching booking stats:", error);
         toast.error("Failed to load dashboard statistics");
@@ -161,7 +119,6 @@ export const useDashboardStats = (): DashboardStats => {
     inProgressBookings,
     totalRevenue,
     totalServices,
-    statusCounts,
     loading
   };
 };
