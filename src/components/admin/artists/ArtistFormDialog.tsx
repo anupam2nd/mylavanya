@@ -58,7 +58,8 @@ export const ArtistFormDialog = ({
       Artistgrp: currentArtist?.Artistgrp || "",
       Source: currentArtist?.Source || "",
       ArtistRating: currentArtist?.ArtistRating ? String(currentArtist.ArtistRating) : "0",
-      Active: currentArtist?.Active === null ? true : currentArtist.Active
+      // Fix for the Active property - set a default value when currentArtist is null or Active is null
+      Active: currentArtist?.Active !== null ? currentArtist?.Active : true
     }
   });
 
