@@ -138,6 +138,7 @@ const ActiveMembersChart: React.FC<ActiveMembersChartProps> = ({
                     x={item.formattedDate}
                     stroke="#10b981"
                     strokeDasharray="3 3"
+                    yAxisId="left"
                     label={{ value: item.event, position: 'top', fill: '#10b981', fontSize: 12 }}
                   />
                 ))}
