@@ -65,16 +65,6 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
           />
         </CardContent>
       </Card>
-      <Card className="col-span-1">
-        <CardContent className="p-6">
-          <MonthlyBookingsChart 
-            startDate={startDate} 
-            endDate={endDate}
-            bookings={bookings}
-            loading={loading}
-          />
-        </CardContent>
-      </Card>
     </div>
   );
 };
