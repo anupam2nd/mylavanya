@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -16,9 +17,14 @@ import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
 interface ArtistBookingDetailsProps {
   booking: Booking;
   onBack: () => void;
+  onAddNewJob?: (bookingId: string, newService: any) => Promise<void>;
 }
 
-const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, onBack }) => {
+const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ 
+  booking, 
+  onBack,
+  onAddNewJob
+}) => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showAddJobDialog, setShowAddJobDialog] = useState(false);
@@ -92,6 +98,7 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
         isOpen={showAddJobDialog}
         onClose={() => setShowAddJobDialog(false)}
         booking={booking}
+        onAddNewJob={onAddNewJob}
       />
     </div>
   );

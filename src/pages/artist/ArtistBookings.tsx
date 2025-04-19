@@ -25,11 +25,14 @@ const ArtistBookings = () => {
 
   const handleAddNewJob = async (bookingId: string, newService: any) => {
     try {
+      // Convert string id to number for database query
+      const bookingIdNumber = parseInt(bookingId);
+      
       // Get the existing booking to copy details
       const { data: existingBooking } = await supabase
         .from('BookMST')
         .select('*')
-        .eq('id', bookingId)
+        .eq('id', bookingIdNumber)
         .single();
 
       if (!existingBooking) {
