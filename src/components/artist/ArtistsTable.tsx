@@ -64,7 +64,6 @@ export const ArtistsTable = ({
             <TableHead>Name</TableHead>
             <TableHead>Employee Code</TableHead>
             <TableHead>Phone</TableHead>
-            <TableHead>Group</TableHead>
             <TableHead>Rating</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -78,11 +77,6 @@ export const ArtistsTable = ({
               </TableCell>
               <TableCell>{artist.ArtistEmpCode}</TableCell>
               <TableCell>{artist.ArtistPhno}</TableCell>
-              <TableCell>
-                <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                  {artist.Artistgrp || 'N/A'}
-                </span>
-              </TableCell>
               <TableCell>
                 {artist.ArtistRating !== null ? `${artist.ArtistRating}/5` : 'N/A'}
               </TableCell>
