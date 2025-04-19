@@ -1,9 +1,7 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import MonthlyBookingsChart from "@/components/admin/dashboard/MonthlyBookingsChart";
 import MonthlyBookingsLineChart from "@/components/admin/dashboard/MonthlyBookingsLineChart";
-import MonthlyBookingTrendsChart from "@/components/admin/dashboard/MonthlyBookingTrendsChart";
 import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPieChart";
 import CustomerDemographicsChart from "@/components/admin/dashboard/CustomerDemographicsChart";
 import RevenueByServiceChart from "@/components/admin/dashboard/RevenueByServiceChart";
@@ -63,16 +61,6 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
             startDate={startDate} 
             endDate={endDate}
             bookings={bookings}
-            loading={loading}
-          />
-        </CardContent>
-      </Card>
-      <Card className="col-span-1">
-        <CardContent className="p-6">
-          <MonthlyBookingTrendsChart 
-            startDate={startDate} 
-            endDate={endDate} 
-            bookings={bookings} 
             loading={loading}
           />
         </CardContent>
