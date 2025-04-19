@@ -1,155 +1,111 @@
 
-import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { Plus } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useArtistManagement } from "@/hooks/useArtistManagement";
+import { ArtistFormDialog } from "@/components/admin/artists/ArtistFormDialog";
+import { ArtistFilters } from "@/components/admin/artists/ArtistFilters";
+import { ArtistsTable } from "@/components/admin/artists/ArtistsTable";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { supabase } from "@/integrations/supabase/client";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Search, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-
-interface Artist {
-  ArtistId: number;
-  ArtistFirstName: string | null;
-  ArtistLastName: string | null;
-  ArtistEmpCode: string | null;
-  Artistgrp: string | null;
-  Active: boolean | null;
-}
+import { Artist } from "@/types/artist";
 
 const AdminArtists = () => {
-  const { toast } = useToast();
-  const [artists, setArtists] = useState<Artist[]>([]);
-  const [filteredArtists, setFilteredArtists] = useState<Artist[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { artists, loading, toggleStatus, deleteArtist, setArtists } = useArtistManagement();
   const [searchQuery, setSearchQuery] = useState("");
+  const [groupFilter, setGroupFilter] = useState("all");
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentArtist, setCurrentArtist] = useState<Artist | null>(null);
 
-  useEffect(() => {
-    const fetchArtists = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('ArtistMST')
-          .select('*')
-          .order('ArtistFirstName', { ascending: true });
+  const isSuperAdmin = user?.role === 'superadmin';
 
-        if (error) throw error;
-        setArtists(data || []);
-        setFilteredArtists(data || []);
-      } catch (error) {
-        console.error('Error fetching artists:', error);
-        toast({
-          title: "Failed to load artists",
-          description: "Please try again later",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleEditArtist = (artist: Artist) => {
+    setCurrentArtist(artist);
+    setIsDialogOpen(true);
+  };
 
-    fetchArtists();
-  }, [toast]);
-
-  useEffect(() => {
-    let result = [...artists];
-    
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        artist => 
-          (artist.ArtistFirstName && artist.ArtistFirstName.toLowerCase().includes(query)) ||
-          (artist.ArtistLastName && artist.ArtistLastName.toLowerCase().includes(query)) ||
-          (artist.ArtistEmpCode && artist.ArtistEmpCode.toLowerCase().includes(query))
-      );
+  const handleSuccess = (updatedArtist: Artist) => {
+    if (currentArtist) {
+      setArtists(artists.map(a => a.ArtistId === updatedArtist.ArtistId ? updatedArtist : a));
+    } else {
+      setArtists([...artists, updatedArtist]);
     }
-    
-    setFilteredArtists(result);
-  }, [artists, searchQuery]);
+    setCurrentArtist(null);
+    setIsDialogOpen(false);
+  };
 
   const clearFilters = () => {
     setSearchQuery("");
+    setGroupFilter("all");
+    setActiveFilter("all");
   };
 
+  const filteredArtists = artists.filter(artist => {
+    const matchesSearch = searchQuery === "" || 
+      `${artist.ArtistFirstName} ${artist.ArtistLastName}`
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      artist.ArtistEmpCode?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesGroup = groupFilter === "all" || artist.Artistgrp === groupFilter;
+    
+    const matchesStatus = activeFilter === "all" || 
+      (activeFilter === "active" ? artist.Active : !artist.Active);
+
+    return matchesSearch && matchesGroup && matchesStatus;
+  });
+
   return (
-    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+    <ProtectedRoute allowedRoles={["superadmin"]}>
       <DashboardLayout title="Artist Management">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Artists List</CardTitle>
+            <Button 
+              onClick={() => {
+                setCurrentArtist(null);
+                setIsDialogOpen(true);
+              }}
+              className="flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Artist
+            </Button>
           </CardHeader>
           <CardContent>
-            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search artists..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={clearFilters}
-                className="flex items-center"
-              >
-                <X className="mr-2 h-4 w-4" />
-                Clear Filters
-              </Button>
-            </div>
-
-            <div className="mb-4 text-sm text-muted-foreground">
-              Showing {filteredArtists.length} of {artists.length} artists
-            </div>
+            <ArtistFilters 
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              groupFilter={groupFilter}
+              setGroupFilter={setGroupFilter}
+              activeFilter={activeFilter}
+              setActiveFilter={setActiveFilter}
+              clearFilters={clearFilters}
+            />
 
             {loading ? (
               <div className="flex justify-center p-4">Loading artists...</div>
-            ) : filteredArtists.length === 0 ? (
-              <p className="text-muted-foreground py-4 text-center">
-                No artists match your search criteria.
-              </p>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Employee Code</TableHead>
-                      <TableHead>First Name</TableHead>
-                      <TableHead>Last Name</TableHead>
-                      <TableHead>Group</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredArtists.map((artist) => (
-                      <TableRow key={artist.ArtistId}>
-                        <TableCell>{artist.ArtistEmpCode}</TableCell>
-                        <TableCell>{artist.ArtistFirstName}</TableCell>
-                        <TableCell>{artist.ArtistLastName}</TableCell>
-                        <TableCell>{artist.Artistgrp}</TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            artist.Active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            {artist.Active ? 'Active' : 'Inactive'}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <ArtistsTable 
+                artists={filteredArtists}
+                isSuperAdmin={isSuperAdmin}
+                onEdit={handleEditArtist}
+                onDelete={deleteArtist}
+                onToggleStatus={toggleStatus}
+              />
             )}
+
+            <ArtistFormDialog 
+              open={isDialogOpen}
+              onOpenChange={setIsDialogOpen}
+              isNewArtist={!currentArtist}
+              currentArtist={currentArtist}
+              onSuccess={handleSuccess}
+            />
           </CardContent>
         </Card>
       </DashboardLayout>

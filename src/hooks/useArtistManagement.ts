@@ -37,23 +37,22 @@ export const useArtistManagement = () => {
 
   const toggleStatus = async (artist: Artist) => {
     try {
-      const newActiveState = !artist.Active;
       const { error } = await supabase
         .from('ArtistMST')
-        .update({ Active: newActiveState })
+        .update({ Active: !artist.Active })
         .eq('ArtistId', artist.ArtistId);
 
       if (error) throw error;
 
       setArtists(artists.map(a => 
         a.ArtistId === artist.ArtistId 
-          ? { ...a, Active: newActiveState } 
+          ? { ...a, Active: !artist.Active } 
           : a
       ));
       
       toast({
-        title: newActiveState ? "Artist activated" : "Artist deactivated",
-        description: `Artist "${artist.ArtistFirstName} ${artist.ArtistLastName}" has been ${newActiveState ? "activated" : "deactivated"}`,
+        title: !artist.Active ? "Artist activated" : "Artist deactivated",
+        description: `Artist "${artist.ArtistFirstName} ${artist.ArtistLastName}" has been ${!artist.Active ? "activated" : "deactivated"}`,
       });
     } catch (error) {
       console.error('Error updating artist status:', error);
@@ -65,16 +64,16 @@ export const useArtistManagement = () => {
     }
   };
 
-  const deleteArtist = async (artistId: number) => {
+  const deleteArtist = async (artist: Artist) => {
     try {
       const { error } = await supabase
         .from('ArtistMST')
         .delete()
-        .eq('ArtistId', artistId);
+        .eq('ArtistId', artist.ArtistId);
 
       if (error) throw error;
 
-      setArtists(artists.filter(a => a.ArtistId !== artistId));
+      setArtists(artists.filter(a => a.ArtistId !== artist.ArtistId));
       toast({
         title: "Artist deleted",
         description: "The artist has been successfully removed",

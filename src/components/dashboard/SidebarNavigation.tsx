@@ -72,6 +72,9 @@ export const SidebarNavigation = () => {
           <NavItem to="/admin/users" icon={Users}>
             Users
           </NavItem>
+          <NavItem to="/admin/artists" icon={Palette}>
+            Artists
+          </NavItem>
           <NavItem to="/admin/status" icon={ClipboardList}>
             Status Management
           </NavItem>
