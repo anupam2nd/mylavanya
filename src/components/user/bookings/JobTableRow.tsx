@@ -1,11 +1,12 @@
+
 import React, { useState } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
-import { BookingStatusSelect } from "@/components/user/bookings/booking-table/BookingStatusSelect";
-import { ArtistAssignmentSelect } from "@/components/user/bookings/booking-table/ArtistAssignmentSelect";
-import { JobScheduleCell } from "@/components/user/bookings/booking-table/JobScheduleCell";
+import { BookingStatusSelect } from "./BookingStatusSelect";
+import { ArtistAssignmentSelect } from "./ArtistAssignmentSelect";
+import { JobScheduleCell } from "./JobScheduleCell";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useAuth } from "@/context/AuthContext";
 import { Artist } from "@/hooks/useBookingArtists";
@@ -47,8 +48,12 @@ export const JobTableRow = ({
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller';
   const isArtist = user?.role === 'artist';
 
+  const isCompleted = booking.Status === 'done' || booking.Status === 'cancelled';
+  const isConfirmed = booking.Status === 'confirm';
+  const canModifyBooking = !isCompleted && (isConfirmed || user?.role === 'superadmin');
+
   const handleStatusChangeWrapper = async (newStatus: string) => {
-    if (isUpdatingStatus) return;
+    if (isUpdatingStatus || !canModifyBooking) return;
     
     setIsUpdatingStatus(true);
     try {
@@ -59,7 +64,7 @@ export const JobTableRow = ({
   };
 
   const handleArtistAssignmentWrapper = async (artistId: string) => {
-    if (isAssigningArtist) return;
+    if (isAssigningArtist || !canModifyBooking) return;
     
     setIsAssigningArtist(true);
     try {
@@ -70,7 +75,7 @@ export const JobTableRow = ({
   };
 
   const handleScheduleChangeWrapper = async (date: string, time: string) => {
-    if (isUpdatingSchedule || !onScheduleChange) return;
+    if (isUpdatingSchedule || !canModifyBooking || !onScheduleChange) return;
     
     setIsUpdatingSchedule(true);
     try {
@@ -100,7 +105,7 @@ export const JobTableRow = ({
         {isAdmin ? (
           <JobScheduleCell 
             booking={booking}
-            isEditingDisabled={isEditingDisabled}
+            isEditingDisabled={isEditingDisabled || !canModifyBooking}
             onScheduleChange={handleScheduleChangeWrapper}
             isUpdating={isUpdatingSchedule}
           />
@@ -124,7 +129,7 @@ export const JobTableRow = ({
             currentStatus={booking.Status || 'pending'} 
             statusOptions={statusOptions} 
             onStatusChange={handleStatusChangeWrapper}
-            isDisabled={isEditingDisabled || isUpdatingStatus}
+            isDisabled={isEditingDisabled || !canModifyBooking}
           />
         )}
       </TableCell>
@@ -137,7 +142,7 @@ export const JobTableRow = ({
             booking={booking}
             artists={artists}
             onArtistAssignment={handleArtistAssignmentWrapper}
-            isDisabled={isEditingDisabled || isAssigningArtist}
+            isDisabled={isEditingDisabled || !canModifyBooking}
           />
         )}
       </TableCell>
@@ -165,7 +170,7 @@ export const JobTableRow = ({
               variant="outline"
               size="sm"
               onClick={() => onEditClick(booking)}
-              disabled={isEditingDisabled}
+              disabled={isEditingDisabled || !canModifyBooking}
               className="flex items-center"
             >
               <Pencil className="h-4 w-4 mr-1" />
@@ -177,7 +182,7 @@ export const JobTableRow = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onDeleteJob && onDeleteJob(booking)}
-                disabled={isEditingDisabled}
+                disabled={isEditingDisabled || !canModifyBooking}
                 className="flex items-center text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-1" />
