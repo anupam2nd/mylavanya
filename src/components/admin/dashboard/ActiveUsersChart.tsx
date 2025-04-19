@@ -18,42 +18,42 @@ import { ExportButton } from "@/components/ui/export-button";
 import { Badge } from "@/components/ui/badge";
 import { format, subDays } from "date-fns";
 
-// Sample data - to be replaced with real data
-const generateActiveUserData = (range: string) => {
+// Sample data - to be replaced with real data from MemberMST
+const generateActiveMemberData = (range: string) => {
   const data = [];
   let periods = range === '7d' ? 7 : range === '30d' ? 30 : range === '90d' ? 90 : 365;
-  const baseDau = 150;
-  const baseMau = 1200;
-  const dauVariance = 50;
-  const mauVariance = 200;
+  const baseDam = 80; // Daily Active Members
+  const baseMam = 500; // Monthly Active Members
+  const damVariance = 20;
+  const mamVariance = 100;
   
   const today = new Date();
   
   const events = [
-    { date: '2025-02-01', name: 'New App Version', description: 'Released v2.0 with improved UI' },
-    { date: '2025-03-15', name: 'Marketing Campaign', description: 'Started digital ad campaign' },
-    { date: '2025-04-10', name: 'Feature Launch', description: 'Added messaging feature' },
+    { date: '2025-02-01', name: 'Membership Drive', description: 'Annual membership promotion' },
+    { date: '2025-03-15', name: 'New Features', description: 'Launched loyalty program' },
+    { date: '2025-04-10', name: 'Spring Campaign', description: 'Seasonal member benefits' },
   ];
   
-  // Increase user counts gradually over time
+  // Increase member counts gradually over time
   for (let i = 0; i < periods; i++) {
     const date = subDays(today, periods - i - 1);
     const dateStr = format(date, 'yyyy-MM-dd');
     
     // Add trend with some randomness
-    const growthFactor = 1 + (i * 0.005); // 0.5% growth per day
-    const dau = Math.floor((baseDau * growthFactor) + (Math.random() * dauVariance - dauVariance/2));
-    const mau = Math.floor((baseMau * growthFactor) + (Math.random() * mauVariance - mauVariance/2));
+    const growthFactor = 1 + (i * 0.003); // 0.3% growth per day
+    const dam = Math.floor((baseDam * growthFactor) + (Math.random() * damVariance - damVariance/2));
+    const mam = Math.floor((baseMam * growthFactor) + (Math.random() * mamVariance - mamVariance/2));
     
-    // Calculate DAU/MAU ratio
-    const dauMauRatio = (dau / mau * 100).toFixed(1);
+    // Calculate DAM/MAM ratio
+    const damMamRatio = (dam / mam * 100).toFixed(1);
     
     const dataPoint: any = {
       date: dateStr,
       formattedDate: format(date, 'MMM dd'),
-      dau,
-      mau,
-      dauMauRatio,
+      dam,
+      mam,
+      damMamRatio,
     };
     
     // Check if this date has an event
@@ -69,19 +69,19 @@ const generateActiveUserData = (range: string) => {
   return data;
 };
 
-interface ActiveUsersChartProps {
+interface ActiveMembersChartProps {
   title?: string;
   description?: string;
 }
 
-const ActiveUsersChart: React.FC<ActiveUsersChartProps> = ({
-  title = "Active Users",
-  description = "Daily and Monthly Active Users with DAU/MAU ratio"
+const ActiveMembersChart: React.FC<ActiveMembersChartProps> = ({
+  title = "Active Members",
+  description = "Daily and Monthly Active Members with DAM/MAM ratio"
 }) => {
   const [range, setRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
   const [showRatio, setShowRatio] = useState(true);
   
-  const data = generateActiveUserData(range);
+  const data = generateActiveMemberData(range);
 
   // Find event annotations
   const annotations = data.filter(item => item.event);
@@ -96,7 +96,7 @@ const ActiveUsersChart: React.FC<ActiveUsersChartProps> = ({
           </div>
           <ExportButton
             data={data}
-            filename="active_users"
+            filename="active_members"
             buttonText="Export"
           />
         </div>
@@ -118,7 +118,7 @@ const ActiveUsersChart: React.FC<ActiveUsersChartProps> = ({
             onValueChange={(value) => setShowRatio(value === "yes")}
           >
             <SelectTrigger className="w-32">
-              <SelectValue placeholder="DAU/MAU Ratio" />
+              <SelectValue placeholder="DAM/MAM Ratio" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="yes">Show Ratio</SelectItem>
@@ -131,13 +131,13 @@ const ActiveUsersChart: React.FC<ActiveUsersChartProps> = ({
         <div className="h-80">
           <ChartContainer
             config={{
-              dau: { 
+              dam: { 
                 color: "#6E59A5" 
               },
-              mau: { 
+              mam: { 
                 color: "#9b87f5" 
               },
-              dauMauRatio: { 
+              damMamRatio: { 
                 color: "#f59e0b" 
               },
             }}
@@ -158,7 +158,7 @@ const ActiveUsersChart: React.FC<ActiveUsersChartProps> = ({
                   tickMargin={10}
                   tickLine={false}
                   axisLine={false}
-                  domain={[0, 'dataMax + 200']}
+                  domain={[0, 'dataMax + 100']}
                 />
                 {showRatio && (
                   <YAxis 
@@ -177,8 +177,8 @@ const ActiveUsersChart: React.FC<ActiveUsersChartProps> = ({
                 <Line
                   yAxisId="left"
                   type="monotone"
-                  dataKey="dau"
-                  name="Daily Active Users"
+                  dataKey="dam"
+                  name="Daily Active Members"
                   stroke="#6E59A5"
                   strokeWidth={2}
                   dot={false}
@@ -188,8 +188,8 @@ const ActiveUsersChart: React.FC<ActiveUsersChartProps> = ({
                 <Line
                   yAxisId="left"
                   type="monotone"
-                  dataKey="mau"
-                  name="Monthly Active Users"
+                  dataKey="mam"
+                  name="Monthly Active Members"
                   stroke="#9b87f5"
                   strokeWidth={2}
                   dot={false}
@@ -200,8 +200,8 @@ const ActiveUsersChart: React.FC<ActiveUsersChartProps> = ({
                   <Line
                     yAxisId="right"
                     type="monotone"
-                    dataKey="dauMauRatio"
-                    name="DAU/MAU Ratio (%)"
+                    dataKey="damMamRatio"
+                    name="DAM/MAM Ratio (%)"
                     stroke="#f59e0b"
                     strokeDasharray="5 5"
                     strokeWidth={2}
@@ -245,4 +245,4 @@ const ActiveUsersChart: React.FC<ActiveUsersChartProps> = ({
   );
 };
 
-export default ActiveUsersChart;
+export default ActiveMembersChart;
