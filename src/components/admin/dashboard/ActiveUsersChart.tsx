@@ -13,61 +13,10 @@ import {
 } from "recharts";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportButton } from "@/components/ui/export-button";
-import { Badge } from "@/components/ui/badge";
-import { format, subDays } from "date-fns";
-
-// Sample data - to be replaced with real data from MemberMST
-const generateActiveMemberData = (range: string) => {
-  const data = [];
-  let periods = range === '7d' ? 7 : range === '30d' ? 30 : range === '90d' ? 90 : 365;
-  const baseDam = 80; // Daily Active Members
-  const baseMam = 500; // Monthly Active Members
-  const damVariance = 20;
-  const mamVariance = 100;
-  
-  const today = new Date();
-  
-  const events = [
-    { date: '2025-02-01', name: 'Membership Drive', description: 'Annual membership promotion' },
-    { date: '2025-03-15', name: 'New Features', description: 'Launched loyalty program' },
-    { date: '2025-04-10', name: 'Spring Campaign', description: 'Seasonal member benefits' },
-  ];
-  
-  // Increase member counts gradually over time
-  for (let i = 0; i < periods; i++) {
-    const date = subDays(today, periods - i - 1);
-    const dateStr = format(date, 'yyyy-MM-dd');
-    
-    // Add trend with some randomness
-    const growthFactor = 1 + (i * 0.003); // 0.3% growth per day
-    const dam = Math.floor((baseDam * growthFactor) + (Math.random() * damVariance - damVariance/2));
-    const mam = Math.floor((baseMam * growthFactor) + (Math.random() * mamVariance - mamVariance/2));
-    
-    // Calculate DAM/MAM ratio
-    const damMamRatio = (dam / mam * 100).toFixed(1);
-    
-    const dataPoint: any = {
-      date: dateStr,
-      formattedDate: format(date, 'MMM dd'),
-      dam,
-      mam,
-      damMamRatio,
-    };
-    
-    // Check if this date has an event
-    const event = events.find(e => e.date === dateStr);
-    if (event) {
-      dataPoint.event = event.name;
-      dataPoint.eventDescription = event.description;
-    }
-    
-    data.push(dataPoint);
-  }
-  
-  return data;
-};
+import { generateActiveMemberData, MemberDataPoint } from "@/utils/memberDataGenerator";
+import { ChartControls } from "./controls/ChartControls";
+import { EventAnnotations } from "./annotations/EventAnnotations";
 
 interface ActiveMembersChartProps {
   title?: string;
@@ -82,8 +31,6 @@ const ActiveMembersChart: React.FC<ActiveMembersChartProps> = ({
   const [showRatio, setShowRatio] = useState(true);
   
   const data = generateActiveMemberData(range);
-
-  // Find event annotations
   const annotations = data.filter(item => item.event);
   
   return (
@@ -100,46 +47,20 @@ const ActiveMembersChart: React.FC<ActiveMembersChartProps> = ({
             buttonText="Export"
           />
         </div>
-        <div className="flex flex-wrap gap-2 mt-2">
-          <Select value={range} onValueChange={(value: any) => setRange(value)}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Time Range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">Last 7 days</SelectItem>
-              <SelectItem value="30d">Last 30 days</SelectItem>
-              <SelectItem value="90d">Last 90 days</SelectItem>
-              <SelectItem value="1y">Last year</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select 
-            value={showRatio ? "yes" : "no"} 
-            onValueChange={(value) => setShowRatio(value === "yes")}
-          >
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="DAM/MAM Ratio" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="yes">Show Ratio</SelectItem>
-              <SelectItem value="no">Hide Ratio</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <ChartControls
+          range={range}
+          showRatio={showRatio}
+          onRangeChange={setRange}
+          onShowRatioChange={setShowRatio}
+        />
       </CardHeader>
       <CardContent>
         <div className="h-80">
           <ChartContainer
             config={{
-              dam: { 
-                color: "#6E59A5" 
-              },
-              mam: { 
-                color: "#9b87f5" 
-              },
-              damMamRatio: { 
-                color: "#f59e0b" 
-              },
+              dam: { color: "#6E59A5" },
+              mam: { color: "#9b87f5" },
+              damMamRatio: { color: "#f59e0b" },
             }}
           >
             <ResponsiveContainer width="100%" height="100%">
@@ -211,7 +132,6 @@ const ActiveMembersChart: React.FC<ActiveMembersChartProps> = ({
                   />
                 )}
                 
-                {/* Add event annotations */}
                 {annotations.map((item, index) => (
                   <ReferenceLine
                     key={index}
@@ -226,20 +146,7 @@ const ActiveMembersChart: React.FC<ActiveMembersChartProps> = ({
           </ChartContainer>
         </div>
         
-        {/* Event annotations legend */}
-        {annotations.length > 0 && (
-          <div className="mt-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Events:</h4>
-            <div className="flex flex-wrap gap-2">
-              {annotations.map((item, index) => (
-                <Badge key={index} variant="outline" className="flex items-center gap-1 border-emerald-500">
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                  <span className="font-medium">{item.formattedDate} - {item.event}:</span> {item.eventDescription}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
+        <EventAnnotations annotations={annotations} />
       </CardContent>
     </Card>
   );
