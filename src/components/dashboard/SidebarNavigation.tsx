@@ -40,21 +40,11 @@ export const SidebarNavigation = () => {
   const isArtist = user?.role === 'artist';
   const isMember = user?.role === 'member';
 
-  const getRouteForRole = (baseRoute: string) => {
-    if (isArtist) {
-      return `/artist${baseRoute}`;
-    } else if (isAdmin || isController || isSuperAdmin) {
-      return `/admin${baseRoute}`;
-    } else {
-      return `/user${baseRoute}`;
-    }
-  };
-
   return (
     <nav className="p-4 space-y-1">
       {/* Dashboard is available for all except members */}
       {!isMember && (
-        <NavItem to={getRouteForRole("/dashboard")} icon={Home}>
+        <NavItem to={isArtist ? "/artist/dashboard" : "/admin/dashboard"} icon={Home}>
           Dashboard
         </NavItem>
       )}
@@ -62,12 +52,12 @@ export const SidebarNavigation = () => {
       {/* Artist specific options */}
       {isArtist && (
         <NavItem to="/artist/bookings" icon={Calendar}>
-          Bookings
+          My Bookings
         </NavItem>
       )}
 
-      {/* Bookings - For admin and controller */}
-      {(isAdmin || isController) && (
+      {/* Controller specific options */}
+      {isController && (
         <NavItem to="/admin/bookings" icon={Calendar}>
           Bookings
         </NavItem>
@@ -94,6 +84,9 @@ export const SidebarNavigation = () => {
       {/* Admin specific options */}
       {isAdmin && !isSuperAdmin && (
         <>
+          <NavItem to="/admin/bookings" icon={Calendar}>
+            Bookings
+          </NavItem>
           <NavItem to="/admin/services" icon={Package}>
             Services
           </NavItem>
