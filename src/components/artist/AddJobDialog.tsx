@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -13,9 +12,10 @@ interface AddJobDialogProps {
   isOpen: boolean;
   onClose: () => void;
   booking: Booking | null;
+  onAddNewJob?: (bookingId: string, newService: any) => Promise<void>;
 }
 
-const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking }) => {
+const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking, onAddNewJob }) => {
   const [serviceName, setServiceName] = useState("");
   const [price, setPrice] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,6 +37,17 @@ const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking })
     try {
       setIsSubmitting(true);
       
+      if (onAddNewJob) {
+        // Use the parent component's handler if provided
+        await onAddNewJob(booking.id, {
+          Services: serviceName,
+          Price: parseFloat(price)
+        });
+        onClose();
+        return;
+      }
+      
+      // Otherwise use the default implementation
       // Get highest job number for this booking
       const { data: existingJobs } = await supabase
         .from('BookMST')
