@@ -75,3 +75,21 @@ export const exportToCSV = <T extends Record<string, any>>(
   const csvContent = convertToCSV(data, headers);
   downloadFile(csvContent, fileName);
 };
+
+/**
+ * Dummy function for PDF export - to be implemented
+ * This is a placeholder function that can be replaced with actual PDF export functionality
+ */
+export const exportToPdf = <T extends Record<string, any>>(
+  data: T[],
+  title: string,
+  fileName: string
+): void => {
+  // In a real implementation, this would generate a PDF
+  // For now, we'll just export as CSV with a message
+  console.log("PDF export not yet implemented, exporting as CSV instead");
+  exportToCSV(data, fileName);
+};
+
+// Also add the renamed functions for backward compatibility
+export const exportToCsv = exportToCSV;

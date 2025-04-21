@@ -9,6 +9,9 @@ export interface Artist {
   Source: string | null;
   ArtistRating: number | null;
   Active: boolean | null;
+  emailid?: string | null;
+  created_at?: string;
+  password?: string;
 }
 
 export const artistHeaders = {
@@ -20,7 +23,8 @@ export const artistHeaders = {
   Artistgrp: 'Artist Group',
   Source: 'Source',
   ArtistRating: 'Rating',
-  Active: 'Status'
+  Active: 'Status',
+  emailid: 'Email'
 };
 
 export const artistGroupOptions = [

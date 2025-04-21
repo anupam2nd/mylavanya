@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Plus, FileText, Search, Filter, ArrowUp, ArrowDown
@@ -18,7 +17,7 @@ import { Artist } from "@/types/artist";
 import ArtistsTable from "./ArtistsTable";
 import ArtistFormDialog from "./ArtistDetailDialog";
 import ArtistActivity from "./ArtistActivity";
-import { exportToCsv, exportToPdf } from "@/utils/exportUtils";
+import { exportToCSV, exportToPdf } from "@/utils/exportUtils";
 
 const ArtistListView = () => {
   const { artists, loading, toggleStatus, deleteArtist, setArtists } = useArtistManagement();
@@ -35,7 +34,6 @@ const ArtistListView = () => {
   const [isActivityDialogOpen, setIsActivityDialogOpen] = useState(false);
   const [currentArtist, setCurrentArtist] = useState<Artist | null>(null);
 
-  // Filter artists based on search and filters
   const filteredArtists = artists.filter(artist => {
     const matchesSearch = searchQuery === "" || 
       `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`
@@ -52,17 +50,14 @@ const ArtistListView = () => {
     return matchesSearch && matchesGroup && matchesStatus;
   });
 
-  // Sort artists
   const sortedArtists = [...filteredArtists].sort((a, b) => {
     const aValue = a[sortConfig.key as keyof Artist];
     const bValue = b[sortConfig.key as keyof Artist];
     
-    // Handle null values in comparison
     if (aValue === null && bValue === null) return 0;
     if (aValue === null) return 1;
     if (bValue === null) return -1;
     
-    // Compare values
     if (typeof aValue === 'string' && typeof bValue === 'string') {
       return sortConfig.direction === 'ascending' 
         ? aValue.localeCompare(bValue) 
@@ -74,7 +69,6 @@ const ArtistListView = () => {
     }
   });
 
-  // Pagination
   const paginatedArtists = sortedArtists.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -129,14 +123,14 @@ const ArtistListView = () => {
   };
 
   const handleExportCsv = () => {
-    exportToCsv(
+    exportToCSV(
       filteredArtists.map(artist => ({
         Name: `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`,
         Email: artist.emailid || '',
         Phone: artist.ArtistPhno || '',
         Group: artist.Artistgrp || '',
         Status: artist.Active ? 'Active' : 'Inactive',
-        JoinDate: new Date(artist.created_at).toLocaleDateString()
+        JoinDate: artist.created_at ? new Date(artist.created_at).toLocaleDateString() : 'N/A'
       })),
       'artists-data'
     );
@@ -150,7 +144,7 @@ const ArtistListView = () => {
         Phone: artist.ArtistPhno || '',
         Group: artist.Artistgrp || '',
         Status: artist.Active ? 'Active' : 'Inactive',
-        JoinDate: new Date(artist.created_at).toLocaleDateString()
+        JoinDate: artist.created_at ? new Date(artist.created_at).toLocaleDateString() : 'N/A'
       })),
       'Artists Data',
       'artists-data'
@@ -292,16 +286,12 @@ const ArtistListView = () => {
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum = currentPage;
                     if (totalPages <= 5) {
-                      // Show all pages if 5 or fewer
                       pageNum = i + 1;
                     } else if (currentPage <= 3) {
-                      // Show first 5 pages
                       pageNum = i + 1;
                     } else if (currentPage >= totalPages - 2) {
-                      // Show last 5 pages
                       pageNum = totalPages - 4 + i;
                     } else {
-                      // Show 2 pages before and after the current page
                       pageNum = currentPage - 2 + i;
                     }
                     

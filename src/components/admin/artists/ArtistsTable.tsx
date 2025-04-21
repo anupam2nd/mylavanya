@@ -1,4 +1,3 @@
-
 import { Edit, Trash2, Eye } from "lucide-react";
 import { Artist } from "@/types/artist";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ interface ArtistsTableProps {
   sortConfig: { key: string; direction: 'ascending' | 'descending' };
 }
 
-export default function ArtistsTable({
+const ArtistsTable = ({
   artists,
   onEdit,
   onDelete,
@@ -38,7 +37,7 @@ export default function ArtistsTable({
   onViewActivity,
   onSort,
   sortConfig
-}: ArtistsTableProps) {
+}: ArtistsTableProps) => {
   // Render sort indicator
   const renderSortIndicator = (columnKey: string) => {
     if (sortConfig.key !== columnKey) return null;
@@ -142,7 +141,7 @@ export default function ArtistsTable({
                 )}
               </TableCell>
               <TableCell>
-                {new Date(artist.created_at).toLocaleDateString()}
+                {artist.created_at ? new Date(artist.created_at).toLocaleDateString() : 'N/A'}
               </TableCell>
               <TableCell>
                 <div className="flex items-center space-x-2">
@@ -214,4 +213,6 @@ export default function ArtistsTable({
       </Table>
     </div>
   );
-}
+};
+
+export default ArtistsTable;

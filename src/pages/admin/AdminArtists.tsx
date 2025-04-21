@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useArtistManagement } from "@/hooks/useArtistManagement";
 import { ArtistFormDialog } from "@/components/admin/artists/ArtistFormDialog";
 import { ArtistFilters } from "@/components/admin/artists/ArtistFilters";
-import { ArtistsTable } from "@/components/admin/artists/ArtistsTable";
+import ArtistsTable from "@/components/admin/artists/ArtistsTable";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
