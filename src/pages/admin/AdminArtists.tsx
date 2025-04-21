@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -59,6 +58,16 @@ const AdminArtists = () => {
     return matchesSearch && matchesGroup && matchesStatus;
   });
 
+  const handleSort = (key: string) => {
+    console.log(`Sorting by ${key}`);
+  };
+
+  const handleViewActivity = (artist: Artist) => {
+    console.log(`Viewing activity for artist ${artist.ArtistId}`);
+  };
+
+  const sortConfig = { key: 'ArtistFirstName', direction: 'ascending' as const };
+
   return (
     <ProtectedRoute allowedRoles={["superadmin"]}>
       <DashboardLayout title="Artist Management">
@@ -96,6 +105,9 @@ const AdminArtists = () => {
                 onEdit={handleEditArtist}
                 onDelete={deleteArtist}
                 onToggleStatus={toggleStatus}
+                onViewActivity={handleViewActivity}
+                onSort={handleSort}
+                sortConfig={sortConfig}
               />
             )}
 

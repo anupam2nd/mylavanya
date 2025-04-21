@@ -27,6 +27,7 @@ interface ArtistsTableProps {
   onViewActivity: (artist: Artist) => void;
   onSort: (key: string) => void;
   sortConfig: { key: string; direction: 'ascending' | 'descending' };
+  isSuperAdmin?: boolean;
 }
 
 const ArtistsTable = ({
@@ -36,7 +37,8 @@ const ArtistsTable = ({
   onToggleStatus,
   onViewActivity,
   onSort,
-  sortConfig
+  sortConfig,
+  isSuperAdmin = true
 }: ArtistsTableProps) => {
   // Render sort indicator
   const renderSortIndicator = (columnKey: string) => {
