@@ -1,364 +1,350 @@
 
-import { useEffect, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
-  FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
+  FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon, Loader2 } from "lucide-react";
 import { Member } from "@/types/member";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Form schema
 const memberFormSchema = z.object({
-  id: z.number().optional(),
-  MemberFirstName: z.string().min(1, { message: "First name is required" }),
-  MemberLastName: z.string().min(1, { message: "Last name is required" }),
-  MemberEmailId: z.string().email({ message: "Invalid email address" }),
-  MemberPhNo: z.string().min(10, { message: "Phone number must be at least 10 digits" }),
-  MemberAdress: z.string().optional(),
-  MemberPincode: z.string().optional(),
-  MemberDOB: z.date().optional(),
-  MemberSex: z.string().optional(),
+  MemberFirstName: z.string().min(2, { message: "First name is required" }),
+  MemberLastName: z.string().min(2, { message: "Last name is required" }),
+  MemberEmailId: z.string().email({ message: "Invalid email address" }).optional().nullable(),
+  MemberPhNo: z.string().optional().nullable(),
+  MemberAdress: z.string().optional().nullable(),
+  MemberPincode: z.string().optional().nullable(),
+  MemberDOB: z.date().optional().nullable(),
+  MemberSex: z.enum(["male", "female", "other"]).optional().nullable(),
   Active: z.boolean().default(true),
 });
 
 type MemberFormValues = z.infer<typeof memberFormSchema>;
 
 interface MemberFormDialogProps {
-  memberId?: number;
+  open: boolean;
   onClose: () => void;
-  onSave: (member: Member | Partial<Member>) => Promise<boolean>;
-  fetchMemberById?: (id: number) => Promise<Member | null>;
-  mode: 'create' | 'edit';
+  onSubmit: (data: Partial<Member>) => Promise<boolean>;
+  member?: Member;
+  title: string;
 }
 
-const MemberFormDialog = ({ 
-  memberId, 
-  onClose, 
-  onSave,
-  fetchMemberById,
-  mode 
-}: MemberFormDialogProps) => {
-  const [loading, setLoading] = useState(false);
-  const [fetchingMember, setFetchingMember] = useState(mode === 'edit');
-  
+const MemberFormDialog = ({ open, onClose, onSubmit, member, title }: MemberFormDialogProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Initialize the form with default values or existing member data
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberFormSchema),
-    defaultValues: {
-      MemberFirstName: "",
-      MemberLastName: "",
-      MemberEmailId: "",
-      MemberPhNo: "",
-      MemberAdress: "",
-      MemberPincode: "",
-      MemberSex: "",
-      Active: true
-    }
-  });
-  
-  // Fetch member data if editing
-  useEffect(() => {
-    const fetchMember = async () => {
-      if (mode === 'edit' && memberId && fetchMemberById) {
-        try {
-          setFetchingMember(true);
-          const member = await fetchMemberById(memberId);
-          
-          if (member) {
-            form.reset({
-              id: member.id,
-              MemberFirstName: member.MemberFirstName || "",
-              MemberLastName: member.MemberLastName || "",
-              MemberEmailId: member.MemberEmailId || "",
-              MemberPhNo: member.MemberPhNo || "",
-              MemberAdress: member.MemberAdress || "",
-              MemberPincode: member.MemberPincode || "",
-              MemberDOB: member.MemberDOB ? new Date(member.MemberDOB) : undefined,
-              MemberSex: member.MemberSex || "",
-              Active: member.Active
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching member:", error);
-        } finally {
-          setFetchingMember(false);
+    defaultValues: member
+      ? {
+          MemberFirstName: member.MemberFirstName || "",
+          MemberLastName: member.MemberLastName || "",
+          MemberEmailId: member.MemberEmailId || "",
+          MemberPhNo: member.MemberPhNo || "",
+          MemberAdress: member.MemberAdress || "",
+          MemberPincode: member.MemberPincode || "",
+          MemberDOB: member.MemberDOB ? new Date(member.MemberDOB) : null,
+          MemberSex: member.MemberSex as "male" | "female" | "other" || null,
+          Active: member.Active,
         }
-      }
-    };
-    
-    fetchMember();
-  }, [memberId, fetchMemberById, form, mode]);
-  
-  const onSubmit = async (values: MemberFormValues) => {
-    setLoading(true);
-    
+      : {
+          MemberFirstName: "",
+          MemberLastName: "",
+          MemberEmailId: "",
+          MemberPhNo: "",
+          MemberAdress: "",
+          MemberPincode: "",
+          MemberDOB: null,
+          MemberSex: null,
+          Active: true,
+        },
+  });
+
+  // Reset form when member data changes
+  useEffect(() => {
+    if (member) {
+      form.reset({
+        MemberFirstName: member.MemberFirstName || "",
+        MemberLastName: member.MemberLastName || "",
+        MemberEmailId: member.MemberEmailId || "",
+        MemberPhNo: member.MemberPhNo || "",
+        MemberAdress: member.MemberAdress || "",
+        MemberPincode: member.MemberPincode || "",
+        MemberDOB: member.MemberDOB ? new Date(member.MemberDOB) : null,
+        MemberSex: member.MemberSex as "male" | "female" | "other" || null,
+        Active: member.Active,
+      });
+    }
+  }, [member, form]);
+
+  const handleSubmit = async (values: MemberFormValues) => {
+    setIsSubmitting(true);
     try {
-      // Convert form values to Member type, providing defaults for required Member properties
-      const memberData: Partial<Member> = {
+      // Convert date object to string format expected by the API
+      const formattedData: Partial<Member> = {
         ...values,
-        MemberStatus: values.Active, // Map Active to MemberStatus for database consistency
-        uuid: mode === 'edit' ? (await fetchMemberById?.(values.id as number))?.uuid : ''
+        id: member?.id,
+        MemberDOB: values.MemberDOB ? format(values.MemberDOB, "yyyy-MM-dd") : null,
+        // Set MemberStatus field based on Active field
+        MemberStatus: values.Active,
       };
       
-      const success = await onSave(memberData);
+      const success = await onSubmit(formattedData);
       if (success) {
+        form.reset();
         onClose();
       }
-    } catch (error) {
-      console.error("Error saving member:", error);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
-  
+
   return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            {mode === 'create' ? 'Create New Member' : 'Edit Member'}
-          </DialogTitle>
-          <DialogDescription>
-            {mode === 'create' 
-              ? 'Add a new member to your system.' 
-              : 'Update the member\'s information.'}
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        
-        {fetchingMember ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* First Name */}
-                <FormField
-                  control={form.control}
-                  name="MemberFirstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Last Name */}
-                <FormField
-                  control={form.control}
-                  name="MemberLastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Email */}
-                <FormField
-                  control={form.control}
-                  name="MemberEmailId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="john.doe@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Phone */}
-                <FormField
-                  control={form.control}
-                  name="MemberPhNo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="1234567890" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Address */}
-                <FormField
-                  control={form.control}
-                  name="MemberAdress"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="123 Main St" {...field} value={field.value || ''} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Pincode */}
-                <FormField
-                  control={form.control}
-                  name="MemberPincode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pincode</FormLabel>
-                      <FormControl>
-                        <Input placeholder="123456" {...field} value={field.value || ''} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Date of Birth */}
-                <FormField
-                  control={form.control}
-                  name="MemberDOB"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Date of Birth</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Gender */}
-                <FormField
-                  control={form.control}
-                  name="MemberSex"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gender</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value || ''}
-                        value={field.value || ''}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select gender" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                          <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              {/* Active status */}
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="Active"
+                name="MemberFirstName"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Account Active</FormLabel>
-                      <FormDescription>
-                        Active members can log in and use the system.
-                      </FormDescription>
-                    </div>
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Input placeholder="First name" {...field} />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
-              
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {mode === 'create' ? 'Create Member' : 'Save Changes'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        )}
+
+              <FormField
+                control={form.control}
+                name="MemberLastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Last name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="MemberEmailId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Email address"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="MemberPhNo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Phone number"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="MemberAdress"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Address"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="MemberPincode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pincode</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Pincode"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="MemberDOB"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date of Birth</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value || undefined}
+                        onSelect={field.onChange}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("1900-01-01")
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="MemberSex"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Gender</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value || undefined}
+                      className="flex flex-row space-x-4"
+                    >
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="male" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Male</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="female" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Female</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="other" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Other</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="Active"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                  <FormControl>
+                    <input
+                      type="checkbox"
+                      checked={field.value}
+                      onChange={field.onChange}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                  </FormControl>
+                  <FormLabel>Active Member</FormLabel>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Saving..." : "Save Member"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

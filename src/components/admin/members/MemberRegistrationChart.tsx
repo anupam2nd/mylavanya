@@ -8,11 +8,11 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ReferenceLine,
-  TooltipProps
+  ReferenceLine
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { MemberDataPoint } from '@/utils/memberDataGenerator';
+import { TooltipProps } from 'recharts';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 
 interface MemberRegistrationChartProps {
@@ -90,11 +90,12 @@ const MemberRegistrationChart = ({ data }: MemberRegistrationChartProps) => {
             <Tooltip content={<CustomTooltip />} />
             <Legend />
             
-            {/* Add reference lines for events */}
+            {/* Add reference lines for events with proper yAxisId */}
             {eventMarkers.map((marker, index) => (
               <ReferenceLine
                 key={`event-${index}`}
                 x={marker.formattedDate}
+                yAxisId="left"
                 stroke="#ff8042"
                 strokeDasharray="3 3"
                 label={{ 
