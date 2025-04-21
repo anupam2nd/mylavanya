@@ -1,10 +1,10 @@
 
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Eye } from "lucide-react";
 import { Artist } from "@/types/artist";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import {
   Table,
   TableBody,
@@ -13,108 +13,200 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ArtistsTableProps {
   artists: Artist[];
-  isSuperAdmin: boolean;
   onEdit: (artist: Artist) => void;
   onDelete: (artist: Artist) => void;
   onToggleStatus: (artist: Artist) => void;
+  onViewActivity: (artist: Artist) => void;
+  onSort: (key: string) => void;
+  sortConfig: { key: string; direction: 'ascending' | 'descending' };
 }
 
-export const ArtistsTable = ({
+export default function ArtistsTable({
   artists,
-  isSuperAdmin,
   onEdit,
   onDelete,
-  onToggleStatus
-}: ArtistsTableProps) => {
-  const { toast } = useToast();
-
-  const handleStatusChange = async (artist: Artist) => {
-    try {
-      const { error } = await supabase
-        .from('ArtistMST')
-        .update({ Active: !artist.Active })
-        .eq('ArtistId', artist.ArtistId);
-
-      if (error) throw error;
-
-      onToggleStatus(artist);
-      
-      toast({
-        title: `Artist ${artist.Active ? 'deactivated' : 'activated'} successfully`,
-        description: `${artist.ArtistFirstName} ${artist.ArtistLastName} is now ${artist.Active ? 'inactive' : 'active'}`,
-      });
-    } catch (error) {
-      console.error('Error updating artist status:', error);
-      toast({
-        title: "Failed to update artist status",
-        description: "Please try again later",
-        variant: "destructive"
-      });
-    }
+  onToggleStatus,
+  onViewActivity,
+  onSort,
+  sortConfig
+}: ArtistsTableProps) {
+  // Render sort indicator
+  const renderSortIndicator = (columnKey: string) => {
+    if (sortConfig.key !== columnKey) return null;
+    return sortConfig.direction === 'ascending' ? '↑' : '↓';
+  };
+  
+  // Handle column header click for sorting
+  const handleHeaderClick = (columnKey: string) => {
+    onSort(columnKey);
   };
 
   return (
-    <div className="overflow-x-auto">
+    <div className="w-full overflow-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Employee Code</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead>Group</TableHead>
-            <TableHead>Rating</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead 
+              className="cursor-pointer"
+              onClick={() => handleHeaderClick('ArtistFirstName')}
+            >
+              Name {renderSortIndicator('ArtistFirstName')}
+            </TableHead>
+            <TableHead 
+              className="cursor-pointer"
+              onClick={() => handleHeaderClick('emailid')}
+            >
+              Email {renderSortIndicator('emailid')}
+            </TableHead>
+            <TableHead 
+              className="cursor-pointer"
+              onClick={() => handleHeaderClick('ArtistPhno')}
+            >
+              Phone {renderSortIndicator('ArtistPhno')}
+            </TableHead>
+            <TableHead 
+              className="cursor-pointer"
+              onClick={() => handleHeaderClick('Artistgrp')}
+            >
+              Category {renderSortIndicator('Artistgrp')}
+            </TableHead>
+            <TableHead 
+              className="cursor-pointer"
+              onClick={() => handleHeaderClick('ArtistRating')}
+            >
+              Rating {renderSortIndicator('ArtistRating')}
+            </TableHead>
+            <TableHead 
+              className="cursor-pointer"
+              onClick={() => handleHeaderClick('created_at')}
+            >
+              Join Date {renderSortIndicator('created_at')}
+            </TableHead>
+            <TableHead 
+              className="cursor-pointer"
+              onClick={() => handleHeaderClick('Active')}
+            >
+              Status {renderSortIndicator('Active')}
+            </TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
+          {artists.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                No artists found. Try changing your search criteria.
+              </TableCell>
+            </TableRow>
+          )}
           {artists.map((artist) => (
-            <TableRow key={artist.ArtistId}>
+            <TableRow key={artist.ArtistId} className="group">
               <TableCell className="font-medium">
                 {artist.ArtistFirstName} {artist.ArtistLastName}
+                {artist.ArtistEmpCode && (
+                  <div className="text-xs text-muted-foreground">{artist.ArtistEmpCode}</div>
+                )}
               </TableCell>
-              <TableCell>{artist.ArtistEmpCode}</TableCell>
-              <TableCell>{artist.ArtistPhno}</TableCell>
+              <TableCell>{artist.emailid || 'N/A'}</TableCell>
+              <TableCell>{artist.ArtistPhno || 'N/A'}</TableCell>
               <TableCell>
-                <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                  {artist.Artistgrp || 'N/A'}
-                </span>
+                {artist.Artistgrp ? (
+                  <Badge variant="outline">{artist.Artistgrp}</Badge>
+                ) : (
+                  <span className="text-muted-foreground">Unassigned</span>
+                )}
               </TableCell>
               <TableCell>
-                {artist.ArtistRating !== null ? `${artist.ArtistRating}/5` : 'N/A'}
+                {artist.ArtistRating !== null ? (
+                  <div className="flex items-center">
+                    <span className={`font-medium ${
+                      artist.ArtistRating >= 4 ? 'text-green-600' : 
+                      artist.ArtistRating >= 3 ? 'text-amber-600' : 
+                      'text-red-600'
+                    }`}>
+                      {artist.ArtistRating.toFixed(1)}
+                    </span>
+                    <span className="text-muted-foreground ml-1">/5</span>
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">Not rated</span>
+                )}
+              </TableCell>
+              <TableCell>
+                {new Date(artist.created_at).toLocaleDateString()}
               </TableCell>
               <TableCell>
                 <div className="flex items-center space-x-2">
                   <Switch 
                     checked={artist.Active === true} 
-                    onCheckedChange={() => handleStatusChange(artist)}
+                    onCheckedChange={() => onToggleStatus(artist)}
                   />
-                  <span className={artist.Active ? "text-green-600" : "text-red-600"}>
+                  <StatusBadge status={artist.Active ? "approve" : "cancel"}>
                     {artist.Active ? 'Active' : 'Inactive'}
-                  </span>
+                  </StatusBadge>
                 </div>
               </TableCell>
-              <TableCell className="text-right space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => onEdit(artist)}
-                >
-                  <Edit className="h-4 w-4 mr-1" /> Edit
-                </Button>
-                
-                {isSuperAdmin && (
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    onClick={() => onDelete(artist)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" /> Delete
-                  </Button>
-                )}
+              <TableCell className="text-right space-x-1">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => onViewActivity(artist)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View Activity</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => onEdit(artist)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Edit Artist</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="text-destructive hover:text-destructive/90"
+                        onClick={() => onDelete(artist)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Delete Artist</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableCell>
             </TableRow>
           ))}
@@ -122,4 +214,4 @@ export const ArtistsTable = ({
       </Table>
     </div>
   );
-};
+}

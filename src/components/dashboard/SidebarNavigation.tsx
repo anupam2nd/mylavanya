@@ -73,8 +73,8 @@ export const SidebarNavigation = () => {
           <NavItem to="/admin/users" icon={Users}>
             Users
           </NavItem>
-          <NavItem to="/admin/artists" icon={Palette}>
-            Artists
+          <NavItem to="/admin/artist-management" icon={Palette}>
+            Artist Management
           </NavItem>
           <NavItem to="/admin/members-management" icon={UserCog}>
             Members Management
@@ -97,8 +97,8 @@ export const SidebarNavigation = () => {
           <NavItem to="/admin/services" icon={Package}>
             Services
           </NavItem>
-          <NavItem to="/admin/artists" icon={Palette}>
-            Artists
+          <NavItem to="/admin/artist-management" icon={Palette}>
+            Artist Management
           </NavItem>
           <NavItem to="/admin/members" icon={Users}>
             Members

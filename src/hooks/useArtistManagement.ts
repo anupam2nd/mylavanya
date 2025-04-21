@@ -54,6 +54,8 @@ export const useArtistManagement = () => {
         title: !artist.Active ? "Artist activated" : "Artist deactivated",
         description: `Artist "${artist.ArtistFirstName} ${artist.ArtistLastName}" has been ${!artist.Active ? "activated" : "deactivated"}`,
       });
+
+      return true;
     } catch (error) {
       console.error('Error updating artist status:', error);
       toast({
@@ -61,11 +63,30 @@ export const useArtistManagement = () => {
         description: "Failed to update the artist",
         variant: "destructive",
       });
+      return false;
     }
   };
 
   const deleteArtist = async (artist: Artist) => {
     try {
+      // First check if artist has bookings
+      const { count, error: countError } = await supabase
+        .from('BookMST')
+        .select('*', { count: 'exact', head: true })
+        .eq('ArtistId', artist.ArtistId);
+
+      if (countError) throw countError;
+
+      if (count && count > 0) {
+        toast({
+          title: "Cannot delete artist",
+          description: `This artist has ${count} bookings assigned. Deactivate the artist instead.`,
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Proceed with deletion if no bookings
       const { error } = await supabase
         .from('ArtistMST')
         .delete()
@@ -76,7 +97,7 @@ export const useArtistManagement = () => {
       setArtists(artists.filter(a => a.ArtistId !== artist.ArtistId));
       toast({
         title: "Artist deleted",
-        description: "The artist has been successfully removed",
+        description: `${artist.ArtistFirstName} ${artist.ArtistLastName} has been removed`,
       });
       return true;
     } catch (error) {
@@ -95,6 +116,7 @@ export const useArtistManagement = () => {
     loading,
     toggleStatus,
     deleteArtist,
-    setArtists
+    setArtists,
+    fetchArtists
   };
 };

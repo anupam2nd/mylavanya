@@ -20,6 +20,7 @@ import AdminServices from "./pages/admin/AdminServices";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminStatus from "./pages/admin/AdminStatus";
 import AdminArtists from "./pages/admin/AdminArtists";
+import ArtistManagement from "./pages/admin/ArtistManagement";
 import AdminWishlistInsights from "./pages/admin/AdminWishlistInsights";
 import UserDashboard from "./pages/user/UserDashboard";
 import UserBookings from "./pages/user/UserBookings";
@@ -70,6 +71,7 @@ function App() {
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/status" element={<AdminStatus />} />
               <Route path="/admin/artists" element={<AdminArtists />} />
+              <Route path="/admin/artist-management" element={<ArtistManagement />} />
               <Route path="/admin/members" element={<MemberManagement />} />
               <Route path="/admin/members-management" element={<MembersManagement />} />
               <Route path="/admin/wishlist-insights" element={<AdminWishlistInsights />} />
