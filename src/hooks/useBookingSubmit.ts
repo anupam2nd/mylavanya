@@ -123,7 +123,7 @@ export const useBookingSubmit = () => {
           SubService: service.subService,
           ProductName: service.productName,
           jobno: jobNumber, // Add sequential job number
-          AssignedToEmpCode: assignedToEmpCode // Add the assigned employee code
+          AssignedToEmpCode: assignedToEmpCode // Add the required field
         });
       });
       

@@ -82,6 +82,20 @@ export const useBookingSubmit = () => {
       
       const servicesWithDetails = await Promise.all(serviceDetailsPromises);
       
+      // Query for a default artist based on service type to get their EmpCode for AssignedToEmpCode
+      // For the initial booking, we'll use a placeholder value since it will be assigned later
+      // Get a default artist with an employee code
+      const { data: defaultArtist } = await supabase
+        .from("ArtistMST")
+        .select("ArtistEmpCode")
+        .filter("ArtistEmpCode", "not.is", null)
+        .eq("Active", true)
+        .limit(1)
+        .single();
+        
+      // Use the artist's EmpCode or a placeholder if none found
+      const assignedToEmpCode = defaultArtist?.ArtistEmpCode || "UNASSIGNED";
+      
       // Insert multiple bookings with the same booking reference number
       // Add sequential job numbers for each service booked
       const bookingPromises = servicesWithDetails.map((service, index) => {
@@ -108,7 +122,8 @@ export const useBookingSubmit = () => {
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,
-          jobno: jobNumber // Add sequential job number
+          jobno: jobNumber, // Add sequential job number
+          AssignedToEmpCode: assignedToEmpCode // Add the required field
         });
       });
       

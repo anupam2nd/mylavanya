@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,34 @@ const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking, o
         ? Number(existingJobs[0].jobno) + 1 
         : 1;
       
+      // Get the artist's employee code or use a default
+      let assignedToEmpCode = "UNASSIGNED";
+      
+      if (booking.ArtistId) {
+        const { data: artistData } = await supabase
+          .from('ArtistMST')
+          .select('ArtistEmpCode')
+          .eq('ArtistId', parseInt(booking.ArtistId))
+          .single();
+          
+        if (artistData?.ArtistEmpCode) {
+          assignedToEmpCode = artistData.ArtistEmpCode;
+        }
+      } else {
+        // Get a default artist with an employee code
+        const { data: defaultArtist } = await supabase
+          .from("ArtistMST")
+          .select("ArtistEmpCode")
+          .filter("ArtistEmpCode", "not.is", null)
+          .eq("Active", true)
+          .limit(1)
+          .single();
+          
+        if (defaultArtist?.ArtistEmpCode) {
+          assignedToEmpCode = defaultArtist.ArtistEmpCode;
+        }
+      }
+      
       // Insert the new job with proper type handling
       const { error } = await supabase
         .from('BookMST')
@@ -79,7 +108,8 @@ const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking, o
           ArtistId: booking.ArtistId ? parseInt(booking.ArtistId) : null,
           Assignedto: booking.Assignedto,
           AssignedBY: booking.AssignedBY,
-          AssingnedON: booking.AssingnedON
+          AssingnedON: booking.AssingnedON,
+          AssignedToEmpCode: assignedToEmpCode // Add the required field
         });
 
       if (error) throw error;
