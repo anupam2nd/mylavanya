@@ -100,12 +100,7 @@ export const SidebarNavigation = () => {
           <NavItem to="/admin/artist-management" icon={Palette}>
             Artist Management
           </NavItem>
-          <NavItem to="/admin/members" icon={Users}>
-            Members
-          </NavItem>
-          <NavItem to="/admin/controllers" icon={Shield}>
-            Controllers
-          </NavItem>
+          {/* Removed 'Members' and 'Controllers' from admin */}
         </>
       )}
 
@@ -128,3 +123,4 @@ export const SidebarNavigation = () => {
     </nav>
   );
 };
+

@@ -1,3 +1,4 @@
+
 import { Edit, Trash2, Eye } from "lucide-react";
 import { Artist } from "@/types/artist";
 import { Button } from "@/components/ui/button";
@@ -74,12 +75,7 @@ const ArtistsTable = ({
             >
               Phone {renderSortIndicator('ArtistPhno')}
             </TableHead>
-            <TableHead 
-              className="cursor-pointer"
-              onClick={() => handleHeaderClick('Artistgrp')}
-            >
-              Category {renderSortIndicator('Artistgrp')}
-            </TableHead>
+            {/* Removed Category column */}
             <TableHead 
               className="cursor-pointer"
               onClick={() => handleHeaderClick('ArtistRating')}
@@ -104,7 +100,7 @@ const ArtistsTable = ({
         <TableBody>
           {artists.length === 0 && (
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                 No artists found. Try changing your search criteria.
               </TableCell>
             </TableRow>
@@ -119,13 +115,7 @@ const ArtistsTable = ({
               </TableCell>
               <TableCell>{artist.emailid || 'N/A'}</TableCell>
               <TableCell>{artist.ArtistPhno || 'N/A'}</TableCell>
-              <TableCell>
-                {artist.Artistgrp ? (
-                  <Badge variant="outline">{artist.Artistgrp}</Badge>
-                ) : (
-                  <span className="text-muted-foreground">Unassigned</span>
-                )}
-              </TableCell>
+              {/* Removed Category cell */}
               <TableCell>
                 {artist.ArtistRating !== null ? (
                   <div className="flex items-center">
@@ -218,3 +208,4 @@ const ArtistsTable = ({
 };
 
 export default ArtistsTable;
+
