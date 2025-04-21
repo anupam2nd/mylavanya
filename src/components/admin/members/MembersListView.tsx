@@ -64,7 +64,8 @@ const MembersListView = ({ memberHook }: MembersListViewProps) => {
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       const ids = memberHook.paginatedMembers.map(member => member.id);
-      memberHook.toggleSelectMember(...ids); // Spread the array into individual arguments
+      // Fix: Use individual toggles instead of spreading an array into arguments
+      ids.forEach(id => memberHook.toggleSelectMember(id));
     } else {
       memberHook.selectedMembers.forEach(id => memberHook.toggleSelectMember(id));
     }

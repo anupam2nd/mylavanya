@@ -122,7 +122,14 @@ const MemberFormDialog = ({
     setLoading(true);
     
     try {
-      const success = await onSave(values as Member);
+      // Convert form values to Member type, providing defaults for required Member properties
+      const memberData: Partial<Member> = {
+        ...values,
+        MemberStatus: values.Active, // Map Active to MemberStatus for database consistency
+        uuid: mode === 'edit' ? (await fetchMemberById?.(values.id as number))?.uuid : ''
+      };
+      
+      const success = await onSave(memberData);
       if (success) {
         onClose();
       }

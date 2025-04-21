@@ -9,9 +9,11 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
+  TooltipProps
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { MemberDataPoint } from '@/utils/memberDataGenerator';
+import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 
 interface MemberRegistrationChartProps {
   data: MemberDataPoint[];
@@ -20,6 +22,42 @@ interface MemberRegistrationChartProps {
 const MemberRegistrationChart = ({ data }: MemberRegistrationChartProps) => {
   // Find data points with events to mark them on the chart
   const eventMarkers = data.filter(point => point.event);
+
+  // Custom tooltip component that works with Recharts
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
+    if (active && payload && payload.length) {
+      const dailyActive = payload[0].value;
+      const monthlyActive = payload[1].value;
+      const dataPoint = data.find(d => d.formattedDate === label);
+      
+      return (
+        <ChartTooltip>
+          <ChartTooltipContent 
+            title={label as string}
+            content={[
+              { name: 'Daily Active Members', value: dailyActive as number | string },
+              { name: 'Monthly Active Members', value: monthlyActive as number | string },
+              { 
+                name: 'DAM/MAM Ratio',
+                value: dataPoint?.damMamRatio + '%'
+              },
+              ...(dataPoint?.event ? [
+                { 
+                  name: 'Event',
+                  value: dataPoint.event
+                },
+                { 
+                  name: 'Details',
+                  value: dataPoint.eventDescription || ''
+                }
+              ] : [])
+            ]}
+          />
+        </ChartTooltip>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="w-full h-[400px]">
@@ -49,42 +87,7 @@ const MemberRegistrationChart = ({ data }: MemberRegistrationChartProps) => {
               orientation="right" 
               tick={{ fill: 'var(--chart-foreground)' }}
             />
-            <Tooltip
-              content={({ active, payload, label }) => {
-                if (active && payload && payload.length) {
-                  const dailyActive = payload[0].value;
-                  const monthlyActive = payload[1].value;
-                  const dataPoint = data.find(d => d.formattedDate === label);
-                  
-                  return (
-                    <ChartTooltip>
-                      <ChartTooltipContent 
-                        title={label}
-                        items={[
-                          { label: 'Daily Active Members', value: dailyActive },
-                          { label: 'Monthly Active Members', value: monthlyActive },
-                          { 
-                            label: 'DAM/MAM Ratio',
-                            value: dataPoint?.damMamRatio + '%'
-                          },
-                          ...(dataPoint?.event ? [
-                            { 
-                              label: 'Event',
-                              value: dataPoint.event
-                            },
-                            { 
-                              label: 'Details',
-                              value: dataPoint.eventDescription
-                            }
-                          ] : [])
-                        ]}
-                      />
-                    </ChartTooltip>
-                  );
-                }
-                return null;
-              }}
-            />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
             
             {/* Add reference lines for events */}

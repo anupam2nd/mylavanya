@@ -1,5 +1,5 @@
 
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
 
@@ -60,7 +60,7 @@ interface MemberRetentionHeatmapProps {
   range: '30d' | '90d' | '1y';
 }
 
-const MemberRetentionHeatmap = ({ range }: MemberRetentionHeatmapProps) => {
+const MemberRetentionHeatmap: React.FC<MemberRetentionHeatmapProps> = ({ range }) => {
   const cohorts = useMemo(() => generateMockCohortData(range), [range]);
   
   // Get all period labels for headers
@@ -76,7 +76,7 @@ const MemberRetentionHeatmap = ({ range }: MemberRetentionHeatmapProps) => {
   
   return (
     <div className="overflow-x-auto">
-      <ChartContainer className="min-w-[640px]">
+      <div className="min-w-[640px]">
         <div className="grid grid-cols-[200px_1fr] border rounded-md">
           {/* Header row with period labels */}
           <div className="p-4 font-semibold border-b border-r bg-muted/50">
@@ -156,7 +156,7 @@ const MemberRetentionHeatmap = ({ range }: MemberRetentionHeatmapProps) => {
             ))}
           </div>
         </div>
-      </ChartContainer>
+      </div>
     </div>
   );
 };

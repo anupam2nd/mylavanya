@@ -1,18 +1,17 @@
 
-import { useEffect, useState } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Member } from "@/types/member";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, Mail, MapPin, Phone, User } from "lucide-react";
+import { Member } from "@/types/member";
 
 interface MemberViewDialogProps {
   memberId: number;
@@ -20,14 +19,10 @@ interface MemberViewDialogProps {
   fetchMemberById: (id: number) => Promise<Member | null>;
 }
 
-const MemberViewDialog = ({ 
-  memberId, 
-  onClose, 
-  fetchMemberById 
-}: MemberViewDialogProps) => {
+const MemberViewDialog = ({ memberId, onClose, fetchMemberById }: MemberViewDialogProps) => {
   const [member, setMember] = useState<Member | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     const loadMember = async () => {
       try {
@@ -35,92 +30,85 @@ const MemberViewDialog = ({
         const data = await fetchMemberById(memberId);
         setMember(data);
       } catch (error) {
-        console.error("Error loading member:", error);
+        console.error("Error fetching member details:", error);
       } finally {
         setLoading(false);
       }
     };
-    
+
     loadMember();
   }, [memberId, fetchMemberById]);
-  
-  const formatDate = (dateString: string | undefined | null) => {
-    if (!dateString) return "Not available";
-    try {
-      return format(new Date(dateString), "PPP");
-    } catch (e) {
-      return "Invalid date";
-    }
-  };
-  
+
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Member Details</DialogTitle>
         </DialogHeader>
-        
+
         {loading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : !member ? (
-          <div className="flex flex-col items-center justify-center py-8">
-            <p className="text-muted-foreground">Member not found</p>
+          <div className="py-6 text-center text-muted-foreground">
+            Member not found or an error occurred.
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="flex items-center space-x-4">
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-8 w-8 text-primary" />
-              </div>
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-medium">
+                <h3 className="text-xl font-semibold">
                   {member.MemberFirstName} {member.MemberLastName}
                 </h3>
-                <Badge variant={member.Active ? "success" : "destructive"}>
-                  {member.Active ? "Active" : "Inactive"}
-                </Badge>
+                <p className="text-sm text-muted-foreground">ID: {member.id}</p>
+              </div>
+              <Badge variant={member.Active ? "success" : "destructive"}>
+                {member.Active ? "Active" : "Inactive"}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Email</p>
+                <p>{member.MemberEmailId || "Not provided"}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Phone</p>
+                <p>{member.MemberPhNo || "Not provided"}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Address</p>
+                <p>{member.MemberAdress || "Not provided"}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Pincode</p>
+                <p>{member.MemberPincode || "Not provided"}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Date of Birth</p>
+                <p>
+                  {member.MemberDOB 
+                    ? format(new Date(member.MemberDOB), "PPP") 
+                    : "Not provided"}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Gender</p>
+                <p>{member.MemberSex ? member.MemberSex.charAt(0).toUpperCase() + member.MemberSex.slice(1) : "Not provided"}</p>
               </div>
             </div>
-            
-            <Separator />
-            
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span>{member.MemberEmailId || "No email"}</span>
+
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-muted-foreground">System Information</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <p>UUID: {member.uuid}</p>
+                <p>Status: {member.MemberStatus ? "Active" : "Inactive"}</p>
               </div>
-              
-              <div className="flex items-center space-x-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>{member.MemberPhNo || "No phone number"}</span>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span>
-                  {member.MemberAdress 
-                    ? `${member.MemberAdress}${member.MemberPincode ? `, ${member.MemberPincode}` : ''}`
-                    : "No address provided"}
-                </span>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <span>DOB: {formatDate(member.MemberDOB)}</span>
-              </div>
-              
-              {member.MemberSex && (
-                <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span>Gender: {member.MemberSex}</span>
-                </div>
-              )}
             </div>
           </div>
         )}
-        
+
         <DialogFooter>
           <Button onClick={onClose}>Close</Button>
         </DialogFooter>
