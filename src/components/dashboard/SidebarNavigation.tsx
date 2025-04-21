@@ -11,7 +11,8 @@ import {
   Heart,
   Calendar,
   Palette,
-  Shield
+  Shield,
+  UserCog
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -74,6 +75,9 @@ export const SidebarNavigation = () => {
           </NavItem>
           <NavItem to="/admin/artists" icon={Palette}>
             Artists
+          </NavItem>
+          <NavItem to="/admin/members-management" icon={UserCog}>
+            Members Management
           </NavItem>
           <NavItem to="/admin/status" icon={ClipboardList}>
             Status Management

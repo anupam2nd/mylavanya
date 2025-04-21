@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,6 +30,7 @@ import ArtistBookings from "./pages/artist/ArtistBookings";
 import Wishlist from "./pages/user/Wishlist";
 import Checkout from "./pages/user/Checkout";
 import MemberManagement from "./pages/admin/MemberManagement";
+import MembersManagement from "./pages/admin/MembersManagement";
 
 // Log to confirm App is being loaded
 console.log("App component rendering");
@@ -69,6 +71,7 @@ function App() {
               <Route path="/admin/status" element={<AdminStatus />} />
               <Route path="/admin/artists" element={<AdminArtists />} />
               <Route path="/admin/members" element={<MemberManagement />} />
+              <Route path="/admin/members-management" element={<MembersManagement />} />
               <Route path="/admin/wishlist-insights" element={<AdminWishlistInsights />} />
               
               {/* User Routes */}

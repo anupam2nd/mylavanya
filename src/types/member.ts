@@ -22,5 +22,7 @@ export const memberHeaders = {
   MemberPhNo: 'Phone Number',
   MemberAdress: 'Address',
   MemberPincode: 'Pincode',
+  MemberDOB: 'Date of Birth',
+  MemberSex: 'Gender',
   Active: 'Status'
 };
