@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   ReferenceLine
 } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { MemberDataPoint } from '@/utils/memberDataGenerator';
 import { TooltipProps } from 'recharts';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
@@ -39,7 +39,7 @@ const MemberRegistrationChart = ({ data }: MemberRegistrationChartProps) => {
               { name: 'Monthly Active Members', value: monthlyActive as number | string },
               { 
                 name: 'DAM/MAM Ratio',
-                value: dataPoint?.damMamRatio + '%'
+                value: dataPoint?.damMamRatio ? `${dataPoint.damMamRatio}%` : '0%'
               },
               ...(dataPoint?.event ? [
                 { 
