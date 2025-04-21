@@ -233,28 +233,48 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
 
       let artistEmpCode = "UNASSIGNED";
       
-      if (requiresArtist(status) && artistId) {
-        const { data: artistData, error: artistError } = await supabase
-          .from('ArtistMST')
-          .select('ArtistEmpCode')
-          .eq('ArtistId', parseInt(artistId))
-          .single();
-          
-        if (!artistError && artistData && artistData.ArtistEmpCode) {
-          artistEmpCode = artistData.ArtistEmpCode;
+      try {
+        if (requiresArtist(status) && artistId) {
+          const { data: artistData, error: artistError } = await supabase
+            .from('ArtistMST')
+            .select('ArtistEmpCode')
+            .eq('ArtistId', parseInt(artistId))
+            .single();
+            
+          if (!artistError && artistData && artistData.ArtistEmpCode) {
+            artistEmpCode = artistData.ArtistEmpCode;
+            console.log("Using artist employee code:", artistEmpCode);
+          }
+        } 
+        
+        if (artistEmpCode === "UNASSIGNED") {
+          const { data: defaultArtist, error } = await supabase
+            .from("ArtistMST")
+            .select("ArtistEmpCode")
+            .filter("ArtistEmpCode", "not.is", null)
+            .eq("Active", true)
+            .limit(1)
+            .single();
+            
+          if (!error && defaultArtist?.ArtistEmpCode) {
+            artistEmpCode = defaultArtist.ArtistEmpCode;
+            console.log("Using default artist employee code:", artistEmpCode);
+          } else {
+            const { data: anyArtist } = await supabase
+              .from("ArtistMST")
+              .select("ArtistEmpCode")
+              .not("ArtistEmpCode", "is", null)
+              .limit(1)
+              .single();
+              
+            if (anyArtist?.ArtistEmpCode) {
+              artistEmpCode = anyArtist.ArtistEmpCode;
+              console.log("Using fallback artist employee code:", artistEmpCode);
+            }
+          }
         }
-      } else {
-        const { data: defaultArtist } = await supabase
-          .from("ArtistMST")
-          .select("ArtistEmpCode")
-          .filter("ArtistEmpCode", "not.is", null)
-          .eq("Active", true)
-          .limit(1)
-          .single();
-          
-        if (defaultArtist?.ArtistEmpCode) {
-          artistEmpCode = defaultArtist.ArtistEmpCode;
-        }
+      } catch (error) {
+        console.warn("Error getting artist code, using default:", error);
       }
 
       const newBookingData: any = {

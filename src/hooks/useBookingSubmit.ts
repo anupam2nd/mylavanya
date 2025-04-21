@@ -82,19 +82,39 @@ export const useBookingSubmit = () => {
       
       const servicesWithDetails = await Promise.all(serviceDetailsPromises);
       
-      // Query for a default artist based on service type to get their EmpCode for AssignedToEmpCode
-      // For the initial booking, we'll use a placeholder value since it will be assigned later
-      // Get a default artist with an employee code
-      const { data: defaultArtist } = await supabase
-        .from("ArtistMST")
-        .select("ArtistEmpCode")
-        .filter("ArtistEmpCode", "not.is", null)
-        .eq("Active", true)
-        .limit(1)
-        .single();
+      // Get a default artist with an employee code for AssignedToEmpCode
+      // Try multiple approaches to ensure we get a valid code
+      let assignedToEmpCode = "UNASSIGNED";
+      
+      try {
+        const { data: defaultArtist, error } = await supabase
+          .from("ArtistMST")
+          .select("ArtistEmpCode")
+          .filter("ArtistEmpCode", "not.is", null)
+          .eq("Active", true)
+          .limit(1)
+          .single();
         
-      // Use the artist's EmpCode or a placeholder if none found
-      const assignedToEmpCode = defaultArtist?.ArtistEmpCode || "UNASSIGNED";
+        if (!error && defaultArtist && defaultArtist.ArtistEmpCode) {
+          assignedToEmpCode = defaultArtist.ArtistEmpCode;
+          console.log("Found default artist with code:", assignedToEmpCode);
+        } else {
+          // Fallback query if the first one fails
+          const { data: anyArtist } = await supabase
+            .from("ArtistMST")
+            .select("ArtistEmpCode")
+            .not("ArtistEmpCode", "is", null)
+            .limit(1)
+            .single();
+            
+          if (anyArtist?.ArtistEmpCode) {
+            assignedToEmpCode = anyArtist.ArtistEmpCode;
+            console.log("Found fallback artist code:", assignedToEmpCode);
+          }
+        }
+      } catch (error) {
+        console.warn("Error finding artist code, using default:", error);
+      }
       
       // Insert multiple bookings with the same booking reference number
       // Add sequential job numbers for each service booked
@@ -105,7 +125,7 @@ export const useBookingSubmit = () => {
         // Assign job number (1-based index)
         const jobNumber = index + 1;
         
-        return supabase.from("BookMST").insert({
+        const bookingData = {
           Product: service.id,
           Purpose: service.name,
           Phone_no: parseInt(phoneNumber),
@@ -122,9 +142,13 @@ export const useBookingSubmit = () => {
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,
-          jobno: jobNumber, // Add sequential job number
-          AssignedToEmpCode: assignedToEmpCode // Add the required field
-        });
+          jobno: jobNumber,
+          AssignedToEmpCode: assignedToEmpCode // Ensure this is always set
+        };
+        
+        console.log("Inserting booking with data:", bookingData);
+        
+        return supabase.from("BookMST").insert(bookingData);
       });
       
       const results = await Promise.all(bookingPromises);
