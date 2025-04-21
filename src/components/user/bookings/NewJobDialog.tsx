@@ -231,6 +231,32 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       const nextJobNo = highestJobNo + 1;
       console.log("Creating new job with job number:", nextJobNo);
 
+      let artistEmpCode = "UNASSIGNED";
+      
+      if (requiresArtist(status) && artistId) {
+        const { data: artistData, error: artistError } = await supabase
+          .from('ArtistMST')
+          .select('ArtistEmpCode')
+          .eq('ArtistId', parseInt(artistId))
+          .single();
+          
+        if (!artistError && artistData && artistData.ArtistEmpCode) {
+          artistEmpCode = artistData.ArtistEmpCode;
+        }
+      } else {
+        const { data: defaultArtist } = await supabase
+          .from("ArtistMST")
+          .select("ArtistEmpCode")
+          .filter("ArtistEmpCode", "not.is", null)
+          .eq("Active", true)
+          .limit(1)
+          .single();
+          
+        if (defaultArtist?.ArtistEmpCode) {
+          artistEmpCode = defaultArtist.ArtistEmpCode;
+        }
+      }
+
       const newBookingData: any = {
         Booking_NO: booking.Booking_NO,
         name: booking.name,
@@ -250,6 +276,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         Qty: qty,
         Status: status,
         jobno: nextJobNo,
+        AssignedToEmpCode: artistEmpCode
       };
 
       if (requiresArtist(status) && artistId) {

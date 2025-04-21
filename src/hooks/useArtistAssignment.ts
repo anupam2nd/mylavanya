@@ -50,13 +50,25 @@ export const useArtistAssignment = (
       
       // Empty string means unassigning the artist
       if (artistId === "") {
+        // Get a default artist with an employee code for the unassignment
+        const { data: defaultArtist } = await supabase
+          .from("ArtistMST")
+          .select("ArtistEmpCode")
+          .filter("ArtistEmpCode", "not.is", null)
+          .eq("Active", true)
+          .limit(1)
+          .single();
+        
+        const defaultEmpCode = defaultArtist?.ArtistEmpCode || "UNASSIGNED";
+        
         const { error } = await supabase
           .from('BookMST')
           .update({ 
             ArtistId: null, 
             Assignedto: null,
             AssignedBY: null,
-            AssingnedON: null
+            AssingnedON: null,
+            AssignedToEmpCode: defaultEmpCode // Keep the AssignedToEmpCode field with a default value
           })
           .eq('id', bookingId);
           
@@ -65,7 +77,7 @@ export const useArtistAssignment = (
         // Update the booking in state
         const updatedBookings = bookings.map(b => 
           b.id === booking.id 
-            ? { ...b, ArtistId: null, Assignedto: null, AssignedBY: null, AssingnedON: null } 
+            ? { ...b, ArtistId: null, Assignedto: null, AssignedBY: null, AssingnedON: null, AssignedToEmpCode: defaultEmpCode } 
             : b
         );
         
@@ -82,7 +94,7 @@ export const useArtistAssignment = (
       // Get the artist details first
       const { data: artistData, error: artistError } = await supabase
         .from('ArtistMST')
-        .select('ArtistFirstName, ArtistLastName')
+        .select('ArtistFirstName, ArtistLastName, ArtistEmpCode')
         .eq('ArtistId', parseInt(artistId)) // Convert string to number
         .single();
       
@@ -96,6 +108,9 @@ export const useArtistAssignment = (
       // Convert artistId to number for Supabase
       const artistIdNumber = parseInt(artistId);
       
+      // Get the artist's employee code or use a default
+      const artistEmpCode = artistData?.ArtistEmpCode || "UNASSIGNED";
+      
       // Update the booking with the new artist
       const { error } = await supabase
         .from('BookMST')
@@ -103,7 +118,8 @@ export const useArtistAssignment = (
           ArtistId: artistIdNumber, 
           Assignedto: artistName,
           AssignedBY: currentUser?.Username || user?.email || 'admin',
-          AssingnedON: new Date().toISOString()
+          AssingnedON: new Date().toISOString(),
+          AssignedToEmpCode: artistEmpCode // Set the AssignedToEmpCode field
         })
         .eq('id', bookingId);
       
@@ -117,7 +133,8 @@ export const useArtistAssignment = (
               ArtistId: artistId, // Keep as string in the frontend state
               Assignedto: artistName,
               AssignedBY: currentUser?.Username || user?.email || 'admin',
-              AssingnedON: new Date().toISOString()
+              AssingnedON: new Date().toISOString(),
+              AssignedToEmpCode: artistEmpCode // Update in the frontend state
             } 
           : b
       );
