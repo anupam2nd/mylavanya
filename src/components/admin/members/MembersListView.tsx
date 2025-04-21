@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -48,7 +48,6 @@ import { ExportButton } from "@/components/ui/export-button";
 import { Member } from "@/types/member";
 import { memberHeaders } from "@/types/member";
 import { CalendarIcon, ChevronDown, Edit, FilePlus, MoreHorizontal, Search, Trash2, UserX } from "lucide-react";
-import { format } from "date-fns";
 import MemberFormDialog from "@/components/admin/members/MemberFormDialog";
 import MemberViewDialog from "@/components/admin/members/MemberViewDialog";
 
@@ -60,6 +59,21 @@ const MembersListView = ({ memberHook }: MembersListViewProps) => {
   const [viewMemberId, setViewMemberId] = useState<number | null>(null);
   const [editMemberId, setEditMemberId] = useState<number | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [memberToEdit, setMemberToEdit] = useState<Member | undefined>(undefined);
+  
+  // Fetch member for editing when ID changes
+  useEffect(() => {
+    const fetchMemberForEdit = async () => {
+      if (editMemberId) {
+        const member = await memberHook.fetchMemberById(editMemberId);
+        setMemberToEdit(member || undefined);
+      } else {
+        setMemberToEdit(undefined);
+      }
+    };
+    
+    fetchMemberForEdit();
+  }, [editMemberId, memberHook]);
   
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -394,22 +408,23 @@ const MembersListView = ({ memberHook }: MembersListViewProps) => {
       )}
       
       {/* Member edit dialog */}
-      {editMemberId !== null && (
+      {memberToEdit && (
         <MemberFormDialog 
-          memberId={editMemberId}
+          open={true}
           onClose={() => setEditMemberId(null)}
-          fetchMemberById={memberHook.fetchMemberById}
-          onSave={memberHook.updateMember}
-          mode="edit"
+          onSubmit={memberHook.updateMember}
+          member={memberToEdit}
+          title="Edit Member"
         />
       )}
       
       {/* Create member dialog */}
       {showCreateDialog && (
         <MemberFormDialog 
+          open={true}
           onClose={() => setShowCreateDialog(false)}
-          onSave={memberHook.createMember}
-          mode="create"
+          onSubmit={memberHook.createMember}
+          title="Create New Member"
         />
       )}
     </Card>

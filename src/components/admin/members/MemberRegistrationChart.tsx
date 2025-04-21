@@ -44,7 +44,7 @@ const MemberRegistrationChart = ({ data }: MemberRegistrationChartProps) => {
               ...(dataPoint?.event ? [
                 { 
                   name: 'Event',
-                  value: dataPoint.event
+                  value: dataPoint.event || ''
                 },
                 { 
                   name: 'Details',
