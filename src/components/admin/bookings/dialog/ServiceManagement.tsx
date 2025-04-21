@@ -46,17 +46,6 @@ export const ServiceManagement = ({ booking, onServiceAdded }: ServiceManagement
       const selectedServiceData = availableServices.find(s => s.prod_id.toString() === selectedService);
       if (!selectedServiceData) return;
 
-      // Get a default artist with an employee code for the new service
-      const { data: defaultArtist } = await supabase
-        .from("ArtistMST")
-        .select("ArtistEmpCode")
-        .filter("ArtistEmpCode", "not.is", null)
-        .eq("Active", true)
-        .limit(1)
-        .single();
-        
-      const assignedToEmpCode = defaultArtist?.ArtistEmpCode || "UNASSIGNED";
-
       const newBookingData = {
         Booking_NO: booking.Booking_NO,
         name: booking.name,
@@ -73,8 +62,7 @@ export const ServiceManagement = ({ booking, onServiceAdded }: ServiceManagement
         price: selectedServiceData.Price,
         Product: parseInt(selectedServiceData.prod_id),
         Status: booking.Status || "pending",
-        ArtistId: booking.ArtistId ? parseInt(booking.ArtistId.toString()) : null,
-        AssignedToEmpCode: assignedToEmpCode // Add the required field
+        ArtistId: booking.ArtistId ? parseInt(booking.ArtistId.toString()) : null
       };
 
       const { error } = await supabase

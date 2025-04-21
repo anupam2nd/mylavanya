@@ -82,40 +82,6 @@ export const useBookingSubmit = () => {
       
       const servicesWithDetails = await Promise.all(serviceDetailsPromises);
       
-      // Get a default artist with an employee code for AssignedToEmpCode
-      // Try multiple approaches to ensure we get a valid code
-      let assignedToEmpCode = "UNASSIGNED";
-      
-      try {
-        const { data: defaultArtist, error } = await supabase
-          .from("ArtistMST")
-          .select("ArtistEmpCode")
-          .filter("ArtistEmpCode", "not.is", null)
-          .eq("Active", true)
-          .limit(1)
-          .single();
-        
-        if (!error && defaultArtist && defaultArtist.ArtistEmpCode) {
-          assignedToEmpCode = defaultArtist.ArtistEmpCode;
-          console.log("Found default artist with code:", assignedToEmpCode);
-        } else {
-          // Fallback query if the first one fails
-          const { data: anyArtist } = await supabase
-            .from("ArtistMST")
-            .select("ArtistEmpCode")
-            .not("ArtistEmpCode", "is", null)
-            .limit(1)
-            .single();
-            
-          if (anyArtist?.ArtistEmpCode) {
-            assignedToEmpCode = anyArtist.ArtistEmpCode;
-            console.log("Found fallback artist code:", assignedToEmpCode);
-          }
-        }
-      } catch (error) {
-        console.warn("Error finding artist code, using default:", error);
-      }
-      
       // Insert multiple bookings with the same booking reference number
       // Add sequential job numbers for each service booked
       const bookingPromises = servicesWithDetails.map((service, index) => {
@@ -125,7 +91,7 @@ export const useBookingSubmit = () => {
         // Assign job number (1-based index)
         const jobNumber = index + 1;
         
-        const bookingData = {
+        return supabase.from("BookMST").insert({
           Product: service.id,
           Purpose: service.name,
           Phone_no: parseInt(phoneNumber),
@@ -142,13 +108,8 @@ export const useBookingSubmit = () => {
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,
-          jobno: jobNumber,
-          AssignedToEmpCode: assignedToEmpCode // Ensure this is always set
-        };
-        
-        console.log("Inserting booking with data:", bookingData);
-        
-        return supabase.from("BookMST").insert(bookingData);
+          jobno: jobNumber // Add sequential job number
+        });
       });
       
       const results = await Promise.all(bookingPromises);

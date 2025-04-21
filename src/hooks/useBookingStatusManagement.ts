@@ -121,40 +121,12 @@ export const useBookingStatusManagement = () => {
       // Convert artistId to number if needed for the database
       const artistIdNumber = artistId ? parseInt(artistId) : null;
       
-      // Get the artist's employee code
-      let artistEmpCode = "UNASSIGNED";
-      
-      if (artistId) {
-        const { data: artistData, error: artistError } = await supabase
-          .from('ArtistMST')
-          .select('ArtistEmpCode')
-          .eq('ArtistId', artistIdNumber);
-          
-        if (!artistError && artistData && artistData.length > 0 && artistData[0].ArtistEmpCode) {
-          artistEmpCode = artistData[0].ArtistEmpCode;
-        }
-      } else {
-        // Get a default artist with an employee code
-        const { data: defaultArtist } = await supabase
-          .from("ArtistMST")
-          .select("ArtistEmpCode")
-          .filter("ArtistEmpCode", "not.is", null)
-          .eq("Active", true)
-          .limit(1)
-          .single();
-          
-        if (defaultArtist?.ArtistEmpCode) {
-          artistEmpCode = defaultArtist.ArtistEmpCode;
-        }
-      }
-      
       const { error } = await supabase
         .from('BookMST')
         .update({ 
           ArtistId: artistIdNumber,
           AssignedBY: user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'Admin',
-          AssingnedON: new Date().toISOString(),
-          AssignedToEmpCode: artistEmpCode
+          AssingnedON: new Date().toISOString()
         })
         .eq('id', bookingIdNumber);
 

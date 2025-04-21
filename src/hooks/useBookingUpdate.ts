@@ -30,34 +30,11 @@ export const useBookingUpdate = (bookings: Booking[], setBookings: (bookings: Bo
       
       if (artistId !== undefined) {
         if (artistId) {
-          // Get the artist's employee code
-          const { data: artistData, error: artistError } = await supabase
-            .from('ArtistMST')
-            .select('ArtistEmpCode')
-            .eq('ArtistId', parseInt(artistId))
-            .single();
-            
-          if (artistError) {
-            console.error('Error fetching artist employee code:', artistError);
-          } else if (artistData?.ArtistEmpCode) {
-            updates.AssignedToEmpCode = artistData.ArtistEmpCode;
-          }
-          
           updates.ArtistId = parseInt(artistId);
           updates.Assignedto = formValues.currentUser?.Username || 'admin';
           updates.AssignedBY = formValues.currentUser?.Username || 'admin';
           updates.AssingnedON = new Date().toISOString();
         } else {
-          // Get a default artist with an employee code
-          const { data: defaultArtist } = await supabase
-            .from("ArtistMST")
-            .select("ArtistEmpCode")
-            .filter("ArtistEmpCode", "not.is", null)
-            .eq("Active", true)
-            .limit(1)
-            .single();
-            
-          updates.AssignedToEmpCode = defaultArtist?.ArtistEmpCode || "UNASSIGNED";
           updates.ArtistId = null;
           updates.Assignedto = null;
         }
