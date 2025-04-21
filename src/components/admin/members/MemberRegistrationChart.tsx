@@ -31,29 +31,54 @@ const MemberRegistrationChart = ({ data }: MemberRegistrationChartProps) => {
       const dataPoint = data.find(d => d.formattedDate === label);
       
       return (
-        <ChartTooltip>
-          <ChartTooltipContent 
-            title={label as string}
-            content={[
-              { name: 'Daily Active Members', value: dailyActive as number | string },
-              { name: 'Monthly Active Members', value: monthlyActive as number | string },
-              { 
-                name: 'DAM/MAM Ratio',
-                value: dataPoint?.damMamRatio ? `${dataPoint.damMamRatio}%` : '0%'
-              },
-              ...(dataPoint?.event ? [
-                { 
-                  name: 'Event',
-                  value: dataPoint.event || ''
-                },
-                { 
-                  name: 'Details',
-                  value: dataPoint.eventDescription || ''
-                }
-              ] : [])
-            ]}
-          />
-        </ChartTooltip>
+        <div className="grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
+          <div className="font-medium">{label as string}</div>
+          <div className="grid gap-1.5">
+            <div className="flex w-full flex-wrap items-stretch gap-2 items-center">
+              <div className="h-2.5 w-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: "var(--color-daily-active)" }} />
+              <div className="flex flex-1 justify-between items-center leading-none">
+                <span className="text-muted-foreground">Daily Active Members</span>
+                <span className="font-mono font-medium tabular-nums text-foreground">{dailyActive as number | string}</span>
+              </div>
+            </div>
+            <div className="flex w-full flex-wrap items-stretch gap-2 items-center">
+              <div className="h-2.5 w-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: "var(--color-monthly-active)" }} />
+              <div className="flex flex-1 justify-between items-center leading-none">
+                <span className="text-muted-foreground">Monthly Active Members</span>
+                <span className="font-mono font-medium tabular-nums text-foreground">{monthlyActive as number | string}</span>
+              </div>
+            </div>
+            <div className="flex w-full flex-wrap items-stretch gap-2 items-center">
+              <div className="h-2.5 w-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: "var(--color-daily-active)" }} />
+              <div className="flex flex-1 justify-between items-center leading-none">
+                <span className="text-muted-foreground">DAM/MAM Ratio</span>
+                <span className="font-mono font-medium tabular-nums text-foreground">
+                  {dataPoint?.damMamRatio ? `${dataPoint.damMamRatio}%` : '0%'}
+                </span>
+              </div>
+            </div>
+            {dataPoint?.event && (
+              <>
+                <div className="flex w-full flex-wrap items-stretch gap-2 items-center">
+                  <div className="h-2.5 w-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: "var(--color-event-marker)" }} />
+                  <div className="flex flex-1 justify-between items-center leading-none">
+                    <span className="text-muted-foreground">Event</span>
+                    <span className="font-mono font-medium tabular-nums text-foreground">{dataPoint.event}</span>
+                  </div>
+                </div>
+                {dataPoint.eventDescription && (
+                  <div className="flex w-full flex-wrap items-stretch gap-2 items-center">
+                    <div className="h-2.5 w-2.5 shrink-0 rounded-[2px] opacity-0" />
+                    <div className="flex flex-1 justify-between items-center leading-none">
+                      <span className="text-muted-foreground">Details</span>
+                      <span className="font-mono font-medium tabular-nums text-foreground">{dataPoint.eventDescription}</span>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
       );
     }
     return null;
