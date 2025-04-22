@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Booking } from "@/hooks/useBookings";
 import { Artist } from "@/hooks/useBookingArtists";
+import { useAuth } from "@/hooks/useAuth";
 
 interface BookingManagementProps {
   booking: Booking;
@@ -42,6 +42,15 @@ export const BookingManagement = ({
   onDateChange,
   onTimeChange,
 }: BookingManagementProps) => {
+  const { user } = useAuth();
+  const isArtist = user?.role === 'artist';
+
+  const filteredStatusOptions = isArtist 
+    ? statusOptions.filter(option => 
+        ['on_the_way', 'service_started', 'done'].includes(option.status_code)
+      )
+    : statusOptions;
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -60,7 +69,7 @@ export const BookingManagement = ({
                   <SelectValue placeholder="Change status" />
                 </SelectTrigger>
                 <SelectContent>
-                  {statusOptions.map((option) => (
+                  {filteredStatusOptions.map((option) => (
                     <SelectItem key={option.status_code} value={option.status_code}>
                       {option.status_name}
                     </SelectItem>
