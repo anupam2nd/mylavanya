@@ -35,7 +35,6 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({
     setShowOtpDialog,
     isConfirming,
     isCompleting,
-    sendOTP,
     handleOTPVerified,
     handleCompleteService
   } = useOTPManagement(booking);
@@ -70,11 +69,9 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({
         <CardFooter>
           <BookingActions 
             booking={booking}
-            onSendOTP={sendOTP}
             onCompleteService={handleCompleteService}
             onEditService={handleEditService}
             onAddNewJob={handleAddNewJob}
-            isConfirming={isConfirming}
             isCompleting={isCompleting}
             isEditing={isEditing}
           />
