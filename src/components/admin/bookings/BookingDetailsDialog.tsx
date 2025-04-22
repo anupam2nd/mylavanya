@@ -16,6 +16,7 @@ import { BookingManagement } from "./dialog/BookingManagement";
 import { ServiceManagement } from "./dialog/ServiceManagement";
 import { BookingsTable } from "./dialog/BookingsTable";
 import { format } from "date-fns";
+import { useToast } from "@/components/ui/use-toast";
 
 interface BookingDetailsDialogProps {
   isOpen: boolean;
@@ -47,6 +48,7 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
   });
   const [currentStatus, setCurrentStatus] = useState<string>("");
   const [currentArtistId, setCurrentArtistId] = useState<string>("");
+  const { toast } = useToast();
 
   useEffect(() => {
     if (booking) {
@@ -62,6 +64,15 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
 
   const handleStatusChangeWrapper = async (newStatus: string) => {
     if (!booking || isUpdating["status"]) return;
+    
+    if (newStatus === 'Beautician_assigned' && !currentArtistId) {
+      toast({
+        variant: "destructive",
+        title: "Artist Required",
+        description: "Please assign an artist before changing status to Beautician Assigned.",
+      });
+      return;
+    }
     
     setIsUpdating((prev) => ({ ...prev, status: true }));
     try {
