@@ -56,7 +56,8 @@ export const useArtistAssignment = (
             ArtistId: null, 
             Assignedto: null,
             AssignedBY: null,
-            AssingnedON: null
+            AssingnedON: null,
+            AssignedToEmpCode: null
           })
           .eq('id', bookingId);
           
@@ -65,7 +66,7 @@ export const useArtistAssignment = (
         // Update the booking in state
         const updatedBookings = bookings.map(b => 
           b.id === booking.id 
-            ? { ...b, ArtistId: null, Assignedto: null, AssignedBY: null, AssingnedON: null } 
+            ? { ...b, ArtistId: null, Assignedto: null, AssignedBY: null, AssingnedON: null, AssignedToEmpCode: null } 
             : b
         );
         
@@ -79,11 +80,11 @@ export const useArtistAssignment = (
         return Promise.resolve();
       }
       
-      // Get the artist details first
+      // Get the artist details including ArtistEmpCode
       const { data: artistData, error: artistError } = await supabase
         .from('ArtistMST')
-        .select('ArtistFirstName, ArtistLastName')
-        .eq('ArtistId', parseInt(artistId)) // Convert string to number
+        .select('ArtistFirstName, ArtistLastName, ArtistEmpCode')
+        .eq('ArtistId', parseInt(artistId))
         .single();
       
       if (artistError) throw artistError;
@@ -96,14 +97,16 @@ export const useArtistAssignment = (
       // Convert artistId to number for Supabase
       const artistIdNumber = parseInt(artistId);
       
-      // Update the booking with the new artist
+      // Update the booking with the new artist and their employee code
       const { error } = await supabase
         .from('BookMST')
         .update({ 
           ArtistId: artistIdNumber, 
           Assignedto: artistName,
           AssignedBY: currentUser?.Username || user?.email || 'admin',
-          AssingnedON: new Date().toISOString()
+          AssingnedON: new Date().toISOString(),
+          AssignedToEmpCode: artistData?.ArtistEmpCode || 'UNASSIGNED',
+          Status: 'Beautician_assigned'
         })
         .eq('id', bookingId);
       
@@ -114,10 +117,12 @@ export const useArtistAssignment = (
         b.id === booking.id 
           ? { 
               ...b, 
-              ArtistId: artistId, // Keep as string in the frontend state
+              ArtistId: artistId,
               Assignedto: artistName,
               AssignedBY: currentUser?.Username || user?.email || 'admin',
-              AssingnedON: new Date().toISOString()
+              AssingnedON: new Date().toISOString(),
+              AssignedToEmpCode: artistData?.ArtistEmpCode || 'UNASSIGNED',
+              Status: 'Beautician_assigned'
             } 
           : b
       );
