@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Booking } from "@/hooks/useBookings";
+import { format } from "date-fns";
 
 export const useBookingDetails = (
   booking: Booking | null,
