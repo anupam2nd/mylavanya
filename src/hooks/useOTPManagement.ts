@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Booking } from "@/hooks/useBookings";
 import { useToast } from "@/hooks/use-toast";
@@ -22,10 +23,12 @@ export const useOTPManagement = (booking: Booking) => {
     setIsCompleting(true);
     try {
       // Complete service logic - direct without OTP
+      const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      
       const { error } = await supabase
         .from('BookMST')
         .update({ Status: 'done' })
-        .eq('id', booking.id);
+        .eq('id', bookingId);
       
       if (error) throw error;
       
