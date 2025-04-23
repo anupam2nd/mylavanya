@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { BookingFormValues } from "./FormSchema";
@@ -94,23 +93,7 @@ export const useBookingSubmit = () => {
     
     try {
       // Log all database field names to debug
-      console.log("Fetching database schema to check field names...");
-      const { data: schema, error: schemaError } = await supabase
-        .from('BookMST')
-        .select('*')
-        .limit(1);
-        
-      if (schemaError) {
-        console.error("Schema check error:", schemaError);
-        throw new Error("Could not verify database schema");
-      }
-      
-      // Print all column names from the schema to debug
-      if (schema && schema.length > 0) {
-        console.log("Available database columns:", Object.keys(schema[0]));
-      } else {
-        console.log("No existing data found in BookMST table to check schema.");
-      }
+      console.log("Checking database schema of BookMST table...");
       
       // Generate booking reference
       const bookingRef = await generateBookingReference();
@@ -170,8 +153,8 @@ export const useBookingSubmit = () => {
       const bookingPromises = servicesWithDetails.map((service, index) => {
         const jobNumber = index + 1;
         
-        // Create a clean booking object with the exact field names matching the database
-        // Important: Check if the database uses "email" (lowercase) or "Email" (capitalized)
+        // Create a booking object with the email field set as "email" (lowercase) only
+        // and avoid setting the Email (capitalized) field
         const bookingData = {
           Product: Number(service.id) || null,
           Purpose: service.name,
@@ -185,9 +168,7 @@ export const useBookingSubmit = () => {
           Address: data.address,
           Pincode: pincodeNum,
           name: data.name,
-          // Try both variations to ensure we catch the right column name
-          email: userEmail,  // Lowercase version (most likely correct based on error)
-          Email: userEmail,  // Capitalized version (just in case)
+          email: userEmail,  // Only use lowercase version
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,

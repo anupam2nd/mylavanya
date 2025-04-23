@@ -71,6 +71,8 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
       
       try {
         setIsLoadingMemberData(true);
+        console.log("Fetching member data for email:", user.email);
+        
         const { data, error } = await supabase
           .from('MemberMST')
           .select('*')
@@ -81,6 +83,8 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
           console.error('Error fetching member data:', error);
           return;
         }
+        
+        console.log("Fetched member data:", data);
         
         if (data) {
           // Update form values with member data
@@ -108,6 +112,8 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
       // Double check to prevent non-members from submitting
       return;
     }
+    
+    console.log("Form submission data:", data);
     
     // If user has updated their details, update MemberMST table
     if (user.email) {
