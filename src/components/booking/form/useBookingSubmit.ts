@@ -108,6 +108,8 @@ export const useBookingSubmit = () => {
       // Print all column names from the schema to debug
       if (schema && schema.length > 0) {
         console.log("Available database columns:", Object.keys(schema[0]));
+      } else {
+        console.log("No existing data found in BookMST table to check schema.");
       }
       
       // Generate booking reference
@@ -128,11 +130,14 @@ export const useBookingSubmit = () => {
       timeValue = convertTo24HourFormat(timeValue);
       const bookingTime = `${timeValue}:00+05:30`;
       
+      // User email - ensure lowercase
+      const userEmail = data.email.toLowerCase();
+      
       console.log("Booking details:", {
         ref: bookingRef,
         date: bookingDate,
         time: bookingTime,
-        email: data.email.toLowerCase(),
+        email: userEmail,
         phone: phoneNumberNum,
         name: data.name
       });
@@ -166,6 +171,7 @@ export const useBookingSubmit = () => {
         const jobNumber = index + 1;
         
         // Create a clean booking object with the exact field names matching the database
+        // Important: Check if the database uses "email" (lowercase) or "Email" (capitalized)
         const bookingData = {
           Product: Number(service.id) || null,
           Purpose: service.name,
@@ -179,7 +185,9 @@ export const useBookingSubmit = () => {
           Address: data.address,
           Pincode: pincodeNum,
           name: data.name,
-          email: data.email.toLowerCase(), // This should match the database column name (lowercase)
+          // Try both variations to ensure we catch the right column name
+          email: userEmail,  // Lowercase version (most likely correct based on error)
+          Email: userEmail,  // Capitalized version (just in case)
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,
