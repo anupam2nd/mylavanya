@@ -27,7 +27,7 @@ export const useOTPManagement = (booking: Booking) => {
       
       const { error } = await supabase
         .from('BookMST')
-        .update({ Status: 'done' })
+        .update({ "Status": 'done' }) // Use proper case with quotes for column name
         .eq('id', bookingId);
       
       if (error) throw error;

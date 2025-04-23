@@ -3,7 +3,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { BookingFormValues } from "./FormSchema";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 export const useBookingSubmit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,7 +97,7 @@ export const useBookingSubmit = () => {
           Phone_no: parseInt(phoneNumber),
           Booking_date: format(data.selectedDate, "yyyy-MM-dd"),
           booking_time: data.selectedTime,
-          Status: "pending",
+          "Status": "pending", // Use proper case with quotes for column name
           price: service.price,
           Booking_NO: bookingRef,
           Qty: service.quantity || 1,
