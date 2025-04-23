@@ -38,7 +38,7 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
   booking,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { statusOptions, handleStatusChange, isUpdatingStatus, isLoading } = useBookingStatusManagement();
+  const { statusOptions, handleStatusChange, isUpdatingStatus, isLoading, fetchStatusOptions } = useBookingStatusManagement();
   const { toast } = useToast();
   
   // Initialize form with react-hook-form and zod validation
@@ -52,6 +52,13 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
       Purpose: booking.Purpose || "",
     },
   });
+
+  // Fetch status options only once when the dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchStatusOptions();
+    }
+  }, [isOpen, fetchStatusOptions]);
 
   // Update form values when booking changes
   useEffect(() => {

@@ -15,6 +15,7 @@ export const useBookingStatusManagement = () => {
   const fetchStatusOptions = useCallback(async () => {
     // Don't fetch if we already have data
     if (statusOptions.length > 0) {
+      setIsLoading(false);
       return;
     }
 
@@ -95,11 +96,11 @@ export const useBookingStatusManagement = () => {
 
       console.log("Updating status for booking ID:", bookingIdNumber, "to:", newStatus);
 
-      // Update the database with the new status - using PATCH instead of update()
+      // Fix: Ensure we're using the correct column name "Status" (with capital S)
       const { error } = await supabase
         .from('BookMST')
         .update({ 
-          Status: newStatus,
+          Status: newStatus,  // Using capital "S" to match database column name
           StatusUpdated: new Date().toISOString()
         })
         .eq('id', bookingIdNumber);
