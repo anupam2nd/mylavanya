@@ -26,7 +26,7 @@ export const useBookingSubmit = () => {
       const pincodeNum = data.pincode ? Number(data.pincode.replace(/\D/g, "")) : null;
       const bookingDate = format(data.selectedDate, "yyyy-MM-dd");
       
-      // Ensure time is in 12-hour format for consistent database storage
+      // Ensure time is in 24-hour format for consistent database storage
       let timeValue = data.selectedTime || "09:00 AM";
       timeValue = convertTo24HourFormat(timeValue);
       const bookingTime = `${timeValue}:00+05:30`;
@@ -42,7 +42,7 @@ export const useBookingSubmit = () => {
         userEmail
       });
 
-      // Fetch service details
+      // Fetch complete service details for each selected service
       const servicesWithDetails = await fetchServiceDetails(data.selectedServices);
       console.log("Services with details:", servicesWithDetails);
 

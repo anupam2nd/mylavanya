@@ -2,14 +2,28 @@
 import { BookingFormValues } from "./FormSchema";
 import { supabase } from "@/integrations/supabase/client";
 
+// Helper function to log database operations with detailed information
+const logDatabaseOperation = (operation: string, details: any) => {
+  console.log(`[Database ${operation}]`, JSON.stringify(details, null, 2));
+};
+
 // Fetch additional details for each service to be booked
 export async function fetchServiceDetails(selectedServices: BookingFormValues["selectedServices"]) {
-  console.log("Fetching service details for:", selectedServices);
+  logDatabaseOperation("Fetch", { action: "Fetching service details", services: selectedServices });
+  
   const serviceDetailsPromises = selectedServices.map(async (service) => {
+    // Make sure we have a valid service ID
+    const serviceId = typeof service.id === 'number' ? service.id : parseInt(service.id as any, 10);
+    
+    if (isNaN(serviceId)) {
+      console.error("Invalid service ID:", service.id);
+      throw new Error(`Invalid service ID: ${service.id}`);
+    }
+    
     const { data: serviceData, error: serviceError } = await supabase
       .from("PriceMST")
       .select("Services, Subservice, ProductName")
-      .eq("prod_id", service.id)
+      .eq("prod_id", serviceId)
       .single();
 
     if (serviceError) {
@@ -17,6 +31,8 @@ export async function fetchServiceDetails(selectedServices: BookingFormValues["s
       throw serviceError;
     }
 
+    logDatabaseOperation("Fetch Success", { serviceId, details: serviceData });
+    
     return {
       ...service,
       serviceName: serviceData?.Services || "",
@@ -50,101 +66,98 @@ export async function insertBookings(params: {
     userEmail
   } = params;
 
-  console.log("Inserting bookings with params:", {
-    servicesWithDetails,
+  logDatabaseOperation("Insert", {
+    operation: "Starting booking insertion",
     bookingRef,
-    bookingDate,
-    bookingTime,
-    phoneNumberNum,
-    pincodeNum,
     userEmail,
-    address: data.address,
-    name: data.name
+    servicesCount: servicesWithDetails.length
   });
 
-  // Log the structure of the first row we'll insert
-  if (servicesWithDetails.length > 0) {
-    const firstBooking = {
-      Product: Number(servicesWithDetails[0].id) || null,
-      Purpose: servicesWithDetails[0].name,
-      Phone_no: phoneNumberNum,
-      Booking_date: bookingDate,
-      booking_time: bookingTime,
-      Status: "pending",
-      price: servicesWithDetails[0].price,
-      Booking_NO: bookingRef,
-      Qty: servicesWithDetails[0].quantity || 1,
-      Address: data.address,
-      Pincode: pincodeNum,
-      name: data.name,
-      email: userEmail,
-      ServiceName: servicesWithDetails[0].serviceName,
-      SubService: servicesWithDetails[0].subService,
-      ProductName: servicesWithDetails[0].productName,
-      jobno: 1
-    };
-    console.log("First booking record to insert:", firstBooking);
-  }
-
-  const bookingPromises = servicesWithDetails.map((service, index) => {
-    const jobNumber = index + 1;
-    
-    // Create the booking data object
-    const bookingData = {
-      Product: Number(service.id) || null,
-      Purpose: service.name,
-      Phone_no: phoneNumberNum,
-      Booking_date: bookingDate,
-      booking_time: bookingTime,
-      Status: "pending",
-      price: service.price,
-      Booking_NO: bookingRef,
-      Qty: service.quantity || 1,
-      Address: data.address,
-      Pincode: pincodeNum,
-      name: data.name,
-      email: userEmail, // Make sure this is lowercase to match column name
-      ServiceName: service.serviceName,
-      SubService: service.subService,
-      ProductName: service.productName,
-      jobno: jobNumber
-    };
-
-    console.log(`Booking #${jobNumber} data:`, bookingData);
-    
-    return supabase
+  try {
+    // Get the table structure first to ensure we're using the correct column names
+    const { data: tableInfo, error: tableError } = await supabase
       .from("BookMST")
-      .insert(bookingData)
-      .then(result => {
-        if (result.error) {
-          console.error(`Error for booking #${jobNumber}:`, result.error);
-          return { error: result.error, index: jobNumber };
-        }
-        console.log(`Success for booking #${jobNumber}:`, result);
-        return { success: true, index: jobNumber };
-      });
-  });
-
-  const results = await Promise.all(bookingPromises);
-
-  let hasErrors = false;
-  let errorDetails = [];
-  
-  results.forEach((result, idx) => {
-    if ('error' in result && result.error) {
-      errorDetails.push({
-        index: idx,
-        message: result.error.message,
-        details: result.error
-      });
-      hasErrors = true;
+      .select("*")
+      .limit(1);
+    
+    if (tableError) {
+      console.error("Error querying table structure:", tableError);
+      throw new Error(`Database error checking table structure: ${tableError.message}`);
     }
-  });
+    
+    // Check if 'email' column actually exists
+    const hasEmailColumn = tableInfo && tableInfo[0] && 'email' in tableInfo[0];
+    
+    if (!hasEmailColumn) {
+      console.error("The 'email' column doesn't exist in the BookMST table", tableInfo);
+      throw new Error("The BookMST table doesn't have an 'email' column. Please update your database schema.");
+    }
+    
+    logDatabaseOperation("Table Check", { 
+      hasEmailColumn,
+      tableColumns: tableInfo && tableInfo[0] ? Object.keys(tableInfo[0]) : []
+    });
 
-  if (hasErrors) {
-    console.error("Booking errors:", errorDetails);
-    throw new Error(`Failed to create booking(s): ${errorDetails.map(e => e.message).join(', ')}`);
+    const bookingPromises = servicesWithDetails.map((service, index) => {
+      const jobNumber = index + 1;
+      
+      // Ensure numeric ID for Product
+      const productId = service.id ? Number(service.id) : null;
+      
+      // Create the booking data object with proper types
+      const bookingData = {
+        Product: productId,
+        Purpose: service.name || "",
+        Phone_no: phoneNumberNum,
+        Booking_date: bookingDate,
+        booking_time: bookingTime,
+        Status: "pending",
+        price: service.price || 0,
+        Booking_NO: bookingRef,
+        Qty: service.quantity || 1,
+        Address: data.address || "",
+        Pincode: pincodeNum,
+        name: data.name || "",
+        email: userEmail.toLowerCase(), // Ensure lowercase consistency
+        ServiceName: service.serviceName || "",
+        SubService: service.subService || "",
+        ProductName: service.productName || "",
+        jobno: jobNumber
+      };
+
+      logDatabaseOperation("Booking Entry", { jobNumber, bookingData });
+      
+      return supabase
+        .from("BookMST")
+        .insert(bookingData)
+        .then(result => {
+          if (result.error) {
+            console.error(`Error for booking #${jobNumber}:`, result.error);
+            return { error: result.error, index: jobNumber };
+          }
+          console.log(`Success for booking #${jobNumber}`, { status: "success" });
+          return { success: true, index: jobNumber };
+        });
+    });
+
+    const results = await Promise.all(bookingPromises);
+    
+    // Check for errors
+    const errors = results.filter(result => 'error' in result && result.error);
+    
+    if (errors.length > 0) {
+      logDatabaseOperation("Insert Errors", { errors });
+      throw new Error(`Failed to create booking(s): ${errors.map(e => (e as any).error?.message || 'Unknown error').join(', ')}`);
+    }
+
+    logDatabaseOperation("Insert Success", { 
+      bookingRef, 
+      successCount: results.length 
+    });
+
+    return results;
+  } catch (error) {
+    logDatabaseOperation("Insert Error", { error });
+    throw error;
   }
-
-  return results;
 }

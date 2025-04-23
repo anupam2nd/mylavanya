@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,9 +12,6 @@ import NotesField from "./form/NotesField";
 import FormActions from "./form/FormActions";
 import ServiceSelectionField from "./form/ServiceSelectionField";
 import { useBookingSubmit } from "./form/useBookingSubmit";
-import { Button } from "@/components/ui/button";
-import { CheckCircle2 } from "lucide-react";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,16 +19,24 @@ import BookingRoleCheck from "./form/BookingRoleCheck";
 import BookingCompletedModal from "./form/BookingCompletedModal";
 import BookingFormLoader from "./form/BookingFormLoader";
 
-const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPrice, onCancel, onSuccess }) => {
+const BookingForm: React.FC<BookingFormProps> = ({ 
+  serviceId, 
+  serviceName, 
+  servicePrice, 
+  serviceOriginalPrice, 
+  onCancel, 
+  onSuccess 
+}) => {
   const [bookingCompleted, setBookingCompleted] = useState(false);
   const [bookingRef, setBookingRef] = useState<string | null>(null);
   const [isLoadingMemberData, setIsLoadingMemberData] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  // Early exit for role check
-  const roleCheck = <BookingRoleCheck user={user} />;
-  if (roleCheck !== null) return roleCheck;
+  // Early role check - if not a member, show member-only message
+  if (user && user.role !== 'member') {
+    return <BookingRoleCheck user={user} />;
+  }
 
   // Prepare initial selected service if provided as prop
   const initialSelectedService = serviceId && serviceName && servicePrice 
@@ -60,7 +66,7 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
   // Load member data when component mounts
   useEffect(() => {
     const fetchMemberData = async () => {
-      if (!user || user.role !== 'member' || user.email === undefined) return;
+      if (!user || user.role !== 'member' || !user.email) return;
       
       try {
         setIsLoadingMemberData(true);
@@ -69,7 +75,7 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
         const { data, error } = await supabase
           .from('MemberMST')
           .select('*')
-          .eq('MemberEmailId', user.email)
+          .eq('MemberEmailId', user.email.toLowerCase()) // Ensure lowercase for consistency
           .single();
         
         if (error) {
@@ -83,7 +89,7 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
           // Update form values with member data
           const fullName = `${data.MemberFirstName || ''} ${data.MemberLastName || ''}`.trim();
           form.setValue('name', fullName);
-          form.setValue('email', data.MemberEmailId || user.email);
+          form.setValue('email', (data.MemberEmailId || user.email).toLowerCase()); // Ensure lowercase
           form.setValue('phone', data.MemberPhNo || '');
           form.setValue('address', data.MemberAdress || '');
           form.setValue('pincode', data.MemberPincode || '');
@@ -108,6 +114,9 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
     
     console.log("Form submission data:", data);
     
+    // Ensure email is lowercase
+    data.email = data.email.toLowerCase();
+    
     // If user has updated their details, update MemberMST table
     if (user.email) {
       try {
@@ -122,9 +131,10 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
             MemberLastName: lastName,
             MemberPhNo: data.phone,
             MemberAdress: data.address,
-            MemberPincode: data.pincode
+            MemberPincode: data.pincode,
+            MemberEmailId: data.email.toLowerCase() // Ensure lowercase
           })
-          .eq('MemberEmailId', user.email);
+          .eq('MemberEmailId', user.email.toLowerCase()); // Match with lowercase
       } catch (error) {
         console.error('Error updating member information:', error);
         // Continue with booking even if update fails
@@ -142,23 +152,31 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
     }
   };
 
+  // Show completion modal if booking is successful
   if (bookingCompleted && bookingRef) {
     return <BookingCompletedModal bookingRef={bookingRef} onCancel={onCancel} />;
   }
 
   return (
-    <div className="bg-white rounded-lg p-6">
+    <div className="bg-white rounded-lg p-6 shadow-md">
       {isLoadingMemberData && <BookingFormLoader />}
+      
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <ServiceSelectionField initialSelectedService={initialSelectedService} />
-          <PersonalInfoFields />
-          <AddressFields />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DatePickerField />
-            <TimePickerField />
+          
+          <div className="space-y-6">
+            <PersonalInfoFields />
+            <AddressFields />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <DatePickerField />
+              <TimePickerField />
+            </div>
+            
+            <NotesField />
           </div>
-          <NotesField />
+          
           <FormActions isSubmitting={isSubmitting} onCancel={onCancel} />
         </form>
       </Form>
