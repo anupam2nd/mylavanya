@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 
 // Generate time slots in 30-minute increments from 9:00 AM to 7:00 PM
+// Using consistent 12-hour format for all times
 const generateTimeSlots = () => {
   const slots = [];
   const startHour = 9; // 9 AM
@@ -44,15 +45,26 @@ interface TimeSlotPickerProps {
 const TimeSlotPicker = ({ value, onChange }: TimeSlotPickerProps) => {
   const [timeSlots] = useState(generateTimeSlots());
   
+  // Log on mount
+  useState(() => {
+    console.log("TimeSlotPicker initialized with value:", value);
+  });
+  
   // Format display value (ensure we show 12h format)
   const displayValue = value ? value : "";
+  
+  // Log when value changes
+  const handleValueChange = (newValue: string) => {
+    console.log("TimeSlotPicker value changed:", newValue);
+    onChange(newValue);
+  };
 
   return (
     <div className="flex items-center">
       <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
       <Select
         value={value || undefined}
-        onValueChange={onChange}
+        onValueChange={handleValueChange}
       >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Select a time slot">
