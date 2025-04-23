@@ -48,13 +48,16 @@ export const useUserBookings = () => {
         console.log("Bookings fetched:", data?.length || 0);
 
         const processedBookings = data?.map(booking => {
+          // Get the email value, handling both lowercase and uppercase variations
+          const emailValue = booking.email || '';
+          
           return {
             ...booking,
             id: booking.id.toString(),
             ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
             Product: booking.Product ? booking.Product.toString() : undefined,
             // Handle email field consistently - use lowercase email in our code
-            email: booking.email || (booking.Email as unknown as string) || ''
+            email: emailValue
           };
         }) || [];
 
