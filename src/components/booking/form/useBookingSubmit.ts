@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { BookingFormValues } from "./FormSchema";
@@ -71,7 +70,6 @@ export const useBookingSubmit = () => {
         timeValue = convertTo24HourFormat(timeValue);
       }
       
-      // Format time with timezone explicitly
       const bookingTime = `${timeValue}:00+05:30`;
       
       console.log("Formatting time:", {
@@ -80,10 +78,16 @@ export const useBookingSubmit = () => {
         finalFormat: bookingTime
       });
 
-      // Log the email field specifically
       console.log("Email field value:", {
         email: data.email.toLowerCase()
       });
+
+      const { data: schemaCheck } = await supabase
+        .from('BookMST')
+        .select('email')
+        .limit(1);
+      
+      console.log("Schema check result:", schemaCheck);
 
       const serviceDetailsPromises = data.selectedServices.map(async (service) => {
         const { data: serviceData, error: serviceError } = await supabase
@@ -107,18 +111,6 @@ export const useBookingSubmit = () => {
       
       const servicesWithDetails = await Promise.all(serviceDetailsPromises);
       
-      // Get the column names from the table to confirm if 'email' exists
-      const { data: tableInfo, error: tableError } = await supabase
-        .from('BookMST')
-        .select()
-        .limit(1);
-      
-      if (tableError) {
-        console.error("Error checking table structure:", tableError);
-      } else {
-        console.log("Available columns in BookMST:", tableInfo);
-      }
-      
       const bookingPromises = servicesWithDetails.map((service, index) => {
         const jobNumber = index + 1;
         
@@ -135,9 +127,7 @@ export const useBookingSubmit = () => {
           Address: data.address,
           Pincode: pincodeNum,
           name: data.name,
-          // Use both email and Email fields to be safe
           email: data.email.toLowerCase(),
-          Email: data.email.toLowerCase(),  // Try with uppercase Email too
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,
@@ -148,25 +138,23 @@ export const useBookingSubmit = () => {
         
         return supabase
           .from("BookMST")
-          .insert(bookingData)
-          .select();
+          .insert(bookingData);
       });
       
       const results = await Promise.all(bookingPromises);
       
+      let hasErrors = false;
       results.forEach((result, idx) => {
         if (result.error) {
           console.error("Insert error for booking #", idx + 1, ":", result.error);
           console.error("Error details:", JSON.stringify(result.error));
+          hasErrors = true;
         } else {
           console.log("Insert success for booking #", idx + 1, result);
         }
       });
       
-      const errors = results.filter(result => result.error);
-      
-      if (errors.length > 0) {
-        console.error("Supabase booking errors:", errors.map(e => e.error));
+      if (hasErrors) {
         throw new Error("Failed to create some bookings");
       }
 
