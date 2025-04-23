@@ -7,16 +7,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface StatusBadgeProps {
   status: string;
   description?: string;
   showTooltip?: boolean;
+  children?: ReactNode;
+  className?: string;
 }
 
-export const StatusBadge = ({ status, description, showTooltip = false }: StatusBadgeProps) => {
+export const StatusBadge = ({ status, description, showTooltip = false, children, className }: StatusBadgeProps) => {
   const [statusName, setStatusName] = useState<string>(status);
 
   const getStatusColor = (status: string) => {
@@ -33,12 +35,22 @@ export const StatusBadge = ({ status, description, showTooltip = false }: Status
         return 'bg-green-100 text-green-800 hover:bg-green-200';
       case 'cancelled':
         return 'bg-red-100 text-red-800 hover:bg-red-200';
+      case 'approve':
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
+      case 'cancel':
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
       default:
         return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
   };
 
   const fetchStatusName = useCallback(async () => {
+    // Only fetch from DB if no children are provided
+    if (children) {
+      setStatusName(typeof children === 'string' ? children : status);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('statusmst')
@@ -58,20 +70,23 @@ export const StatusBadge = ({ status, description, showTooltip = false }: Status
     } catch (error) {
       console.error("Error in fetchStatusName:", error);
     }
-  }, [status]);
+  }, [status, children]);
 
   useEffect(() => {
     fetchStatusName();
   }, [fetchStatusName]);
 
+  const displayText = children || statusName;
+
   const badge = (
     <Badge 
       className={cn(
         "rounded-md font-medium",
-        getStatusColor(status)
+        getStatusColor(status),
+        className
       )}
     >
-      {statusName}
+      {displayText}
     </Badge>
   );
 
