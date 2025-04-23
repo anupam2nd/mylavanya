@@ -8,6 +8,7 @@ import AuthModal from "@/components/auth/AuthModal";
 import NavTrackingButton from "@/components/ui/NavTrackingButton";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import ProfileDropdown from "@/components/user/ProfileDropdown";
+import MemberNotifications from "@/components/user/MemberNotifications";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -83,11 +84,14 @@ const Navbar = () => {
               {/* Login buttons */}
               <div className="flex items-center space-x-2">
                 {isAuthenticated ? (
-                  user?.role === "member" ? (
-                    <ProfileDropdown />
-                  ) : (
-                    <Button onClick={navigateToDashboard}>{user?.role === "member" ? "My Bookings" : "Dashboard"}</Button>
-                  )
+                  <div className="flex items-center space-x-2">
+                    <MemberNotifications />
+                    {user?.role === "member" ? (
+                      <ProfileDropdown />
+                    ) : (
+                      <Button onClick={navigateToDashboard}>{user?.role === "member" ? "My Bookings" : "Dashboard"}</Button>
+                    )}
+                  </div>
                 ) : (
                   <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className="border-primary/20 text-foreground">
                     Sign In
@@ -165,11 +169,8 @@ const Navbar = () => {
             </nav>
           </div>}
       </header>
-      {/* Add spacing to account for fixed header */}
-      <div className={`${isScrolled ? "h-16" : "h-20"}`}></div>
-      
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authModalTab} />
     </>;
 };
 
 export default Navbar;
+
