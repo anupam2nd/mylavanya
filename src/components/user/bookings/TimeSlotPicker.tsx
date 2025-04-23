@@ -45,11 +45,6 @@ interface TimeSlotPickerProps {
 const TimeSlotPicker = ({ value, onChange }: TimeSlotPickerProps) => {
   const [timeSlots] = useState(generateTimeSlots());
   
-  // Log on mount
-  useState(() => {
-    console.log("TimeSlotPicker initialized with value:", value);
-  });
-  
   // Format display value (ensure we show 12h format)
   const displayValue = value ? value : "";
   

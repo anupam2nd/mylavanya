@@ -93,19 +93,19 @@ export const useBookingSubmit = () => {
     setIsSubmitting(true);
     
     try {
-      // First get a database schema sample to confirm fields
+      // First check database schema to confirm field names
       console.log("Checking database schema...");
-      const { data: schemaCheck, error: schemaError } = await supabase
+      const { data: schema, error: schemaError } = await supabase
         .from('BookMST')
         .select('*')
         .limit(1);
-      
+        
       if (schemaError) {
         console.error("Schema check error:", schemaError);
         throw new Error("Could not verify database schema");
       }
       
-      console.log("Schema check result:", schemaCheck);
+      console.log("Database schema result:", schema);
       
       // Generate booking reference
       const bookingRef = await generateBookingReference();
@@ -175,7 +175,7 @@ export const useBookingSubmit = () => {
           Address: data.address,
           Pincode: pincodeNum,
           name: data.name,
-          email: data.email.toLowerCase(),
+          email: data.email.toLowerCase(), // Store email in lowercase
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,
