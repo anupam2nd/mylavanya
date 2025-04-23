@@ -13,7 +13,7 @@ import { useAuth } from "@/context/AuthContext";
 import { User, BookOpen, Heart, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import MemberNotifications from "./MemberNotifications";
+import { MemberNotifications } from "./MemberNotifications";
 
 const ProfileDropdown = () => {
   const navigate = useNavigate();
