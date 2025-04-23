@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -17,22 +16,19 @@ import { useArtistAssignment } from "@/hooks/useArtistAssignment";
 import { BookingListHeader } from "@/components/user/bookings/BookingListHeader";
 import BookingListContent from "@/components/user/bookings/BookingListContent";
 import { BookingNotifications } from "@/components/user/bookings/BookingNotifications";
+import BookedServicesHistory from "@/components/user/bookings/BookedServicesHistory";
 
 const UserBookings = () => {
   const { user } = useAuth();
   
-  // Fetch bookings using custom hook
   const { bookings, setBookings, loading } = useUserBookings();
   
-  // Status and artist hooks
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
   const { artists } = useBookingArtists();
   const { handleStatusChange } = useBookingStatusManagement();
   
-  // Artist assignment hook
   const { currentUser, handleArtistAssignWithUser } = useArtistAssignment(bookings, setBookings);
   
-  // Job operations hook
   const {
     showNewJobDialog,
     setShowNewJobDialog,
@@ -43,7 +39,6 @@ const UserBookings = () => {
     handleScheduleChange
   } = useJobOperations(bookings, setBookings);
   
-  // Booking edit hook
   const {
     editBooking,
     openDialog,
@@ -52,7 +47,6 @@ const UserBookings = () => {
     handleSaveChanges
   } = useBookingEdit(bookings, setBookings);
   
-  // Booking filters hook - simplified to only include status and date filters
   const {
     filteredBookings,
     startDate,
@@ -68,11 +62,9 @@ const UserBookings = () => {
     clearFilters
   } = useBookingFilters(bookings);
 
-  // Determine if the current user is allowed to edit bookings (admin, superadmin, controller, or user from UserMST)
   const canEdit = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller' || user?.role === 'user';
   const isMember = user?.role === 'member';
   
-  // Set the title based on user role
   const pageTitle = isMember ? "Your Bookings" : "Booking Management";
 
   return (
@@ -96,13 +88,17 @@ const UserBookings = () => {
             />
           </CardHeader>
           <CardContent>
-            {isMember && <BookingNotifications />}
-            
-            <BookingListContent 
-              loading={loading}
-              bookings={bookings}
-              filteredBookings={filteredBookings}
-            />
+            {isMember ? (
+              <div className="py-4">
+                <BookedServicesHistory bookings={filteredBookings} />
+              </div>
+            ) : (
+              <BookingListContent 
+                loading={loading}
+                bookings={bookings}
+                filteredBookings={filteredBookings}
+              />
+            )}
           </CardContent>
         </Card>
 
