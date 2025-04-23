@@ -3,8 +3,6 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { BookingFormValues } from "./FormSchema";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-
 import { generateBookingReference, convertTo24HourFormat } from "./bookingUtils";
 import { fetchServiceDetails, insertBookings } from "./bookingDatabase";
 
@@ -27,13 +25,26 @@ export const useBookingSubmit = () => {
       const phoneNumberNum = Number(phoneNumber);
       const pincodeNum = data.pincode ? Number(data.pincode.replace(/\D/g, "")) : null;
       const bookingDate = format(data.selectedDate, "yyyy-MM-dd");
+      
+      // Ensure time is in 12-hour format for consistent database storage
       let timeValue = data.selectedTime || "09:00 AM";
       timeValue = convertTo24HourFormat(timeValue);
       const bookingTime = `${timeValue}:00+05:30`;
+      
+      // Make sure email is lowercase for database consistency
       const userEmail = data.email.toLowerCase();
+
+      console.log("Prepared booking data:", {
+        phoneNumberNum,
+        pincodeNum,
+        bookingDate,
+        bookingTime,
+        userEmail
+      });
 
       // Fetch service details
       const servicesWithDetails = await fetchServiceDetails(data.selectedServices);
+      console.log("Services with details:", servicesWithDetails);
 
       // Insert bookings into BookMST
       await insertBookings({

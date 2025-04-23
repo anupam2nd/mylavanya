@@ -7,6 +7,8 @@ export const generateBookingReference = async (): Promise<string> => {
   const yearMonth = format(currentDate, "yyMM");
 
   try {
+    console.log("Generating booking reference for yearMonth:", yearMonth);
+    
     const { data } = await supabase
       .from("BookMST")
       .select("Booking_NO")
@@ -14,24 +16,31 @@ export const generateBookingReference = async (): Promise<string> => {
       .order("Booking_NO", { ascending: false })
       .limit(1);
 
+    console.log("Last booking reference data:", data);
+    
     let runningNumber = 1;
 
     if (data && data.length > 0 && data[0].Booking_NO) {
       const lastRef = data[0].Booking_NO;
+      console.log("Last booking reference:", lastRef);
       const lastNumber = parseInt(lastRef.substring(4), 10);
       runningNumber = isNaN(lastNumber) ? 1 : lastNumber + 1;
     }
 
     const formattedNumber = runningNumber.toString().padStart(4, '0');
-    return `${yearMonth}${formattedNumber}`;
+    const bookingRef = `${yearMonth}${formattedNumber}`;
+    console.log("Generated booking reference:", bookingRef);
+    return bookingRef;
   } catch (error) {
     console.error("Error generating booking reference:", error);
     const fallbackYearMonth = format(new Date(), "yyMM");
-    return `${fallbackYearMonth}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+    const fallbackRef = `${fallbackYearMonth}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+    console.log("Using fallback booking reference:", fallbackRef);
+    return fallbackRef;
   }
 };
 
-// Converts 12-hour or 24-hour string to 24-hour HH:MM format
+// Standardizes time input to 12-hour format for consistency
 export const convertTo24HourFormat = (time12h: string): string => {
   console.log("Converting time input:", time12h);
 

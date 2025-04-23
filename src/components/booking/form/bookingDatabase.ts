@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Fetch additional details for each service to be booked
 export async function fetchServiceDetails(selectedServices: BookingFormValues["selectedServices"]) {
+  console.log("Fetching service details for:", selectedServices);
   const serviceDetailsPromises = selectedServices.map(async (service) => {
     const { data: serviceData, error: serviceError } = await supabase
       .from("PriceMST")
@@ -49,8 +50,46 @@ export async function insertBookings(params: {
     userEmail
   } = params;
 
+  console.log("Inserting bookings with params:", {
+    servicesWithDetails,
+    bookingRef,
+    bookingDate,
+    bookingTime,
+    phoneNumberNum,
+    pincodeNum,
+    userEmail,
+    address: data.address,
+    name: data.name
+  });
+
+  // Log the structure of the first row we'll insert
+  if (servicesWithDetails.length > 0) {
+    const firstBooking = {
+      Product: Number(servicesWithDetails[0].id) || null,
+      Purpose: servicesWithDetails[0].name,
+      Phone_no: phoneNumberNum,
+      Booking_date: bookingDate,
+      booking_time: bookingTime,
+      Status: "pending",
+      price: servicesWithDetails[0].price,
+      Booking_NO: bookingRef,
+      Qty: servicesWithDetails[0].quantity || 1,
+      Address: data.address,
+      Pincode: pincodeNum,
+      name: data.name,
+      email: userEmail,
+      ServiceName: servicesWithDetails[0].serviceName,
+      SubService: servicesWithDetails[0].subService,
+      ProductName: servicesWithDetails[0].productName,
+      jobno: 1
+    };
+    console.log("First booking record to insert:", firstBooking);
+  }
+
   const bookingPromises = servicesWithDetails.map((service, index) => {
     const jobNumber = index + 1;
+    
+    // Create the booking data object
     const bookingData = {
       Product: Number(service.id) || null,
       Purpose: service.name,
@@ -64,31 +103,41 @@ export async function insertBookings(params: {
       Address: data.address,
       Pincode: pincodeNum,
       name: data.name,
-      email: userEmail,
+      email: userEmail, // Make sure this is lowercase to match column name
       ServiceName: service.serviceName,
       SubService: service.subService,
       ProductName: service.productName,
       jobno: jobNumber
     };
 
-    return supabase.from("BookMST").insert(bookingData);
+    console.log(`Booking #${jobNumber} data:`, bookingData);
+    
+    return supabase
+      .from("BookMST")
+      .insert(bookingData)
+      .then(result => {
+        if (result.error) {
+          console.error(`Error for booking #${jobNumber}:`, result.error);
+          return { error: result.error, index: jobNumber };
+        }
+        console.log(`Success for booking #${jobNumber}:`, result);
+        return { success: true, index: jobNumber };
+      });
   });
 
   const results = await Promise.all(bookingPromises);
 
   let hasErrors = false;
   let errorDetails = [];
+  
   results.forEach((result, idx) => {
-    if (result.error) {
-      console.error(`Error for booking #${idx + 1}:`, result.error);
+    if ('error' in result && result.error) {
       errorDetails.push({
         index: idx,
         message: result.error.message,
         details: result.error
       });
       hasErrors = true;
-    } else {
-      console.log(`Success for booking #${idx + 1}:`, result);
     }
   });
 
@@ -96,4 +145,6 @@ export async function insertBookings(params: {
     console.error("Booking errors:", errorDetails);
     throw new Error(`Failed to create booking(s): ${errorDetails.map(e => e.message).join(', ')}`);
   }
+
+  return results;
 }
