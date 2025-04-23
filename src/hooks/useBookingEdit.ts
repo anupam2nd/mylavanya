@@ -80,7 +80,7 @@ export const useBookingEdit = (
 
       // Handle email with correct capitalization
       if (formValues.email !== undefined) {
-        updates.Email = formValues.email;
+        updates.email = formValues.email; // Update the lowercase email field
       }
 
       if (formValues.artistId !== undefined) {
@@ -111,8 +111,8 @@ export const useBookingEdit = (
       }
 
       // Make sure email is properly updated in the frontend model
-      if (updates.Email) {
-        updatedBooking.email = updates.Email;
+      if (updates.email) {
+        updatedBooking.email = updates.email;
       }
 
       const updatedBookings = bookings.map(b => 

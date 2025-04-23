@@ -9,8 +9,8 @@ export interface Booking {
   Booking_NO: string;
   jobno?: number;
   name: string;
-  email: string; // Keep lowercase in the interface for consistent usage in code
-  Email?: string; // Add capitalized version too for database flexibility
+  email: string; // Lowercase email property
+  Email?: string; // Optional uppercase Email property for database flexibility
   Phone_no: number;
   Address?: string;
   Pincode?: number;
@@ -57,7 +57,7 @@ export const useBookings = () => {
           ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
           Product: booking.Product ? booking.Product.toString() : undefined,
           // Use lowercase email consistently in our code
-          email: booking.email || booking.Email || '',
+          email: booking.email || (booking.Email as unknown as string) || '',
         };
         
         return formattedBooking;
