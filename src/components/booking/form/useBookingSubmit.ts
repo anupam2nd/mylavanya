@@ -66,11 +66,15 @@ export const useBookingSubmit = () => {
       
       // Get service details for each selected service
       const serviceDetailsPromises = data.selectedServices.map(async (service) => {
-        const { data: serviceData } = await supabase
+        const { data: serviceData, error: serviceError } = await supabase
           .from("PriceMST")
           .select("Services, Subservice, ProductName")
           .eq("prod_id", service.id)
           .single();
+          
+        if (serviceError) {
+          console.error("Error fetching service details:", serviceError);
+        }
           
         return {
           ...service,
@@ -91,25 +95,29 @@ export const useBookingSubmit = () => {
         // Assign job number (1-based index)
         const jobNumber = index + 1;
         
-        return supabase.from("BookMST").insert({
+        // Create the booking object with proper casing of column names
+        const bookingData = {
           Product: service.id,
           Purpose: service.name,
-          Phone_no: parseInt(phoneNumber),
+          Phone_no: Number(phoneNumber), // Convert to number explicitly
           Booking_date: format(data.selectedDate, "yyyy-MM-dd"),
           booking_time: data.selectedTime,
-          "Status": "pending", // Use proper case with quotes for column name
+          Status: "pending", // Make sure this matches exactly the case in the database
           price: service.price,
           Booking_NO: bookingRef,
           Qty: service.quantity || 1,
           Address: data.address,
-          Pincode: parseInt(data.pincode),
+          Pincode: data.pincode ? Number(data.pincode) : null,
           name: data.name,
           email: data.email,
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,
           jobno: jobNumber // Add sequential job number
-        });
+        };
+        
+        console.log(`Inserting booking ${index + 1}:`, bookingData);
+        return supabase.from("BookMST").insert(bookingData);
       });
       
       const results = await Promise.all(bookingPromises);
