@@ -4,9 +4,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Booking {
-  id: string; // Changed from number to string
+  id: string; // Always use string for ID consistency
   uuid: string;
-  Booking_NO: string; // Keep as string for consistency across the app
+  Booking_NO: string; // Always use string for Booking_NO
   jobno?: number;
   name: string;
   email: string; // Lowercase email property
@@ -50,7 +50,7 @@ export const useBookings = () => {
       
       // Ensure all IDs are strings and handle email field properly
       const formattedBookings = data?.map(booking => {
-        const formattedBooking = {
+        const formattedBooking: Booking = {
           ...booking,
           id: booking.id.toString(),
           uuid: booking.uuid || booking.id.toString(),

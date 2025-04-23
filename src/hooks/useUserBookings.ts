@@ -24,8 +24,8 @@ export const useUserBookings = () => {
         
         if (user.role === 'artist') {
           if (user.id) {
-            const artistId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
-            query = query.eq('ArtistId', artistId);
+            const artistIdStr = user.id.toString();
+            query = query.eq('ArtistId', artistIdStr);
           }
         } 
         else if (user.role === 'member') {
@@ -47,7 +47,7 @@ export const useUserBookings = () => {
         if (error) throw error;
         console.log("Bookings fetched:", data?.length || 0);
 
-        const processedBookings = data?.map(booking => {
+        const processedBookings: Booking[] = data?.map(booking => {
           return {
             ...booking,
             id: booking.id.toString(),

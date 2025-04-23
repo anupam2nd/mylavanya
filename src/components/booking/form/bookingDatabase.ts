@@ -1,3 +1,4 @@
+
 import { BookingFormValues } from "./FormSchema";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -149,6 +150,7 @@ export async function insertBookings(params: {
       console.log(`Using ID ${bookingEntryId} for booking job #${jobNumber}`);
       
       // Create the booking data object with proper types and explicit ID
+      // Important: We ensure Booking_NO is sent as a string to match the interface
       const bookingData = {
         id: bookingEntryId, // Explicitly set the ID to avoid conflicts
         Product: productId,
@@ -158,7 +160,7 @@ export async function insertBookings(params: {
         booking_time: bookingTime,
         Status: "pending",
         price: service.price || 0,
-        Booking_NO: bookingRef,
+        Booking_NO: bookingRef.toString(), // Ensure this is a string
         Qty: service.quantity || 1,
         Address: data.address || "",
         Pincode: pincodeNum,

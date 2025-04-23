@@ -20,7 +20,7 @@ export const useBookingList = () => {
 
         if (error) throw error;
         
-        const formattedBookings = data?.map(booking => ({
+        const formattedBookings: Booking[] = data?.map(booking => ({
           ...booking,
           id: booking.id.toString(),
           Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '', // Convert to string

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,8 +36,7 @@ const UserDashboard = () => {
           query = query.eq('email', user.email);
         } else if (user?.role === 'artist' && user?.id) {
           // For artists, only show bookings assigned to them
-          const artistId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
-          query = query.eq('ArtistId', artistId);
+          query = query.eq('ArtistId', user.id.toString());
         }
         
         const { data, error } = await query;
@@ -48,6 +48,7 @@ const UserDashboard = () => {
           const formattedBookings: Booking[] = data.map(booking => ({
             ...booking,
             id: booking.id.toString(),
+            Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '',
             ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
             Product: booking.Product ? booking.Product.toString() : undefined
           }));

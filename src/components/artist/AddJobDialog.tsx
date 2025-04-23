@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -52,7 +53,7 @@ const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking, o
       const { data: existingJobs } = await supabase
         .from('BookMST')
         .select('jobno')
-        .eq('Booking_NO', booking.Booking_NO)
+        .eq('Booking_NO', booking.Booking_NO.toString()) // Ensure Booking_NO is a string
         .order('jobno', { ascending: false })
         .limit(1);
       
@@ -76,7 +77,7 @@ const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking, o
           Booking_date: booking.Booking_date,
           booking_time: booking.booking_time,
           Status: "pending", // New job starts with pending status
-          ArtistId: booking.ArtistId ? parseInt(booking.ArtistId) : null,
+          ArtistId: booking.ArtistId ? parseInt(booking.ArtistId) : null, // Convert string ArtistId to number
           Assignedto: booking.Assignedto,
           AssignedBY: booking.AssignedBY,
           AssingnedON: booking.AssingnedON

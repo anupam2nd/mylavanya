@@ -29,6 +29,7 @@ export const generateBookingReference = async (): Promise<string> => {
     let runningNumber = 1;
     if (data && data.length > 0 && data[0].Booking_NO) {
       const lastRef = data[0].Booking_NO.toString();
+      // Updated to handle both number and string types
       const lastNumber = parseInt(lastRef.substring(4), 10);
       runningNumber = isNaN(lastNumber) ? 1 : lastNumber + 1;
     }

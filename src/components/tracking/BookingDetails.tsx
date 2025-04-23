@@ -1,40 +1,15 @@
+import React from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Booking } from '@/hooks/useBookings';
 
-import { Card } from "@/components/ui/card";
-import BookingHeader from "./BookingHeader";
-import BookingReference from "./BookingReference";
-import CustomerDetails from "./CustomerDetails";
-import ServicesList from "./ServicesList";
-import TotalAmount from "./TotalAmount";
+// Export the type for reuse
+export type BookingData = Booking;
 
-export interface BookingDetailsProps {
+interface BookingDetailsProps {
   bookingDetails: BookingData[];
 }
 
-export interface BookingData {
-  Booking_NO: string;
-  Purpose: string;
-  Phone_no: number;
-  Booking_date: string;
-  booking_time: string;
-  Status: string;
-  price: number;
-  originalPrice?: number;
-  ProductName: string;
-  Qty: number;
-  Address?: string;
-  Pincode?: number;
-  name?: string;
-  email?: string;
-  id?: number;
-  Services?: string;
-  Subservice?: string;
-  Assignedto?: string;
-  AssignedBY?: string;
-  ArtistId?: number;
-  jobno?: number;
-}
-
-const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
+const BookingDetails: React.FC<BookingDetailsProps> = ({ bookingDetails }) => {
   if (!bookingDetails || bookingDetails.length === 0) return null;
 
   const firstBooking = bookingDetails[0];
@@ -51,7 +26,7 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
   const displayOriginalAmount = totalOriginalAmount > totalAmount ? totalOriginalAmount : undefined;
 
   return (
-    <div className="mt-8">
+    <div className="mt-6">
       <BookingHeader />
       <div className="bg-gray-50 rounded-lg border p-6">
         <div className="grid grid-cols-2 gap-4">

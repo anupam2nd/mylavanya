@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Artist } from "@/types/artist";
@@ -32,8 +33,8 @@ interface BookingSummary {
   count: number;
 }
 
-interface Booking {
-  id: number;
+interface ArtistBooking {
+  id: string;
   Booking_NO: string;
   Booking_date: string;
   booking_time: string;
@@ -52,7 +53,7 @@ export default function ArtistActivity({
   artist,
 }: ArtistActivityProps) {
   const { toast } = useToast();
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<ArtistBooking[]>([]);
   const [summary, setSummary] = useState<BookingSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -76,7 +77,7 @@ export default function ArtistActivity({
 
       if (bookingsError) throw bookingsError;
       
-      const formattedBookings = bookingsData?.map(booking => ({
+      const formattedBookings: ArtistBooking[] = bookingsData?.map(booking => ({
           ...booking,
           id: booking.id.toString(),
           Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '',
