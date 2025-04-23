@@ -53,7 +53,7 @@ const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking, o
       const { data: existingJobs } = await supabase
         .from('BookMST')
         .select('jobno')
-        .eq('Booking_NO', booking.Booking_NO.toString()) // Ensure Booking_NO is a string
+        .eq('Booking_NO', parseInt(booking.Booking_NO)) // Convert to number for DB query
         .order('jobno', { ascending: false })
         .limit(1);
       
@@ -61,11 +61,11 @@ const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking, o
         ? Number(existingJobs[0].jobno) + 1 
         : 1;
       
-      // Insert the new job with proper type handling
+      // Insert the new job with proper type handling - convert string IDs to numbers for DB
       const { error } = await supabase
         .from('BookMST')
         .insert([{
-          Booking_NO: booking.Booking_NO,
+          Booking_NO: parseInt(booking.Booking_NO),
           jobno: nextJobNo,
           Purpose: serviceName,
           price: parseFloat(price),

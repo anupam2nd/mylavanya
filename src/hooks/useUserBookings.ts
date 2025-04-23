@@ -24,8 +24,8 @@ export const useUserBookings = () => {
         
         if (user.role === 'artist') {
           if (user.id) {
-            const artistIdStr = user.id.toString();
-            query = query.eq('ArtistId', artistIdStr);
+            // For database query, convert string to number if querying numeric field
+            query = query.eq('ArtistId', parseInt(user.id.toString()));
           }
         } 
         else if (user.role === 'member') {
@@ -47,6 +47,7 @@ export const useUserBookings = () => {
         if (error) throw error;
         console.log("Bookings fetched:", data?.length || 0);
 
+        // For UI display, convert numeric IDs to strings
         const processedBookings: Booking[] = data?.map(booking => {
           return {
             ...booking,

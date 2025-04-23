@@ -46,9 +46,9 @@ export const ServiceManagement = ({ booking, onServiceAdded }: ServiceManagement
       const selectedServiceData = availableServices.find(s => s.prod_id.toString() === selectedService);
       if (!selectedServiceData) return;
 
-      // Prepare booking data with the correct types
+      // Prepare booking data with the correct types for database
       const newBookingData = {
-        Booking_NO: booking.Booking_NO.toString(), // Ensure Booking_NO is a string
+        Booking_NO: parseInt(booking.Booking_NO), // Convert to number for DB
         name: booking.name,
         email: booking.email,
         Phone_no: booking.Phone_no, 
@@ -68,7 +68,7 @@ export const ServiceManagement = ({ booking, onServiceAdded }: ServiceManagement
 
       const { error } = await supabase
         .from('BookMST')
-        .insert(newBookingData); // Pass as a single object, not an array
+        .insert(newBookingData);
 
       if (error) throw error;
 

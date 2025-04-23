@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +25,7 @@ const TrackBooking = () => {
       const { data: bookingsData, error: bookingError } = await supabase
         .from("BookMST")
         .select("*, ArtistId, jobno") // Ensure we select the jobno field
-        .eq("Booking_NO", data.bookingRef.toString()) // Convert bookingRef to string explicitly
+        .eq("Booking_NO", parseInt(data.bookingRef)) // Convert to number for DB query
         .eq("Phone_no", phoneNumber);
 
       if (bookingError) {
@@ -40,20 +39,18 @@ const TrackBooking = () => {
 
       console.log("Raw booking data:", bookingsData);
 
-      // The detailed bookings already contain the service information
-      // since we've added ServiceName, Subservice and ProductName to BookMST
+      // For UI display, convert database numeric values to strings
       const detailedBookings: BookingData[] = bookingsData.map(booking => {
         return {
           ...booking,
           id: booking.id.toString(),
           Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '',
           ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
+          Product: booking.Product ? booking.Product.toString() : undefined,
           // If the booking already has these fields, use them, otherwise use defaults
           Services: booking.ServiceName || "General Service",
           Subservice: booking.SubService || "Standard",
-          ProductName: booking.ProductName || "Unknown Service",
-          // Ensure jobno is included
-          jobno: booking.jobno
+          ProductName: booking.ProductName || "Unknown Service"
         };
       });
 

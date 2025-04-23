@@ -21,6 +21,7 @@ export interface Booking {
   SubService?: string;
   ProductName?: string;
   price?: number;
+  originalPrice?: number; // Add originalPrice property
   Qty?: number;
   Status: string;
   StatusUpdated?: string;

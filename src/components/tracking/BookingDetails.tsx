@@ -1,6 +1,12 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Booking } from '@/hooks/useBookings';
+import BookingHeader from './BookingHeader';
+import BookingReference from './BookingReference';
+import CustomerDetails from './CustomerDetails';
+import ServicesList from './ServicesList';
+import TotalAmount from './TotalAmount';
 
 // Export the type for reuse
 export type BookingData = Booking;

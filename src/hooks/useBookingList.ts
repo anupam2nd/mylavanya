@@ -20,10 +20,11 @@ export const useBookingList = () => {
 
         if (error) throw error;
         
+        // Convert database number types to strings for UI
         const formattedBookings: Booking[] = data?.map(booking => ({
           ...booking,
           id: booking.id.toString(),
-          Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '', // Convert to string
+          Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '',
           ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
           Product: booking.Product ? booking.Product.toString() : undefined
         })) || [];

@@ -186,7 +186,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     return `${firstName} ${lastName}`.trim();
   };
 
-  const handleSubmit = async () => {
+  export const handleSubmit = async () => {
     if (!booking || !date || !time || !product || !selectedProductDetails) {
       toast({
         title: "Missing information",
@@ -215,7 +215,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       const { data: existingJobs, error: queryError } = await supabase
         .from('BookMST')
         .select('jobno')
-        .eq('Booking_NO', booking.Booking_NO)
+        .eq('Booking_NO', parseInt(booking.Booking_NO))
         .order('jobno', { ascending: false })
         .limit(1);
 
@@ -232,7 +232,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       console.log("Creating new job with job number:", nextJobNo);
 
       const newBookingData: any = {
-        Booking_NO: booking.Booking_NO,
+        Booking_NO: parseInt(booking.Booking_NO),
         name: booking.name,
         email: booking.email,
         Phone_no: booking.Phone_no,

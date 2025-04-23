@@ -23,7 +23,7 @@ const UserDashboard = () => {
       if (!user) return;
 
       try {
-        setLoading(true);
+        setIsLoading(true); // Fix: Changed from setLoading to setIsLoading
         // Get all bookings for the user
         const { data, error } = await supabase
           .from('BookMST')
@@ -61,7 +61,7 @@ const UserDashboard = () => {
       } catch (error) {
         console.error('Error fetching bookings:', error);
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); // Fix: Changed from setLoading to setIsLoading
       }
     };
 

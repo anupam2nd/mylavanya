@@ -36,7 +36,8 @@ const UserDashboard = () => {
           query = query.eq('email', user.email);
         } else if (user?.role === 'artist' && user?.id) {
           // For artists, only show bookings assigned to them
-          query = query.eq('ArtistId', user.id.toString());
+          // Convert string ID to number for DB query
+          query = query.eq('ArtistId', parseInt(user.id.toString()));
         }
         
         const { data, error } = await query;
@@ -44,7 +45,7 @@ const UserDashboard = () => {
         if (error) throw error;
         
         if (data) {
-          // Convert IDs to strings to match Booking interface
+          // Convert IDs to strings for UI
           const formattedBookings: Booking[] = data.map(booking => ({
             ...booking,
             id: booking.id.toString(),
