@@ -15,7 +15,7 @@ import { useUserBookings } from "@/hooks/useUserBookings";
 import { useJobOperations } from "@/hooks/useJobOperations";
 import { useArtistAssignment } from "@/hooks/useArtistAssignment";
 import { BookingListHeader } from "@/components/user/bookings/BookingListHeader";
-import { BookingListContent } from "@/components/user/bookings/BookingListContent";
+import BookingListContent from "@/components/user/bookings/BookingListContent";
 import { BookingNotifications } from "@/components/user/bookings/BookingNotifications";
 
 const UserBookings = () => {

@@ -56,8 +56,8 @@ export const useBookings = () => {
           uuid: booking.uuid || booking.id.toString(),
           ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
           Product: booking.Product ? booking.Product.toString() : undefined,
-          // Handle email field - check if it's in Email or email
-          email: booking.Email || booking.email || '',
+          // Use lowercase email consistently in our code
+          email: booking.email || booking.Email || '',
         };
         
         return formattedBooking;

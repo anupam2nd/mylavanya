@@ -30,8 +30,8 @@ export const useUserBookings = () => {
         } 
         else if (user.role === 'member') {
           // For members, show all bookings including pending ones that need checkout
-          // Use either Email or email column, depending on what's available
-          query = query.or(`Email.eq.${user.email},email.eq.${user.email}`);
+          // Use lowercase email field consistently in the query
+          query = query.or(`email.eq.${user.email}`);
         }
         else if (user.role === 'admin' || user.role === 'superadmin' || user.role === 'controller') {
           console.log("Showing all bookings for admin/controller");
@@ -53,8 +53,8 @@ export const useUserBookings = () => {
             id: booking.id.toString(),
             ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
             Product: booking.Product ? booking.Product.toString() : undefined,
-            // Handle email field correctly - use Email (capitalized) if available, otherwise use email (lowercase)
-            email: booking.Email || booking.email || ''
+            // Handle email field consistently - use lowercase email in our code
+            email: booking.email || booking.Email || ''
           };
         }) || [];
 

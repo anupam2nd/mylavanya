@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Booking } from "@/hooks/useBookings";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,7 +28,7 @@ const BookingListContent: React.FC<BookingListContentProps> = ({ bookings, loadi
                 <h3 className="font-semibold">{booking.Booking_NO}</h3>
                 <p className="text-sm text-gray-600">{booking.Booking_date}</p>
                 <p className="text-sm">
-                  {booking.name} | {booking.email || booking.Email || "No email provided"}
+                  {booking.name} | {booking.email}
                 </p>
               </div>
               <StatusBadge status={booking.Status} />
