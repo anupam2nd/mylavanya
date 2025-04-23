@@ -110,7 +110,7 @@ export const useBookingSubmit = () => {
           Address: data.address,
           Pincode: data.pincode ? Number(data.pincode) : null,
           name: data.name,
-          Email: data.email, // Using correct column capitalization "Email" instead of "email"
+          email: data.email, // Using lowercase "email" column name
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,
