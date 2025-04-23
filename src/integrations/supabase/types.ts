@@ -66,6 +66,7 @@ export type Database = {
           ArtistId: number | null
           AssignedBY: string | null
           Assignedto: string | null
+          AssignedToEmpCode: string | null
           AssingnedON: string | null
           Booking_date: string | null
           Booking_NO: number | null
@@ -94,6 +95,7 @@ export type Database = {
           ArtistId?: number | null
           AssignedBY?: string | null
           Assignedto?: string | null
+          AssignedToEmpCode?: string | null
           AssingnedON?: string | null
           Booking_date?: string | null
           Booking_NO?: number | null
@@ -122,6 +124,7 @@ export type Database = {
           ArtistId?: number | null
           AssignedBY?: string | null
           Assignedto?: string | null
+          AssignedToEmpCode?: string | null
           AssingnedON?: string | null
           Booking_date?: string | null
           Booking_NO?: number | null
@@ -145,7 +148,15 @@ export type Database = {
           SubService?: string | null
           uuid?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "BookMST_AssignedToEmpCode_fkey"
+            columns: ["AssignedToEmpCode"]
+            isOneToOne: false
+            referencedRelation: "ArtistMST"
+            referencedColumns: ["ArtistEmpCode"]
+          },
+        ]
       }
       MemberMST: {
         Row: {

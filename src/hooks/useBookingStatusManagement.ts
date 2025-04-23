@@ -80,6 +80,12 @@ export const useBookingStatusManagement = () => {
       setIsUpdatingStatus(true);
       console.log("Starting status update for booking:", booking.id, "to status:", newStatus);
       
+      // Find the corresponding status name
+      const statusOption = statusOptions.find(option => option.status_code === newStatus);
+      if (!statusOption) {
+        throw new Error('Invalid status code');
+      }
+
       // Ensure we have a valid number for bookingId
       let bookingIdNumber: number;
       
@@ -96,11 +102,10 @@ export const useBookingStatusManagement = () => {
 
       console.log("Updating status for booking ID:", bookingIdNumber, "to:", newStatus);
 
-      // Fix: Ensure we're using the correct column name "Status" (with capital S)
       const { error } = await supabase
         .from('BookMST')
         .update({ 
-          Status: newStatus,  // Using capital "S" to match database column name
+          Status: newStatus,  // Store the status_code
           StatusUpdated: new Date().toISOString()
         })
         .eq('id', bookingIdNumber);
@@ -118,7 +123,11 @@ export const useBookingStatusManagement = () => {
           `Your artist is now on their way to your location. Please be ready for your service.`
         );
       } else if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller') {
-        await createNotification(booking, 'status', `Booking status changed to ${newStatus}`);
+        await createNotification(
+          booking, 
+          'status', 
+          `Booking status changed to ${statusOption.status_name}`
+        );
       }
       
       toast({

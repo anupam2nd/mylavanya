@@ -15,7 +15,8 @@ export const BookingStatusSelect = ({
   onStatusChange,
   isDisabled 
 }: BookingStatusSelectProps) => {
-  // Ensure we have a valid default value - never empty string
+  // Find the current status name
+  const currentStatusOption = statusOptions.find(option => option.status_code === currentStatus);
   const defaultValue = currentStatus || 'pending';
   
   return (
@@ -25,13 +26,15 @@ export const BookingStatusSelect = ({
       disabled={isDisabled}
     >
       <SelectTrigger className="h-7 text-xs mt-2">
-        <SelectValue placeholder="Change Status" />
+        <SelectValue>
+          {currentStatusOption?.status_name || "Change Status"}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {statusOptions.map((option) => (
           <SelectItem 
             key={option.status_code} 
-            value={option.status_code || 'pending'} // Ensure value is never empty
+            value={option.status_code}
           >
             {option.status_name}
           </SelectItem>

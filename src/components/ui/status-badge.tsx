@@ -1,70 +1,77 @@
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-export interface StatusBadgeProps {
+interface StatusBadgeProps {
   status: string;
-  className?: string;
   description?: string;
   showTooltip?: boolean;
-  children?: React.ReactNode;
 }
 
-export const StatusBadge = ({ status, className, description, showTooltip = false, children }: StatusBadgeProps) => {
-  const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-    pending: {
-      label: "Pending",
-      variant: "outline",
-    },
-    approve: {
-      label: "Approved",
-      variant: "secondary",
-    },
-    confirm: {
-      label: "Confirmed",
-      variant: "secondary",
-    },
-    process: {
-      label: "In Process",
-      variant: "default",
-    },
-    service_started: {
-      label: "Service Started",
-      variant: "default",
-    },
-    ontheway: {
-      label: "On the Way",
-      variant: "default",
-    },
-    done: {
-      label: "Completed",
-      variant: "default",
-    },
-    cancel: {
-      label: "Cancelled",
-      variant: "destructive",
-    },
+export const StatusBadge = ({ status, description, showTooltip = false }: StatusBadgeProps) => {
+  const [statusName, setStatusName] = useState<string>(status);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
+      case 'confirm':
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
+      case 'on_the_way':
+        return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
+      case 'service_started':
+        return 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200';
+      case 'done':
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    }
   };
 
-  const statusInfo = statusMap[status] || {
-    label: status.charAt(0).toUpperCase() + status.slice(1),
-    variant: "outline",
-  };
+  const fetchStatusName = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('statusmst')
+        .select('status_name')
+        .eq('status_code', status)
+        .eq('active', true)
+        .single();
+
+      if (error) {
+        console.error("Error fetching status name:", error);
+        return;
+      }
+
+      if (data) {
+        setStatusName(data.status_name);
+      }
+    } catch (error) {
+      console.error("Error in fetchStatusName:", error);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    fetchStatusName();
+  }, [fetchStatusName]);
 
   const badge = (
     <Badge 
-      variant={statusInfo.variant}
       className={cn(
-        status === "done" && "bg-green-600",
-        status === "process" && "bg-blue-600",
-        status === "ontheway" && "bg-amber-600",
-        status === "service_started" && "bg-indigo-600",
-        status === "confirm" && "bg-purple-600",
-        className
+        "rounded-md font-medium",
+        getStatusColor(status)
       )}
     >
-      {children || statusInfo.label}
+      {statusName}
     </Badge>
   );
 
