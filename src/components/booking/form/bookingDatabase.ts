@@ -44,30 +44,63 @@ export async function fetchServiceDetails(selectedServices: BookingFormValues["s
   return Promise.all(serviceDetailsPromises);
 }
 
-// Check if the BookMST table has an email column
+// Check if the BookMST table has an email column and get the exact column name (checking case)
 export async function checkBookingTableStructure() {
   try {
+    console.log("Checking BookMST table structure...");
+    
+    // Get exact column names with their original case
     const { data, error } = await supabase
-      .from("BookMST")
-      .select("*")
-      .limit(1);
+      .rpc('get_table_columns', { table_name: 'BookMST' });
     
     if (error) {
-      console.error("Error checking table structure:", error);
-      return { hasEmailColumn: false, error: error.message };
+      console.error("Error checking table structure using RPC:", error);
+      
+      // Fallback: try to get a row to examine column names
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from("BookMST")
+        .select("*")
+        .limit(1);
+      
+      if (fallbackError) {
+        console.error("Error in fallback check:", fallbackError);
+        return { hasEmailColumn: false, error: fallbackError.message, exactEmailColumn: null };
+      }
+      
+      // Log the table structure to help diagnose the issue
+      const columnNames = fallbackData && fallbackData[0] ? Object.keys(fallbackData[0]) : [];
+      console.log("BookMST table columns (fallback):", columnNames);
+      
+      // Find any column that could be 'email' regardless of case
+      const emailColumnName = columnNames.find(col => col.toLowerCase() === 'email');
+      const hasEmailColumn = !!emailColumnName;
+      console.log(`BookMST has email column (fallback): ${hasEmailColumn}, exact name: ${emailColumnName}`);
+      
+      return { hasEmailColumn, columnNames, exactEmailColumn: emailColumnName };
     }
     
-    // Log the table structure to help diagnose the issue
-    const columnNames = data && data[0] ? Object.keys(data[0]) : [];
-    console.log("BookMST table columns:", columnNames);
+    // Process RPC result
+    console.log("Table structure data:", data);
     
-    const hasEmailColumn = columnNames.includes('email');
-    console.log(`BookMST has email column: ${hasEmailColumn}`);
+    // If data is an array of column info objects
+    let columnNames: string[] = [];
+    let exactEmailColumn: string | null = null;
     
-    return { hasEmailColumn, columnNames };
+    if (Array.isArray(data)) {
+      columnNames = data.map((col: any) => col.column_name || col.name);
+      exactEmailColumn = columnNames.find(col => col.toLowerCase() === 'email') || null;
+    } else {
+      console.warn("Unexpected RPC result format:", data);
+    }
+    
+    // Check if any column matches 'email' case-insensitively
+    const hasEmailColumn = !!exactEmailColumn;
+    console.log(`BookMST has email column: ${hasEmailColumn}, exact name: ${exactEmailColumn}`);
+    
+    return { hasEmailColumn, columnNames, exactEmailColumn };
   } catch (error) {
     console.error("Error checking table structure:", error);
-    return { hasEmailColumn: false, error: String(error) };
+    return { hasEmailColumn: false, error: String(error), exactEmailColumn: null };
   }
 }
 
@@ -85,8 +118,8 @@ async function getNextAvailableId() {
       throw new Error("Failed to get next available ID");
     }
     
-    // If there's data, use the highest ID + 1, otherwise start with 100000
-    const nextId = data && data.length > 0 && data[0].id ? Number(data[0].id) + 1 : 100000;
+    // If there's data, use the highest ID + 1, otherwise start with 5
+    const nextId = data && data.length > 0 && data[0].id ? Number(data[0].id) + 1 : 5;
     console.log("Next available ID:", nextId);
     return nextId;
   } catch (error) {
@@ -128,13 +161,15 @@ export async function insertBookings(params: {
   });
 
   try {
-    // First, check if the email column exists in BookMST
-    const { hasEmailColumn, columnNames } = await checkBookingTableStructure();
+    // First, check if the email column exists in BookMST and get its exact name
+    const { hasEmailColumn, exactEmailColumn } = await checkBookingTableStructure();
     
     if (!hasEmailColumn) {
-      console.error("The 'email' column doesn't exist in the BookMST table", columnNames);
+      console.error("The 'email' column doesn't exist in the BookMST table");
       throw new Error("The database schema doesn't match what's expected. The 'email' column is missing.");
     }
+    
+    console.log(`Using email column: "${exactEmailColumn}" for database operations`);
     
     // Get the next available ID to avoid duplicate key errors
     const nextAvailableId = await getNextAvailableId();
@@ -151,7 +186,7 @@ export async function insertBookings(params: {
       
       // Create the booking data object with proper types and explicit ID
       // Important: For database interaction, convert Booking_NO to a number
-      const bookingData = {
+      const bookingData: any = {
         id: bookingEntryId, // Explicitly set the ID to avoid conflicts
         Product: productId,
         Purpose: service.name || "",
@@ -165,13 +200,17 @@ export async function insertBookings(params: {
         Address: data.address || "",
         Pincode: pincodeNum,
         name: data.name || "",
-        // We'll conditionally add the email field based on the database structure
-        ...(hasEmailColumn ? { email: userEmail.toLowerCase() } : {}),
+        // We'll conditionally add the email field using the exact column name
         ServiceName: service.serviceName || "",
         SubService: service.subService || "",
         ProductName: service.productName || "",
         jobno: jobNumber
       };
+
+      // Use the exact email column name from the database
+      if (exactEmailColumn) {
+        bookingData[exactEmailColumn] = userEmail.toLowerCase();
+      }
 
       logDatabaseOperation("Booking Entry", { jobNumber, bookingData });
       
@@ -179,15 +218,16 @@ export async function insertBookings(params: {
       console.log(`Inserting booking #${jobNumber} with data:`, bookingData);
       
       // Insert the booking data objects
-      const { error } = await supabase
+      const { data: insertedData, error } = await supabase
         .from("BookMST")
-        .insert([bookingData]);
+        .insert([bookingData])
+        .select();
       
       if (error) {
         console.error(`Error for booking #${jobNumber}:`, error);
-        return { error: error, index: jobNumber };
+        return { error: error, index: jobNumber, details: error.details || error.message };
       }
-      console.log(`Success for booking #${jobNumber}`, { status: "success" });
+      console.log(`Success for booking #${jobNumber}`, { status: "success", data: insertedData });
       return { success: true, index: jobNumber };
     });
 
@@ -198,7 +238,7 @@ export async function insertBookings(params: {
     
     if (errors.length > 0) {
       logDatabaseOperation("Insert Errors", { errors });
-      throw new Error(`Failed to create booking(s): ${errors.map(e => (e as any).error?.message || 'Unknown error').join(', ')}`);
+      throw new Error(`Failed to create booking(s): ${errors.map(e => (e as any).error?.message || (e as any).details || 'Unknown error').join(', ')}`);
     }
 
     logDatabaseOperation("Insert Success", { 

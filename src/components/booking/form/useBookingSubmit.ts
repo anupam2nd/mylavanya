@@ -16,11 +16,13 @@ export const useBookingSubmit = () => {
 
     try {
       // Check the database structure first to see if we can proceed
-      const { hasEmailColumn, error } = await checkBookingTableStructure();
+      const { hasEmailColumn, exactEmailColumn, error } = await checkBookingTableStructure();
       
       if (!hasEmailColumn) {
         console.error("Database structure issue:", error);
         throw new Error("There's an issue with the database structure. The required 'email' column doesn't exist in the BookMST table.");
+      } else {
+        console.log(`Found email column: ${exactEmailColumn}`);
       }
       
       // Generate booking reference

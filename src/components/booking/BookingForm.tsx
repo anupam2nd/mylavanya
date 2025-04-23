@@ -39,11 +39,13 @@ const BookingForm: React.FC<BookingFormProps> = ({
   useEffect(() => {
     const verifyDatabaseStructure = async () => {
       try {
-        const { hasEmailColumn, error } = await checkBookingTableStructure();
+        const { hasEmailColumn, error, exactEmailColumn } = await checkBookingTableStructure();
         if (!hasEmailColumn) {
           setDatabaseError(
             "Database configuration issue detected: The required 'email' column is missing from the BookMST table. Please contact support."
           );
+        } else {
+          console.log(`Successfully verified email column exists: ${exactEmailColumn}`);
         }
       } catch (err) {
         console.error("Error checking database structure:", err);
