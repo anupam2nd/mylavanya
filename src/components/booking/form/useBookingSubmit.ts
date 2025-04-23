@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { BookingFormValues } from "./FormSchema";
 import { toast } from "@/hooks/use-toast";
 import { generateBookingReference, convertTo24HourFormat } from "./bookingUtils";
-import { fetchServiceDetails, insertBookings } from "./bookingDatabase";
+import { fetchServiceDetails, insertBookings, checkBookingTableStructure } from "./bookingDatabase";
 
 export const useBookingSubmit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -15,6 +15,14 @@ export const useBookingSubmit = () => {
     setIsSubmitting(true);
 
     try {
+      // Check the database structure first to see if we can proceed
+      const { hasEmailColumn, error } = await checkBookingTableStructure();
+      
+      if (!hasEmailColumn) {
+        console.error("Database structure issue:", error);
+        throw new Error("There's an issue with the database structure. The required 'email' column doesn't exist in the BookMST table.");
+      }
+      
       // Generate booking reference
       const bookingRef = await generateBookingReference();
       setBookingReference(bookingRef);

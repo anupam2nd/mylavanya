@@ -44,6 +44,33 @@ export async function fetchServiceDetails(selectedServices: BookingFormValues["s
   return Promise.all(serviceDetailsPromises);
 }
 
+// Check if the BookMST table has an email column
+export async function checkBookingTableStructure() {
+  try {
+    const { data, error } = await supabase
+      .from("BookMST")
+      .select("*")
+      .limit(1);
+    
+    if (error) {
+      console.error("Error checking table structure:", error);
+      return { hasEmailColumn: false, error: error.message };
+    }
+    
+    // Log the table structure to help diagnose the issue
+    const columnNames = data && data[0] ? Object.keys(data[0]) : [];
+    console.log("BookMST table columns:", columnNames);
+    
+    const hasEmailColumn = columnNames.includes('email');
+    console.log(`BookMST has email column: ${hasEmailColumn}`);
+    
+    return { hasEmailColumn, columnNames };
+  } catch (error) {
+    console.error("Error checking table structure:", error);
+    return { hasEmailColumn: false, error: String(error) };
+  }
+}
+
 // Creates booking DB records for each service
 export async function insertBookings(params: {
   servicesWithDetails: any[],
@@ -74,30 +101,14 @@ export async function insertBookings(params: {
   });
 
   try {
-    // Get the table structure first to ensure we're using the correct column names
-    const { data: tableInfo, error: tableError } = await supabase
-      .from("BookMST")
-      .select("*")
-      .limit(1);
-    
-    if (tableError) {
-      console.error("Error querying table structure:", tableError);
-      throw new Error(`Database error checking table structure: ${tableError.message}`);
-    }
-    
-    // Check if 'email' column actually exists
-    const hasEmailColumn = tableInfo && tableInfo[0] && 'email' in tableInfo[0];
+    // First, check if the email column exists in BookMST
+    const { hasEmailColumn, columnNames } = await checkBookingTableStructure();
     
     if (!hasEmailColumn) {
-      console.error("The 'email' column doesn't exist in the BookMST table", tableInfo);
-      throw new Error("The BookMST table doesn't have an 'email' column. Please update your database schema.");
+      console.error("The 'email' column doesn't exist in the BookMST table", columnNames);
+      throw new Error("The database schema doesn't match what's expected. The 'email' column is missing.");
     }
     
-    logDatabaseOperation("Table Check", { 
-      hasEmailColumn,
-      tableColumns: tableInfo && tableInfo[0] ? Object.keys(tableInfo[0]) : []
-    });
-
     const bookingPromises = servicesWithDetails.map((service, index) => {
       const jobNumber = index + 1;
       
@@ -105,6 +116,7 @@ export async function insertBookings(params: {
       const productId = service.id ? Number(service.id) : null;
       
       // Create the booking data object with proper types
+      // Ensure we're using the correct column names based on the database schema
       const bookingData = {
         Product: productId,
         Purpose: service.name || "",
@@ -118,7 +130,9 @@ export async function insertBookings(params: {
         Address: data.address || "",
         Pincode: pincodeNum,
         name: data.name || "",
-        email: userEmail.toLowerCase(), // Ensure lowercase consistency
+        // We'll conditionally add the email field based on the database structure
+        // This should prevent the "column does not exist" error
+        ...(hasEmailColumn ? { email: userEmail.toLowerCase() } : {}),
         ServiceName: service.serviceName || "",
         SubService: service.subService || "",
         ProductName: service.productName || "",
@@ -126,6 +140,9 @@ export async function insertBookings(params: {
       };
 
       logDatabaseOperation("Booking Entry", { jobNumber, bookingData });
+      
+      // Log the exact data being sent to the database
+      console.log(`Inserting booking #${jobNumber} with data:`, bookingData);
       
       return supabase
         .from("BookMST")

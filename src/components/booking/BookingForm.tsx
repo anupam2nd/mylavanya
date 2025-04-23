@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BookingRoleCheck from "./form/BookingRoleCheck";
 import BookingCompletedModal from "./form/BookingCompletedModal";
 import BookingFormLoader from "./form/BookingFormLoader";
+import { checkBookingTableStructure } from "./form/bookingDatabase";
 
 const BookingForm: React.FC<BookingFormProps> = ({ 
   serviceId, 
@@ -30,8 +31,27 @@ const BookingForm: React.FC<BookingFormProps> = ({
   const [bookingCompleted, setBookingCompleted] = useState(false);
   const [bookingRef, setBookingRef] = useState<string | null>(null);
   const [isLoadingMemberData, setIsLoadingMemberData] = useState(false);
+  const [databaseError, setDatabaseError] = useState<string | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  // Early check for database structure
+  useEffect(() => {
+    const verifyDatabaseStructure = async () => {
+      try {
+        const { hasEmailColumn, error } = await checkBookingTableStructure();
+        if (!hasEmailColumn) {
+          setDatabaseError(
+            "Database configuration issue detected: The required 'email' column is missing from the BookMST table. Please contact support."
+          );
+        }
+      } catch (err) {
+        console.error("Error checking database structure:", err);
+      }
+    };
+    
+    verifyDatabaseStructure();
+  }, []);
   
   // Early role check - if not a member, show member-only message
   if (user && user.role !== 'member') {
@@ -161,25 +181,34 @@ const BookingForm: React.FC<BookingFormProps> = ({
     <div className="bg-white rounded-lg p-6 shadow-md">
       {isLoadingMemberData && <BookingFormLoader />}
       
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <ServiceSelectionField initialSelectedService={initialSelectedService} />
-          
-          <div className="space-y-6">
-            <PersonalInfoFields />
-            <AddressFields />
+      {databaseError && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          <h3 className="font-bold mb-1">Database Configuration Error</h3>
+          <p>{databaseError}</p>
+        </div>
+      )}
+      
+      {!databaseError && (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <ServiceSelectionField initialSelectedService={initialSelectedService} />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DatePickerField />
-              <TimePickerField />
+            <div className="space-y-6">
+              <PersonalInfoFields />
+              <AddressFields />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <DatePickerField />
+                <TimePickerField />
+              </div>
+              
+              <NotesField />
             </div>
             
-            <NotesField />
-          </div>
-          
-          <FormActions isSubmitting={isSubmitting} onCancel={onCancel} />
-        </form>
-      </Form>
+            <FormActions isSubmitting={isSubmitting} onCancel={onCancel} />
+          </form>
+        </Form>
+      )}
     </div>
   );
 };
