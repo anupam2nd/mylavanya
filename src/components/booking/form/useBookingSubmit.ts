@@ -37,6 +37,21 @@ export const useBookingSubmit = () => {
     }
   };
 
+  const convertTo24HourFormat = (time12h: string): string => {
+    if (time12h.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+      return time12h;
+    }
+    
+    const [timePart, period] = time12h.split(' ');
+    const [hours, minutes] = timePart.split(':').map(Number);
+    
+    let hours24 = hours;
+    if (period === 'PM' && hours < 12) hours24 = hours + 12;
+    if (period === 'AM' && hours === 12) hours24 = 0;
+    
+    return `${hours24.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
+
   const submitBooking = async (data: BookingFormValues) => {
     setIsSubmitting(true);
     
@@ -48,10 +63,20 @@ export const useBookingSubmit = () => {
       const phoneNumberNum = Number(phoneNumber);
       const pincodeNum = data.pincode ? Number(data.pincode.replace(/\D/g, "")) : null;
       const bookingDate = format(data.selectedDate, "yyyy-MM-dd");
-      let bookingTime = data.selectedTime || "09:00";
-      if (!bookingTime.match(/([+-][0-9]{2}:[0-9]{2})$/)) {
-        bookingTime = `${bookingTime}:00+05:30`;
+      
+      let timeValue = data.selectedTime || "09:00";
+      
+      if (timeValue.includes("AM") || timeValue.includes("PM")) {
+        timeValue = convertTo24HourFormat(timeValue);
       }
+      
+      const bookingTime = `${timeValue}:00+05:30`;
+      
+      console.log("Formatting time:", {
+        original: data.selectedTime,
+        converted: timeValue,
+        finalFormat: bookingTime
+      });
 
       console.log("Attempting to insert bookings with values:", {
         ...data,
@@ -101,7 +126,7 @@ export const useBookingSubmit = () => {
           Address: data.address,
           Pincode: pincodeNum,
           name: data.name,
-          email: data.email,
+          email: data.email.toLowerCase(),
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,
@@ -120,6 +145,7 @@ export const useBookingSubmit = () => {
       results.forEach((result, idx) => {
         if (result.error) {
           console.error("Insert error for booking #", idx + 1, ":", result.error, result);
+          console.error("Error details:", JSON.stringify(result.error));
         } else {
           console.log("Insert success for booking #", idx + 1, result);
         }

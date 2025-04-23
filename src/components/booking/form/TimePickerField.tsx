@@ -8,6 +8,12 @@ import { Asterisk } from "lucide-react";
 const TimePickerField = () => {
   const form = useFormContext<BookingFormValues>();
   
+  // Generate time slots in 24-hour format for database compatibility
+  const formattedTimeSlots = timeSlots.map(time => {
+    // Return the time as is, as we'll handle conversion in useBookingSubmit
+    return time;
+  });
+  
   return (
     <FormField
       control={form.control}
@@ -28,7 +34,7 @@ const TimePickerField = () => {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {timeSlots.map((time) => (
+              {formattedTimeSlots.map((time) => (
                 <SelectItem 
                   key={time || "not_specified"} 
                   value={time || "not_specified"}
