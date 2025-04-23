@@ -1,4 +1,3 @@
-
 import { BookingFormValues } from "./FormSchema";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -177,17 +176,17 @@ export async function insertBookings(params: {
       // Log the exact data being sent to the database
       console.log(`Inserting booking #${jobNumber} with data:`, bookingData);
       
-      return supabase
+      // Insert the booking data objects
+      const { error } = await supabase
         .from("BookMST")
-        .insert(bookingData)
-        .then(result => {
-          if (result.error) {
-            console.error(`Error for booking #${jobNumber}:`, result.error);
-            return { error: result.error, index: jobNumber };
-          }
-          console.log(`Success for booking #${jobNumber}`, { status: "success" });
-          return { success: true, index: jobNumber };
-        });
+        .insert([bookingData]);
+      
+      if (error) {
+        console.error(`Error for booking #${jobNumber}:`, error);
+        return { error: error, index: jobNumber };
+      }
+      console.log(`Success for booking #${jobNumber}`, { status: "success" });
+      return { success: true, index: jobNumber };
     });
 
     const results = await Promise.all(bookingPromises);

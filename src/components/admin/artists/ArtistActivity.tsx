@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Artist } from "@/types/artist";
@@ -76,7 +75,15 @@ export default function ArtistActivity({
         .order('Booking_date', { ascending: false });
 
       if (bookingsError) throw bookingsError;
-      setBookings(bookingsData || []);
+      
+      const formattedBookings = bookingsData?.map(booking => ({
+          ...booking,
+          id: booking.id.toString(),
+          Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '',
+          ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined
+      })) || [];
+      
+      setBookings(formattedBookings);
 
       // Calculate summary statistics
       const bookingsByStatus: Record<string, number> = {};

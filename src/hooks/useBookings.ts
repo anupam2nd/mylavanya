@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Booking {
   id: string; // Changed from number to string
   uuid: string;
-  Booking_NO: string;
+  Booking_NO: string; // Keep as string for consistency across the app
   jobno?: number;
   name: string;
   email: string; // Lowercase email property
@@ -54,6 +54,7 @@ export const useBookings = () => {
           ...booking,
           id: booking.id.toString(),
           uuid: booking.uuid || booking.id.toString(),
+          Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '', // Convert to string
           ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
           Product: booking.Product ? booking.Product.toString() : undefined,
           // Use lowercase email only

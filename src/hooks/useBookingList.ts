@@ -23,6 +23,7 @@ export const useBookingList = () => {
         const formattedBookings = data?.map(booking => ({
           ...booking,
           id: booking.id.toString(),
+          Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '', // Convert to string
           ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
           Product: booking.Product ? booking.Product.toString() : undefined
         })) || [];

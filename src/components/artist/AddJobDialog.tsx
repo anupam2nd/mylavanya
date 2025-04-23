@@ -63,7 +63,7 @@ const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking, o
       // Insert the new job with proper type handling
       const { error } = await supabase
         .from('BookMST')
-        .insert({
+        .insert([{
           Booking_NO: booking.Booking_NO,
           jobno: nextJobNo,
           Purpose: serviceName,
@@ -80,7 +80,7 @@ const AddJobDialog: React.FC<AddJobDialogProps> = ({ isOpen, onClose, booking, o
           Assignedto: booking.Assignedto,
           AssignedBY: booking.AssignedBY,
           AssingnedON: booking.AssingnedON
-        });
+        }]);
 
       if (error) throw error;
       

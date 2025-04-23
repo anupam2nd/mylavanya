@@ -244,7 +244,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         ServiceName: selectedProductDetails.Services,
         SubService: selectedProductDetails.Subservice,
         ProductName: product,
-        Product: selectedProductDetails.prod_id,
+        Product: parseInt(selectedProductDetails.prod_id),
         Scheme: selectedProductDetails.Scheme,
         price: price,
         Qty: qty,
@@ -295,6 +295,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         const formattedBooking: Booking = {
           ...newBooking,
           id: newBooking.id.toString(),
+          Booking_NO: newBooking.Booking_NO ? newBooking.Booking_NO.toString() : '',
           ArtistId: newBooking.ArtistId ? newBooking.ArtistId.toString() : undefined,
           Product: newBooking.Product ? newBooking.Product.toString() : undefined
         };
