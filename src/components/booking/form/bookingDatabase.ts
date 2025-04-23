@@ -50,8 +50,11 @@ export async function checkBookingTableStructure() {
     console.log("Checking BookMST table structure...");
     
     // Get exact column names with their original case
-    const { data, error } = await supabase
-      .rpc('get_table_columns', { table_name: 'BookMST' });
+    // Since the function isn't typed in the supabase client, we need to use a type assertion
+    const { data, error } = await (supabase.rpc as any)(
+      'get_table_columns', 
+      { table_name: 'BookMST' }
+    );
     
     if (error) {
       console.error("Error checking table structure using RPC:", error);

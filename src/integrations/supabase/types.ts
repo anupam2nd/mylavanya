@@ -402,6 +402,13 @@ export type Database = {
           total_revenue: number
         }[]
       }
+      get_table_columns: {
+        Args: { table_name: string }
+        Returns: {
+          column_name: string
+          data_type: string
+        }[]
+      }
       get_user_wishlist: {
         Args: { user_uuid: string }
         Returns: {
