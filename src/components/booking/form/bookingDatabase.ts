@@ -71,6 +71,33 @@ export async function checkBookingTableStructure() {
   }
 }
 
+// Get next available ID for the booking table to avoid duplicate key errors
+async function getNextAvailableId() {
+  try {
+    const { data, error } = await supabase
+      .from("BookMST")
+      .select("id")
+      .order("id", { ascending: false })
+      .limit(1);
+    
+    if (error) {
+      console.error("Error getting max ID:", error);
+      throw new Error("Failed to get next available ID");
+    }
+    
+    // If there's data, use the highest ID + 1, otherwise start with 100000
+    const nextId = data && data.length > 0 && data[0].id ? Number(data[0].id) + 1 : 100000;
+    console.log("Next available ID:", nextId);
+    return nextId;
+  } catch (error) {
+    console.error("Error in getNextAvailableId:", error);
+    // Return a fallback ID that's likely to be unique
+    const fallbackId = Math.floor(Math.random() * 1000000) + 1000000;
+    console.log("Using fallback ID:", fallbackId);
+    return fallbackId;
+  }
+}
+
 // Creates booking DB records for each service
 export async function insertBookings(params: {
   servicesWithDetails: any[],
@@ -109,15 +136,22 @@ export async function insertBookings(params: {
       throw new Error("The database schema doesn't match what's expected. The 'email' column is missing.");
     }
     
-    const bookingPromises = servicesWithDetails.map((service, index) => {
+    // Get the next available ID to avoid duplicate key errors
+    const nextAvailableId = await getNextAvailableId();
+    
+    const bookingPromises = servicesWithDetails.map(async (service, index) => {
       const jobNumber = index + 1;
       
       // Ensure numeric ID for Product
       const productId = service.id ? Number(service.id) : null;
       
-      // Create the booking data object with proper types
-      // Ensure we're using the correct column names based on the database schema
+      // Calculate the ID for this booking entry to avoid duplicates
+      const bookingEntryId = nextAvailableId + index;
+      console.log(`Using ID ${bookingEntryId} for booking job #${jobNumber}`);
+      
+      // Create the booking data object with proper types and explicit ID
       const bookingData = {
+        id: bookingEntryId, // Explicitly set the ID to avoid conflicts
         Product: productId,
         Purpose: service.name || "",
         Phone_no: phoneNumberNum,
@@ -131,7 +165,6 @@ export async function insertBookings(params: {
         Pincode: pincodeNum,
         name: data.name || "",
         // We'll conditionally add the email field based on the database structure
-        // This should prevent the "column does not exist" error
         ...(hasEmailColumn ? { email: userEmail.toLowerCase() } : {}),
         ServiceName: service.serviceName || "",
         SubService: service.subService || "",

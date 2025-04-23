@@ -66,97 +66,86 @@ export type Database = {
           ArtistId: number | null
           AssignedBY: string | null
           Assignedto: string | null
-          AssignedToEmpCode: string | null
           AssingnedON: string | null
-          Booking_date: string
-          Booking_NO: string | null
-          booking_time: string
+          Booking_date: string | null
+          Booking_NO: number | null
+          booking_time: string | null
           created_at: string | null
           email: string | null
           id: number
           jobno: number | null
           name: string | null
-          Phone_no: number
+          Phone_no: number | null
           Pincode: number | null
           price: number | null
           Product: number | null
           ProductName: string | null
-          Purpose: string
+          Purpose: string | null
           Qty: number | null
           Scheme: string | null
           ServiceName: string | null
           Status: string | null
           StatusUpdated: string | null
           SubService: string | null
-          uuid: string
+          uuid: string | null
         }
         Insert: {
           Address?: string | null
           ArtistId?: number | null
           AssignedBY?: string | null
           Assignedto?: string | null
-          AssignedToEmpCode?: string | null
           AssingnedON?: string | null
-          Booking_date: string
-          Booking_NO?: string | null
-          booking_time: string
+          Booking_date?: string | null
+          Booking_NO?: number | null
+          booking_time?: string | null
           created_at?: string | null
           email?: string | null
           id?: number
           jobno?: number | null
           name?: string | null
-          Phone_no: number
+          Phone_no?: number | null
           Pincode?: number | null
           price?: number | null
           Product?: number | null
           ProductName?: string | null
-          Purpose: string
+          Purpose?: string | null
           Qty?: number | null
           Scheme?: string | null
           ServiceName?: string | null
           Status?: string | null
           StatusUpdated?: string | null
           SubService?: string | null
-          uuid?: string
+          uuid?: string | null
         }
         Update: {
           Address?: string | null
           ArtistId?: number | null
           AssignedBY?: string | null
           Assignedto?: string | null
-          AssignedToEmpCode?: string | null
           AssingnedON?: string | null
-          Booking_date?: string
-          Booking_NO?: string | null
-          booking_time?: string
+          Booking_date?: string | null
+          Booking_NO?: number | null
+          booking_time?: string | null
           created_at?: string | null
           email?: string | null
           id?: number
           jobno?: number | null
           name?: string | null
-          Phone_no?: number
+          Phone_no?: number | null
           Pincode?: number | null
           price?: number | null
           Product?: number | null
           ProductName?: string | null
-          Purpose?: string
+          Purpose?: string | null
           Qty?: number | null
           Scheme?: string | null
           ServiceName?: string | null
           Status?: string | null
           StatusUpdated?: string | null
           SubService?: string | null
-          uuid?: string
+          uuid?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "BookMST_AssignedToEmpCode_fkey"
-            columns: ["AssignedToEmpCode"]
-            isOneToOne: false
-            referencedRelation: "ArtistMST"
-            referencedColumns: ["ArtistEmpCode"]
-          },
-        ]
+        Relationships: []
       }
       MemberMST: {
         Row: {
