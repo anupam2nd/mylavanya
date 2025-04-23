@@ -167,6 +167,13 @@ const Navbar = () => {
             </nav>
           </div>}
       </header>
+      
+      {/* Add AuthModal component here */}
+      <AuthModal 
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        defaultTab={authModalTab}
+      />
     </>;
 };
 
