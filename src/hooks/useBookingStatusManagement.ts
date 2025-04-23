@@ -69,8 +69,21 @@ export const useBookingStatusManagement = () => {
     try {
       setIsUpdatingStatus(true);
       
-      // Convert booking.id to number if it's a string
-      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
+      // Ensure we have a valid number for bookingId
+      let bookingIdNumber: number;
+      
+      if (typeof booking.id === 'string') {
+        bookingIdNumber = parseInt(booking.id);
+        if (isNaN(bookingIdNumber)) {
+          throw new Error('Invalid booking ID');
+        }
+      } else if (typeof booking.id === 'number') {
+        bookingIdNumber = booking.id;
+      } else {
+        throw new Error('Booking ID is missing or invalid');
+      }
+
+      console.log("Updating status for booking ID:", bookingIdNumber, "to:", newStatus);
 
       const { error } = await supabase
         .from('BookMST')
@@ -81,31 +94,24 @@ export const useBookingStatusManagement = () => {
         .eq('id', bookingIdNumber);
 
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Failed to update status",
-          description: error.message,
-        });
-        return Promise.reject(error);
+        console.error("Error updating status:", error);
+        throw error;
       }
 
-      if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller') {
+      // Create notification for status change when appropriate
+      if (newStatus === 'on_the_way') {
+        await createNotification(
+          booking, 
+          'artist_on_the_way', 
+          `Your artist is now on their way to your location. Please be ready for your service.`
+        );
+      } else if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller') {
         await createNotification(booking, 'status', `Booking status changed to ${newStatus}`);
       }
-
-      toast({
-        title: "Status updated",
-        description: `Booking status changed to ${newStatus}`,
-      });
       
       return Promise.resolve();
     } catch (error) {
       console.error("Error updating status:", error);
-      toast({
-        variant: "destructive",
-        title: "Error updating status",
-        description: "An unexpected error occurred",
-      });
       return Promise.reject(error);
     } finally {
       setIsUpdatingStatus(false);
@@ -131,27 +137,12 @@ export const useBookingStatusManagement = () => {
         .eq('id', bookingIdNumber);
 
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Failed to assign artist",
-          description: error.message,
-        });
-        return Promise.reject(error);
+        throw error;
       }
-
-      toast({
-        title: "Artist assigned",
-        description: `Artist has been assigned to this booking`,
-      });
       
       return Promise.resolve();
     } catch (error) {
       console.error("Error assigning artist:", error);
-      toast({
-        variant: "destructive",
-        title: "Error assigning artist",
-        description: "An unexpected error occurred",
-      });
       return Promise.reject(error);
     }
   };

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Booking } from "@/hooks/useBookings";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -38,7 +38,7 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
   booking,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { statusOptions, fetchStatusOptions } = useBookingStatusManagement();
+  const { statusOptions, fetchStatusOptions, handleStatusChange } = useBookingStatusManagement();
   
   // Initialize form with react-hook-form and zod validation
   const form = useForm<ServiceFormValues>({
@@ -63,42 +63,21 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
     try {
       setIsSubmitting(true);
       
-      // Prepare data for update
-      const updateData: Record<string, any> = {};
-      
-      // Only update Status - this is the only field artists can modify
+      // Check if Status has changed
       if (values.Status !== booking.Status) {
-        updateData.Status = values.Status;
-        updateData.StatusUpdated = new Date().toISOString();
-      }
-      
-      // Only proceed if there are changes to update
-      if (Object.keys(updateData).length === 0) {
+        // Use the handleStatusChange function from the hook instead of direct database manipulation
+        await handleStatusChange(booking, values.Status);
+        
+        toast({
+          title: "Status Updated",
+          description: "The service status has been successfully updated.",
+        });
+      } else {
         toast({
           title: "No changes made",
           description: "No changes were detected to update.",
         });
-        onClose();
-        return;
       }
-      
-      // Convert booking.id to number for database operation
-      const bookingIdNumber = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
-      
-      // Update the booking
-      const { error } = await supabase
-        .from('BookMST')
-        .update(updateData)
-        .eq('id', bookingIdNumber);
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Service Updated",
-        description: "The service has been successfully updated.",
-      });
       
       onClose();
     } catch (error) {
@@ -177,11 +156,13 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {statusOptions.map((status) => (
-                        <SelectItem key={status.status_code} value={status.status_code}>
-                          {status.status_name}
-                        </SelectItem>
-                      ))}
+                      {statusOptions
+                        .filter(status => ['on_the_way', 'service_started', 'done'].includes(status.status_code))
+                        .map((status) => (
+                          <SelectItem key={status.status_code} value={status.status_code}>
+                            {status.status_name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
