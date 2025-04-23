@@ -102,17 +102,6 @@ const UserBookings = () => {
               loading={loading}
               bookings={bookings}
               filteredBookings={filteredBookings}
-              handleEditClick={canEdit ? handleEditClick : () => {}}
-              handleAddNewJob={canEdit ? handleAddNewJob : undefined}
-              statusOptions={statusOptions}
-              artists={artists}
-              handleStatusChange={handleStatusChange}
-              handleArtistAssignment={handleArtistAssignWithUser}
-              isEditingDisabled={!canEdit}
-              handleDeleteJob={canEdit ? handleDeleteJob : undefined}
-              handleScheduleChange={canEdit ? handleScheduleChange : undefined}
-              sortField="created_at"
-              sortDirection="desc"
             />
           </CardContent>
         </Card>
