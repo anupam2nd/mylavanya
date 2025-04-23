@@ -109,9 +109,19 @@ export const useBookingStatusManagement = () => {
         await createNotification(booking, 'status', `Booking status changed to ${newStatus}`);
       }
       
+      toast({
+        title: "Status Updated",
+        description: "The booking status has been successfully updated.",
+      });
+      
       return Promise.resolve();
     } catch (error) {
       console.error("Error updating status:", error);
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "There was an error updating the service. Please try again.",
+      });
       return Promise.reject(error);
     } finally {
       setIsUpdatingStatus(false);

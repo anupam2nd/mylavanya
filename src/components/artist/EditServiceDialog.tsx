@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { Booking } from "@/hooks/useBookings";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -65,28 +64,19 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
       
       // Check if Status has changed
       if (values.Status !== booking.Status) {
-        // Use the handleStatusChange function from the hook instead of direct database manipulation
+        // Use the handleStatusChange function from the hook
         await handleStatusChange(booking, values.Status);
-        
-        toast({
-          title: "Status Updated",
-          description: "The service status has been successfully updated.",
-        });
+        onClose();
       } else {
         toast({
           title: "No changes made",
           description: "No changes were detected to update.",
         });
+        onClose();
       }
-      
-      onClose();
     } catch (error) {
       console.error("Error updating service:", error);
-      toast({
-        variant: "destructive",
-        title: "Update Failed",
-        description: "There was an error updating the service. Please try again.",
-      });
+      // We don't need to show an error toast here since handleStatusChange already does this
     } finally {
       setIsSubmitting(false);
     }

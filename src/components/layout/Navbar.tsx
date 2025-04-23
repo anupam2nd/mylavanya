@@ -8,7 +8,6 @@ import AuthModal from "@/components/auth/AuthModal";
 import NavTrackingButton from "@/components/ui/NavTrackingButton";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import ProfileDropdown from "@/components/user/ProfileDropdown";
-import MemberNotifications from "@/components/user/MemberNotifications";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -84,8 +83,7 @@ const Navbar = () => {
               {/* Login buttons */}
               <div className="flex items-center space-x-2">
                 {isAuthenticated ? (
-                  <div className="flex items-center space-x-2">
-                    <MemberNotifications />
+                  <div className="flex items-center">
                     {user?.role === "member" ? (
                       <ProfileDropdown />
                     ) : (
@@ -173,4 +171,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
