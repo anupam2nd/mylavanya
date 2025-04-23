@@ -50,19 +50,15 @@ export const useBookings = () => {
       
       // Ensure all IDs are strings and handle email field properly
       const formattedBookings = data?.map(booking => {
-        // Get the email value, handling both lowercase and uppercase variations safely
-        const emailValue = booking.email || booking.email || '';
-        
         const formattedBooking = {
           ...booking,
           id: booking.id.toString(),
           uuid: booking.uuid || booking.id.toString(),
           ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
           Product: booking.Product ? booking.Product.toString() : undefined,
-          // Use lowercase email consistently in our code
-          email: emailValue,
+          // Use lowercase email only
+          email: booking.email || '',
         };
-        
         return formattedBooking;
       }) || [];
       
