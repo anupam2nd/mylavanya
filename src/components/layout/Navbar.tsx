@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -8,6 +7,7 @@ import AuthModal from "@/components/auth/AuthModal";
 import NavTrackingButton from "@/components/ui/NavTrackingButton";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import ProfileDropdown from "@/components/user/ProfileDropdown";
+import { MemberNotifications } from "@/components/user/MemberNotifications";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,7 +55,8 @@ const Navbar = () => {
     setIsAuthModalOpen(true);
   };
 
-  return <>
+  return (
+    <>
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white shadow-md py-2" : "bg-transparent py-4"}`}>
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
@@ -83,11 +84,14 @@ const Navbar = () => {
               {/* Login buttons */}
               <div className="flex items-center space-x-2">
                 {isAuthenticated ? (
-                  <div className="flex items-center">
-                    {user?.role === "member" ? (
+                  <div className="flex items-center space-x-4">
+                    {user?.role === 'controller' && <MemberNotifications />}
+                    {user?.role === 'member' ? (
                       <ProfileDropdown />
                     ) : (
-                      <Button onClick={navigateToDashboard}>{user?.role === "member" ? "My Bookings" : "Dashboard"}</Button>
+                      <Button onClick={navigateToDashboard}>
+                        {user?.role === 'member' ? "My Bookings" : "Dashboard"}
+                      </Button>
                     )}
                   </div>
                 ) : (
@@ -104,7 +108,6 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile menu */}
         {isOpen && <div className="md:hidden bg-white shadow-lg py-4 px-4 absolute top-full left-0 right-0">
             <nav className="flex flex-col space-y-4">
               <Link to="/" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
@@ -121,10 +124,9 @@ const Navbar = () => {
               </Link>
               <NavTrackingButton isMobile={true} onClick={closeMenu} />
               
-              {/* Mobile login buttons */}
               <div className="pt-2 border-t border-gray-200">
                 {isAuthenticated ? (
-                  user?.role === "member" ? (
+                  user?.role === 'member' ? (
                     <div className="space-y-2">
                       <Link to="/profile" className="block py-2 text-gray-700 hover:text-primary" onClick={closeMenu}>
                         My Profile
@@ -152,7 +154,7 @@ const Navbar = () => {
                       navigateToDashboard();
                       closeMenu();
                     }} className="w-full">
-                      {user?.role === "member" ? "My Bookings" : "Dashboard"}
+                      {user?.role === 'member' ? "My Bookings" : "Dashboard"}
                     </Button>
                   )
                 ) : (
@@ -168,13 +170,13 @@ const Navbar = () => {
           </div>}
       </header>
       
-      {/* Add AuthModal component here */}
       <AuthModal 
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         defaultTab={authModalTab}
       />
-    </>;
+    </>
+  );
 };
 
 export default Navbar;

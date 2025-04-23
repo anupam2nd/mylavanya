@@ -213,6 +213,7 @@ export type Database = {
           is_read: boolean
           message: string
           recipient_email: string
+          viewed_by: Json | null
         }
         Insert: {
           booking_id: number
@@ -223,6 +224,7 @@ export type Database = {
           is_read?: boolean
           message: string
           recipient_email: string
+          viewed_by?: Json | null
         }
         Update: {
           booking_id?: number
@@ -233,6 +235,7 @@ export type Database = {
           is_read?: boolean
           message?: string
           recipient_email?: string
+          viewed_by?: Json | null
         }
         Relationships: []
       }

@@ -1,93 +1,83 @@
 
-import React from "react";
-import { Bell, CheckCircle2 } from "lucide-react";
-import { useMemberNotifications } from "@/hooks/useMemberNotifications";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import React, { useEffect } from "react";
+import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const importantChangeType = "artist_on_the_way";
-const alertTitle = "Our Employee Is On The Way";
-const additionalText = "Please be ready or available at the location on time. Our Artist will visit you shortly.";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useMemberNotifications } from "@/hooks/useMemberNotifications";
+import { useNavigate } from "react-router-dom";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 export const MemberNotifications = () => {
-  const { notifications, loading, error, markAsRead } = useMemberNotifications();
+  const { notifications, loading, markAsRead } = useMemberNotifications();
+  const navigate = useNavigate();
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // Show only unread notifications, most recent top
-  const unreadNotifications = notifications.filter(notif => !notif.is_read);
+  const handleNotificationClick = async (notification: any) => {
+    await markAsRead(notification.id);
+    if (notification.booking_id) {
+      navigate(`/admin/bookings?booking=${notification.booking_no}`);
+    }
+  };
 
-  const hasImportant = unreadNotifications.some(n => n.change_type === importantChangeType);
+  const getNotificationStyle = (type: string) => {
+    switch (type) {
+      case 'new_booking':
+        return 'bg-blue-50 text-blue-800';
+      case 'booking_completed':
+        return 'bg-green-50 text-green-800';
+      default:
+        return 'bg-gray-50 text-gray-800';
+    }
+  };
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button className="relative inline-flex items-center group" aria-label="View notifications">
-          <Bell className="w-6 h-6 text-primary" />
-          {unreadNotifications.length > 0 && (
-            <span className="absolute -top-1 -right-1 rounded-full bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center">
-              {unreadNotifications.length}
-            </span>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <Badge 
+              className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs"
+            >
+              {unreadCount}
+            </Badge>
           )}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent side="bottom" align="end" className="w-80 p-0 border-0 shadow-xl">
-        <div className="bg-white rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b bg-primary/5">
-            <span className="font-semibold text-lg text-primary">Notifications</span>
-          </div>
-          <div className="max-h-80 overflow-y-auto divide-y">
-            {loading && <div className="p-4 text-sm text-muted-foreground">Loading...</div>}
-            {error && <div className="p-4 text-sm text-destructive">{error}</div>}
-            {!loading && unreadNotifications.length === 0 && (
-              <div className="p-4 text-muted-foreground">No new notifications</div>
-            )}
-            {unreadNotifications.map((notif) => {
-              const isAlert = notif.change_type === importantChangeType;
-              let artistName = ""; // Extract artist name from message if available.
-              const match = notif.message.match(/artist ([^ ]+)/i);
-              if (match) artistName = match[1];
-
-              return (
-                <div
-                  key={notif.id}
-                  className={`p-4 ${isAlert ? "bg-red-50 border-l-4 border-red-500" : ""} flex items-start gap-3`}
-                >
-                  <div className="flex-shrink-0">
-                    {isAlert ? (
-                      <CheckCircle2 className="h-6 w-6 text-red-500 mt-1" />
-                    ) : (
-                      <Bell className="h-5 w-5 text-primary mt-1" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    {isAlert && (
-                      <div className="font-bold text-base text-red-800 mb-1">{alertTitle}</div>
-                    )}
-                    <div className="text-sm text-gray-700 whitespace-pre-line">{notif.message}</div>
-                    {isAlert && (
-                      <div className="mt-2 text-xs text-red-600">{additionalText}</div>
-                    )}
-                    <div className="text-xs text-muted-foreground mt-2">
-                      Booking #{notif.booking_no}
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end ml-3">
-                    <Button
-                      size="sm"
-                      variant={isAlert ? "destructive" : "ghost"}
-                      onClick={() => markAsRead(notif.id)}
-                      className="text-xs"
-                    >
-                      Dismiss
-                    </Button>
-                  </div>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[380px]">
+        <ScrollArea className="h-[300px]">
+          {loading ? (
+            <div className="p-4 text-center text-sm text-gray-500">
+              Loading notifications...
+            </div>
+          ) : notifications.length === 0 ? (
+            <div className="p-4 text-center text-sm text-gray-500">
+              No notifications
+            </div>
+          ) : (
+            notifications.map((notification) => (
+              <DropdownMenuItem
+                key={notification.id}
+                className={`flex flex-col items-start space-y-1 p-4 cursor-pointer ${
+                  !notification.is_read ? getNotificationStyle(notification.change_type) : ''
+                }`}
+                onClick={() => handleNotificationClick(notification)}
+              >
+                <div className="font-medium">{notification.message}</div>
+                <div className="text-xs text-gray-500">
+                  {new Date(notification.created_at).toLocaleString()}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+              </DropdownMenuItem>
+            ))
+          )}
+        </ScrollArea>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
-
-export default MemberNotifications;
