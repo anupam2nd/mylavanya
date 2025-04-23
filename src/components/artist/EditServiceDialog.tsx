@@ -101,7 +101,7 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
     }
   };
 
-  // Get filtered status options for artists
+  // Get filtered status options for artists - now including 'service_started' and 'done'
   const filteredStatusOptions = statusOptions.filter(status => 
     ['on_the_way', 'service_started', 'done'].includes(status.status_code)
   );
