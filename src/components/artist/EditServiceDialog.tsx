@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
+import { Loader2 } from "lucide-react";
 
 interface EditServiceDialogProps {
   isOpen: boolean;
@@ -37,7 +38,7 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
   booking,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { statusOptions, fetchStatusOptions, handleStatusChange, isUpdatingStatus } = useBookingStatusManagement();
+  const { statusOptions, handleStatusChange, isUpdatingStatus, isLoading } = useBookingStatusManagement();
   const { toast } = useToast();
   
   // Initialize form with react-hook-form and zod validation
@@ -52,12 +53,16 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
     },
   });
 
-  // Fetch status options when dialog opens
-  React.useEffect(() => {
-    if (isOpen) {
-      fetchStatusOptions();
+  // Update form values when booking changes
+  useEffect(() => {
+    if (booking) {
+      form.setValue("jobno", booking.jobno?.toString() || "");
+      form.setValue("ServiceName", booking.ServiceName || "");
+      form.setValue("ProductName", booking.ProductName || "");
+      form.setValue("Status", booking.Status || "");
+      form.setValue("Purpose", booking.Purpose || "");
     }
-  }, [isOpen, fetchStatusOptions]);
+  }, [booking, form]);
 
   const handleSubmit = async (values: ServiceFormValues) => {
     if (isSubmitting || isUpdatingStatus) return;
@@ -69,6 +74,10 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
       if (values.Status !== booking.Status) {
         // Use the handleStatusChange function from the hook
         await handleStatusChange(booking, values.Status);
+        toast({
+          title: "Status updated",
+          description: "The booking status has been successfully updated.",
+        });
         onClose(); // Only close on success
       } else {
         toast({
@@ -85,11 +94,16 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
     }
   };
 
+  // Get filtered status options for artists
+  const filteredStatusOptions = statusOptions.filter(status => 
+    ['on_the_way', 'service_started', 'done'].includes(status.status_code)
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit Service</DialogTitle>
+          <DialogTitle>Update Booking Status</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
@@ -142,22 +156,27 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {statusOptions
-                        .filter(status => ['on_the_way', 'service_started', 'done'].includes(status.status_code))
-                        .map((status) => (
+                  {isLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Loading status options...</span>
+                    </div>
+                  ) : (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {filteredStatusOptions.map((status) => (
                           <SelectItem key={status.status_code} value={status.status_code}>
                             {status.status_name}
                           </SelectItem>
                         ))}
-                    </SelectContent>
-                  </Select>
+                      </SelectContent>
+                    </Select>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

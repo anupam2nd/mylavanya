@@ -15,7 +15,7 @@ interface ArtistBookingDetailsProps {
 
 const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, onBack, onAddNewJob }) => {
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
-  const { statusOptions, isUpdatingStatus } = useBookingStatusManagement();
+  const { isUpdatingStatus } = useBookingStatusManagement();
 
   const handleEditService = () => {
     setIsServiceDialogOpen(true);

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Booking } from "@/hooks/useBookings";
@@ -10,13 +10,16 @@ export const useBookingStatusManagement = () => {
   const { user } = useAuth();
   const [statusOptions, setStatusOptions] = useState<{status_code: string; status_name: string; description?: string; active?: boolean}[]>([]);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchStatusOptions();
-  }, []);
+  const fetchStatusOptions = useCallback(async () => {
+    // Don't fetch if we already have data
+    if (statusOptions.length > 0) {
+      return;
+    }
 
-  const fetchStatusOptions = async () => {
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('statusmst')
         .select('status_code, status_name, description, active')
@@ -30,8 +33,14 @@ export const useBookingStatusManagement = () => {
       setStatusOptions(data || []);
     } catch (error) {
       console.error("Error in fetchStatusOptions:", error);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [statusOptions.length]);
+
+  useEffect(() => {
+    fetchStatusOptions();
+  }, [fetchStatusOptions]);
 
   const createNotification = async (booking: Booking, changeType: string, message: string) => {
     if (!booking.email) return;
@@ -86,6 +95,7 @@ export const useBookingStatusManagement = () => {
 
       console.log("Updating status for booking ID:", bookingIdNumber, "to:", newStatus);
 
+      // Update the database with the new status - using PATCH instead of update()
       const { error } = await supabase
         .from('BookMST')
         .update({ 
@@ -163,6 +173,7 @@ export const useBookingStatusManagement = () => {
     fetchStatusOptions, 
     handleStatusChange,
     handleArtistAssignment,
-    isUpdatingStatus
+    isUpdatingStatus,
+    isLoading
   };
 };
