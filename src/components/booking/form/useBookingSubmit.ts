@@ -93,8 +93,8 @@ export const useBookingSubmit = () => {
     setIsSubmitting(true);
     
     try {
-      // First check database schema to confirm field names
-      console.log("Checking database schema...");
+      // Log all database field names to debug
+      console.log("Fetching database schema to check field names...");
       const { data: schema, error: schemaError } = await supabase
         .from('BookMST')
         .select('*')
@@ -105,7 +105,10 @@ export const useBookingSubmit = () => {
         throw new Error("Could not verify database schema");
       }
       
-      console.log("Database schema result:", schema);
+      // Print all column names from the schema to debug
+      if (schema && schema.length > 0) {
+        console.log("Available database columns:", Object.keys(schema[0]));
+      }
       
       // Generate booking reference
       const bookingRef = await generateBookingReference();
@@ -162,6 +165,7 @@ export const useBookingSubmit = () => {
       const bookingPromises = servicesWithDetails.map((service, index) => {
         const jobNumber = index + 1;
         
+        // Create a clean booking object with the exact field names matching the database
         const bookingData = {
           Product: Number(service.id) || null,
           Purpose: service.name,
@@ -175,7 +179,7 @@ export const useBookingSubmit = () => {
           Address: data.address,
           Pincode: pincodeNum,
           name: data.name,
-          email: data.email.toLowerCase(), // Store email in lowercase
+          email: data.email.toLowerCase(), // This should match the database column name (lowercase)
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,

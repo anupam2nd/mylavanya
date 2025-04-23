@@ -9,7 +9,7 @@ const TimePickerField = () => {
   const form = useFormContext<BookingFormValues>();
   
   const handleTimeChange = (time: string) => {
-    console.log("Selected time:", time);
+    console.log("TimePickerField - Selected time:", time);
     form.setValue("selectedTime", time);
   };
   
