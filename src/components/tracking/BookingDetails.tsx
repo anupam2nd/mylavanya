@@ -8,6 +8,17 @@ import CustomerDetails from './CustomerDetails';
 import ServicesList from './ServicesList';
 import TotalAmount from './TotalAmount';
 
+// Define a Service interface to match what ServicesList expects
+export interface Service {
+  id: string;
+  ProductName: string;
+  ServiceName?: string;
+  SubService?: string;
+  price: number;
+  originalPrice?: number;
+  Qty?: number;
+}
+
 // Export the type for reuse
 export type BookingData = Booking;
 
@@ -31,6 +42,17 @@ const BookingDetails: React.FC<BookingDetailsProps> = ({ bookingDetails }) => {
   // Only set original amount if different from total
   const displayOriginalAmount = totalOriginalAmount > totalAmount ? totalOriginalAmount : undefined;
 
+  // Convert bookings to services for the ServicesList component
+  const services: Service[] = bookingDetails.map(booking => ({
+    id: booking.id,
+    ProductName: booking.ProductName || '',
+    ServiceName: booking.ServiceName,
+    SubService: booking.SubService,
+    price: booking.price || 0,
+    originalPrice: booking.originalPrice,
+    Qty: booking.Qty
+  }));
+
   return (
     <div className="mt-6">
       <BookingHeader />
@@ -38,7 +60,7 @@ const BookingDetails: React.FC<BookingDetailsProps> = ({ bookingDetails }) => {
         <div className="grid grid-cols-2 gap-4">
           <BookingReference reference={firstBooking.Booking_NO} />
           <CustomerDetails booking={firstBooking} />
-          <ServicesList services={bookingDetails} />
+          <ServicesList services={services} />
           <TotalAmount amount={totalAmount} originalAmount={displayOriginalAmount} />
         </div>
       </div>

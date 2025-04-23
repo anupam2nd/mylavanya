@@ -4,13 +4,13 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Booking {
-  id: string; // Always use string for ID consistency
+  id: string;
   uuid: string;
-  Booking_NO: string; // Always use string for Booking_NO
+  Booking_NO: string;
   jobno?: number;
   name: string;
-  email: string; // Lowercase email property
-  Email?: string; // Optional uppercase Email property for database flexibility
+  email: string;
+  Email?: string;
   Phone_no: number;
   Address?: string;
   Pincode?: number;
@@ -21,16 +21,16 @@ export interface Booking {
   SubService?: string;
   ProductName?: string;
   price?: number;
-  originalPrice?: number; // Add originalPrice property
+  originalPrice?: number;
   Qty?: number;
   Status: string;
   StatusUpdated?: string;
   Assignedto?: string;
   AssignedBY?: string;
   AssingnedON?: string;
-  ArtistId?: string; // UUID as string
+  ArtistId?: string;
+  Product?: string;
   created_at?: string;
-  Product?: string; // UUID as string
   Scheme?: string;
 }
 
@@ -55,7 +55,7 @@ export const useBookings = () => {
           ...booking,
           id: booking.id.toString(),
           uuid: booking.uuid || booking.id.toString(),
-          Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '', // Convert to string
+          Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '',
           ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
           Product: booking.Product ? booking.Product.toString() : undefined,
           // Use lowercase email only

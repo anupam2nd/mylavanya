@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -186,7 +187,8 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     return `${firstName} ${lastName}`.trim();
   };
 
-  export const handleSubmit = async () => {
+  // Removed the 'export' keyword here to fix the syntax error
+  const handleSubmit = async () => {
     if (!booking || !date || !time || !product || !selectedProductDetails) {
       toast({
         title: "Missing information",
