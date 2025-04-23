@@ -16,7 +16,7 @@ export interface Service {
   SubService?: string;
   price: number;
   originalPrice?: number;
-  Qty?: number;
+  Qty: number; // Changed from optional to required to match ServicesList expectations
 }
 
 // Export the type for reuse
@@ -50,7 +50,7 @@ const BookingDetails: React.FC<BookingDetailsProps> = ({ bookingDetails }) => {
     SubService: booking.SubService,
     price: booking.price || 0,
     originalPrice: booking.originalPrice,
-    Qty: booking.Qty
+    Qty: booking.Qty || 1  // Ensure Qty is always provided, default to 1 if not present
   }));
 
   return (
