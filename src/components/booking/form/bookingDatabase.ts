@@ -203,15 +203,15 @@ export async function insertBookings(params: {
         Address: data.address || "",
         Pincode: pincodeNum,
         name: data.name || "",
-        // We'll conditionally add the email field using the exact column name
         ServiceName: service.serviceName || "",
         SubService: service.subService || "",
         ProductName: service.productName || "",
-        jobno: jobNumber
+        jobno: jobNumber,
+        email: userEmail.toLowerCase() // Always include email field to ensure it's present
       };
 
-      // Use the exact email column name from the database
-      if (exactEmailColumn) {
+      // If we found a differently named email column, also set that one
+      if (exactEmailColumn && exactEmailColumn.toLowerCase() !== 'email') {
         bookingData[exactEmailColumn] = userEmail.toLowerCase();
       }
 
