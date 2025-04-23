@@ -1,72 +1,42 @@
-
 import React from "react";
-import AdminBookingsList from "./AdminBookingsList";
 import { Booking } from "@/hooks/useBookings";
-import { Artist } from "@/hooks/useBookingArtists";
+import { Card, CardContent } from "@/components/ui/card";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 interface BookingListContentProps {
-  loading: boolean;
   bookings: Booking[];
-  filteredBookings: Booking[];
-  handleEditClick: (booking: Booking) => void;
-  handleAddNewJob?: (booking: Booking) => void;
-  statusOptions: {status_code: string; status_name: string}[];
-  artists: Artist[];
-  handleStatusChange: (booking: Booking, newStatus: string) => Promise<void>;
-  handleArtistAssignment: (booking: Booking, artistId: string) => Promise<void>;
-  isEditingDisabled: boolean;
-  handleDeleteJob?: (booking: Booking) => Promise<void>;
-  handleScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;
-  sortField: string;
-  sortDirection: 'asc' | 'desc';
+  loading: boolean;
 }
 
-export function BookingListContent({ 
-  loading,
-  bookings,
-  filteredBookings,
-  handleEditClick, 
-  handleAddNewJob,
-  statusOptions,
-  artists,
-  handleStatusChange,
-  handleArtistAssignment,
-  isEditingDisabled,
-  handleDeleteJob,
-  handleScheduleChange,
-  sortField = "created_at",
-  sortDirection = "desc"
-}) {
-  const displayText = filteredBookings.length < bookings.length
-    ? `Showing ${filteredBookings.length} of ${bookings.length} bookings`
-    : `Showing ${bookings.length} bookings`;
+const BookingListContent: React.FC<BookingListContentProps> = ({ bookings, loading }) => {
+  if (loading) {
+    return <div>Loading bookings...</div>;
+  }
 
-  const sortText = sortField === "created_at" 
-    ? "creation date"
-    : "booking date";
+  if (!bookings || bookings.length === 0) {
+    return <div>No bookings found</div>;
+  }
 
   return (
     <div className="space-y-4">
-      <div className="text-sm text-muted-foreground">
-        {displayText}
-        <span className="ml-2">
-          sorted by {sortText} ({sortDirection === "desc" ? "newest first" : "oldest first"})
-        </span>
-      </div>
-      
-      <AdminBookingsList
-        bookings={filteredBookings}
-        loading={loading}
-        onEditClick={handleEditClick}
-        onAddNewJob={handleAddNewJob}
-        statusOptions={statusOptions}
-        artists={artists}
-        handleStatusChange={handleStatusChange}
-        handleArtistAssignment={handleArtistAssignment}
-        isEditingDisabled={isEditingDisabled}
-        onDeleteJob={handleDeleteJob}
-        onScheduleChange={handleScheduleChange}
-      />
+      {bookings.map((booking) => (
+        <Card key={booking.id}>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-semibold">{booking.Booking_NO}</h3>
+                <p className="text-sm text-gray-600">{booking.Booking_date}</p>
+                <p className="text-sm">
+                  {booking.name} | {booking.email || booking.Email || "No email provided"}
+                </p>
+              </div>
+              <StatusBadge status={booking.Status} />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
-}
+};
+
+export default BookingListContent;

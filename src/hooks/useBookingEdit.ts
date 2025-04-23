@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,7 @@ interface FormValues {
   quantity?: number;
   address?: string;
   pincode?: string;
+  email?: string; // Add email field to form values
   artistId?: string | null;
   currentUser?: { Username?: string } | null;
 }
@@ -76,6 +78,11 @@ export const useBookingEdit = (
         updates.Pincode = formValues.pincode ? parseInt(formValues.pincode) : null;
       }
 
+      // Handle email with correct capitalization
+      if (formValues.email !== undefined) {
+        updates.Email = formValues.email;
+      }
+
       if (formValues.artistId !== undefined) {
         if (formValues.artistId) {
           // Convert artistId string to number for database
@@ -101,6 +108,11 @@ export const useBookingEdit = (
       // For ArtistId, keep as string in the frontend
       if (updates.ArtistId !== undefined) {
         updatedBooking.ArtistId = formValues.artistId;
+      }
+
+      // Make sure email is properly updated in the frontend model
+      if (updates.Email) {
+        updatedBooking.email = updates.Email;
       }
 
       const updatedBookings = bookings.map(b => 

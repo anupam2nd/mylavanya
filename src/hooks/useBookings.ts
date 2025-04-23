@@ -9,7 +9,8 @@ export interface Booking {
   Booking_NO: string;
   jobno?: number;
   name: string;
-  email: string;
+  email: string; // Keep lowercase in the interface for consistent usage in code
+  Email?: string; // Add capitalized version too for database flexibility
   Phone_no: number;
   Address?: string;
   Pincode?: number;
@@ -47,14 +48,20 @@ export const useBookings = () => {
 
       if (error) throw error;
       
-      // Ensure all IDs are strings
-      const formattedBookings = data?.map(booking => ({
-        ...booking,
-        id: booking.id.toString(),
-        uuid: booking.uuid || booking.id.toString(),
-        ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
-        Product: booking.Product ? booking.Product.toString() : undefined
-      })) || [];
+      // Ensure all IDs are strings and handle email field properly
+      const formattedBookings = data?.map(booking => {
+        const formattedBooking = {
+          ...booking,
+          id: booking.id.toString(),
+          uuid: booking.uuid || booking.id.toString(),
+          ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
+          Product: booking.Product ? booking.Product.toString() : undefined,
+          // Handle email field - check if it's in Email or email
+          email: booking.Email || booking.email || '',
+        };
+        
+        return formattedBooking;
+      }) || [];
       
       setBookings(formattedBookings);
     } catch (error) {
