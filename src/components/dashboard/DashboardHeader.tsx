@@ -2,7 +2,6 @@
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { NotificationsBell } from "@/components/admin/notifications/NotificationsBell";
 
 interface DashboardHeaderProps {
   title: string;
@@ -26,11 +25,7 @@ export const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) =>
           </Button>
           <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
         </div>
-        <div className="flex items-center space-x-4">
-          {/* Only show bell if controller */}
-          {user?.role === "controller" && (
-            <NotificationsBell userEmail={user.email} />
-          )}
+        <div className="flex items-center">
           <span className="text-sm font-medium text-gray-900 mr-2">
             {user?.email}
           </span>
