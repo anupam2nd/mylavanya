@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   DropdownMenu,
@@ -52,8 +53,8 @@ const ProfileDropdown = () => {
   };
   
   return (
-    <div className="relative">
-      <MemberNotifications />
+    <div className="flex items-center gap-2">
+      {user?.role === "member" && <MemberNotifications />}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="border-primary/20">

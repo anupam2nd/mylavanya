@@ -68,6 +68,7 @@ export const useBookingStatusManagement = () => {
     
     try {
       setIsUpdatingStatus(true);
+      console.log("Starting status update for booking:", booking.id, "to status:", newStatus);
       
       // Ensure we have a valid number for bookingId
       let bookingIdNumber: number;
@@ -94,7 +95,7 @@ export const useBookingStatusManagement = () => {
         .eq('id', bookingIdNumber);
 
       if (error) {
-        console.error("Error updating status:", error);
+        console.error("Error updating status in database:", error);
         throw error;
       }
 

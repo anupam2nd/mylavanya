@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Booking } from "@/hooks/useBookings";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,7 +37,8 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
   booking,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { statusOptions, fetchStatusOptions, handleStatusChange } = useBookingStatusManagement();
+  const { statusOptions, fetchStatusOptions, handleStatusChange, isUpdatingStatus } = useBookingStatusManagement();
+  const { toast } = useToast();
   
   // Initialize form with react-hook-form and zod validation
   const form = useForm<ServiceFormValues>({
@@ -59,6 +60,8 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
   }, [isOpen, fetchStatusOptions]);
 
   const handleSubmit = async (values: ServiceFormValues) => {
+    if (isSubmitting || isUpdatingStatus) return;
+    
     try {
       setIsSubmitting(true);
       
@@ -66,7 +69,7 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
       if (values.Status !== booking.Status) {
         // Use the handleStatusChange function from the hook
         await handleStatusChange(booking, values.Status);
-        onClose();
+        onClose(); // Only close on success
       } else {
         toast({
           title: "No changes made",
@@ -75,8 +78,8 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
         onClose();
       }
     } catch (error) {
-      console.error("Error updating service:", error);
-      // We don't need to show an error toast here since handleStatusChange already does this
+      console.error("Error in handleSubmit:", error);
+      // Error toast is already shown in handleStatusChange
     } finally {
       setIsSubmitting(false);
     }
@@ -185,10 +188,10 @@ export const EditServiceDialog: React.FC<EditServiceDialogProps> = ({
               </Button>
               <Button 
                 type="submit" 
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUpdatingStatus}
                 className="sm:w-auto w-full"
               >
-                {isSubmitting ? "Saving..." : "Save Changes"}
+                {isSubmitting || isUpdatingStatus ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
           </form>

@@ -15,7 +15,7 @@ interface ArtistBookingDetailsProps {
 
 const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, onBack, onAddNewJob }) => {
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
-  const { statusOptions } = useBookingStatusManagement();
+  const { statusOptions, isUpdatingStatus } = useBookingStatusManagement();
 
   const handleEditService = () => {
     setIsServiceDialogOpen(true);
@@ -94,8 +94,10 @@ const ArtistBookingDetails: React.FC<ArtistBookingDetailsProps> = ({ booking, on
                 size="sm" 
                 onClick={handleEditService}
                 className="flex items-center"
+                disabled={isUpdatingStatus}
               >
-                <PenSquare className="mr-2 h-4 w-4" /> Update Status
+                <PenSquare className="mr-2 h-4 w-4" /> 
+                {isUpdatingStatus ? "Updating..." : "Update Status"}
               </Button>
             </div>
           </div>
