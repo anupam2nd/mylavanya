@@ -72,7 +72,7 @@ export const MemberNotifications = () => {
                   </div>
                   <div className="flex flex-col items-end ml-3">
                     <Button
-                      size="xs"
+                      size="sm"
                       variant={isAlert ? "destructive" : "ghost"}
                       onClick={() => markAsRead(notif.id)}
                       className="text-xs"
