@@ -52,7 +52,7 @@ export const useBookingSubmit = () => {
       const bookingRef = await generateBookingReference();
       setBookingReference(bookingRef);
       
-      console.log("Submitting booking with address details:", {
+      console.log("Submitting booking with full details:", {
         services: data.selectedServices,
         bookingRef,
         date: format(data.selectedDate, "yyyy-MM-dd"),
@@ -74,6 +74,7 @@ export const useBookingSubmit = () => {
           
         if (serviceError) {
           console.error("Error fetching service details:", serviceError);
+          throw serviceError; // Throw error to stop booking process
         }
           
         return {
@@ -109,7 +110,7 @@ export const useBookingSubmit = () => {
           Address: data.address,
           Pincode: data.pincode ? Number(data.pincode) : null,
           name: data.name,
-          email: data.email,
+          email: data.email, // Explicitly add email column
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,
