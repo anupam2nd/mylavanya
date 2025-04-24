@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -6,14 +7,11 @@ import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
 import NavTrackingButton from "@/components/ui/NavTrackingButton";
 import { ButtonCustom } from "@/components/ui/button-custom";
-import ProfileDropdown from "@/components/user/ProfileDropdown";
-import { MemberNotifications } from "@/components/user/MemberNotifications";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalTab, setAuthModalTab] = useState("member");
   const {
     user,
     isAuthenticated
@@ -39,24 +37,14 @@ const Navbar = () => {
 
   const navigateToDashboard = () => {
     closeMenu();
-    if (user?.role === "member") {
-      navigate("/user/bookings");
-    } else if (user?.role === "admin" || user?.role === "superadmin") {
+    if (user?.role === "admin" || user?.role === "superadmin") {
       navigate("/admin/dashboard");
-    } else if (user?.role === "artist") {
-      navigate("/artist/dashboard");
     } else {
       navigate("/user/dashboard");
     }
   };
 
-  const openMemberSignIn = () => {
-    setAuthModalTab("member");
-    setIsAuthModalOpen(true);
-  };
-
-  return (
-    <>
+  return <>
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white shadow-md py-2" : "bg-transparent py-4"}`}>
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
@@ -84,19 +72,10 @@ const Navbar = () => {
               {/* Login buttons */}
               <div className="flex items-center space-x-2">
                 {isAuthenticated ? (
-                  <div className="flex items-center space-x-4">
-                    {user?.role === 'controller' && <MemberNotifications />}
-                    {user?.role === 'member' ? (
-                      <ProfileDropdown />
-                    ) : (
-                      <Button onClick={navigateToDashboard}>
-                        {user?.role === 'member' ? "My Bookings" : "Dashboard"}
-                      </Button>
-                    )}
-                  </div>
+                  <Button onClick={navigateToDashboard}>Dashboard</Button>
                 ) : (
-                  <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className="border-primary/20 text-foreground">
-                    Sign In
+                  <ButtonCustom variant="outline" size="sm" onClick={() => setIsAuthModalOpen(true)} className="border-primary/20 text-foreground">
+                    Member Signin
                   </ButtonCustom>
                 )}
               </div>
@@ -108,6 +87,7 @@ const Navbar = () => {
           </div>
         </div>
 
+        {/* Mobile menu */}
         {isOpen && <div className="md:hidden bg-white shadow-lg py-4 px-4 absolute top-full left-0 right-0">
             <nav className="flex flex-col space-y-4">
               <Link to="/" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
@@ -124,59 +104,32 @@ const Navbar = () => {
               </Link>
               <NavTrackingButton isMobile={true} onClick={closeMenu} />
               
+              {/* Mobile login buttons */}
               <div className="pt-2 border-t border-gray-200">
                 {isAuthenticated ? (
-                  user?.role === 'member' ? (
-                    <div className="space-y-2">
-                      <Link to="/profile" className="block py-2 text-gray-700 hover:text-primary" onClick={closeMenu}>
-                        My Profile
-                      </Link>
-                      <Link to="/user/bookings" className="block py-2 text-gray-700 hover:text-primary" onClick={closeMenu}>
-                        My Bookings
-                      </Link>
-                      <Link to="/wishlist" className="block py-2 text-gray-700 hover:text-primary" onClick={closeMenu}>
-                        Wishlist
-                      </Link>
-                      <Button 
-                        variant="ghost" 
-                        className="text-red-500 hover:text-red-600 p-0 h-auto"
-                        onClick={() => {
-                          const { logout } = useAuth();
-                          logout();
-                          closeMenu();
-                        }}
-                      >
-                        Logout
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button onClick={() => {
-                      navigateToDashboard();
-                      closeMenu();
-                    }} className="w-full">
-                      {user?.role === 'member' ? "My Bookings" : "Dashboard"}
-                    </Button>
-                  )
+                  <Button onClick={() => {
+                    navigateToDashboard();
+                    closeMenu();
+                  }} className="w-full">
+                    Dashboard
+                  </Button>
                 ) : (
                   <ButtonCustom variant="outline" size="sm" onClick={() => {
-                    openMemberSignIn();
+                    setIsAuthModalOpen(true);
                     closeMenu();
                   }} className="border-primary/20 text-foreground w-full">
-                    Sign In
+                    Member Signin
                   </ButtonCustom>
                 )}
               </div>
             </nav>
           </div>}
       </header>
+      {/* Add spacing to account for fixed header */}
+      <div className={`${isScrolled ? "h-16" : "h-20"}`}></div>
       
-      <AuthModal 
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        defaultTab={authModalTab}
-      />
-    </>
-  );
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+    </>;
 };
 
 export default Navbar;

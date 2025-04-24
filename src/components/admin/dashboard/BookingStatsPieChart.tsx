@@ -8,16 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface BookingStatsPieChartProps {
   bookings: Booking[];
   loading: boolean;
-  startDate?: Date;
-  endDate?: Date;
 }
 
-export const BookingStatsPieChart = ({ 
-  bookings, 
-  loading, 
-  startDate, 
-  endDate 
-}: BookingStatsPieChartProps) => {
+export const BookingStatsPieChart = ({ bookings, loading }: BookingStatsPieChartProps) => {
   const statusData = useMemo(() => {
     // Group bookings by status
     const statusCounts: Record<string, number> = {};

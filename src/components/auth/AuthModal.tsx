@@ -1,11 +1,9 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AuthModalHeader from "./AuthModalHeader";
 import LoginForm from "./LoginForm";
-import MemberLoginForm from "./MemberLoginForm";
 import ArtistLoginForm from "./ArtistLoginForm";
-import RegisterForm from "./RegisterForm";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,84 +13,22 @@ interface AuthModalProps {
 
 export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: AuthModalProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [currentView, setCurrentView] = useState<"login" | "register">("login");
-  const [currentType, setCurrentType] = useState(defaultTab);
-  
-  // Reset to login view and sync current type whenever modal is opened or defaultTab changes
-  useEffect(() => {
-    if (isOpen) {
-      setCurrentView("login");
-      setCurrentType(defaultTab);
-    }
-  }, [isOpen, defaultTab]);
-
-  // Listen for tab switch events from login forms
-  useEffect(() => {
-    const handleSwitchToRegister = (e: CustomEvent) => {
-      setCurrentView("register");
-      setCurrentType(e.detail.role);
-    };
-    
-    const handleCloseModal = () => {
-      onClose();
-    };
-
-    window.addEventListener('switchToRegister', handleSwitchToRegister as EventListener);
-    window.addEventListener('closeAuthModal', handleCloseModal);
-    
-    return () => {
-      window.removeEventListener('switchToRegister', handleSwitchToRegister as EventListener);
-      window.removeEventListener('closeAuthModal', handleCloseModal);
-    };
-  }, [onClose]);
-  
-  // Determine the title based on current view and type
-  const getTitle = () => {
-    if (currentView === "register") {
-      return "Create Account";
-    }
-    
-    switch(currentType) {
-      case "artist":
-        return "Artist Sign In";
-      case "admin":
-        return "Admin Sign In";
-      default:
-        return "Member Sign In";
-    }
-  }
-
-  // Handle successful registration
-  const handleRegisterSuccess = (email: string, password: string) => {
-    // Switch back to login view
-    setCurrentView("login");
-  };
+  const [activeTab, setActiveTab] = useState(defaultTab);
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden">
         <AuthModalHeader 
-          title={getTitle()}
+          title={activeTab === "member" ? "Member Sign In" : "Artist Sign In"}
           onClose={onClose}
           isLoading={isLoading}
         />
         
         <div className="p-6">
-          {currentView === "login" ? (
-            // Login forms
-            currentType === "artist" ? (
-              <ArtistLoginForm />
-            ) : currentType === "admin" ? (
-              <LoginForm />
-            ) : (
-              <MemberLoginForm />
-            )
+          {activeTab === "member" ? (
+            <LoginForm />
           ) : (
-            // Registration form
-            <RegisterForm 
-              onSuccess={handleRegisterSuccess} 
-              userType={currentType}
-            />
+            <ArtistLoginForm />
           )}
         </div>
         

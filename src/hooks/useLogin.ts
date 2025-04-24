@@ -54,7 +54,7 @@ export function useLogin() {
       });
       
       // Redirect based on specific role
-      if (data.role === 'superadmin' || data.role === 'controller') {
+      if (data.role === 'superadmin') {
         navigate('/admin/status');
       } else if (data.role === 'admin') {
         navigate('/admin/dashboard');

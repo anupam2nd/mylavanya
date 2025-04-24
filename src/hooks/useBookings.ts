@@ -4,13 +4,11 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Booking {
-  id: string;
-  uuid: string;
+  id: number;
   Booking_NO: string;
   jobno?: number;
   name: string;
   email: string;
-  Email?: string;
   Phone_no: number;
   Address?: string;
   Pincode?: number;
@@ -21,17 +19,16 @@ export interface Booking {
   SubService?: string;
   ProductName?: string;
   price?: number;
-  originalPrice?: number;
   Qty?: number;
   Status: string;
   StatusUpdated?: string;
   Assignedto?: string;
   AssignedBY?: string;
   AssingnedON?: string;
-  ArtistId?: string;
-  Product?: string;
+  ArtistId?: number;
   created_at?: string;
-  Scheme?: string;
+  prod_id?: number; // Added this field to match with database schema
+  Scheme?: string;  // Added Scheme property to resolve TypeScript errors
 }
 
 export const useBookings = () => {
@@ -48,23 +45,7 @@ export const useBookings = () => {
         .order('Booking_date', { ascending: false });
 
       if (error) throw error;
-      
-      // Ensure all IDs are strings and handle email field properly
-      const formattedBookings = data?.map(booking => {
-        const formattedBooking: Booking = {
-          ...booking,
-          id: booking.id.toString(),
-          uuid: booking.uuid || booking.id.toString(),
-          Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '',
-          ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
-          Product: booking.Product ? booking.Product.toString() : undefined,
-          // Use lowercase email only
-          email: booking.email || '',
-        };
-        return formattedBooking;
-      }) || [];
-      
-      setBookings(formattedBookings);
+      setBookings(data || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast({

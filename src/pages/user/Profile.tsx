@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,92 +16,36 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: user?.email || "",
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
+    firstName: "",
+    lastName: "",
     phone: ""
   });
 
+  // Fetch existing profile data if available
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!user?.id) return;
       
       try {
-        console.log("Fetching profile data for user:", user);
-        
-        if (user.role === 'artist') {
-          const artistId = parseInt(user.id, 10);
-          if (!isNaN(artistId)) {
-            const { data, error } = await supabase
-              .from('ArtistMST')
-              .select('ArtistFirstName, ArtistLastName, ArtistPhno')
-              .eq('ArtistId', artistId)
-              .single();
-              
-            if (error) {
-              console.error("Error fetching artist profile:", error);
-              return;
-            }
-            
-            if (data) {
-              setFormData(prev => ({
-                ...prev,
-                email: user?.email || "", 
-                firstName: data.ArtistFirstName || "",
-                lastName: data.ArtistLastName || "",
-                phone: data.ArtistPhno?.toString() || ""
-              }));
-              console.log("Artist profile data loaded:", data);
-            }
-          }
-        } 
-        else if (user.role === 'member') {
-          const memberId = parseInt(user.id, 10);
-          if (!isNaN(memberId)) {
-            const { data, error } = await supabase
-              .from('MemberMST')
-              .select('MemberFirstName, MemberLastName, MemberPhNo, MemberEmailId, MemberAdress, MemberPincode')
-              .eq('id', memberId)
-              .single();
-              
-            if (error) {
-              console.error("Error fetching member profile:", error);
-              return;
-            }
-            
-            if (data) {
-              setFormData(prev => ({
-                ...prev,
-                email: data.MemberEmailId || user?.email || "",
-                firstName: data.MemberFirstName || "",
-                lastName: data.MemberLastName || "",
-                phone: data.MemberPhNo?.toString() || ""
-              }));
-              console.log("Member profile data loaded:", data);
-            }
-          }
-        }
-        else {
-          const { data, error } = await supabase
-            .from('UserMST')
-            .select('FirstName, LastName, Username, PhoneNo')
-            .eq('id', Number(user.id))
-            .single();
-            
-          if (error) {
-            console.error("Error fetching user profile:", error);
-            return;
-          }
+        const { data, error } = await supabase
+          .from('UserMST')
+          .select('FirstName, LastName, Username, PhoneNo')
+          .eq('id', Number(user.id))
+          .single();
           
-          if (data) {
-            setFormData(prev => ({
-              ...prev,
-              email: user?.email || "",
-              firstName: data.FirstName || "",
-              lastName: data.LastName || "",
-              phone: data.PhoneNo?.toString() || ""
-            }));
-            console.log("User profile data loaded:", data);
-          }
+        if (error) {
+          console.error("Error fetching profile:", error);
+          return;
+        }
+        
+        if (data) {
+          setFormData(prev => ({
+            ...prev,
+            email: user?.email || "", // Ensure email is properly set from auth context
+            firstName: data.FirstName || "",
+            lastName: data.LastName || "",
+            phone: data.PhoneNo?.toString() || "" // Now using PhoneNo field
+          }));
         }
       } catch (error) {
         console.error("Error in profile fetch:", error);
@@ -108,13 +53,17 @@ const Profile = () => {
     };
     
     fetchProfileData();
-  }, [user?.id, user?.email, user?.role, user?.firstName, user?.lastName]);
+  }, [user?.id, user?.email]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
+    // If it's the phone field, strip the prefix for storage but keep it for display
     if (name === 'phone') {
+      // Remove any non-digit characters for processing
       const digitsOnly = value.replace(/\D/g, '');
+      
+      // If it starts with India's code (91), remove it for storage
       const phoneNumber = digitsOnly.startsWith('91') ? digitsOnly.substring(2) : digitsOnly;
       
       setFormData(prev => ({ ...prev, [name]: phoneNumber }));
@@ -130,51 +79,18 @@ const Profile = () => {
     setIsLoading(true);
     
     try {
-      if (user.role === 'artist') {
-        const artistId = parseInt(user.id, 10);
-        if (!isNaN(artistId)) {
-          const { error } = await supabase
-            .from('ArtistMST')
-            .update({
-              ArtistFirstName: formData.firstName,
-              ArtistLastName: formData.lastName,
-              ArtistPhno: formData.phone ? Number(formData.phone) : null,
-              emailid: user.email
-            })
-            .eq('ArtistId', artistId);
-            
-          if (error) throw error;
-        }
-      } 
-      else if (user.role === 'member') {
-        const memberId = parseInt(user.id, 10);
-        if (!isNaN(memberId)) {
-          const { error } = await supabase
-            .from('MemberMST')
-            .update({
-              MemberFirstName: formData.firstName,
-              MemberLastName: formData.lastName,
-              MemberPhNo: formData.phone || null,
-              MemberEmailId: formData.email
-            })
-            .eq('id', memberId);
-            
-          if (error) throw error;
-        }
-      }
-      else {
-        const { error } = await supabase
-          .from('UserMST')
-          .upsert({
-            id: Number(user.id),
-            FirstName: formData.firstName,
-            LastName: formData.lastName,
-            PhoneNo: formData.phone ? Number(formData.phone) : null,
-            Username: user.email
-          });
-          
-        if (error) throw error;
-      }
+      // Update the UserMST table with the new profile data
+      const { error } = await supabase
+        .from('UserMST')
+        .upsert({
+          id: Number(user.id),
+          FirstName: formData.firstName,
+          LastName: formData.lastName,
+          PhoneNo: formData.phone ? Number(formData.phone) : null, // Now using PhoneNo field instead of Username
+          Username: user.email // Keep email in Username field
+        });
+        
+      if (error) throw error;
       
       toast({
         title: "Profile Updated",
@@ -192,6 +108,7 @@ const Profile = () => {
     }
   };
 
+  // Format phone number for display with India's ISD code
   const displayPhoneNumber = formData.phone ? `+91 ${formData.phone}` : '';
 
   return (
@@ -224,7 +141,7 @@ const Profile = () => {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      placeholder={user?.firstName || "Enter your first name"}
+                      placeholder="Enter your first name"
                     />
                   </div>
                   
@@ -235,7 +152,7 @@ const Profile = () => {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      placeholder={user?.lastName || "Enter your last name"}
+                      placeholder="Enter your last name"
                     />
                   </div>
                 </div>

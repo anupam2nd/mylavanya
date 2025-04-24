@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { isAfter, isBefore, startOfDay, endOfDay, parseISO } from "date-fns";
 import { Booking } from "./useBookings";
 
-export type FilterDateType = "booking_date" | "creation_date";
+export type FilterDateType = "booking" | "creation";
 export type SortDirection = "asc" | "desc";
 export type SortField = "creation_date" | "booking_date";
 
@@ -14,7 +14,7 @@ export const useBookingFilters = (bookings: Booking[]) => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showDateFilter, setShowDateFilter] = useState(false);
-  const [filterDateType, setFilterDateType] = useState<FilterDateType>("booking_date");
+  const [filterDateType, setFilterDateType] = useState<FilterDateType>("booking");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [sortField, setSortField] = useState<SortField>("creation_date");
 
@@ -23,7 +23,7 @@ export const useBookingFilters = (bookings: Booking[]) => {
     
     if (startDate && endDate) {
       result = result.filter(booking => {
-        const dateField = filterDateType === "booking_date" 
+        const dateField = filterDateType === "booking" 
           ? booking.Booking_date 
           : booking.created_at;
           
@@ -76,7 +76,7 @@ export const useBookingFilters = (bookings: Booking[]) => {
     setEndDate(undefined);
     setStatusFilter("all");
     setSearchQuery("");
-    setFilterDateType("booking_date");
+    setFilterDateType("booking");
     // Don't reset sort options when clearing filters
   };
 

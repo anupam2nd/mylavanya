@@ -23,7 +23,6 @@ const UserDashboard = () => {
       if (!user) return;
 
       try {
-        setIsLoading(true); // Fix: Changed from setLoading to setIsLoading
         // Get all bookings for the user
         const { data, error } = await supabase
           .from('BookMST')
@@ -34,12 +33,8 @@ const UserDashboard = () => {
         if (error) throw error;
         
         // Transform the data to match the BookingData interface
-        const transformedData: BookingData[] = data?.map(booking => ({
+        const transformedData = data?.map(booking => ({
           ...booking,
-          id: booking.id.toString(),
-          Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '',
-          ArtistId: booking.ArtistId ? booking.ArtistId.toString() : undefined,
-          Product: booking.Product ? booking.Product.toString() : undefined,
           ProductName: booking.Purpose // Use Purpose as ProductName since it's required
         })) || [];
         
@@ -61,7 +56,7 @@ const UserDashboard = () => {
       } catch (error) {
         console.error('Error fetching bookings:', error);
       } finally {
-        setIsLoading(false); // Fix: Changed from setLoading to setIsLoading
+        setIsLoading(false);
       }
     };
 

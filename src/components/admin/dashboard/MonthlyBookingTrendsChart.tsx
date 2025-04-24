@@ -1,205 +1,289 @@
 
-import { useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  Legend 
+} from "recharts";
+import { parseISO, subMonths, format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { Loader, Download } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
-import { parseISO, format } from "date-fns";
+import { ChartContainer } from "@/components/ui/chart";
+import { Button } from "@/components/ui/button";
 import { ExportButton } from "@/components/ui/export-button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+interface MonthlyBookingData {
+  name: string;
+  month: Date;
+  totalBookings: number;
+  confirmedBookings: number;
+  totalRevenue: number;
+}
 
 interface MonthlyBookingTrendsChartProps {
   bookings: Booking[];
   loading: boolean;
-  startDate: Date | undefined;
-  endDate: Date | undefined;
+  startDate?: Date;
+  endDate?: Date;
 }
 
-export const MonthlyBookingTrendsChart = ({ 
+const MonthlyBookingTrendsChart = ({ 
   bookings, 
   loading,
-  startDate,
-  endDate
+  startDate: externalStartDate,
+  endDate: externalEndDate
 }: MonthlyBookingTrendsChartProps) => {
-  
-  // Filter bookings based on date range
-  const filteredBookings = useMemo(() => {
-    if (!startDate || !endDate) return bookings;
-    
-    return bookings.filter(booking => {
-      const bookingDate = parseISO(booking.Booking_date);
-      return bookingDate >= startDate && bookingDate <= endDate;
-    });
-  }, [bookings, startDate, endDate]);
+  const [dateType, setDateType] = useState<"creation" | "booking">("creation");
+  const [showRevenue, setShowRevenue] = useState<boolean>(true);
 
-  // Prepare data for chart
   const chartData = useMemo(() => {
-    const monthlyData: Record<string, { total: number, confirmed: number, completed: number }> = {};
+    if (!bookings.length) return [];
     
-    // Initialize with empty values
-    for (let i = 0; i < 6; i++) {
-      const date = new Date();
-      date.setMonth(date.getMonth() - i);
-      const monthKey = format(date, "MMM yyyy");
-      monthlyData[monthKey] = { total: 0, confirmed: 0, completed: 0 };
+    // Calculate the date 6 months ago from today
+    const today = new Date();
+    
+    // Create an array of the last 6 months
+    const months: MonthlyBookingData[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = subMonths(today, i);
+      months.push({
+        name: format(monthDate, 'MMM yyyy'),
+        month: monthDate,
+        totalBookings: 0,
+        confirmedBookings: 0,
+        totalRevenue: 0
+      });
     }
     
-    // Populate with actual data
-    filteredBookings.forEach(booking => {
-      if (!booking.Booking_date) return;
+    // Count bookings for each month based on the selected date type
+    bookings.forEach(booking => {
+      const dateField = dateType === "creation" 
+        ? booking.created_at 
+        : booking.Booking_date;
       
-      const date = parseISO(booking.Booking_date);
-      const monthKey = format(date, "MMM yyyy");
+      if (!dateField) return;
       
-      if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = { total: 0, confirmed: 0, completed: 0 };
+      const bookingDate = parseISO(dateField);
+      
+      // Check if external date filters are applied
+      if (externalStartDate && externalEndDate) {
+        if (
+          bookingDate < externalStartDate ||
+          bookingDate > externalEndDate
+        ) {
+          return; // Skip if outside the filter range
+        }
       }
       
-      monthlyData[monthKey].total += 1;
-      
-      if (booking.Status === 'confirmed' || booking.Status === 'done' || booking.Status === 'beautician_assigned') {
-        monthlyData[monthKey].confirmed += 1;
-      }
-      
-      if (booking.Status === 'done') {
-        monthlyData[monthKey].completed += 1;
-      }
+      // Check if the booking is within the last 6 months
+      months.forEach(monthData => {
+        const monthStart = startOfMonth(monthData.month);
+        const monthEnd = endOfMonth(monthData.month);
+        
+        if (isWithinInterval(bookingDate, { start: monthStart, end: monthEnd })) {
+          // Count all bookings regardless of status for totalBookings
+          monthData.totalBookings += 1;
+          
+          // Only count bookings that are not pending or cancelled for confirmedBookings
+          const isPendingOrCancelled = 
+            booking.Status === "P" || 
+            booking.Status === "Pending" || 
+            booking.Status === "C" || 
+            booking.Status === "Cancelled";
+          
+          if (!isPendingOrCancelled) {
+            monthData.confirmedBookings += 1;
+            
+            // Sum up the price for revenue calculation (only for confirmed bookings)
+            if (booking.price) {
+              monthData.totalRevenue += Number(booking.price);
+            }
+          }
+        }
+      });
     });
     
-    // Convert to array for recharts
-    return Object.entries(monthlyData)
-      .map(([name, data]) => ({
-        name,
-        ...data
-      }))
-      .sort((a, b) => {
-        // Sort by date (assuming format is "MMM yyyy")
-        const dateA = new Date(a.name);
-        const dateB = new Date(b.name);
-        return dateA.getTime() - dateB.getTime();
-      });
-  }, [filteredBookings]);
+    return months;
+  }, [bookings, dateType, externalStartDate, externalEndDate]);
 
-  const chartConfig = {
-    total: { 
-      theme: { 
-        light: "#6366f1",
-        dark: "#818cf8" 
-      } 
-    },
-    confirmed: { 
-      theme: { 
-        light: "#10b981",
-        dark: "#34d399" 
-      } 
-    },
-    completed: { 
-      theme: { 
-        light: "#f59e0b",
-        dark: "#fbbf24" 
-      } 
-    },
-  };
-  
   // Prepare export data
-  const exportData = useMemo(() => {
-    return chartData.map(item => ({
-      month: item.name,
-      total: item.total,
-      confirmed: item.confirmed,
-      completed: item.completed
-    }));
-  }, [chartData]);
+  const exportData = chartData.map(month => ({
+    Month: month.name,
+    'Total Bookings': month.totalBookings,
+    'Confirmed Bookings': month.confirmedBookings,
+    'Total Revenue': month.totalRevenue,
+  }));
 
-  const exportHeaders = {
-    month: "Month",
-    total: "Total Bookings",
-    confirmed: "Confirmed Bookings",
-    completed: "Completed Bookings"
-  };
-
+  // Return loading state if applicable
   if (loading) {
     return (
-      <Card>
+      <Card className="col-span-full">
         <CardHeader>
-          <CardTitle>Monthly Booking Trends</CardTitle>
-          <CardDescription>Loading statistics...</CardDescription>
+          <CardTitle>Booking Trends (Last 6 Months)</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center">
-          <p className="text-muted-foreground">Loading chart data...</p>
+        <CardContent className="flex justify-center items-center h-80">
+          <Loader className="h-8 w-8 animate-spin text-primary" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="col-span-full">
+      <CardHeader className="flex flex-row items-start justify-between">
         <div>
-          <CardTitle>Monthly Booking Trends</CardTitle>
-          <CardDescription>Total, confirmed and completed bookings</CardDescription>
+          <CardTitle>Booking Trends (Last 6 Months)</CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Based on {dateType === "creation" ? "creation" : "booking"} date
+          </p>
         </div>
-        <ExportButton 
-          data={exportData}
-          filename="monthly_booking_trends"
-          headers={exportHeaders}
-          buttonText="Export Data"
-        />
+        <div className="flex space-x-2">
+          <Select 
+            defaultValue={dateType} 
+            onValueChange={(value) => setDateType(value as "creation" | "booking")}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select date type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="creation">Creation Date</SelectItem>
+              <SelectItem value="booking">Booking Date</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuRadioGroup>
+                <ExportButton 
+                  data={exportData} 
+                  filename={`booking_trends_${dateType}`}
+                  buttonText="Export to CSV"
+                  variant="ghost"
+                />
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <Button 
+            variant="outline" 
+            onClick={() => setShowRevenue(!showRevenue)}
+          >
+            {showRevenue ? "Hide Revenue" : "Show Revenue"}
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="h-[300px]">
-          <ChartContainer config={chartConfig}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartData}
-                margin={{
-                  top: 5,
-                  right: 30,
-                  left: 20,
-                  bottom: 30, // Increased bottom margin for x-axis labels
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 11 }} // Smaller font for labels
-                  dy={5} // Distance from axis
-                  angle={-45} // Angle the labels
-                  textAnchor="end" // Align angled text
-                />
+      <CardContent className="h-80">
+        <ChartContainer
+          className="h-full w-full"
+          config={{
+            totalBookings: {
+              label: "Total Bookings",
+              color: "#8884d8"
+            },
+            confirmedBookings: {
+              label: "Confirmed Bookings",
+              color: "#82ca9d"
+            },
+            totalRevenue: {
+              label: "Revenue",
+              color: "#ff7300"
+            }
+          }}
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={chartData}
+              margin={{
+                top: 5,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="name"
+                tick={{ fill: 'var(--muted-foreground)' }}
+              />
+              <YAxis 
+                yAxisId="left"
+                allowDecimals={false}
+                tick={{ fill: 'var(--muted-foreground)' }}
+              />
+              {showRevenue && (
                 <YAxis 
-                  tick={{ fontSize: 11 }} 
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fill: 'var(--muted-foreground)' }}
                 />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '0.5rem',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
+              )}
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--background)',
+                  borderColor: 'var(--border)',
+                  borderRadius: '0.5rem'
+                }}
+                labelStyle={{ fontWeight: 'bold' }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="totalBookings"
+                name="Total Bookings"
+                stroke="#8884d8"
+                activeDot={{ r: 8 }}
+                strokeWidth={2}
+                yAxisId="left"
+              />
+              <Line
+                type="monotone"
+                dataKey="confirmedBookings"
+                name="Confirmed Bookings"
+                stroke="#82ca9d"
+                activeDot={{ r: 6 }}
+                strokeWidth={2}
+                yAxisId="left"
+              />
+              {showRevenue && (
+                <Line
+                  type="monotone"
+                  dataKey="totalRevenue"
+                  name="Revenue"
+                  stroke="#ff7300"
+                  activeDot={{ r: 6 }}
+                  strokeWidth={2}
+                  yAxisId="right"
                 />
-                <Legend />
-                <Bar 
-                  dataKey="total" 
-                  name="Total" 
-                  fill="#6366f1" 
-                  radius={[4, 4, 0, 0]} 
-                />
-                <Bar 
-                  dataKey="confirmed" 
-                  name="Confirmed" 
-                  fill="#10b981" 
-                  radius={[4, 4, 0, 0]} 
-                />
-                <Bar 
-                  dataKey="completed" 
-                  name="Completed" 
-                  fill="#f59e0b" 
-                  radius={[4, 4, 0, 0]} 
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </div>
+              )}
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartContainer>
       </CardContent>
     </Card>
   );

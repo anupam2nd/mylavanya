@@ -1,5 +1,4 @@
 
-// Updating only the artists state definition and the ArtistId type
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Clock, CalendarIcon } from "lucide-react";
@@ -58,7 +57,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   handleSaveChanges,
   statusOptions,
 }) => {
-  const [artists, setArtists] = useState<{ ArtistId: string; displayName: string }[]>([]);
+  const [artists, setArtists] = useState<{ ArtistId: number; displayName: string }[]>([]);
   const [requiresArtist, setRequiresArtist] = useState(false);
   
   const form = useForm<EditBookingFormValues>({
@@ -88,7 +87,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
         if (error) throw error;
         
         const formattedArtists = data.map(artist => ({
-          ArtistId: artist.ArtistId.toString(), // Convert to string
+          ArtistId: artist.ArtistId,
           displayName: `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || `Artist ${artist.ArtistId}`
         }));
         
@@ -101,11 +100,13 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
     fetchArtists();
   }, []);
 
+  // Check if artist assignment is required based on status
   useEffect(() => {
     const statuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done', 'OnTheway', 'Start'];
     setRequiresArtist(statuses.includes(watchStatus));
   }, [watchStatus]);
 
+  // Reset form when booking changes
   useEffect(() => {
     if (editBooking) {
       form.reset({
@@ -123,6 +124,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   const onSubmit = (data: EditBookingFormValues) => {
     console.log("Submitting form data:", data);
     
+    // Check if artist is required but not selected
     if (requiresArtist && !data.artistId) {
       form.setError("artistId", { 
         type: "manual", 
@@ -301,8 +303,8 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                         <FormLabel className="text-right">Assign Artist</FormLabel>
                         <div className="col-span-3">
                           <Select
-                            onValueChange={(value) => field.onChange(value)}
-                            value={field.value || ""}
+                            onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                            value={field.value?.toString() || ""}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -311,7 +313,7 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
                             </FormControl>
                             <SelectContent>
                               {artists.map((artist) => (
-                                <SelectItem key={artist.ArtistId} value={artist.ArtistId}>
+                                <SelectItem key={artist.ArtistId} value={artist.ArtistId.toString()}>
                                   {artist.displayName}
                                 </SelectItem>
                               ))}

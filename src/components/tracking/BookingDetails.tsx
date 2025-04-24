@@ -1,32 +1,40 @@
 
-import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Booking } from '@/hooks/useBookings';
-import BookingHeader from './BookingHeader';
-import BookingReference from './BookingReference';
-import CustomerDetails from './CustomerDetails';
-import ServicesList from './ServicesList';
-import TotalAmount from './TotalAmount';
+import { Card } from "@/components/ui/card";
+import BookingHeader from "./BookingHeader";
+import BookingReference from "./BookingReference";
+import CustomerDetails from "./CustomerDetails";
+import ServicesList from "./ServicesList";
+import TotalAmount from "./TotalAmount";
 
-// Define a Service interface to match what ServicesList expects
-export interface Service {
-  id: string;
-  ProductName: string;
-  ServiceName?: string;
-  SubService?: string;
-  price: number;
-  originalPrice?: number;
-  Qty: number; // Changed from optional to required to match ServicesList expectations
-}
-
-// Export the type for reuse
-export type BookingData = Booking;
-
-interface BookingDetailsProps {
+export interface BookingDetailsProps {
   bookingDetails: BookingData[];
 }
 
-const BookingDetails: React.FC<BookingDetailsProps> = ({ bookingDetails }) => {
+export interface BookingData {
+  Booking_NO: string;
+  Purpose: string;
+  Phone_no: number;
+  Booking_date: string;
+  booking_time: string;
+  Status: string;
+  price: number;
+  originalPrice?: number;
+  ProductName: string;
+  Qty: number;
+  Address?: string;
+  Pincode?: number;
+  name?: string;
+  email?: string;
+  id?: number;
+  Services?: string;
+  Subservice?: string;
+  Assignedto?: string;
+  AssignedBY?: string;
+  ArtistId?: number;
+  jobno?: number;
+}
+
+const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
   if (!bookingDetails || bookingDetails.length === 0) return null;
 
   const firstBooking = bookingDetails[0];
@@ -42,25 +50,14 @@ const BookingDetails: React.FC<BookingDetailsProps> = ({ bookingDetails }) => {
   // Only set original amount if different from total
   const displayOriginalAmount = totalOriginalAmount > totalAmount ? totalOriginalAmount : undefined;
 
-  // Convert bookings to services for the ServicesList component
-  const services: Service[] = bookingDetails.map(booking => ({
-    id: booking.id,
-    ProductName: booking.ProductName || '',
-    ServiceName: booking.ServiceName,
-    SubService: booking.SubService,
-    price: booking.price || 0,
-    originalPrice: booking.originalPrice,
-    Qty: booking.Qty || 1  // Ensure Qty is always provided, default to 1 if not present
-  }));
-
   return (
-    <div className="mt-6">
+    <div className="mt-8">
       <BookingHeader />
       <div className="bg-gray-50 rounded-lg border p-6">
         <div className="grid grid-cols-2 gap-4">
           <BookingReference reference={firstBooking.Booking_NO} />
           <CustomerDetails booking={firstBooking} />
-          <ServicesList services={services} />
+          <ServicesList services={bookingDetails} />
           <TotalAmount amount={totalAmount} originalAmount={displayOriginalAmount} />
         </div>
       </div>

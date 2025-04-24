@@ -8,32 +8,9 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast"
-import { Button } from "@/components/ui/button"
-import { useNavigate as useReactRouterNavigate } from "react-router-dom"
-import { ShoppingBag } from "lucide-react"
-
-// Custom hook to safely use navigation
-const useNavigateSafe = () => {
-  try {
-    // Try to use the navigate hook but catch any errors
-    return useReactRouterNavigate();
-  } catch (error) {
-    // Return a no-op function if navigate isn't available
-    return () => console.warn("Navigation attempted outside Router context");
-  }
-};
 
 export function Toaster() {
   const { toasts } = useToast()
-  const navigate = useNavigateSafe()
-
-  const handleNavigate = (path: string) => {
-    try {
-      navigate(path);
-    } catch (error) {
-      console.warn("Failed to navigate:", error);
-    }
-  };
 
   return (
     <ToastProvider>
@@ -68,16 +45,8 @@ export function Toaster() {
                 // If this is the payment note
                 else if (line.includes('not confirmed')) {
                   return (
-                    <div key={index} className="font-semibold text-lg bg-red-50 p-2 rounded border border-red-200 text-red-700 mt-2 flex justify-between items-center">
-                      <span>{line}</span>
-                      <Button 
-                        onClick={() => handleNavigate('/user/checkout')} 
-                        className="ml-4 flex items-center gap-2"
-                        size="sm"
-                      >
-                        <ShoppingBag className="h-4 w-4" />
-                        Checkout
-                      </Button>
+                    <div key={index} className="font-semibold text-lg bg-red-50 p-2 rounded border border-red-200 text-red-700 mt-2">
+                      {line}
                     </div>
                   );
                 }

@@ -8,11 +8,6 @@ import { Asterisk } from "lucide-react";
 const TimePickerField = () => {
   const form = useFormContext<BookingFormValues>();
   
-  const handleTimeChange = (time: string) => {
-    console.log("TimePickerField - Selected time:", time);
-    form.setValue("selectedTime", time);
-  };
-  
   return (
     <FormField
       control={form.control}
@@ -24,9 +19,8 @@ const TimePickerField = () => {
             {requiredFields.selectedTime && <Asterisk className="h-3 w-3 text-red-500" />}
           </FormLabel>
           <Select
-            onValueChange={handleTimeChange}
+            onValueChange={field.onChange}
             defaultValue={field.value}
-            value={field.value}
           >
             <FormControl>
               <SelectTrigger>
@@ -35,10 +29,7 @@ const TimePickerField = () => {
             </FormControl>
             <SelectContent>
               {timeSlots.map((time) => (
-                <SelectItem 
-                  key={time} 
-                  value={time}
-                >
+                <SelectItem key={time} value={time}>
                   {time}
                 </SelectItem>
               ))}

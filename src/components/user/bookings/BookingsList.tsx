@@ -1,226 +1,164 @@
+
 import React, { useState, useEffect } from "react";
-import { Booking } from "@/hooks/useBookings";
-import { useBookingStatusManagement } from "@/hooks/useBookingStatusManagement";
-import { useBookingArtists, Artist } from "@/hooks/useBookingArtists";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { BookingsFallback } from "./components/BookingsFallback";
-import { MemberBookingsList } from "./components/MemberBookingsList";
-import { AdminBookingsView } from "./components/AdminBookingsList";
-import { BookingEditDialog } from "./components/BookingEditDialog";
+import { BookingData } from "@/components/tracking/BookingDetails";
+import UserBookingFilters from './UserBookingFilters';
+import { useBookingFilters } from '@/hooks/useBookingFilters';
+import { useStatusOptions } from '@/hooks/useStatusOptions';
+import { Booking } from '@/hooks/useBookings';
 
-interface BookingsListProps {
-  customBookings?: Booking[];
-  customLoading?: boolean;
-  userRole?: string;
-  onEditClick?: (booking: Booking) => void;
-  onAddNewJob?: (booking: Booking) => void;
-  statusOptions?: {status_code: string; status_name: string}[];
-  artists?: Artist[];
-  handleStatusChange?: (booking: Booking, newStatus: string) => Promise<void>;
-  handleArtistAssignment?: (booking: Booking, artistId: string) => Promise<void>;
-  isEditingDisabled?: boolean;
-  onDeleteJob?: (booking: Booking) => Promise<void>;
-  onScheduleChange?: (booking: Booking, date: string, time: string) => Promise<void>;
-  onViewBooking?: (booking: Booking) => void;
-}
-
-const BookingsList = ({
-  customBookings,
-  customLoading,
-  userRole = "user",
-  onEditClick,
-  onAddNewJob,
-  statusOptions: externalStatusOptions,
-  artists: externalArtists,
-  handleStatusChange: externalStatusChange,
-  handleArtistAssignment: externalArtistAssignment,
-  isEditingDisabled: externalEditingDisabled,
-  onDeleteJob: externalDeleteJob,
-  onScheduleChange: externalScheduleChange,
-  onViewBooking
-}: BookingsListProps) => {
-  const { user } = useAuth();
-  const { statusOptions: internalStatusOptions, fetchStatusOptions, handleStatusChange: internalStatusChange, handleArtistAssignment: internalArtistAssignment } = useBookingStatusManagement();
-  const { artists: internalArtists } = useBookingArtists();
-  
-  const isArtist = userRole === "artist" || user?.role === "artist";
-  const isMember = userRole === "member" || user?.role === "member";
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller';
-
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+const BookingsList = () => {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const statusOptions = externalStatusOptions || internalStatusOptions;
-  const artists = externalArtists || internalArtists;
-  const isEditingDisabled = externalEditingDisabled !== undefined ? externalEditingDisabled : (isArtist || isMember);
-
-  const bookingGroups = bookings.reduce((groups: Record<string, Booking[]>, booking) => {
-    const key = booking.Booking_NO || '';
-    if (!groups[key]) {
-      groups[key] = [];
-    }
-    groups[key].push(booking);
-    return groups;
-  }, {});
-
-  const primaryBookings = isMember ? 
-    Object.values(bookingGroups).map(group => ({
-      ...group[0],
-      serviceCount: group.length
-    })) : 
-    bookings;
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchStatusOptions();
-  }, []);
+    if (!isAuthenticated) {
+      navigate("/");
+      return;
+    }
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
-    if (customBookings !== undefined) {
-      setBookings(customBookings);
-      setLoading(customLoading || false);
-    }
-  }, [customBookings, customLoading]);
+    const fetchBookings = async () => {
+      if (!user) return;
 
-  const handleStatusChangeWrapper = async (booking: Booking, newStatus: string) => {
-    if (externalStatusChange) {
-      await externalStatusChange(booking, newStatus);
-    } else {
-      await internalStatusChange(booking, newStatus);
-      
-      setBookings(prevBookings => 
-        prevBookings.map(b => b.id === booking.id ? { ...b, Status: newStatus } : b)
-      );
-    }
-  };
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('BookMST')
+          .select('*')
+          .eq('email', user.email)
+          .order('Booking_date', { ascending: false });
 
-  const handleArtistAssignmentWrapper = async (booking: Booking, artistId: string) => {
-    try {
-      if (externalArtistAssignment) {
-        await externalArtistAssignment(booking, artistId);
-      } else {
-        await internalArtistAssignment(booking, artistId);
-      
-        const artist = artists.find(a => a.ArtistId === artistId);
-        if (artist) {
-          const artistName = `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim();
-          setBookings(prevBookings => 
-            prevBookings.map(b => b.id === booking.id ? { ...b, ArtistId: artistId, Assignedto: artistName } : b)
-          );
-        }
+        if (error) throw error;
+
+        // Transform the data to match the Booking interface
+        const transformedData = data?.map(booking => ({
+          id: booking.id,
+          Booking_NO: booking.Booking_NO || '',
+          name: booking.name || '',
+          email: booking.email || '',
+          Phone_no: booking.Phone_no,
+          Booking_date: booking.Booking_date,
+          booking_time: booking.booking_time,
+          Purpose: booking.Purpose,
+          Status: booking.Status || '',
+          price: booking.price || 0,
+          Address: booking.Address,
+          Pincode: booking.Pincode,
+          created_at: booking.created_at
+        })) || [];
+
+        setBookings(transformedData);
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error assigning artist:", error);
-    }
-  };
+    };
 
-  const updateBookingSchedule = async (booking: Booking, date: string, time: string): Promise<void> => {
-    if (externalScheduleChange) {
-      return externalScheduleChange(booking, date, time);
-    }
-    
-    try {
-      const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
-      
-      const { error } = await supabase
-        .from('BookMST')
-        .update({ 
-          Booking_date: date, 
-          booking_time: time 
-        })
-        .eq('id', bookingId);
-
-      if (error) throw error;
-      
-      setBookings(prevBookings => 
-        prevBookings.map(b => b.id === booking.id ? { ...b, Booking_date: date, booking_time: time } : b)
-      );
-    } catch (error) {
-      console.error("Error updating booking schedule:", error);
-    }
-  };
-
-  const deleteJob = async (booking: Booking): Promise<void> => {
-    if (externalDeleteJob) {
-      return externalDeleteJob(booking);
-    }
-    
-    try {
-      const bookingId = typeof booking.id === 'string' ? parseInt(booking.id) : booking.id;
-      
-      const { error } = await supabase
-        .from('BookMST')
-        .delete()
-        .eq('id', bookingId);
-
-      if (error) throw error;
-      
-      setBookings(prevBookings => 
-        prevBookings.filter(b => b.id !== booking.id)
-      );
-    } catch (error) {
-      console.error("Error deleting job:", error);
-    }
-  };
-
-  const handleEditClick = (booking: Booking) => {
-    if (!isMember && onEditClick) {
-      onEditClick(booking);
-    } else {
-      setSelectedBooking(booking);
-      setIsEditDialogOpen(true);
-    }
-  };
-
-  const handleDeleteJobWrapper = async (booking: Booking): Promise<void> => {
-    if (window.confirm(`Are you sure you want to delete job #${booking.jobno}?`)) {
-      await deleteJob(booking);
-    }
-  };
-
-  const isEmpty = bookings.length === 0;
-
+    fetchBookings();
+  }, [user, isAuthenticated, navigate]);
+  
+  // Add these new hooks for filtering
+  const { statusOptions, formattedStatusOptions } = useStatusOptions();
+  const {
+    filteredBookings,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    statusFilter,
+    setStatusFilter,
+    searchQuery,
+    setSearchQuery,
+    showDateFilter,
+    setShowDateFilter,
+    filterDateType,
+    setFilterDateType,
+    sortDirection,
+    setSortDirection,
+    sortField,
+    setSortField,
+    clearFilters
+  } = useBookingFilters(bookings);
+  
   return (
     <div className="space-y-6">
-      <BookingsFallback loading={loading} isEmpty={isEmpty} />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
+        <h2 className="text-2xl font-semibold">Your Bookings</h2>
+        <UserBookingFilters
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          clearFilters={clearFilters}
+          statusOptions={formattedStatusOptions}
+          showDateFilter={showDateFilter}
+          setShowDateFilter={setShowDateFilter}
+          filterDateType={filterDateType}
+          setFilterDateType={setFilterDateType}
+          sortDirection={sortDirection}
+          setSortDirection={setSortDirection}
+          sortField={sortField}
+          setSortField={setSortField}
+        />
+      </div>
       
-      {!loading && !isEmpty && (
-        <>
-          {isMember ? (
-            <MemberBookingsList 
-              primaryBookings={primaryBookings} 
-              bookingGroups={bookingGroups}
-              onViewBooking={onViewBooking}
-              statusOptions={statusOptions}
-              artists={artists}
-              handleStatusChange={handleStatusChangeWrapper}
-              handleArtistAssignment={handleArtistAssignmentWrapper}
-            />
-          ) : (
-            <AdminBookingsView 
-              bookingGroups={bookingGroups}
-              onEditClick={handleEditClick}
-              onDeleteJob={handleDeleteJobWrapper}
-              isEditingDisabled={isEditingDisabled}
-              handleStatusChange={handleStatusChangeWrapper}
-              handleArtistAssignment={handleArtistAssignmentWrapper}
-              updateBookingSchedule={updateBookingSchedule}
-              statusOptions={statusOptions}
-              artists={artists}
-              onViewBooking={onViewBooking}
-              isMember={isMember}
-            />
+      {isLoading ? (
+        <div className="flex justify-center items-center py-10">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        </div>
+      ) : filteredBookings.length === 0 ? (
+        <div className="text-center py-10">
+          <p className="text-muted-foreground">No bookings found.</p>
+          {bookings.length > 0 && filteredBookings.length === 0 && (
+            <Button variant="outline" className="mt-4" onClick={clearFilters}>
+              Clear Filters
+            </Button>
           )}
-        </>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {filteredBookings.map((booking) => (
+            <Card key={booking.Booking_NO}>
+              <CardHeader>
+                <CardTitle>{booking.Purpose}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center text-sm text-muted-foreground mb-2">
+                  <Calendar className="w-4 h-4 mr-1" />
+                  <span>{booking.Booking_date}</span>
+                  <Clock className="w-4 h-4 ml-3 mr-1" />
+                  <span>{booking.booking_time}</span>
+                </div>
+                <div className="text-sm text-muted-foreground mb-2">
+                  <span>Phone: {booking.Phone_no}</span>
+                </div>
+                <div className={`px-3 py-1 text-xs font-medium rounded-full inline-block
+                      ${booking.Status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        booking.Status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                          booking.Status === 'beautician_assigned' ? 'bg-purple-100 text-purple-800' :
+                            booking.Status === 'done' ? 'bg-green-100 text-green-800' :
+                              'bg-red-100 text-red-800'}`}>
+                  {booking.Status?.toUpperCase() || 'PENDING'}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
-
-      <BookingEditDialog 
-        selectedBooking={selectedBooking}
-        isDialogOpen={isEditDialogOpen}
-        setIsDialogOpen={setIsEditDialogOpen}
-      />
     </div>
   );
 };

@@ -125,7 +125,7 @@ const AdminStatus = () => {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['superadmin', 'controller']}>
+    <ProtectedRoute allowedRoles={['superadmin']}>
       <DashboardLayout title="Status Management">
         <Card>
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">

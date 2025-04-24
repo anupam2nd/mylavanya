@@ -1,18 +1,14 @@
 
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { Calendar, Sparkles } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
 
 interface BookingBannerProps {
   onBookNow: () => void;
 }
 
 const BookingBanner = ({ onBookNow }: BookingBannerProps) => {
-  const { user } = useAuth();
-  const isMember = user?.role === 'member';
-  
   return (
-    <div className="relative overflow-hidden py-20 bg-gradient-to-br from-gray-500 to-gray-900">
+    <div className="relative overflow-hidden py-20">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-primary to-rose-400 -z-10"></div>
       
@@ -21,11 +17,11 @@ const BookingBanner = ({ onBookNow }: BookingBannerProps) => {
       <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-white opacity-10 blur-3xl"></div>
       <div className="absolute bottom-10 right-10 w-60 h-60 rounded-full bg-white opacity-10 blur-3xl"></div>
       
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/20 text-white text-sm mb-6 backdrop-blur-sm border border-white/30">
+          <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/20 text-white text-sm mb-6 backdrop-blur-sm">
             <Sparkles size={16} className="mr-2" />
-            <span className="font-medium">Limited Time Offer</span>
+            <span>Limited Time Offer</span>
           </div>
           
           <h2 className="text-3xl font-display font-bold text-white sm:text-4xl mb-6">
@@ -35,23 +31,15 @@ const BookingBanner = ({ onBookNow }: BookingBannerProps) => {
             Our team of professional makeup artists and hair stylists are ready to transform your look for any special occasion.
           </p>
           
-          {isMember && (
-            <ButtonCustom
-              variant="glass"
-              size="lg"
-              onClick={onBookNow}
-              className="hover:bg-blue-100/70 bg-blue-100"
-            >
-              <Calendar className="mr-2" size={18} />
-              Schedule Appointment
-            </ButtonCustom>
-          )}
-          
-          {!isMember && user && (
-            <p className="text-white text-sm mt-4">
-              Note: Only members can book services. Please login as a member to make a booking.
-            </p>
-          )}
+          <ButtonCustom
+            variant="glass"
+            size="lg"
+            onClick={onBookNow}
+            className="hover:bg-white/30 backdrop-blur-md"
+          >
+            <Calendar className="mr-2" size={18} />
+            Schedule Appointment
+          </ButtonCustom>
         </div>
       </div>
     </div>

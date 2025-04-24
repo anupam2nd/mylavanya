@@ -20,18 +20,11 @@ import AdminServices from "./pages/admin/AdminServices";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminStatus from "./pages/admin/AdminStatus";
 import AdminArtists from "./pages/admin/AdminArtists";
-import ArtistManagement from "./pages/admin/ArtistManagement";
-import AdminWishlistInsights from "./pages/admin/AdminWishlistInsights";
 import UserDashboard from "./pages/user/UserDashboard";
 import UserBookings from "./pages/user/UserBookings";
 import Profile from "./pages/user/Profile";
 import Settings from "./pages/user/Settings";
 import ArtistDashboard from "./pages/artist/ArtistDashboard";
-import ArtistBookings from "./pages/artist/ArtistBookings";
-import Wishlist from "./pages/user/Wishlist";
-import Checkout from "./pages/user/Checkout";
-import MemberManagement from "./pages/admin/MemberManagement";
-import MembersManagement from "./pages/admin/MembersManagement";
 
 // Log to confirm App is being loaded
 console.log("App component rendering");
@@ -45,56 +38,47 @@ const queryClient = new QueryClient({
   },
 });
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/services/:serviceId" element={<ServiceDetail />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/track-booking" element={<TrackBooking />} />
-              <Route path="/wishlist" element={<Wishlist />} />
-              
-              {/* Admin Routes */}
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/bookings" element={<AdminBookings />} />
-              <Route path="/admin/services" element={<AdminServices />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/status" element={<AdminStatus />} />
-              <Route path="/admin/artists" element={<AdminArtists />} />
-              <Route path="/admin/artist-management" element={<ArtistManagement />} />
-              <Route path="/admin/members" element={<MemberManagement />} />
-              <Route path="/admin/members-management" element={<MembersManagement />} />
-              <Route path="/admin/wishlist-insights" element={<AdminWishlistInsights />} />
-              
-              {/* User Routes */}
-              <Route path="/user/dashboard" element={<UserDashboard />} />
-              <Route path="/user/bookings" element={<UserBookings />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/settings" element={<Settings />} />
-              
-              {/* Artist Routes */}
-              <Route path="/artist/dashboard" element={<ArtistDashboard />} />
-              <Route path="/artist/bookings" element={<ArtistBookings />} />
-              
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="/user/checkout" element={<Checkout />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/services/:serviceId" element={<ServiceDetail />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/track-booking" element={<TrackBooking />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/bookings" element={<AdminBookings />} />
+            <Route path="/admin/services" element={<AdminServices />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/status" element={<AdminStatus />} />
+            <Route path="/admin/artists" element={<AdminArtists />} />
+            
+            {/* User Routes */}
+            <Route path="/user/dashboard" element={<UserDashboard />} />
+            <Route path="/user/bookings" element={<UserBookings />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            
+            {/* Artist Routes */}
+            <Route path="/artist/dashboard" element={<ArtistDashboard />} />
+            
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
