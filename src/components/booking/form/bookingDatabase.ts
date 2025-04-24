@@ -107,6 +107,37 @@ export async function checkBookingTableStructure() {
   }
 }
 
+// Verify the default status exists in the statusmst table or get a valid default status
+async function getValidDefaultStatus() {
+  try {
+    console.log("Checking for valid status codes in statusmst table...");
+    
+    const { data: statusData, error: statusError } = await supabase
+      .from("statusmst")
+      .select("status_code, status_name")
+      .eq("active", true)
+      .order("id", { ascending: true })
+      .limit(1);
+    
+    if (statusError) {
+      console.error("Error fetching status codes:", statusError);
+      return "pending"; // Fallback to pending if we can't check
+    }
+    
+    // If we found at least one status code, use the first active one
+    if (statusData && statusData.length > 0) {
+      console.log("Using valid status code from statusmst:", statusData[0].status_code);
+      return statusData[0].status_code;
+    }
+    
+    console.log("No active status codes found in statusmst, using 'pending' as fallback");
+    return "pending"; // Fallback to pending if no status found
+  } catch (error) {
+    console.error("Error in getValidDefaultStatus:", error);
+    return "pending"; // Fallback to pending
+  }
+}
+
 // Get next available ID for the booking table to avoid duplicate key errors
 async function getNextAvailableId() {
   try {
@@ -177,6 +208,9 @@ export async function insertBookings(params: {
     // Get the next available ID to avoid duplicate key errors
     const nextAvailableId = await getNextAvailableId();
     
+    // Get a valid status code from the statusmst table
+    const validStatusCode = await getValidDefaultStatus();
+    
     const bookingPromises = servicesWithDetails.map(async (service, index) => {
       const jobNumber = index + 1;
       
@@ -196,7 +230,7 @@ export async function insertBookings(params: {
         Phone_no: phoneNumberNum,
         Booking_date: bookingDate,
         booking_time: bookingTime,
-        Status: "pending",
+        Status: validStatusCode, // Use a valid status code from the database
         price: service.price || 0,
         Booking_NO: parseInt(bookingRef), // Convert string to number for DB
         Qty: service.quantity || 1,
