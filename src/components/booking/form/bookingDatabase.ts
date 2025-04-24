@@ -1,3 +1,4 @@
+
 import { BookingFormValues } from "./FormSchema";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -220,7 +221,7 @@ export async function insertBookings(params: {
     const nextAvailableId = await getNextAvailableId();
     
     // Get a valid status code from the statusmst table
-    const { status_code: validStatusCode, status_name } = await getValidDefaultStatus();
+    const { status_code, status_name } = await getValidDefaultStatus();
     
     const bookingPromises = servicesWithDetails.map(async (service, index) => {
       const jobNumber = index + 1;
@@ -241,8 +242,7 @@ export async function insertBookings(params: {
         Phone_no: phoneNumberNum,
         Booking_date: bookingDate,
         booking_time: bookingTime,
-        Status: validStatusCode, // Use a valid status code from the database
-        StatusName: status_name,  // Add the human-readable status name
+        Status: status_name, // Use the status_name instead of validStatusCode
         price: service.price || 0,
         Booking_NO: parseInt(bookingRef), // Convert string to number for DB
         Qty: service.quantity || 1,
