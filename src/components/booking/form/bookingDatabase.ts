@@ -1,4 +1,3 @@
-
 import { BookingFormValues } from "./FormSchema";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -121,20 +120,32 @@ async function getValidDefaultStatus() {
     
     if (statusError) {
       console.error("Error fetching status codes:", statusError);
-      return "pending"; // Fallback to pending if we can't check
+      return { 
+        status_code: "pending", 
+        status_name: "Pending" 
+      }; // Fallback to Pending if we can't check
     }
     
     // If we found at least one status code, use the first active one
     if (statusData && statusData.length > 0) {
-      console.log("Using valid status code from statusmst:", statusData[0].status_code);
-      return statusData[0].status_code;
+      console.log("Using valid status code from statusmst:", statusData[0]);
+      return { 
+        status_code: statusData[0].status_code, 
+        status_name: statusData[0].status_name || "Pending" 
+      };
     }
     
-    console.log("No active status codes found in statusmst, using 'pending' as fallback");
-    return "pending"; // Fallback to pending if no status found
+    console.log("No active status codes found in statusmst, using default Pending status");
+    return { 
+      status_code: "pending", 
+      status_name: "Pending" 
+    }; // Fallback to Pending if no status found
   } catch (error) {
     console.error("Error in getValidDefaultStatus:", error);
-    return "pending"; // Fallback to pending
+    return { 
+      status_code: "pending", 
+      status_name: "Pending" 
+    }; // Fallback to Pending
   }
 }
 
@@ -209,7 +220,7 @@ export async function insertBookings(params: {
     const nextAvailableId = await getNextAvailableId();
     
     // Get a valid status code from the statusmst table
-    const validStatusCode = await getValidDefaultStatus();
+    const { status_code: validStatusCode, status_name } = await getValidDefaultStatus();
     
     const bookingPromises = servicesWithDetails.map(async (service, index) => {
       const jobNumber = index + 1;
@@ -231,6 +242,7 @@ export async function insertBookings(params: {
         Booking_date: bookingDate,
         booking_time: bookingTime,
         Status: validStatusCode, // Use a valid status code from the database
+        StatusName: status_name,  // Add the human-readable status name
         price: service.price || 0,
         Booking_NO: parseInt(bookingRef), // Convert string to number for DB
         Qty: service.quantity || 1,
