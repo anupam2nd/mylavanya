@@ -14,6 +14,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
   Popover,
@@ -83,14 +84,12 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
   useEffect(() => {
     if (booking) {
       setDate(new Date());
-      // Set a default time like "09:00" (9 AM)
       setTime("09:00");
       setAddress(booking.Address || "");
       setPincode(booking.Pincode?.toString() || "");
     }
   }, [booking]);
 
-  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -111,7 +110,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     fetchProducts();
   }, []);
 
-  // Fetch artists
   useEffect(() => {
     const fetchArtists = async () => {
       try {
@@ -131,7 +129,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     fetchArtists();
   }, []);
 
-  // Fetch status options
   useEffect(() => {
     const fetchStatusOptions = async () => {
       try {
@@ -152,7 +149,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     fetchStatusOptions();
   }, []);
 
-  // Update selectedProductDetails when product changes
   useEffect(() => {
     if (product) {
       const productDetail = productOptions.find(p => p.ProductName === product);
@@ -165,7 +161,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     }
   }, [product, productOptions]);
 
-  // Check if status requires artist assignment
   const requiresArtist = (statusValue: string): boolean => {
     const artistRequiredStatuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done'];
     return artistRequiredStatuses.includes(statusValue);
@@ -191,7 +186,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       return;
     }
 
-    // Check if artist is required but not selected
     if (requiresArtist(status) && !artistId) {
       toast({
         title: "Artist required",
@@ -204,12 +198,10 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     setIsSubmitting(true);
 
     try {
-      // Calculate price
       const price = selectedProductDetails.NetPayable !== undefined && selectedProductDetails.NetPayable !== null 
         ? selectedProductDetails.NetPayable 
         : selectedProductDetails.Price;
 
-      // Find the highest job number for this booking
       const { data: existingJobs, error: queryError } = await supabase
         .from('BookMST')
         .select('jobno')
@@ -222,7 +214,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         throw queryError;
       }
       
-      // Calculate the next job number
       const highestJobNo = existingJobs && existingJobs.length > 0 && existingJobs[0].jobno !== null 
         ? Number(existingJobs[0].jobno) 
         : 0;
@@ -230,21 +221,20 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       const nextJobNo = highestJobNo + 1;
       console.log("Creating new job with job number:", nextJobNo);
 
-      // Create new booking record with same booking_no but new job
       const newBookingData: any = {
         Booking_NO: booking.Booking_NO,
         name: booking.name,
         email: booking.email,
         Phone_no: booking.Phone_no,
         Address: address,
-        Pincode: pincode ? Number(pincode) : null,
+        Pincode: pincode ? parseInt(pincode) : null,
         Booking_date: format(date, 'yyyy-MM-dd'),
         booking_time: time,
         Purpose: booking.Purpose,
         ServiceName: selectedProductDetails.Services,
         SubService: selectedProductDetails.Subservice,
         ProductName: product,
-        Product: selectedProductDetails.prod_id,
+        prod_id: selectedProductDetails.prod_id,
         Scheme: selectedProductDetails.Scheme,
         price: price,
         Qty: qty,
@@ -252,12 +242,10 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         jobno: nextJobNo,
       };
 
-      // Add artist assignment fields if required
       if (requiresArtist(status) && artistId) {
         newBookingData.ArtistId = artistId;
         newBookingData.Assignedto = getArtistName(artistId);
         
-        // Set AssignedBY to current user's full name instead of just username
         if (currentUser) {
           const firstName = currentUser.FirstName || '';
           const lastName = currentUser.LastName || '';
@@ -265,7 +253,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
           if (firstName || lastName) {
             newBookingData.AssignedBY = `${firstName} ${lastName}`.trim();
           } else {
-            // Fallback to username if no name is available
             newBookingData.AssignedBY = currentUser.Username || 'admin';
           }
         } else {
@@ -278,7 +265,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
 
       console.log("Creating new job with data:", newBookingData);
 
-      // Insert the new booking
       const { data: newBooking, error: insertError } = await supabase
         .from('BookMST')
         .insert(newBookingData)

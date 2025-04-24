@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { BookingData } from "@/components/tracking/BookingDetails";
+import { Booking } from "@/hooks/useBookings";
 import UserBookingFilters from './UserBookingFilters';
 import { useBookingFilters } from '@/hooks/useBookingFilters';
 import { useStatusOptions } from '@/hooks/useStatusOptions';
-import { Booking } from '@/hooks/useBookings';
 
 const BookingsList = () => {
   const { user, isAuthenticated } = useAuth();
@@ -39,10 +37,10 @@ const BookingsList = () => {
 
         if (error) throw error;
 
-        // Transform the data to match the Booking interface
+        // Transform the data to ensure Booking_NO is always a string
         const transformedData = data?.map(booking => ({
           id: booking.id,
-          Booking_NO: booking.Booking_NO || '',
+          Booking_NO: booking.Booking_NO?.toString() || '',
           name: booking.name || '',
           email: booking.email || '',
           Phone_no: booking.Phone_no,
@@ -54,7 +52,7 @@ const BookingsList = () => {
           Address: booking.Address,
           Pincode: booking.Pincode,
           created_at: booking.created_at
-        })) || [];
+        })) as Booking[];
 
         setBookings(transformedData);
       } catch (error) {
@@ -67,7 +65,6 @@ const BookingsList = () => {
     fetchBookings();
   }, [user, isAuthenticated, navigate]);
   
-  // Add these new hooks for filtering
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
   const {
     filteredBookings,

@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import BookingHeader from "./BookingHeader";
 import BookingReference from "./BookingReference";
@@ -11,7 +10,7 @@ export interface BookingDetailsProps {
 }
 
 export interface BookingData {
-  Booking_NO: string;
+  Booking_NO: string | number;
   Purpose: string;
   Phone_no: number;
   Booking_date: string;
@@ -55,7 +54,7 @@ const BookingDetails = ({ bookingDetails }: BookingDetailsProps) => {
       <BookingHeader />
       <div className="bg-gray-50 rounded-lg border p-6">
         <div className="grid grid-cols-2 gap-4">
-          <BookingReference reference={firstBooking.Booking_NO} />
+          <BookingReference reference={firstBooking.Booking_NO.toString()} />
           <CustomerDetails booking={firstBooking} />
           <ServicesList services={bookingDetails} />
           <TotalAmount amount={totalAmount} originalAmount={displayOriginalAmount} />
