@@ -10,16 +10,23 @@ import MainLayout from "@/components/layout/MainLayout";
 
 const Index = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState("member");
   const navigate = useNavigate();
 
   // Log to confirm Index is being loaded
   console.log("Index page rendering");
 
+  const handleLogin = (type: string = "member") => {
+    setAuthModalTab(type);
+    setIsAuthModalOpen(true);
+  };
+
   return (
     <MainLayout>
       <Hero 
         onBookNow={() => navigate("/services")}
-        onLogin={() => setIsAuthModalOpen(true)}
+        onLogin={() => handleLogin("member")}
+        onArtistLogin={() => handleLogin("artist")}
       />
       <HowItWorks />
       <BookingBanner onBookNow={() => navigate("/services")} />
@@ -28,6 +35,7 @@ const Index = () => {
       <AuthModal 
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        defaultTab={authModalTab}
       />
     </MainLayout>
   );

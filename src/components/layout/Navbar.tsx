@@ -7,11 +7,13 @@ import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
 import NavTrackingButton from "@/components/ui/NavTrackingButton";
 import { ButtonCustom } from "@/components/ui/button-custom";
+import ProfileDropdown from "@/components/user/ProfileDropdown";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState("member");
   const {
     user,
     isAuthenticated
@@ -39,9 +41,16 @@ const Navbar = () => {
     closeMenu();
     if (user?.role === "admin" || user?.role === "superadmin") {
       navigate("/admin/dashboard");
+    } else if (user?.role === "artist") {
+      navigate("/artist/dashboard");
     } else {
       navigate("/user/dashboard");
     }
+  };
+
+  const openMemberSignIn = () => {
+    setAuthModalTab("member");
+    setIsAuthModalOpen(true);
   };
 
   return <>
@@ -72,10 +81,14 @@ const Navbar = () => {
               {/* Login buttons */}
               <div className="flex items-center space-x-2">
                 {isAuthenticated ? (
-                  <Button onClick={navigateToDashboard}>Dashboard</Button>
+                  user?.role === "member" ? (
+                    <ProfileDropdown />
+                  ) : (
+                    <Button onClick={navigateToDashboard}>Dashboard</Button>
+                  )
                 ) : (
-                  <ButtonCustom variant="outline" size="sm" onClick={() => setIsAuthModalOpen(true)} className="border-primary/20 text-foreground">
-                    Member Signin
+                  <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className="border-primary/20 text-foreground">
+                    Sign In
                   </ButtonCustom>
                 )}
               </div>
@@ -107,18 +120,43 @@ const Navbar = () => {
               {/* Mobile login buttons */}
               <div className="pt-2 border-t border-gray-200">
                 {isAuthenticated ? (
-                  <Button onClick={() => {
-                    navigateToDashboard();
-                    closeMenu();
-                  }} className="w-full">
-                    Dashboard
-                  </Button>
+                  user?.role === "member" ? (
+                    <div className="space-y-2">
+                      <Link to="/profile" className="block py-2 text-gray-700 hover:text-primary" onClick={closeMenu}>
+                        My Profile
+                      </Link>
+                      <Link to="/user/bookings" className="block py-2 text-gray-700 hover:text-primary" onClick={closeMenu}>
+                        My Bookings
+                      </Link>
+                      <Link to="/wishlist" className="block py-2 text-gray-700 hover:text-primary" onClick={closeMenu}>
+                        Wishlist
+                      </Link>
+                      <Button 
+                        variant="ghost" 
+                        className="text-red-500 hover:text-red-600 p-0 h-auto"
+                        onClick={() => {
+                          const { logout } = useAuth();
+                          logout();
+                          closeMenu();
+                        }}
+                      >
+                        Logout
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button onClick={() => {
+                      navigateToDashboard();
+                      closeMenu();
+                    }} className="w-full">
+                      Dashboard
+                    </Button>
+                  )
                 ) : (
                   <ButtonCustom variant="outline" size="sm" onClick={() => {
-                    setIsAuthModalOpen(true);
+                    openMemberSignIn();
                     closeMenu();
                   }} className="border-primary/20 text-foreground w-full">
-                    Member Signin
+                    Sign In
                   </ButtonCustom>
                 )}
               </div>
@@ -128,7 +166,7 @@ const Navbar = () => {
       {/* Add spacing to account for fixed header */}
       <div className={`${isScrolled ? "h-16" : "h-20"}`}></div>
       
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authModalTab} />
     </>;
 };
 

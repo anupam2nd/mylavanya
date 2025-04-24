@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Booking } from "@/hooks/useBookings";
+import { BookingData } from "@/components/tracking/BookingDetails";
 import UserBookingFilters from './UserBookingFilters';
 import { useBookingFilters } from '@/hooks/useBookingFilters';
 import { useStatusOptions } from '@/hooks/useStatusOptions';
+import { Booking } from '@/hooks/useBookings';
 
 const BookingsList = () => {
   const { user, isAuthenticated } = useAuth();
@@ -29,18 +31,32 @@ const BookingsList = () => {
 
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('BookMST')
           .select('*')
-          .eq('email', user.email)
           .order('Booking_date', { ascending: false });
+        
+        // If the user is an artist, only show bookings assigned to them
+        if (user.role === 'artist') {
+          const artistId = parseInt(user.id, 10);
+          if (!isNaN(artistId)) {
+            console.log("Filtering bookings by ArtistId:", artistId);
+            query = query.eq('ArtistId', artistId);
+          }
+        } else {
+          // For regular users, filter by their email
+          query = query.eq('email', user.email);
+        }
+        
+        const { data, error } = await query;
 
         if (error) throw error;
+        console.log("Bookings fetched:", data?.length || 0);
 
-        // Transform the data to ensure Booking_NO is always a string
+        // Transform the data to match the Booking interface
         const transformedData = data?.map(booking => ({
           id: booking.id,
-          Booking_NO: booking.Booking_NO?.toString() || '',
+          Booking_NO: booking.Booking_NO || '',
           name: booking.name || '',
           email: booking.email || '',
           Phone_no: booking.Phone_no,
@@ -52,7 +68,7 @@ const BookingsList = () => {
           Address: booking.Address,
           Pincode: booking.Pincode,
           created_at: booking.created_at
-        })) as Booking[];
+        })) || [];
 
         setBookings(transformedData);
       } catch (error) {
@@ -65,6 +81,7 @@ const BookingsList = () => {
     fetchBookings();
   }, [user, isAuthenticated, navigate]);
   
+  // Add these new hooks for filtering
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
   const {
     filteredBookings,

@@ -1,8 +1,9 @@
+
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -31,12 +32,11 @@ const UserDashboard = () => {
 
         if (error) throw error;
         
-        // Transform the data to match the BookingData interface and ensure Booking_NO is a string
+        // Transform the data to match the BookingData interface
         const transformedData = data?.map(booking => ({
           ...booking,
-          Booking_NO: booking.Booking_NO?.toString() || '',
           ProductName: booking.Purpose // Use Purpose as ProductName since it's required
-        })) as BookingData[];
+        })) || [];
         
         setBookings(transformedData);
         

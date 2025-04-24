@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,7 @@ const TrackBooking = () => {
       // Get all bookings matching the reference and phone number
       const { data: bookingsData, error: bookingError } = await supabase
         .from("BookMST")
-        .select("*, ArtistId, jobno") 
+        .select("*, ArtistId, jobno") // Ensure we select the jobno field
         .eq("Booking_NO", data.bookingRef)
         .eq("Phone_no", phoneNumber);
 
@@ -39,14 +40,17 @@ const TrackBooking = () => {
 
       console.log("Raw booking data:", bookingsData);
 
-      // Ensure Booking_NO is always a string in the transformed data
+      // The detailed bookings already contain the service information
+      // since we've added ServiceName, Subservice and ProductName to BookMST
       const detailedBookings = bookingsData.map(booking => {
         return {
           ...booking,
-          Booking_NO: booking.Booking_NO?.toString() || '',
+          // If the booking already has these fields, use them, otherwise use defaults
           Services: booking.ServiceName || "General Service",
           Subservice: booking.SubService || "Standard",
           ProductName: booking.ProductName || "Unknown Service",
+          ArtistId: booking.ArtistId, // Ensure ArtistId is included
+          jobno: booking.jobno // Ensure jobno is included
         };
       });
 

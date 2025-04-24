@@ -64,6 +64,9 @@ const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: Book
     return acc;
   }, {} as GroupedBookings);
 
+  // Check if the onEditClick is a no-op function (used for artists who shouldn't edit)
+  const isEditingDisabled = onEditClick.toString() === (() => {}).toString();
+
   return (
     <div className="space-y-4">
       <Table>
@@ -142,7 +145,7 @@ const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: Book
                       <div className="bg-muted/20 p-4 rounded-md">
                         <div className="flex justify-between items-center mb-2">
                           <h4 className="font-medium text-sm">Service Details</h4>
-                          {onAddNewJob && (
+                          {onAddNewJob && !isEditingDisabled && (
                             <Button 
                               variant="outline" 
                               size="sm"
@@ -161,7 +164,7 @@ const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: Book
                               <TableHead>Date & Time</TableHead>
                               <TableHead>Status</TableHead>
                               <TableHead>Assigned To</TableHead>
-                              <TableHead>Actions</TableHead>
+                              {!isEditingDisabled && <TableHead>Actions</TableHead>}
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -205,16 +208,18 @@ const AdminBookingsList = ({ bookings, loading, onEditClick, onAddNewJob }: Book
                                 <TableCell>
                                   {booking.Assignedto || 'Not assigned'}
                                 </TableCell>
-                                <TableCell>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    onClick={() => onEditClick(booking)}
-                                    className="h-8"
-                                  >
-                                    <Edit className="h-4 w-4 mr-1" /> Edit
-                                  </Button>
-                                </TableCell>
+                                {!isEditingDisabled && (
+                                  <TableCell>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      onClick={() => onEditClick(booking)}
+                                      className="h-8"
+                                    >
+                                      <Edit className="h-4 w-4 mr-1" /> Edit
+                                    </Button>
+                                  </TableCell>
+                                )}
                               </TableRow>
                             ))}
                           </TableBody>

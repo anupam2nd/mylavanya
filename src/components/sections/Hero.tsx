@@ -5,11 +5,13 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 interface HeroProps {
   onBookNow: () => void;
   onLogin: () => void;
+  onArtistLogin: () => void;
 }
 
 const Hero = ({
   onBookNow,
-  onLogin
+  onLogin,
+  onArtistLogin
 }: HeroProps) => {
   return <div className="relative bg-gradient-to-b from-secondary/30 to-background pt-28 pb-24 sm:pt-32 sm:pb-32 overflow-hidden">
       {/* Background decorative elements */}

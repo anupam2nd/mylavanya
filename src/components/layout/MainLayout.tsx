@@ -15,20 +15,27 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const navigate = useNavigate();
 
   // Redirect users to their dashboard based on role if they're already logged in
+  // But NOT for members who should stay on the homepage
   useEffect(() => {
     if (user) {
-      let redirectPath = '/user/dashboard';
-      
-      if (user.role === 'superadmin') {
-        redirectPath = '/admin/status';
-      } else if (user.role === 'admin') {
-        redirectPath = '/admin/dashboard';
+      // Only redirect admin, superadmin, or artist roles
+      if (user.role === 'superadmin' || user.role === 'admin' || user.role === 'artist') {
+        let redirectPath = '/user/dashboard';
+        
+        if (user.role === 'superadmin') {
+          redirectPath = '/admin/status';
+        } else if (user.role === 'admin') {
+          redirectPath = '/admin/dashboard';
+        } else if (user.role === 'artist') {
+          redirectPath = '/artist/dashboard';
+        }
+        
+        // Only redirect if we're on the homepage
+        if (window.location.pathname === '/') {
+          navigate(redirectPath);
+        }
       }
-      
-      // Only redirect if we're on the homepage
-      if (window.location.pathname === '/') {
-        navigate(redirectPath);
-      }
+      // Members will not be redirected
     }
   }, [user, navigate]);
 
