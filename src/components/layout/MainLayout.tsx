@@ -14,8 +14,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect users to their dashboard based on role if they're already logged in
-  // But NOT for members who should stay on the homepage
+  // Only redirect admin, superadmin, or artist roles to their dashboards
   useEffect(() => {
     if (user) {
       // Only redirect admin, superadmin, or artist roles
@@ -35,7 +34,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           navigate(redirectPath);
         }
       }
-      // Members will not be redirected
+      // Members will stay on whatever page they're on - no redirection
     }
   }, [user, navigate]);
 

@@ -15,7 +15,6 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: AuthModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   
-  // Determine the title based on defaultTab
   const getTitle = () => {
     switch(defaultTab) {
       case "artist":
@@ -49,14 +48,9 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: Au
         <div className="p-6 pt-2 border-t">
           <div className="text-center text-sm">
             By continuing, you agree to our{" "}
-            <a href="/terms" className="text-primary hover:underline">
-              Terms of Service
-            </a>{" "}
+            <a href="/terms" className="text-primary hover:underline">Terms of Service</a>{" "}
             and{" "}
-            <a href="/privacy" className="text-primary hover:underline">
-              Privacy Policy
-            </a>
-            .
+            <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
           </div>
         </div>
       </DialogContent>

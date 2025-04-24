@@ -20,7 +20,6 @@ export function useMemberLogin() {
     
     try {
       console.log("Attempting member login with:", email);
-      // Explicitly convert email to lowercase for consistent matching
       const normalizedEmail = email.trim().toLowerCase();
       
       const { data, error } = await supabase
@@ -41,7 +40,6 @@ export function useMemberLogin() {
         throw new Error('Invalid credentials');
       }
       
-      // Login using the context function
       login({
         id: data.id.toString(),
         email: data.MemberEmailId,
@@ -51,9 +49,7 @@ export function useMemberLogin() {
       });
       
       toast.success("Login successful. Welcome back!");
-      
-      // No redirection, stay on current page
-      // Removed the navigate('/') line to prevent redirect
+      navigate('/'); // Navigate to home page instead of dashboard
 
       return true;
     } catch (error) {
