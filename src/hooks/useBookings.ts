@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface Booking {
   id: number;
-  Booking_NO: string;
+  Booking_NO: string; // Changed to string to maintain consistency across app
   jobno?: number;
   name: string;
   email: string;
@@ -27,8 +27,8 @@ export interface Booking {
   AssingnedON?: string;
   ArtistId?: number;
   created_at?: string;
-  prod_id?: number; // Added this field to match with database schema
-  Scheme?: string;  // Added Scheme property to resolve TypeScript errors
+  prod_id?: number; // Changed from 'Product' to match database schema
+  Scheme?: string;
 }
 
 export const useBookings = () => {
@@ -45,7 +45,14 @@ export const useBookings = () => {
         .order('Booking_date', { ascending: false });
 
       if (error) throw error;
-      setBookings(data || []);
+      
+      // Transform the data to ensure Booking_NO is always a string
+      const transformedData: Booking[] = (data || []).map(booking => ({
+        ...booking,
+        Booking_NO: booking.Booking_NO?.toString() || ''
+      }));
+      
+      setBookings(transformedData);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast({

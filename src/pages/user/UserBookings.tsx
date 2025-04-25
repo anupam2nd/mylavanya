@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -114,7 +113,14 @@ const UserBookings = () => {
         }
         
         console.log("Bookings fetched:", data?.length || 0);
-        setBookings(data || []);
+        
+        // Transform data to make sure Booking_NO is a string
+        const transformedData: Booking[] = (data || []).map(booking => ({
+          ...booking,
+          Booking_NO: String(booking.Booking_NO || '')
+        }));
+        
+        setBookings(transformedData);
       } catch (error) {
         console.error('Error fetching bookings:', error);
         toast({

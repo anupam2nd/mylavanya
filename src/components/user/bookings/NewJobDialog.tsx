@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -232,7 +233,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
 
       // Create new booking record with same booking_no but new job
       const newBookingData: any = {
-        Booking_NO: booking.Booking_NO,
+        Booking_NO: booking.Booking_NO, // This should be a string already based on our interface
         name: booking.name,
         email: booking.email,
         Phone_no: booking.Phone_no,
@@ -244,7 +245,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         ServiceName: selectedProductDetails.Services,
         SubService: selectedProductDetails.Subservice,
         ProductName: product,
-        Product: selectedProductDetails.prod_id,
+        prod_id: selectedProductDetails.prod_id, // Changed from Product to prod_id
         Scheme: selectedProductDetails.Scheme,
         price: price,
         Qty: qty,
@@ -296,7 +297,12 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       });
 
       if (newBooking) {
-        onSuccess(newBooking);
+        // Transform the data to ensure Booking_NO is a string
+        const transformedBooking: Booking = {
+          ...newBooking,
+          Booking_NO: String(newBooking.Booking_NO)
+        };
+        onSuccess(transformedBooking);
       }
       
       onOpenChange(false);

@@ -11,7 +11,7 @@ export interface BookingDetailsProps {
 }
 
 export interface BookingData {
-  Booking_NO: string;
+  Booking_NO: string; // Changed to string for consistency
   Purpose: string;
   Phone_no: number;
   Booking_date: string;

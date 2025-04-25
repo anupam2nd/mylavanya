@@ -54,9 +54,9 @@ const BookingsList = () => {
         console.log("Bookings fetched:", data?.length || 0);
 
         // Transform the data to match the Booking interface
-        const transformedData = data?.map(booking => ({
+        const transformedData: Booking[] = (data || []).map(booking => ({
           id: booking.id,
-          Booking_NO: booking.Booking_NO || '',
+          Booking_NO: String(booking.Booking_NO || ''), // Convert to string
           name: booking.name || '',
           email: booking.email || '',
           Phone_no: booking.Phone_no,
@@ -68,7 +68,7 @@ const BookingsList = () => {
           Address: booking.Address,
           Pincode: booking.Pincode,
           created_at: booking.created_at
-        })) || [];
+        }));
 
         setBookings(transformedData);
       } catch (error) {

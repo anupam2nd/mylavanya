@@ -40,12 +40,11 @@ const TrackBooking = () => {
 
       console.log("Raw booking data:", bookingsData);
 
-      // The detailed bookings already contain the service information
-      // since we've added ServiceName, Subservice and ProductName to BookMST
-      const detailedBookings = bookingsData.map(booking => {
+      // Transform data to ensure Booking_NO is a string
+      const detailedBookings: BookingData[] = bookingsData.map(booking => {
         return {
           ...booking,
-          // If the booking already has these fields, use them, otherwise use defaults
+          Booking_NO: String(booking.Booking_NO), // Ensure Booking_NO is a string
           Services: booking.ServiceName || "General Service",
           Subservice: booking.SubService || "Standard",
           ProductName: booking.ProductName || "Unknown Service",
