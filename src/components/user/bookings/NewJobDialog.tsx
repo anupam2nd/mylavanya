@@ -214,7 +214,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       const { data: existingJobs, error: queryError } = await supabase
         .from('BookMST')
         .select('jobno')
-        .eq('Booking_NO', booking.Booking_NO)
+        .eq('Booking_NO', parseInt(booking.Booking_NO)) // Convert string to number for database query
         .order('jobno', { ascending: false })
         .limit(1);
 
@@ -232,8 +232,9 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       console.log("Creating new job with job number:", nextJobNo);
 
       // Create new booking record with same booking_no but new job
+      const bookingNoAsNumber = parseInt(booking.Booking_NO);
       const newBookingData: any = {
-        Booking_NO: booking.Booking_NO, // This should be a string already based on our interface
+        Booking_NO: bookingNoAsNumber, // Store as number in database
         name: booking.name,
         email: booking.email,
         Phone_no: booking.Phone_no,
@@ -245,7 +246,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         ServiceName: selectedProductDetails.Services,
         SubService: selectedProductDetails.Subservice,
         ProductName: product,
-        prod_id: selectedProductDetails.prod_id, // Changed from Product to prod_id
+        Product: selectedProductDetails.prod_id, // Use Product field for database compatibility
         Scheme: selectedProductDetails.Scheme,
         price: price,
         Qty: qty,

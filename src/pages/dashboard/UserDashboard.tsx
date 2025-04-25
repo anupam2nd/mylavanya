@@ -35,6 +35,7 @@ const UserDashboard = () => {
         // Transform the data to match the BookingData interface
         const transformedData = data?.map(booking => ({
           ...booking,
+          Booking_NO: booking.Booking_NO?.toString() || '', // Ensure Booking_NO is a string
           ProductName: booking.Purpose // Use Purpose as ProductName since it's required
         })) || [];
         

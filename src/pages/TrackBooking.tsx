@@ -26,7 +26,7 @@ const TrackBooking = () => {
       const { data: bookingsData, error: bookingError } = await supabase
         .from("BookMST")
         .select("*, ArtistId, jobno") // Ensure we select the jobno field
-        .eq("Booking_NO", data.bookingRef)
+        .eq("Booking_NO", parseInt(data.bookingRef)) // Convert to number for database query
         .eq("Phone_no", phoneNumber);
 
       if (bookingError) {

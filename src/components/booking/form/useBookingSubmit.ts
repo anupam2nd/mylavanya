@@ -28,7 +28,7 @@ export const useBookingSubmit = () => {
       
       // If there are existing bookings with this prefix, increment the last one
       if (data && data.length > 0 && data[0].Booking_NO) {
-        // Ensure we handle Booking_NO as a string to avoid substring error
+        // Convert to string before trying to use substring
         const lastRef = String(data[0].Booking_NO);
         const lastNumber = parseInt(lastRef.substring(4), 10);
         runningNumber = isNaN(lastNumber) ? 1 : lastNumber + 1;
@@ -92,15 +92,18 @@ export const useBookingSubmit = () => {
         // Assign job number (1-based index)
         const jobNumber = index + 1;
         
+        // Convert bookingRef to a number for the database
+        const bookingRefNumber = parseInt(bookingRef, 10);
+        
         return supabase.from("BookMST").insert({
-          prod_id: service.id, // Changed from Product to prod_id to match database schema
+          Product: service.id, // Keep using Product field for compatibility with database
           Purpose: service.name,
           Phone_no: parseInt(phoneNumber),
           Booking_date: format(data.selectedDate, "yyyy-MM-dd"),
           booking_time: data.selectedTime,
           Status: "pending",
           price: service.price,
-          Booking_NO: bookingRef,
+          Booking_NO: bookingRefNumber, // Use as number for database
           Qty: service.quantity || 1,
           Address: data.address,
           Pincode: parseInt(data.pincode),

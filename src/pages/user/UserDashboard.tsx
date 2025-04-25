@@ -1,3 +1,4 @@
+
 import { useState, useMemo, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,7 +67,13 @@ const UserDashboard = () => {
           console.log("No bookings found for the current user");
         }
         
-        setBookings(data || []);
+        // Transform data to ensure Booking_NO is a string
+        const transformedData: Booking[] = (data || []).map(booking => ({
+          ...booking,
+          Booking_NO: booking.Booking_NO?.toString() || ''
+        }));
+        
+        setBookings(transformedData);
       } catch (error) {
         console.error('Unexpected error in fetch:', error);
         setError("An unexpected error occurred");
