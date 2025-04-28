@@ -1,7 +1,6 @@
-
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, User, Settings, Home, Calendar, Heart, Package, PaintBrush, Users as UsersIcon, ListChecks } from "lucide-react";
+import { Menu, X, LogOut, User, Settings, Home, Calendar, Heart, Package, Paintbrush, Users as UsersIcon, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
@@ -105,7 +104,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                   
                   <Link to="/admin/artists"
                     className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                    <PaintBrush className="w-5 h-5 mr-3" />
+                    <Paintbrush className="w-5 h-5 mr-3" />
                     <span>Artists</span>
                   </Link>
                 </>
