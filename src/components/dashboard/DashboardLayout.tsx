@@ -1,7 +1,6 @@
-
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, User, Settings, Home, Calendar, List, Package, Users, Palette } from "lucide-react";
+import { Menu, X, LogOut, User, Settings, Home, Calendar, Heart, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
@@ -15,7 +14,6 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Close sidebar on navigation for mobile
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -25,7 +23,6 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
       }
     };
 
-    // Set initial state
     handleResize();
 
     window.addEventListener("resize", handleResize);
@@ -34,10 +31,10 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
 
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   const isSuperAdmin = user?.role === 'superadmin';
+  const isMember = user?.role === 'member';
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-white border-r border-gray-200 shadow-lg transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -57,75 +54,103 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
           </Button>
         </div>
         <nav className="p-4 space-y-1">
-          <Link to={isAdmin ? "/admin/dashboard" : "/user/dashboard"} 
-            className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-            <Home className="w-5 h-5 mr-3" />
-            <span>Dashboard</span>
-          </Link>
-
-          <Link to={isAdmin ? "/admin/bookings" : "/user/bookings"}
-            className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-            <Calendar className="w-5 h-5 mr-3" />
-            <span>Bookings</span>
-          </Link>
-
-          {(isAdmin || isSuperAdmin) && (
+          {isMember ? (
             <>
-              <Link to="/admin/services"
+              <Link to="/"
+                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <Home className="w-5 h-5 mr-3" />
+                <span>Home</span>
+              </Link>
+              
+              <Link to="/user/bookings"
+                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <Calendar className="w-5 h-5 mr-3" />
+                <span>My Bookings</span>
+              </Link>
+              
+              <Link to="/services"
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
                 <Package className="w-5 h-5 mr-3" />
                 <span>Services</span>
               </Link>
               
-              <Link to="/admin/artists"
+              <Link to="/wishlist"
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Palette className="w-5 h-5 mr-3" />
-                <span>Artists</span>
+                <Heart className="w-5 h-5 mr-3" />
+                <span>Wishlist</span>
               </Link>
             </>
-          )}
-
-          {isSuperAdmin && (
+          ) : (
             <>
-              <Link to="/admin/users"
+              <Link to={isAdmin ? "/admin/dashboard" : "/user/dashboard"} 
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Users className="w-5 h-5 mr-3" />
-                <span>Users</span>
+                <Home className="w-5 h-5 mr-3" />
+                <span>Dashboard</span>
               </Link>
-              
-              <Link to="/admin/status"
+
+              <Link to={isAdmin ? "/admin/bookings" : "/user/bookings"}
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <List className="w-5 h-5 mr-3" />
-                <span>Status Management</span>
+                <Calendar className="w-5 h-5 mr-3" />
+                <span>Bookings</span>
               </Link>
+
+              {(isAdmin || isSuperAdmin) && (
+                <>
+                  <Link to="/admin/services"
+                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                    <Package className="w-5 h-5 mr-3" />
+                    <span>Services</span>
+                  </Link>
+                  
+                  <Link to="/admin/artists"
+                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                    <Palette className="w-5 h-5 mr-3" />
+                    <span>Artists</span>
+                  </Link>
+                </>
+              )}
+
+              {isSuperAdmin && (
+                <>
+                  <Link to="/admin/users"
+                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                    <Users className="w-5 h-5 mr-3" />
+                    <span>Users</span>
+                  </Link>
+                  
+                  <Link to="/admin/status"
+                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                    <List className="w-5 h-5 mr-3" />
+                    <span>Status Management</span>
+                  </Link>
+                </>
+              )}
+
+              <div className="pt-4 mt-4 border-t border-gray-200">
+                <Link to="/profile"
+                  className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                  <User className="w-5 h-5 mr-3" />
+                  <span>Profile</span>
+                </Link>
+                <Link to="/settings"
+                  className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                  <Settings className="w-5 h-5 mr-3" />
+                  <span>Settings</span>
+                </Link>
+                <button
+                  onClick={logout}
+                  className="flex items-center w-full px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100"
+                >
+                  <LogOut className="w-5 h-5 mr-3" />
+                  <span>Logout</span>
+                </button>
+              </div>
             </>
           )}
-
-          <div className="pt-4 mt-4 border-t border-gray-200">
-            <Link to="/profile"
-              className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-              <User className="w-5 h-5 mr-3" />
-              <span>Profile</span>
-            </Link>
-            <Link to="/settings"
-              className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-              <Settings className="w-5 h-5 mr-3" />
-              <span>Settings</span>
-            </Link>
-            <button
-              onClick={logout}
-              className="flex items-center w-full px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100"
-            >
-              <LogOut className="w-5 h-5 mr-3" />
-              <span>Logout</span>
-            </button>
-          </div>
         </nav>
       </aside>
 
-      {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Top Navigation */}
         <header className="bg-white shadow-sm z-10">
           <div className="px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
             <div className="flex items-center">
@@ -150,7 +175,6 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-gray-50">
           {children}
         </main>
