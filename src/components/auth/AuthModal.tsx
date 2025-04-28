@@ -31,6 +31,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: Au
       <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden">
         <AuthModalHeader 
           title={getTitle()}
+          onClose={onClose}
           isLoading={isLoading}
         />
         
