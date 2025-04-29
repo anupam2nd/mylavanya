@@ -1,42 +1,19 @@
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import BookingDetails from "./BookingDetails";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { UserIcon, Phone } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-
-const bookingPhoneSchema = z.object({
-  phoneNumber: z.string().min(10, {
-    message: "Phone number must be at least 10 digits long",
-  }),
-});
-
-const bookingRefSchema = z.object({
-  bookingRef: z.string().min(1, {
-    message: "Please enter a booking reference",
-  }),
-});
+import { TrackingFormTabs } from "./TrackingFormTabs";
+import { PhoneFormValues } from "./PhoneTrackingForm";
+import { ReferenceFormValues } from "./ReferenceTrackingForm";
+import { transformBookingDetails, BookingDetails as BookingDetailsType } from "@/utils/bookingTracking";
 
 export function BookingTrackingForm() {
-  const [bookingDetails, setBookingDetails] = useState<any | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("phone");
+  const [bookingDetails, setBookingDetails] = useState<BookingDetailsType | null>(null);
   const [hasBookings, setHasBookings] = useState<boolean | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -76,21 +53,7 @@ export function BookingTrackingForm() {
     }
   }, [user, navigate]);
 
-  const phoneForm = useForm<z.infer<typeof bookingPhoneSchema>>({
-    resolver: zodResolver(bookingPhoneSchema),
-    defaultValues: {
-      phoneNumber: "",
-    },
-  });
-
-  const refForm = useForm<z.infer<typeof bookingRefSchema>>({
-    resolver: zodResolver(bookingRefSchema),
-    defaultValues: {
-      bookingRef: "",
-    },
-  });
-
-  function onPhoneSubmit(values: z.infer<typeof bookingPhoneSchema>) {
+  function onPhoneSubmit(values: PhoneFormValues) {
     // In a real implementation, you would fetch booking data based on the phone number
     console.log(values);
     setBookingDetails({
@@ -104,7 +67,7 @@ export function BookingTrackingForm() {
     });
   }
 
-  function onRefSubmit(values: z.infer<typeof bookingRefSchema>) {
+  function onReferenceSubmit(values: ReferenceFormValues) {
     // In a real implementation, you would fetch booking data based on the reference
     console.log(values);
     setBookingDetails({
@@ -118,30 +81,6 @@ export function BookingTrackingForm() {
     });
   }
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    setBookingDetails(null); // Reset booking details when switching tabs
-  };
-
-  // Transform the booking details into the format expected by BookingDetails component
-  const transformBookingDetails = (details: any) => {
-    if (!details) return [];
-    
-    // Create a BookingData array with a single entry that matches the expected interface
-    return [{
-      Booking_NO: details.bookingId || "",
-      Purpose: details.service || "",
-      Phone_no: parseInt(details.customerPhone) || 0,
-      Booking_date: details.date || "",
-      booking_time: details.time || "",
-      Status: details.status || "",
-      price: 0, // Default value as it's required
-      ProductName: details.service || "",
-      Qty: 1, // Default quantity
-      name: details.customerName || ""
-    }];
-  };
-
   // If we're still checking if the user has bookings, don't render yet
   if (hasBookings === null && user) {
     return (
@@ -150,9 +89,6 @@ export function BookingTrackingForm() {
       </div>
     );
   }
-
-  // The rest of the component doesn't need to check for hasBookings,
-  // as users without bookings will be redirected
 
   return (
     <div className="mx-auto max-w-md space-y-6 p-4">
@@ -174,81 +110,10 @@ export function BookingTrackingForm() {
         </div>
       )}
 
-      <Tabs
-        defaultValue="phone"
-        value={activeTab}
-        onValueChange={handleTabChange}
-        className="w-full"
-      >
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="phone">Track by Phone</TabsTrigger>
-          <TabsTrigger value="reference">Track by Reference</TabsTrigger>
-        </TabsList>
-        <TabsContent value="phone">
-          <Form {...phoneForm}>
-            <form
-              onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}
-              className="space-y-4"
-            >
-              <FormField
-                control={phoneForm.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Phone className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Enter your phone number"
-                          className="pl-9"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full">
-                Track Booking
-              </Button>
-            </form>
-          </Form>
-        </TabsContent>
-        <TabsContent value="reference">
-          <Form {...refForm}>
-            <form
-              onSubmit={refForm.handleSubmit(onRefSubmit)}
-              className="space-y-4"
-            >
-              <FormField
-                control={refForm.control}
-                name="bookingRef"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Booking Reference</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <UserIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Enter your booking reference"
-                          className="pl-9"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full">
-                Track Booking
-              </Button>
-            </form>
-          </Form>
-        </TabsContent>
-      </Tabs>
+      <TrackingFormTabs 
+        onPhoneSubmit={onPhoneSubmit}
+        onReferenceSubmit={onReferenceSubmit}
+      />
 
       {bookingDetails && <BookingDetails bookingDetails={transformBookingDetails(bookingDetails)} />}
     </div>
