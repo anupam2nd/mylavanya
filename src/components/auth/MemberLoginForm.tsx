@@ -7,14 +7,21 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 import ForgotPassword from "./ForgotPassword";
 import { useMemberLogin } from "@/hooks/useMemberLogin";
 
-export default function MemberLoginForm() {
+interface MemberLoginFormProps {
+  onLoginSuccess?: () => void;
+}
+
+export default function MemberLoginForm({ onLoginSuccess }: MemberLoginFormProps) {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const { isLoading, handleLogin } = useMemberLogin();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handleLogin(loginData);
+    const success = await handleLogin(loginData);
+    if (success && onLoginSuccess) {
+      onLoginSuccess();
+    }
   };
 
   const handleForgotPasswordSuccess = (email: string) => {

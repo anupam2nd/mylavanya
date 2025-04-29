@@ -26,6 +26,10 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: Au
     }
   }
   
+  const handleLoginSuccess = () => {
+    onClose();
+  };
+  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden">
@@ -41,7 +45,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: Au
           ) : defaultTab === "admin" ? (
             <LoginForm />
           ) : (
-            <MemberLoginForm />
+            <MemberLoginForm onLoginSuccess={handleLoginSuccess} />
           )}
         </div>
         
