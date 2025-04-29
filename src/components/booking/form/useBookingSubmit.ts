@@ -1,108 +1,16 @@
 
 import { useState } from "react";
-import { format } from "date-fns";
 import { BookingFormValues } from "./FormSchema";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
+import { generateBookingReference } from "@/utils/booking/referenceGenerator";
+import { getNextAvailableId } from "@/utils/booking/idGenerator";
+import { createBookingEntries } from "@/utils/booking/bookingCreator";
 
 export const useBookingSubmit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
   const { formattedStatusOptions, statusOptions } = useStatusOptions();
-
-  // Function to generate booking reference number
-  const generateBookingReference = async (): Promise<string> => {
-    // Format: YYMM + 4 digit running number using current date (not booking date)
-    const currentDate = new Date();
-    const yearMonth = format(currentDate, "yyMM"); // Get YYMM part
-    
-    try {
-      // Get the latest booking with this year-month prefix
-      const { data, error } = await supabase
-        .from("BookMST")
-        .select("Booking_NO")
-        .like("Booking_NO", `${yearMonth}%`)
-        .order("Booking_NO", { ascending: false })
-        .limit(1);
-      
-      if (error) {
-        console.error("Error fetching latest booking:", error);
-        throw error;
-      }
-      
-      let runningNumber = 0;
-      
-      // If there are existing bookings with this prefix, increment the last one
-      if (data && data.length > 0 && data[0].Booking_NO) {
-        // Convert to string to safely use substring
-        const lastRef = String(data[0].Booking_NO);
-        
-        // Extract the numeric part (last 4 digits)
-        const lastDigits = lastRef.substring(4);
-        const lastNumber = parseInt(lastDigits, 10);
-        
-        // If parsed correctly, increment; otherwise start from 0
-        runningNumber = isNaN(lastNumber) ? 0 : lastNumber + 1;
-        console.log(`Last booking reference: ${lastRef}, extracted number: ${lastNumber}, new number: ${runningNumber}`);
-      } else {
-        // No existing bookings for this year-month, start from 0
-        console.log(`No existing bookings for ${yearMonth}, starting from 0`);
-      }
-      
-      // Format running number as 4 digits with leading zeros
-      const formattedNumber = runningNumber.toString().padStart(4, '0');
-      const newReference = `${yearMonth}${formattedNumber}`;
-      console.log(`Generated new booking reference: ${newReference}`);
-      
-      return newReference;
-    } catch (error) {
-      console.error("Error generating booking reference:", error);
-      // Fallback to timestamp-based reference if database query fails
-      const fallbackYearMonth = format(new Date(), "yyMM");
-      return `${fallbackYearMonth}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
-    }
-  };
-
-  // Function to get the next available ID
-  const getNextAvailableId = async (): Promise<number> => {
-    try {
-      // Get the maximum ID value currently in the table
-      const { data, error } = await supabase
-        .from("BookMST")
-        .select("id")
-        .order("id", { ascending: false })
-        .limit(1);
-      
-      if (error) {
-        console.error("Error getting max ID:", error);
-        throw error;
-      }
-      
-      // Return max ID + 1 or start with 1 if no records exist
-      return data && data.length > 0 ? Number(data[0].id) + 1 : 1;
-    } catch (error) {
-      console.error("Error determining next ID:", error);
-      throw error;
-    }
-  };
-  
-  // Get the status name for use in bookings
-  const getStatusName = (statusCode: string = "pending"): string => {
-    // Default to "Pending" status name if no match or no options available
-    if (!statusOptions || statusOptions.length === 0) {
-      console.log("No status options available, using default 'Pending'");
-      return "Pending";
-    }
-    
-    // Find the matching status option
-    const statusOption = statusOptions.find(
-      option => option.status_code.toLowerCase() === statusCode.toLowerCase()
-    );
-    
-    // Return the status name or default to "Pending"
-    return statusOption ? statusOption.status_name : "Pending";
-  };
 
   const submitBooking = async (data: BookingFormValues) => {
     setIsSubmitting(true);
@@ -115,7 +23,7 @@ export const useBookingSubmit = () => {
       console.log("Submitting booking with address details:", {
         services: data.selectedServices,
         bookingRef,
-        date: format(data.selectedDate, "yyyy-MM-dd"),
+        date: data.selectedDate,
         time: data.selectedTime,
         phone: data.phone,
         email: data.email,
@@ -124,79 +32,16 @@ export const useBookingSubmit = () => {
         name: data.name
       });
       
-      // Get service details for each selected service
-      const serviceDetailsPromises = data.selectedServices.map(async (service) => {
-        const { data: serviceData } = await supabase
-          .from("PriceMST")
-          .select("Services, Subservice, ProductName")
-          .eq("prod_id", service.id)
-          .single();
-          
-        return {
-          ...service,
-          serviceName: serviceData?.Services || "",
-          subService: serviceData?.Subservice || "",
-          productName: serviceData?.ProductName || ""
-        };
-      });
-      
-      const servicesWithDetails = await Promise.all(serviceDetailsPromises);
-      
       // Get the next available ID for new bookings
       const nextId = await getNextAvailableId();
       
       // Get status name (default to "Pending")
       const statusName = getStatusName("pending");
-      const currentTime = new Date();
       
-      // Insert multiple bookings with the same booking reference number
-      // Add sequential job numbers for each service booked
-      const bookingPromises = servicesWithDetails.map((service, index) => {
-        // Clean the phone number to ensure it's only digits
-        const phoneNumber = data.phone.replace(/\D/g, '');
-        
-        // Assign job number (1-based index)
-        const jobNumber = index + 1;
-        
-        // Create the booking object with all needed fields
-        const bookingData: Record<string, any> = {
-          id: nextId + index, // Use incrementing IDs starting from the next available ID
-          Product: service.id, // Keep using Product field for compatibility with database
-          Purpose: service.name,
-          Phone_no: parseInt(phoneNumber),
-          Booking_date: format(data.selectedDate, "yyyy-MM-dd"),
-          booking_time: data.selectedTime,
-          Status: statusName, // Use status name instead of code for readability
-          StatusUpdated: currentTime, // Set initial status update time
-          price: service.price,
-          Booking_NO: bookingRef, // Store as string for proper representation
-          Qty: service.quantity || 1,
-          Address: data.address,
-          Pincode: parseInt(data.pincode),
-          name: data.name,
-          ServiceName: service.serviceName,
-          SubService: service.subService,
-          ProductName: service.productName,
-          jobno: jobNumber, // Add sequential job number
-          created_at: currentTime // Ensure created_at is set
-        };
-        
-        // Only add email if it exists
-        if (data.email) {
-          bookingData.email = data.email;
-        }
-        
-        return supabase.from("BookMST").insert(bookingData);
-      });
+      const result = await createBookingEntries(data, bookingRef, nextId, statusName);
       
-      const results = await Promise.all(bookingPromises);
-      
-      // Check if any insertions failed
-      const errors = results.filter(result => result.error);
-      
-      if (errors.length > 0) {
-        console.error("Supabase booking errors:", errors.map(e => e.error));
-        throw new Error("Failed to create some bookings");
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create bookings");
       }
 
       // Calculate total price including quantities
@@ -222,6 +67,23 @@ export const useBookingSubmit = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+  
+  // Get the status name for use in bookings
+  const getStatusName = (statusCode: string = "pending"): string => {
+    // Default to "Pending" status name if no match or no options available
+    if (!statusOptions || statusOptions.length === 0) {
+      console.log("No status options available, using default 'Pending'");
+      return "Pending";
+    }
+    
+    // Find the matching status option
+    const statusOption = statusOptions.find(
+      option => option.status_code.toLowerCase() === statusCode.toLowerCase()
+    );
+    
+    // Return the status name or default to "Pending"
+    return statusOption ? statusOption.status_name : "Pending";
   };
 
   return {
