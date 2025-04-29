@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import BookingDetails from "./BookingDetails"; // Fixed import - it's a default export
+import BookingDetails from "./BookingDetails";
 import {
   Form,
   FormControl,
@@ -18,6 +18,9 @@ import { UserIcon, Phone } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const bookingPhoneSchema = z.object({
   phoneNumber: z.string().min(10, {
@@ -34,7 +37,44 @@ const bookingRefSchema = z.object({
 export function BookingTrackingForm() {
   const [bookingDetails, setBookingDetails] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState<string>("phone");
+  const [hasBookings, setHasBookings] = useState<boolean | null>(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Check if user has bookings
+  useEffect(() => {
+    const checkUserBookings = async () => {
+      if (!user?.email) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from("BookMST")
+          .select("id")
+          .eq("email", user.email)
+          .limit(1);
+          
+        if (!error) {
+          setHasBookings(data && data.length > 0);
+          
+          // If user has no bookings, show a message and redirect
+          if (data && data.length === 0) {
+            toast({
+              title: "No Bookings Found",
+              description: "You haven't made any bookings yet.",
+              variant: "destructive",
+            });
+            navigate("/");
+          }
+        }
+      } catch (error) {
+        console.error("Error checking bookings:", error);
+      }
+    };
+    
+    if (user) {
+      checkUserBookings();
+    }
+  }, [user, navigate]);
 
   const phoneForm = useForm<z.infer<typeof bookingPhoneSchema>>({
     resolver: zodResolver(bookingPhoneSchema),
@@ -101,6 +141,18 @@ export function BookingTrackingForm() {
       name: details.customerName || ""
     }];
   };
+
+  // If we're still checking if the user has bookings, don't render yet
+  if (hasBookings === null && user) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // The rest of the component doesn't need to check for hasBookings,
+  // as users without bookings will be redirected
 
   return (
     <div className="mx-auto max-w-md space-y-6 p-4">

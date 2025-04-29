@@ -36,6 +36,7 @@ export const useBookings = () => {
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasBookings, setHasBookings] = useState(false);
   const { user } = useAuth();
 
   const fetchBookings = async () => {
@@ -74,6 +75,10 @@ export const useBookings = () => {
       }));
       
       setBookings(transformedData);
+      
+      // Set hasBookings based on whether we got any bookings
+      setHasBookings(transformedData.length > 0);
+      
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast({
@@ -86,11 +91,33 @@ export const useBookings = () => {
     }
   };
 
+  // Check if the current user has any bookings
+  const checkUserHasBookings = async () => {
+    if (!user || !user.email) return false;
+
+    try {
+      const { data, error } = await supabase
+        .from('BookMST')
+        .select('id')
+        .eq('email', user.email)
+        .limit(1);
+      
+      if (error) throw error;
+      
+      setHasBookings(data && data.length > 0);
+      return data && data.length > 0;
+    } catch (error) {
+      console.error('Error checking bookings:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchBookings();
+      checkUserHasBookings();
     }
   }, [user]);
 
-  return { bookings, setBookings, loading, fetchBookings };
+  return { bookings, setBookings, loading, fetchBookings, hasBookings, checkUserHasBookings };
 };

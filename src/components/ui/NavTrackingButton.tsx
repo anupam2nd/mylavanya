@@ -1,9 +1,10 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NavTrackingButtonProps {
   isMobile?: boolean;
@@ -12,10 +13,34 @@ interface NavTrackingButtonProps {
 
 const NavTrackingButton = ({ isMobile, onClick }: NavTrackingButtonProps) => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const [hasBookings, setHasBookings] = useState(false);
+  
+  // Check if user has any bookings
+  useEffect(() => {
+    const checkUserBookings = async () => {
+      if (!isAuthenticated || !user?.email) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from("BookMST")
+          .select("id")
+          .eq("email", user.email)
+          .limit(1);
+          
+        if (!error && data && data.length > 0) {
+          setHasBookings(true);
+        }
+      } catch (error) {
+        console.error("Error checking bookings:", error);
+      }
+    };
+    
+    checkUserBookings();
+  }, [isAuthenticated, user]);
 
-  // If user is not authenticated, don't render anything
-  if (!isAuthenticated) {
+  // If user is not authenticated or has no bookings, don't render anything
+  if (!isAuthenticated || !hasBookings) {
     return null;
   }
 

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,8 +14,45 @@ const TrackBooking = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [bookingDetails, setBookingDetails] = useState<BookingData[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated } = useAuth();
+  const [hasBookings, setHasBookings] = useState<boolean | null>(null);
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
+  // Check if user has bookings
+  useEffect(() => {
+    const checkUserBookings = async () => {
+      if (!isAuthenticated || !user?.email) return;
+      
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from("BookMST")
+          .select("id")
+          .eq("email", user.email)
+          .limit(1);
+          
+        if (!error) {
+          setHasBookings(data && data.length > 0);
+          
+          // If user has no bookings, show a message and redirect
+          if (data.length === 0) {
+            toast({
+              title: "No Bookings Found",
+              description: "You haven't made any bookings yet.",
+              variant: "destructive",
+            });
+            navigate("/");
+          }
+        }
+      } catch (error) {
+        console.error("Error checking bookings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkUserBookings();
+  }, [isAuthenticated, user, navigate]);
 
   // Redirect unauthenticated users
   useEffect(() => {
@@ -28,8 +66,13 @@ const TrackBooking = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // If not authenticated, don't render the page content
-  if (!isAuthenticated) {
+  // If not authenticated or loading booking check, don't render the page content
+  if (!isAuthenticated || hasBookings === null) {
+    return null;
+  }
+  
+  // If user has no bookings, we'll already be redirected by the effect
+  if (hasBookings === false) {
     return null;
   }
 

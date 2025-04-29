@@ -1,13 +1,39 @@
 
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FileText } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const FloatingTrackButton = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const [hasBookings, setHasBookings] = useState(false);
   
-  // Don't render the button if the user is not authenticated
-  if (!isAuthenticated) {
+  // Check if user has any bookings
+  useEffect(() => {
+    const checkUserBookings = async () => {
+      if (!isAuthenticated || !user?.email) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from("BookMST")
+          .select("id")
+          .eq("email", user.email)
+          .limit(1);
+          
+        if (!error && data && data.length > 0) {
+          setHasBookings(true);
+        }
+      } catch (error) {
+        console.error("Error checking bookings:", error);
+      }
+    };
+    
+    checkUserBookings();
+  }, [isAuthenticated, user]);
+  
+  // Don't render the button if the user is not authenticated or has no bookings
+  if (!isAuthenticated || !hasBookings) {
     return null;
   }
   
