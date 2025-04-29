@@ -6,6 +6,8 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 import BookingForm from "@/components/booking/BookingForm";
 import { toast } from "@/hooks/use-toast";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { useAuth } from "@/context/AuthContext";
+import AuthModal from "@/components/auth/AuthModal";
 
 const getServiceImage = (serviceId: number, serviceName: string | null) => {
   switch (serviceId) {
@@ -38,6 +40,8 @@ const ServiceDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchServiceDetails = async () => {
@@ -84,6 +88,23 @@ const ServiceDetail = () => {
 
   const handleBookingSuccess = () => {
     setShowBookingForm(false);
+  };
+
+  const handleBookNowClick = () => {
+    if (isAuthenticated && user?.role === 'member') {
+      setShowBookingForm(true);
+    } else {
+      // Show auth modal for login/registration
+      setShowAuthModal(true);
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    // Small delay to ensure auth context is updated
+    setTimeout(() => {
+      setShowBookingForm(true);
+    }, 300);
   };
 
   if (loading) {
@@ -199,7 +220,7 @@ const ServiceDetail = () => {
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
               <h2 className="text-lg font-semibold mb-3 text-center">Book This Service</h2>
               
-              {!showBookingForm ? <ButtonCustom variant="primary-gradient" className="w-full" size="lg" onClick={() => setShowBookingForm(true)}>
+              {!showBookingForm ? <ButtonCustom variant="primary-gradient" className="w-full" size="lg" onClick={handleBookNowClick}>
                   Book Now
                 </ButtonCustom> : <BookingForm 
                   serviceId={service.prod_id} 
@@ -221,6 +242,13 @@ const ServiceDetail = () => {
           </div>
         </div>
       </div>
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)}
+        defaultTab="member"
+      />
     </div>;
 };
 

@@ -18,7 +18,7 @@ export default function MemberLoginForm({ onLoginSuccess }: MemberLoginFormProps
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await handleLogin(loginData);
+    const success = await handleLogin(loginData, false); // Pass false to prevent navigation
     if (success && onLoginSuccess) {
       onLoginSuccess();
     }

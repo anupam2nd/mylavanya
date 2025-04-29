@@ -15,7 +15,7 @@ export function useMemberLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleLogin = async ({ email, password }: MemberLoginCredentials) => {
+  const handleLogin = async ({ email, password }: MemberLoginCredentials, shouldNavigate: boolean = true) => {
     setIsLoading(true);
     
     try {
@@ -49,7 +49,11 @@ export function useMemberLogin() {
       });
       
       toast.success("Login successful. Welcome back!");
-      navigate('/'); // Navigate to home page instead of dashboard
+      
+      // Only navigate if shouldNavigate is true
+      if (shouldNavigate) {
+        navigate('/');
+      }
 
       return true;
     } catch (error) {

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { BookingFormValues } from "./FormSchema";
@@ -15,35 +14,35 @@ export const useBookingSubmit = () => {
   const generateBookingReference = async (): Promise<string> => {
     // Format: YYMM + 4 digit running number using current date (not booking date)
     const currentDate = new Date();
-    const yearMonth = format(currentDate, "yyMM");
+    const yearDate = format(currentDate, "yyMMdd").substring(0, 4); // Get only YYMM part
     
     try {
-      // Get the latest booking with this year-month prefix
+      // Get the latest booking with this year-date prefix
       const { data } = await supabase
         .from("BookMST")
         .select("Booking_NO")
-        .like("Booking_NO", `${yearMonth}%`)
+        .like("Booking_NO", `${yearDate}%`)
         .order("Booking_NO", { ascending: false })
         .limit(1);
       
-      let runningNumber = 1;
+      let runningNumber = 0;
       
       // If there are existing bookings with this prefix, increment the last one
       if (data && data.length > 0 && data[0].Booking_NO) {
         // Convert to string before trying to use substring
         const lastRef = String(data[0].Booking_NO);
         const lastNumber = parseInt(lastRef.substring(4), 10);
-        runningNumber = isNaN(lastNumber) ? 1 : lastNumber + 1;
+        runningNumber = isNaN(lastNumber) ? 0 : lastNumber + 1;
       }
       
       // Format running number as 4 digits with leading zeros
       const formattedNumber = runningNumber.toString().padStart(4, '0');
-      return `${yearMonth}${formattedNumber}`;
+      return `${yearDate}${formattedNumber}`;
     } catch (error) {
       console.error("Error generating booking reference:", error);
       // Fallback to timestamp-based reference if database query fails
-      const fallbackYearMonth = format(new Date(), "yyMM");
-      return `${fallbackYearMonth}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+      const fallbackYearDate = format(new Date(), "yyMMdd").substring(0, 4);
+      return `${fallbackYearDate}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
     }
   };
 
