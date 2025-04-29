@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,8 +14,7 @@ import { useBookingFilters } from "@/hooks/useBookingFilters";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
 import { Booking } from "@/hooks/useBookings";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar, Clock } from "lucide-react"; // Add Calendar and Clock imports
-import { Link } from "react-router-dom";
+import { PlusCircle } from "lucide-react";
 import { ExportButton } from "@/components/ui/export-button";
 import { useBookingEdit } from "@/hooks/useBookingEdit";
 
@@ -245,36 +243,8 @@ const UserBookings = () => {
                     onAddNewJob={isArtist ? undefined : handleAddNewJob}
                   />
                 ) : (
-                  <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                    {filteredBookings.map((booking) => (
-                      <Card key={booking.id}>
-                        <CardHeader>
-                          <CardTitle className="text-lg">{booking.Purpose}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <Calendar className="w-4 h-4 mr-1" />
-                              <span>{booking.Booking_date}</span>
-                            </div>
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <Clock className="w-4 h-4 mr-1" />
-                              <span>{booking.booking_time}</span>
-                            </div>
-                            <div className="text-sm">Booking #: {booking.Booking_NO}</div>
-                            <div className={`px-3 py-1 text-xs font-medium rounded-full inline-block w-full text-center
-                              ${booking.Status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
-                                booking.Status === 'Confirmed' ? 'bg-blue-100 text-blue-800' :
-                                booking.Status === 'Beautician Assigned' ? 'bg-purple-100 text-purple-800' : 
-                                booking.Status === 'Done' ? 'bg-green-100 text-green-800' :
-                                'bg-red-100 text-red-800'}`}>
-                              {booking.Status || 'PENDING'}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                  // Use the BookingsList component for member users, which we'll modify to be a list view
+                  <BookingsList />
                 )}
               </>
             )}
