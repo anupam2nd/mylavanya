@@ -9,7 +9,7 @@ import { useStatusOptions } from "@/hooks/useStatusOptions";
 export const useBookingSubmit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
-  const { formattedStatusOptions } = useStatusOptions();
+  const { formattedStatusOptions, statusOptions } = useStatusOptions();
 
   // Function to generate booking reference number
   const generateBookingReference = async (): Promise<string> => {
@@ -70,21 +70,21 @@ export const useBookingSubmit = () => {
     }
   };
   
-  // Get the status code for a readable status name
-  const getStatusCode = (statusName: string = "Pending"): string => {
-    // Default to "pending" status code if no match or no options available
-    if (!formattedStatusOptions || formattedStatusOptions.length === 0) {
-      console.log("No status options available, using default 'pending'");
-      return "pending";
+  // Get the status name for use in bookings
+  const getStatusName = (statusCode: string = "pending"): string => {
+    // Default to "Pending" status name if no match or no options available
+    if (!statusOptions || statusOptions.length === 0) {
+      console.log("No status options available, using default 'Pending'");
+      return "Pending";
     }
     
     // Find the matching status option
-    const statusOption = formattedStatusOptions.find(
-      option => option.label.toLowerCase() === statusName.toLowerCase()
+    const statusOption = statusOptions.find(
+      option => option.status_code.toLowerCase() === statusCode.toLowerCase()
     );
     
-    // Return the status code or default to "pending"
-    return statusOption ? statusOption.value : "pending";
+    // Return the status name or default to "Pending"
+    return statusOption ? statusOption.status_name : "Pending";
   };
 
   const submitBooking = async (data: BookingFormValues) => {
@@ -128,8 +128,8 @@ export const useBookingSubmit = () => {
       // Get the next available ID for new bookings
       const nextId = await getNextAvailableId();
       
-      // Get appropriate status code (default to "pending")
-      const statusCode = getStatusCode("Pending");
+      // Get status name (default to "Pending")
+      const statusName = getStatusName("pending");
       
       // Insert multiple bookings with the same booking reference number
       // Add sequential job numbers for each service booked
@@ -151,7 +151,7 @@ export const useBookingSubmit = () => {
           Phone_no: parseInt(phoneNumber),
           Booking_date: format(data.selectedDate, "yyyy-MM-dd"),
           booking_time: data.selectedTime,
-          Status: statusCode,
+          Status: statusName, // Use status name instead of code for readability
           price: service.price,
           Booking_NO: bookingRefNumber, // Use as number for database
           Qty: service.quantity || 1,

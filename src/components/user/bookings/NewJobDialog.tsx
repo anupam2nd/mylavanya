@@ -171,6 +171,12 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
     return artistRequiredStatuses.includes(statusValue);
   };
 
+  // Get the status name for a given status code
+  const getStatusName = (statusCode: string): string => {
+    const statusOption = statusOptions.find(option => option.status_code === statusCode);
+    return statusOption ? statusOption.status_name : "Pending";
+  };
+
   const getArtistName = (id: number): string => {
     const artist = artistOptions.find(a => a.ArtistId === id);
     if (!artist) return `Artist ${id}`;
@@ -248,7 +254,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         Scheme: selectedProductDetails.Scheme,
         price: price,
         Qty: qty,
-        Status: status,
+        Status: getStatusName(status), // Use the status name instead of code for readability
         jobno: nextJobNo,
       };
 
