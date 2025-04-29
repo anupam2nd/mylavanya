@@ -238,6 +238,8 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
 
       // Create new booking record with same booking_no but new job
       const bookingNoAsNumber = parseInt(booking.Booking_NO);
+      const currentTime = new Date();
+      
       const newBookingData: any = {
         Booking_NO: bookingNoAsNumber, // Store as number in database
         name: booking.name,
@@ -255,6 +257,8 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         price: price,
         Qty: qty,
         Status: getStatusName(status), // Use the status name instead of code for readability
+        StatusUpdated: currentTime.toISOString(),
+        created_at: currentTime,
         jobno: nextJobNo,
       };
 
@@ -265,8 +269,19 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
 
       // Add artist assignment fields if required
       if (requiresArtist(status) && artistId) {
+        // Fetch artist details to get employee code
+        const { data: artistDetails } = await supabase
+          .from('ArtistMST')
+          .select('ArtistEmpCode')
+          .eq('ArtistId', artistId)
+          .single();
+
         newBookingData.ArtistId = artistId;
         newBookingData.Assignedto = getArtistName(artistId);
+        
+        if (artistDetails && artistDetails.ArtistEmpCode) {
+          newBookingData.AssignedToEmpCode = artistDetails.ArtistEmpCode;
+        }
         
         // Set AssignedBY to current user's full name instead of just username
         if (currentUser) {
@@ -279,12 +294,16 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
             // Fallback to username if no name is available
             newBookingData.AssignedBY = currentUser.Username || 'admin';
           }
+          
+          // Set AssignedByUser to username
+          if (currentUser.Username) {
+            newBookingData.AssignedByUser = currentUser.Username;
+          }
         } else {
           newBookingData.AssignedBY = 'admin';
         }
         
-        newBookingData.AssingnedON = new Date().toISOString();
-        newBookingData.StatusUpdated = new Date().toISOString();
+        newBookingData.AssingnedON = currentTime.toISOString();
       }
 
       console.log("Creating new job with data:", newBookingData);

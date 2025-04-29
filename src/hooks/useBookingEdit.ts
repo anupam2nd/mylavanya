@@ -19,6 +19,7 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
       if (!editBooking) return;
 
       const updates: any = {};
+      const now = new Date();
 
       // Only add values to updates if they changed or exist
       if (values.date) {
@@ -54,27 +55,29 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
       }
       
       // Handle status update
-      if (values.status) {
+      if (values.status && values.status !== editBooking.Status) {
         // Update both status fields
         updates.Status = values.status;
+        updates.StatusUpdated = now.toISOString();
         
         // For certain statuses, also assign artists
-        const artistAssignmentStatuses = ['process', 'approve', 'ontheway', 'service_started', 'done'];
+        const artistAssignmentStatuses = ['process', 'approve', 'ontheway', 'service_started', 'done', 'beautician_assigned'];
         if (artistAssignmentStatuses.includes(values.status)) {
           // Try to get artist details if an artist ID was provided
           if (values.artistId) {
             try {
               const { data: artistData, error: artistError } = await supabase
-                .from('UserMST')
-                .select('FirstName, LastName, id')
-                .eq('id', values.artistId)
+                .from('ArtistMST')
+                .select('ArtistFirstName, ArtistLastName, ArtistId, ArtistEmpCode')
+                .eq('ArtistId', values.artistId)
                 .single();
                 
               if (!artistError && artistData) {
                 // Construct full name from first and last name fields
-                const artistFullName = `${artistData.FirstName || ''} ${artistData.LastName || ''}`.trim();
-                updates.ArtistName = artistFullName;
-                updates.ArtistId = artistData.id;
+                const artistFullName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim();
+                updates.Assignedto = artistFullName;
+                updates.ArtistId = artistData.ArtistId;
+                updates.AssignedToEmpCode = artistData.ArtistEmpCode;
                 console.log(`Assigning artist ${artistFullName} to booking`);
               }
             } catch (error) {
@@ -107,6 +110,12 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
           else {
             updates.AssignedBY = 'unknown';
             console.log("No user info available, defaulting AssignedBY to 'unknown'");
+          }
+          
+          // Set the new AssignedByUser field to the username
+          if (values.currentUser.Username) {
+            updates.AssignedByUser = values.currentUser.Username;
+            console.log("Setting AssignedByUser to:", values.currentUser.Username);
           }
         } else {
           // No user data available

@@ -65,13 +65,14 @@ export type Database = {
           Address: string | null
           ArtistId: number | null
           AssignedBY: string | null
+          AssignedByUser: string | null
           Assignedto: string | null
           AssignedToEmpCode: string | null
           AssingnedON: string | null
           Booking_date: string | null
           Booking_NO: number | null
           booking_time: string | null
-          created_at: string | null
+          created_at: string
           email: string | null
           id: number
           jobno: number | null
@@ -94,13 +95,14 @@ export type Database = {
           Address?: string | null
           ArtistId?: number | null
           AssignedBY?: string | null
+          AssignedByUser?: string | null
           Assignedto?: string | null
           AssignedToEmpCode?: string | null
           AssingnedON?: string | null
           Booking_date?: string | null
           Booking_NO?: number | null
           booking_time?: string | null
-          created_at?: string | null
+          created_at?: string
           email?: string | null
           id?: number
           jobno?: number | null
@@ -123,13 +125,14 @@ export type Database = {
           Address?: string | null
           ArtistId?: number | null
           AssignedBY?: string | null
+          AssignedByUser?: string | null
           Assignedto?: string | null
           AssignedToEmpCode?: string | null
           AssingnedON?: string | null
           Booking_date?: string | null
           Booking_NO?: number | null
           booking_time?: string | null
-          created_at?: string | null
+          created_at?: string
           email?: string | null
           id?: number
           jobno?: number | null

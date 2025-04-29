@@ -130,6 +130,7 @@ export const useBookingSubmit = () => {
       
       // Get status name (default to "Pending")
       const statusName = getStatusName("pending");
+      const currentTime = new Date();
       
       // Insert multiple bookings with the same booking reference number
       // Add sequential job numbers for each service booked
@@ -152,6 +153,7 @@ export const useBookingSubmit = () => {
           Booking_date: format(data.selectedDate, "yyyy-MM-dd"),
           booking_time: data.selectedTime,
           Status: statusName, // Use status name instead of code for readability
+          StatusUpdated: currentTime, // Set initial status update time
           price: service.price,
           Booking_NO: bookingRefNumber, // Use as number for database
           Qty: service.quantity || 1,
@@ -161,7 +163,8 @@ export const useBookingSubmit = () => {
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,
-          jobno: jobNumber // Add sequential job number
+          jobno: jobNumber, // Add sequential job number
+          created_at: currentTime // Ensure created_at is set
         };
         
         // Only add email if it exists
