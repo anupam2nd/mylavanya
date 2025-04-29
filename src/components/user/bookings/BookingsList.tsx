@@ -11,12 +11,16 @@ import UserBookingFilters from './UserBookingFilters';
 import { useBookingFilters } from '@/hooks/useBookingFilters';
 import { useStatusOptions } from '@/hooks/useStatusOptions';
 import { Booking } from '@/hooks/useBookings';
+import BookingDetailsModal from "./BookingDetailsModal";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 const BookingsList = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -67,7 +71,10 @@ const BookingsList = () => {
           price: booking.price || 0,
           Address: booking.Address,
           Pincode: booking.Pincode,
-          created_at: booking.created_at
+          created_at: booking.created_at,
+          ArtistId: booking.ArtistId,
+          ServiceName: booking.ServiceName,
+          SubService: booking.SubService
         }));
 
         setBookings(transformedData);
@@ -106,6 +113,11 @@ const BookingsList = () => {
   
   // Determine if user is a member
   const isMember = user?.role === 'member';
+
+  const handleViewDetails = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setIsDetailsModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -149,33 +161,39 @@ const BookingsList = () => {
       ) : (
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {filteredBookings.map((booking) => (
-            <Card key={booking.Booking_NO}>
+            <Card 
+              key={booking.Booking_NO} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => handleViewDetails(booking)}
+            >
               <CardHeader>
-                <CardTitle>{booking.Purpose}</CardTitle>
+                <CardTitle className="text-lg">{booking.Purpose}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center text-sm text-muted-foreground mb-2">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  <span>{booking.Booking_date}</span>
-                  <Clock className="w-4 h-4 ml-3 mr-1" />
-                  <span>{booking.booking_time}</span>
-                </div>
-                <div className="text-sm text-muted-foreground mb-2">
-                  <span>Phone: {booking.Phone_no}</span>
-                </div>
-                <div className={`px-3 py-1 text-xs font-medium rounded-full inline-block
-                      ${booking.Status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                        booking.Status === 'Confirmed' ? 'bg-blue-100 text-blue-800' :
-                          booking.Status === 'Beautician Assigned' ? 'bg-purple-100 text-purple-800' :
-                            booking.Status === 'Done' ? 'bg-green-100 text-green-800' :
-                              'bg-red-100 text-red-800'}`}>
-                  {booking.Status || 'PENDING'}
+                <div className="space-y-3">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    <span>{booking.Booking_date}</span>
+                    <Clock className="w-4 h-4 ml-3 mr-1" />
+                    <span>{booking.booking_time}</span>
+                  </div>
+                  <div className="text-sm">Booking #: {booking.Booking_NO}</div>
+                  <StatusBadge status={booking.Status || 'pending'} />
+                  {booking.ArtistId && (
+                    <p className="text-xs text-muted-foreground">Artist assigned</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+      
+      <BookingDetailsModal 
+        booking={selectedBooking}
+        open={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+      />
     </div>
   );
 };

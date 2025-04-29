@@ -16,6 +16,11 @@ const ProfileDropdown = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   
+  // Get user's display name - prioritize firstName if available
+  const displayName = user?.firstName 
+    ? `${user.firstName}` 
+    : user?.email?.split('@')[0] || "My Profile";
+  
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -25,7 +30,7 @@ const ProfileDropdown = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="border-primary/20">
-          My Profile
+          {displayName}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

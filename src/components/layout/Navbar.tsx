@@ -21,6 +21,11 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Get user's display name - prioritize firstName if available
+  const displayName = user?.firstName 
+    ? `${user.firstName}` 
+    : user?.email?.split('@')[0] || "My Profile";
+
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
@@ -122,6 +127,7 @@ const Navbar = () => {
                 {isAuthenticated ? (
                   user?.role === "member" ? (
                     <div className="space-y-2">
+                      <div className="font-medium text-primary">{displayName}</div>
                       <Link to="/profile" className="block py-2 text-gray-700 hover:text-primary" onClick={closeMenu}>
                         My Profile
                       </Link>
