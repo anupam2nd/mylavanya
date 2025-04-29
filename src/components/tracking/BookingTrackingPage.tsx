@@ -37,7 +37,6 @@ export function BookingTrackingPage() {
       if (!isAuthenticated || !user?.email) return;
       
       try {
-        setIsLoading(true);
         const hasAnyBookings = await checkUserHasBookings();
         
         // If user has no bookings, show a message and redirect
@@ -51,8 +50,6 @@ export function BookingTrackingPage() {
         }
       } catch (error) {
         console.error("Error checking bookings:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
     
