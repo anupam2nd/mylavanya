@@ -15,7 +15,7 @@ import { useBookingFilters } from "@/hooks/useBookingFilters";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
 import { Booking } from "@/hooks/useBookings";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Calendar, Clock } from "lucide-react"; // Add Calendar and Clock imports
 import { Link } from "react-router-dom";
 import { ExportButton } from "@/components/ui/export-button";
 import { useBookingEdit } from "@/hooks/useBookingEdit";

@@ -17,11 +17,13 @@ import { BookingDrawerContent } from "./BookingDrawerContent";
 interface MobileBookingCardProps {
   booking: Booking;
   handleEditClick: (booking: Booking) => void;
+  showEditButton?: boolean; // Add this prop with optional flag
 }
 
 export const MobileBookingCard: React.FC<MobileBookingCardProps> = ({
   booking,
   handleEditClick,
+  showEditButton = true, // Default to true if not provided
 }) => {
   return (
     <div 
@@ -71,14 +73,16 @@ export const MobileBookingCard: React.FC<MobileBookingCardProps> = ({
           </DrawerContent>
         </Drawer>
         
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="h-8" 
-          onClick={() => handleEditClick(booking)}
-        >
-          <Edit className="h-4 w-4 mr-1" /> Edit
-        </Button>
+        {showEditButton && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="h-8" 
+            onClick={() => handleEditClick(booking)}
+          >
+            <Edit className="h-4 w-4 mr-1" /> Edit
+          </Button>
+        )}
       </div>
     </div>
   );

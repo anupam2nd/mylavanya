@@ -17,11 +17,13 @@ import {
 interface DesktopBookingsTableProps {
   bookings: Booking[];
   handleEditClick: (booking: Booking) => void;
+  showEditButton?: boolean; // Add this prop with optional flag
 }
 
 export const DesktopBookingsTable: React.FC<DesktopBookingsTableProps> = ({
   bookings,
   handleEditClick,
+  showEditButton = true, // Default to true if not provided
 }) => {
   return (
     <div className="overflow-x-auto">
@@ -35,7 +37,7 @@ export const DesktopBookingsTable: React.FC<DesktopBookingsTableProps> = ({
             <TableHead>Time</TableHead>
             <TableHead>Service</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            {showEditButton && <TableHead className="text-right">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -64,15 +66,17 @@ export const DesktopBookingsTable: React.FC<DesktopBookingsTableProps> = ({
               <TableCell>
                 <StatusBadge status={booking.Status || 'pending'} />
               </TableCell>
-              <TableCell className="text-right">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => handleEditClick(booking)}
-                >
-                  <Edit className="h-4 w-4 mr-1" /> Edit
-                </Button>
-              </TableCell>
+              {showEditButton && (
+                <TableCell className="text-right">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleEditClick(booking)}
+                  >
+                    <Edit className="h-4 w-4 mr-1" /> Edit
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
