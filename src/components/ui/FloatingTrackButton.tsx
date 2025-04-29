@@ -1,8 +1,16 @@
 
 import { Link } from "react-router-dom";
 import { FileText } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const FloatingTrackButton = () => {
+  const { isAuthenticated } = useAuth();
+  
+  // Don't render the button if the user is not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
+  
   return (
     <Link 
       to="/track-booking"

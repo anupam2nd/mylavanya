@@ -80,6 +80,7 @@ const Navbar = () => {
                 <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
                   Contact
                 </Link>
+                {/* NavTrackingButton will handle its own visibility */}
                 <NavTrackingButton />
               </nav>
 
@@ -120,6 +121,7 @@ const Navbar = () => {
               <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
                 Contact
               </Link>
+              {/* NavTrackingButton will handle its own visibility */}
               <NavTrackingButton isMobile={true} onClick={closeMenu} />
               
               {/* Mobile login buttons */}

@@ -1,5 +1,5 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
@@ -7,11 +7,31 @@ import MainLayout from "@/components/layout/MainLayout";
 import TrackingForm, { TrackingFormValues } from "@/components/tracking/TrackingForm";
 import BookingDetails, { BookingData } from "@/components/tracking/BookingDetails";
 import TrackingError from "@/components/tracking/TrackingError";
+import { useAuth } from "@/context/AuthContext";
 
 const TrackBooking = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [bookingDetails, setBookingDetails] = useState<BookingData[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to track your booking.",
+        variant: "destructive",
+      });
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // If not authenticated, don't render the page content
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const handleSubmit = async (data: TrackingFormValues) => {
     setIsLoading(true);
