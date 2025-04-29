@@ -13,12 +13,14 @@ import FormActions from "./form/FormActions";
 import ServiceSelectionField from "./form/ServiceSelectionField";
 import { useBookingSubmit } from "./form/useBookingSubmit";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, FileText, ArrowRight, CalendarCheck } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Link, useNavigate } from "react-router-dom";
 
 const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPrice, onCancel, onSuccess }: BookingFormProps) => {
   const [bookingCompleted, setBookingCompleted] = useState(false);
   const [bookingRef, setBookingRef] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   // Prepare initial selected service if provided as prop
   const initialSelectedService = serviceId && serviceName && servicePrice 
@@ -59,16 +61,30 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
     }
   };
 
+  // Handler for viewing bookings
+  const handleViewBookings = () => {
+    navigate('/user/bookings');
+  };
+
   if (bookingCompleted && bookingRef) {
+    // Calculate total price including quantities
+    const totalPrice = form
+      .getValues().selectedServices
+      .reduce((sum, service) => sum + (service.price * (service.quantity || 1)), 0);
+      
     return (
       <div className="fixed top-0 left-0 right-0 w-full h-full flex items-center justify-center bg-black/50 z-50">
         <div className="w-full max-w-md bg-white rounded-lg p-8 shadow-2xl text-center animate-fade-in">
           <CheckCircle2 className="mx-auto h-20 w-20 text-green-500 mb-6" />
-          <h2 className="text-3xl font-bold mb-6">Booking Confirmed!</h2>
+          <h2 className="text-3xl font-bold mb-6">Booking Successful!</h2>
           
           <div className="mb-4 bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
             <h3 className="text-xl font-semibold text-gray-800 mb-3">Your Booking Reference</h3>
             <p className="text-5xl font-extrabold text-red-600 mb-4">{bookingRef}</p>
+            <div className="flex items-center justify-center text-gray-700 mb-2">
+              <FileText className="mr-2 h-4 w-4" />
+              <p>Total amount: ₹{totalPrice.toFixed(2)}</p>
+            </div>
             <p className="text-gray-700">
               Please save this reference number for future inquiries.
             </p>
@@ -81,9 +97,16 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
             </AlertDescription>
           </Alert>
           
-          <Button onClick={onCancel} className="w-full text-lg py-6" size="lg">
-            Done
-          </Button>
+          <div className="space-y-3">
+            <Button onClick={handleViewBookings} className="w-full text-lg py-6" variant="outline">
+              <CalendarCheck className="mr-2 h-5 w-5" />
+              View My Bookings
+            </Button>
+            
+            <Button onClick={onCancel} className="w-full text-lg py-6" size="lg">
+              Done
+            </Button>
+          </div>
         </div>
       </div>
     );

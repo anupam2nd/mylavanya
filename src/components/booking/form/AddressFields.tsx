@@ -33,11 +33,20 @@ const AddressFields = () => {
         render={({ field }) => (
           <FormItem>
             <FormLabel className="flex items-center gap-1">
-              Pincode
+              PIN Code
               {requiredFields.pincode && <Asterisk className="h-3 w-3 text-red-500" />}
             </FormLabel>
             <FormControl>
-              <Input placeholder="Enter your 6-digit pincode" maxLength={6} {...field} />
+              <Input 
+                placeholder="Enter your PIN code" 
+                {...field} 
+                maxLength={6}
+                onChange={(e) => {
+                  // Allow only numbers
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  field.onChange(value);
+                }}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
