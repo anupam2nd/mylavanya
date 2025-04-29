@@ -83,6 +83,25 @@ export function BookingTrackingForm() {
     setBookingDetails(null); // Reset booking details when switching tabs
   };
 
+  // Transform the booking details into the format expected by BookingDetails component
+  const transformBookingDetails = (details: any) => {
+    if (!details) return [];
+    
+    // Create a BookingData array with a single entry that matches the expected interface
+    return [{
+      Booking_NO: details.bookingId || "",
+      Purpose: details.service || "",
+      Phone_no: parseInt(details.customerPhone) || 0,
+      Booking_date: details.date || "",
+      booking_time: details.time || "",
+      Status: details.status || "",
+      price: 0, // Default value as it's required
+      ProductName: details.service || "",
+      Qty: 1, // Default quantity
+      name: details.customerName || ""
+    }];
+  };
+
   return (
     <div className="mx-auto max-w-md space-y-6 p-4">
       <div className="space-y-2 text-center">
@@ -179,7 +198,7 @@ export function BookingTrackingForm() {
         </TabsContent>
       </Tabs>
 
-      {bookingDetails && <BookingDetails data={bookingDetails} />}
+      {bookingDetails && <BookingDetails bookingDetails={transformBookingDetails(bookingDetails)} />}
     </div>
   );
 }
