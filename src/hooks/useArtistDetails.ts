@@ -61,9 +61,10 @@ export const useArtistDetails = (artistIds: (number | undefined)[]) => {
     return `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || 'Not available';
   };
 
-  const getArtistPhone = (artistId?: number) => {
+  // Updated to return a string instead of number | ""
+  const getArtistPhone = (artistId?: number): string => {
     if (!artistId || !artistDetails[artistId]) return '';
-    return artistDetails[artistId].ArtistPhno || '';
+    return artistDetails[artistId].ArtistPhno ? artistDetails[artistId].ArtistPhno!.toString() : '';
   };
 
   return {

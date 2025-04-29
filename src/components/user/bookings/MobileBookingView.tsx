@@ -5,7 +5,6 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Booking } from "@/hooks/useBookings";
-import { ArtistDetails } from "@/hooks/useArtistDetails";
 
 interface MobileBookingViewProps {
   bookings: Booking[];
