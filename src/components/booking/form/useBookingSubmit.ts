@@ -45,6 +45,29 @@ export const useBookingSubmit = () => {
     }
   };
 
+  // Function to get the next available ID
+  const getNextAvailableId = async (): Promise<number> => {
+    try {
+      // Get the maximum ID value currently in the table
+      const { data, error } = await supabase
+        .from("BookMST")
+        .select("id")
+        .order("id", { ascending: false })
+        .limit(1);
+      
+      if (error) {
+        console.error("Error getting max ID:", error);
+        throw error;
+      }
+      
+      // Return max ID + 1 or start with 1 if no records exist
+      return data && data.length > 0 ? Number(data[0].id) + 1 : 1;
+    } catch (error) {
+      console.error("Error determining next ID:", error);
+      throw error;
+    }
+  };
+
   const submitBooking = async (data: BookingFormValues) => {
     setIsSubmitting(true);
     
@@ -83,6 +106,9 @@ export const useBookingSubmit = () => {
       
       const servicesWithDetails = await Promise.all(serviceDetailsPromises);
       
+      // Get the next available ID for new bookings
+      const nextId = await getNextAvailableId();
+      
       // Insert multiple bookings with the same booking reference number
       // Add sequential job numbers for each service booked
       const bookingPromises = servicesWithDetails.map((service, index) => {
@@ -96,6 +122,7 @@ export const useBookingSubmit = () => {
         const bookingRefNumber = parseInt(bookingRef, 10);
         
         return supabase.from("BookMST").insert({
+          id: nextId + index, // Use incrementing IDs starting from the next available ID
           Product: service.id, // Keep using Product field for compatibility with database
           Purpose: service.name,
           Phone_no: parseInt(phoneNumber),
