@@ -8,7 +8,7 @@ export interface Booking {
   Booking_NO: string; // Changed to string to maintain consistency across app
   jobno?: number;
   name: string;
-  email: string;
+  email?: string; // Make email optional to match database structure
   Phone_no: number;
   Address?: string;
   Pincode?: number;

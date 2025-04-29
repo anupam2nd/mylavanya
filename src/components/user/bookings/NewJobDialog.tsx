@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -236,7 +235,6 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       const newBookingData: any = {
         Booking_NO: bookingNoAsNumber, // Store as number in database
         name: booking.name,
-        email: booking.email,
         Phone_no: booking.Phone_no,
         Address: address,
         Pincode: pincode ? Number(pincode) : null,
@@ -253,6 +251,11 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         Status: status,
         jobno: nextJobNo,
       };
+
+      // Only add email if it exists in the booking
+      if (booking.email) {
+        newBookingData.email = booking.email;
+      }
 
       // Add artist assignment fields if required
       if (requiresArtist(status) && artistId) {

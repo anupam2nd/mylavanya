@@ -4,10 +4,12 @@ import { format } from "date-fns";
 import { BookingFormValues } from "./FormSchema";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { useStatusOptions } from "@/hooks/useStatusOptions";
 
 export const useBookingSubmit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
+  const { formattedStatusOptions } = useStatusOptions();
 
   // Function to generate booking reference number
   const generateBookingReference = async (): Promise<string> => {
@@ -67,6 +69,23 @@ export const useBookingSubmit = () => {
       throw error;
     }
   };
+  
+  // Get the status code for a readable status name
+  const getStatusCode = (statusName: string = "Pending"): string => {
+    // Default to "pending" status code if no match or no options available
+    if (!formattedStatusOptions || formattedStatusOptions.length === 0) {
+      console.log("No status options available, using default 'pending'");
+      return "pending";
+    }
+    
+    // Find the matching status option
+    const statusOption = formattedStatusOptions.find(
+      option => option.label.toLowerCase() === statusName.toLowerCase()
+    );
+    
+    // Return the status code or default to "pending"
+    return statusOption ? statusOption.value : "pending";
+  };
 
   const submitBooking = async (data: BookingFormValues) => {
     setIsSubmitting(true);
@@ -109,6 +128,9 @@ export const useBookingSubmit = () => {
       // Get the next available ID for new bookings
       const nextId = await getNextAvailableId();
       
+      // Get appropriate status code (default to "pending")
+      const statusCode = getStatusCode("Pending");
+      
       // Insert multiple bookings with the same booking reference number
       // Add sequential job numbers for each service booked
       const bookingPromises = servicesWithDetails.map((service, index) => {
@@ -121,26 +143,33 @@ export const useBookingSubmit = () => {
         // Convert bookingRef to a number for the database
         const bookingRefNumber = parseInt(bookingRef, 10);
         
-        return supabase.from("BookMST").insert({
+        // Create the booking object with all needed fields
+        const bookingData: Record<string, any> = {
           id: nextId + index, // Use incrementing IDs starting from the next available ID
           Product: service.id, // Keep using Product field for compatibility with database
           Purpose: service.name,
           Phone_no: parseInt(phoneNumber),
           Booking_date: format(data.selectedDate, "yyyy-MM-dd"),
           booking_time: data.selectedTime,
-          Status: "pending",
+          Status: statusCode,
           price: service.price,
           Booking_NO: bookingRefNumber, // Use as number for database
           Qty: service.quantity || 1,
           Address: data.address,
           Pincode: parseInt(data.pincode),
           name: data.name,
-          email: data.email,
           ServiceName: service.serviceName,
           SubService: service.subService,
           ProductName: service.productName,
           jobno: jobNumber // Add sequential job number
-        });
+        };
+        
+        // Only add email if it exists
+        if (data.email) {
+          bookingData.email = data.email;
+        }
+        
+        return supabase.from("BookMST").insert(bookingData);
       });
       
       const results = await Promise.all(bookingPromises);
