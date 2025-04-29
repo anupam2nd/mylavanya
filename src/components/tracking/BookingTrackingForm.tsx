@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { BookingDetails } from "./BookingDetails";
+import BookingDetails from "./BookingDetails"; // Fixed import - it's a default export
 import {
   Form,
   FormControl,
