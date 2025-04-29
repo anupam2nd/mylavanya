@@ -100,7 +100,10 @@ const MemberBookingsView = ({ bookings, loading }: MemberBookingsViewProps) => {
                 </span>
               )}
             </div>
-            <BookingsList />
+            <BookingsList 
+              filteredBookings={filteredBookings} 
+              clearFilters={clearFilters}
+            />
           </>
         )}
       </CardContent>
