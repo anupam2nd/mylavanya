@@ -9,7 +9,7 @@ import { useStatusOptions } from "@/hooks/useStatusOptions";
 
 interface BookingDialogsProps {
   bookings: Booking[];
-  setBookings: (bookings: Booking[]) => void;
+  setBookings: React.Dispatch<React.SetStateAction<Booking[]>>;
   currentUser: { Username?: string, FirstName?: string, LastName?: string } | null;
 }
 
@@ -33,7 +33,8 @@ const BookingDialogs = ({ bookings, setBookings, currentUser }: BookingDialogsPr
   };
 
   const handleNewJobSuccess = (newBooking: Booking) => {
-    setBookings(prevBookings => [newBooking, ...prevBookings]);
+    // Update the type to use setState properly
+    setBookings((prevBookings) => [newBooking, ...prevBookings]);
     setShowNewJobDialog(false);
     
     toast({
