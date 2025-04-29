@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,6 +60,9 @@ const UserBookings = () => {
     clearFilters
   } = useBookingFilters(bookings);
 
+  // Determine if the current user is a member
+  const isMember = user?.role === 'member';
+
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -101,6 +105,11 @@ const UserBookings = () => {
             console.log("Filtering bookings by artist ID:", artistId);
             query = query.eq('ArtistId', artistId);
           }
+        } 
+        // For member role, filter bookings by email
+        else if (user?.role === 'member' && user?.email) {
+          console.log("Filtering bookings by member email:", user.email);
+          query = query.eq('email', user.email);
         }
         
         query = query.order('Booking_date', { ascending: false });
@@ -169,7 +178,7 @@ const UserBookings = () => {
     created_at: 'Created At'
   };
 
-  // Determine if the current user is an artist
+  // Determine if the current user is an artist or a member
   const isArtist = user?.role === 'artist';
 
   return (
@@ -177,14 +186,16 @@ const UserBookings = () => {
       <DashboardLayout title="Booking Management">
         <Card>
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
-            <CardTitle>All Bookings</CardTitle>
+            <CardTitle>{isMember ? "My Bookings" : "All Bookings"}</CardTitle>
             <div className="flex items-center space-x-2">
-              <ExportButton
-                data={filteredBookings}
-                filename="bookings"
-                headers={bookingHeaders}
-                buttonText="Export Bookings"
-              />
+              {!isMember && (
+                <ExportButton
+                  data={filteredBookings}
+                  filename="bookings"
+                  headers={bookingHeaders}
+                  buttonText="Export Bookings"
+                />
+              )}
               <BookingFilters
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
@@ -226,18 +237,51 @@ const UserBookings = () => {
                     </span>
                   )}
                 </div>
-                <AdminBookingsList 
-                  bookings={filteredBookings} 
-                  loading={loading} 
-                  onEditClick={isArtist ? () => {} : handleEditClick} 
-                  onAddNewJob={isArtist ? undefined : handleAddNewJob}
-                />
+                {!isMember ? (
+                  <AdminBookingsList 
+                    bookings={filteredBookings} 
+                    loading={loading} 
+                    onEditClick={isArtist ? () => {} : handleEditClick} 
+                    onAddNewJob={isArtist ? undefined : handleAddNewJob}
+                  />
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredBookings.map((booking) => (
+                      <Card key={booking.id}>
+                        <CardHeader>
+                          <CardTitle className="text-lg">{booking.Purpose}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Calendar className="w-4 h-4 mr-1" />
+                              <span>{booking.Booking_date}</span>
+                            </div>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Clock className="w-4 h-4 mr-1" />
+                              <span>{booking.booking_time}</span>
+                            </div>
+                            <div className="text-sm">Booking #: {booking.Booking_NO}</div>
+                            <div className={`px-3 py-1 text-xs font-medium rounded-full inline-block w-full text-center
+                              ${booking.Status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                booking.Status === 'Confirmed' ? 'bg-blue-100 text-blue-800' :
+                                booking.Status === 'Beautician Assigned' ? 'bg-purple-100 text-purple-800' : 
+                                booking.Status === 'Done' ? 'bg-green-100 text-green-800' :
+                                'bg-red-100 text-red-800'}`}>
+                              {booking.Status || 'PENDING'}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </>
             )}
           </CardContent>
         </Card>
 
-        {!isArtist && (
+        {!isMember && !isArtist && (
           <>
             <EditBookingDialog
               booking={editBooking}

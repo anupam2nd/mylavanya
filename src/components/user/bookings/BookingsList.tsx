@@ -43,8 +43,8 @@ const BookingsList = () => {
             console.log("Filtering bookings by ArtistId:", artistId);
             query = query.eq('ArtistId', artistId);
           }
-        } else {
-          // For regular users, filter by their email
+        } else if (user.role === 'member') {
+          // For member users, only show their own bookings
           query = query.eq('email', user.email);
         }
         
@@ -104,10 +104,13 @@ const BookingsList = () => {
     clearFilters
   } = useBookingFilters(bookings);
   
+  // Determine if user is a member
+  const isMember = user?.role === 'member';
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
-        <h2 className="text-2xl font-semibold">Your Bookings</h2>
+        <h2 className="text-2xl font-semibold">{isMember ? "My Bookings" : "Your Bookings"}</h2>
         <UserBookingFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -161,12 +164,12 @@ const BookingsList = () => {
                   <span>Phone: {booking.Phone_no}</span>
                 </div>
                 <div className={`px-3 py-1 text-xs font-medium rounded-full inline-block
-                      ${booking.Status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        booking.Status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                          booking.Status === 'beautician_assigned' ? 'bg-purple-100 text-purple-800' :
-                            booking.Status === 'done' ? 'bg-green-100 text-green-800' :
+                      ${booking.Status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                        booking.Status === 'Confirmed' ? 'bg-blue-100 text-blue-800' :
+                          booking.Status === 'Beautician Assigned' ? 'bg-purple-100 text-purple-800' :
+                            booking.Status === 'Done' ? 'bg-green-100 text-green-800' :
                               'bg-red-100 text-red-800'}`}>
-                  {booking.Status?.toUpperCase() || 'PENDING'}
+                  {booking.Status || 'PENDING'}
                 </div>
               </CardContent>
             </Card>

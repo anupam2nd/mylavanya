@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 
 export interface Booking {
   id: number;
@@ -35,14 +36,34 @@ export const useBookings = () => {
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   const fetchBookings = async () => {
+    if (!user) return;
+
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('BookMST')
-        .select('*')
-        .order('Booking_date', { ascending: false });
+      let query = supabase.from('BookMST').select('*');
+      
+      // Filter bookings based on user role
+      if (user.role === 'artist') {
+        const artistId = parseInt(user.id, 10);
+        if (!isNaN(artistId)) {
+          console.log("Filtering bookings by artist ID:", artistId);
+          query = query.eq('ArtistId', artistId);
+        }
+      } else if (user.role === 'member') {
+        // For member users, only show their own bookings
+        if (user.email) {
+          console.log("Filtering bookings for member email:", user.email);
+          query = query.eq('email', user.email);
+        }
+      }
+      
+      // Add order by to get the newest bookings first
+      query = query.order('Booking_date', { ascending: false });
+      
+      const { data, error } = await query;
 
       if (error) throw error;
       
@@ -66,8 +87,10 @@ export const useBookings = () => {
   };
 
   useEffect(() => {
-    fetchBookings();
-  }, []);
+    if (user) {
+      fetchBookings();
+    }
+  }, [user]);
 
   return { bookings, setBookings, loading, fetchBookings };
 };
