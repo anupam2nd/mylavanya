@@ -56,8 +56,20 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
       
       // Handle status update
       if (values.status && values.status !== editBooking.Status) {
-        // Update both status fields
-        updates.Status = values.status;
+        // Get the status_name for the selected status_code
+        const { data: statusData, error: statusError } = await supabase
+          .from('statusmst')
+          .select('status_name')
+          .eq('status_code', values.status)
+          .single();
+          
+        if (statusError) {
+          console.error("Error fetching status name:", statusError);
+          throw new Error("Could not retrieve status information");
+        }
+        
+        // Update both status fields with the status_name for better readability
+        updates.Status = statusData?.status_name || values.status;
         updates.StatusUpdated = now.toISOString();
         
         // For certain statuses, also assign artists

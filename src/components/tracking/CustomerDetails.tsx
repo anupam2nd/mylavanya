@@ -13,7 +13,7 @@ const CustomerDetails = ({ booking }: CustomerDetailsProps) => {
   
   // Find the status description if available
   const statusDetails = statusOptions.find(
-    option => option.status_code === booking.Status
+    option => option.status_name === booking.Status || option.status_code === booking.Status
   );
   
   return (

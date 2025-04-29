@@ -38,7 +38,11 @@ export const useBookingFilters = (bookings: Booking[]) => {
     }
     
     if (statusFilter && statusFilter !== "all") {
-      result = result.filter(booking => booking.Status === statusFilter);
+      result = result.filter(booking => {
+        // Match either by status_code or status_name
+        return booking.Status === statusFilter || 
+               booking.Status.toLowerCase() === statusFilter.toLowerCase();
+      });
     }
     
     if (searchQuery.trim() !== '') {

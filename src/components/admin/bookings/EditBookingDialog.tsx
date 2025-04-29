@@ -109,17 +109,23 @@ const EditBookingDialog: React.FC<EditBookingDialogProps> = ({
   // Reset form when booking changes
   useEffect(() => {
     if (editBooking) {
+      // Find the status code that matches the status name
+      const matchingStatusOption = statusOptions.find(option => 
+        option.status_name === editBooking.Status
+      );
+      
       form.reset({
         date: editBooking.Booking_date ? new Date(editBooking.Booking_date) : undefined,
         time: editBooking.booking_time?.substring(0, 5) || "",
-        status: editBooking.Status || "",
+        // Use the status code that matches the status name, or fall back to the status name itself
+        status: matchingStatusOption?.status_code || editBooking.Status || "",
         address: editBooking?.Address || "",
         pincode: editBooking?.Pincode?.toString() || "",
         quantity: editBooking?.Qty || 1,
         artistId: editBooking?.ArtistId || null,
       });
     }
-  }, [editBooking, form]);
+  }, [editBooking, form, statusOptions]);
 
   const onSubmit = (data: EditBookingFormValues) => {
     console.log("Submitting form data:", data);

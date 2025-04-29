@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock, User, Mail, MapPin, Phone, Package, Plus } from "lucide-react";
@@ -108,7 +107,13 @@ const EditBookingDialog = ({
     if (booking) {
       setEditDate(booking.Booking_date ? new Date(booking.Booking_date) : undefined);
       setEditTime(booking.booking_time?.substring(0, 5) || "");
-      setEditStatus(booking.Status || "");
+      
+      // Find the status code that matches the status name
+      const matchingStatus = statusOptions.find(option => 
+        option.status_name === booking.Status
+      );
+      
+      setEditStatus(matchingStatus?.status_code || booking.Status || "");
       setEditAddress(booking.Address || "");
       setEditPincode(booking.Pincode?.toString() || "");
       setEditArtist(booking.ArtistId || null);
@@ -117,7 +122,7 @@ const EditBookingDialog = ({
       setEditSubService(booking.SubService || "");
       setEditProductName(booking.ProductName || "");
     }
-  }, [booking]);
+  }, [booking, statusOptions]);
 
   const requiresArtist = (status: string) => {
     const assignmentStatuses = ['beautician_assigned', 'on_the_way', 'service_started', 'done'];
@@ -138,6 +143,7 @@ const EditBookingDialog = ({
     }
     
     if (editStatus && editStatus !== booking.Status) {
+      // We'll pass the status code to onSave, but we won't update the local booking object yet
       updates.Status = editStatus;
       updates.StatusUpdated = new Date().toISOString();
     }

@@ -23,7 +23,8 @@ export const useStatusOptions = () => {
       try {
         const { data, error } = await supabase
           .from('statusmst')
-          .select('status_code, status_name, description, active');
+          .select('status_code, status_name, description, active')
+          .eq('active', true);
 
         if (error) throw error;
         setStatusOptions(data || []);
