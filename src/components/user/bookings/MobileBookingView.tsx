@@ -27,9 +27,10 @@ const MobileBookingView = ({
     return (
       <div className="w-full">
         <div className="flex justify-between items-start">
-          <div>
-            <div className="font-medium text-sm">{booking.Purpose}</div>
-            <div className="text-xs text-muted-foreground flex items-center mt-0.5">
+          <div className="flex-1">
+            <div className="text-xs text-muted-foreground">Booking No</div>
+            <div className="font-medium text-sm">{booking.Booking_NO}</div>
+            <div className="text-xs text-muted-foreground flex items-center mt-1">
               <Calendar className="h-3 w-3 mr-1" /> 
               {booking.Booking_date}
             </div>
@@ -38,9 +39,9 @@ const MobileBookingView = ({
               {booking.booking_time}
             </div>
           </div>
-          <div className="text-right pl-2">
-            <div className="text-xs text-muted-foreground">Booking #</div>
-            <div className="text-sm font-medium">{booking.Booking_NO}</div>
+          <div className="text-right pl-4">
+            <div className="text-xs text-muted-foreground">Total</div>
+            <div className="text-sm font-medium">₹{booking.price || 0}</div>
           </div>
         </div>
       </div>
@@ -53,7 +54,8 @@ const MobileBookingView = ({
       {bookings.map((booking) => (
         <div key={booking.Booking_NO} className="p-4 border rounded-lg bg-white">
           <div className="flex justify-between items-start">
-            <div>
+            <div className="flex-1">
+              <div className="text-xs text-muted-foreground">Service</div>
               <div className="text-sm font-medium">{booking.Purpose}</div>
               <div className="flex flex-wrap gap-x-4 mt-1.5 text-xs text-muted-foreground">
                 <div className="flex items-center">
@@ -64,9 +66,12 @@ const MobileBookingView = ({
                 </div>
               </div>
             </div>
-            <div className="text-right pl-2">
-              <div className="text-xs text-muted-foreground">Booking #</div>
+            <div className="text-right pl-4">
+              <div className="text-xs text-muted-foreground">Booking No</div>
               <div className="text-sm font-medium">{booking.Booking_NO}</div>
+              {booking.price && (
+                <div className="text-xs mt-1">₹{booking.price}</div>
+              )}
             </div>
           </div>
           

@@ -54,10 +54,10 @@ const BookingsList = ({ filteredBookings, clearFilters }: BookingsListProps) => 
           const mainBooking = bookingJobs[0];
           
           return (
-            <AccordionItem key={bookingNo} value={bookingNo} className="border bg-card rounded-lg mb-4 overflow-hidden">
+            <AccordionItem key={bookingNo} value={bookingNo} className="border bg-card rounded-lg mb-3 overflow-hidden">
               {isMobile ? (
                 <>
-                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                  <AccordionTrigger className="px-4 py-2.5 hover:no-underline">
                     <MobileBookingView 
                       bookings={[mainBooking]} 
                       getArtistName={getArtistName}
@@ -105,24 +105,27 @@ const BookingsList = ({ filteredBookings, clearFilters }: BookingsListProps) => 
                 </>
               ) : (
                 <>
-                  <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                    <div className="grid grid-cols-3 gap-4 w-full text-sm">
+                  <AccordionTrigger className="px-6 py-3 hover:no-underline">
+                    <div className="grid grid-cols-3 gap-6 w-full text-sm">
                       <div>
+                        <div className="text-xs text-muted-foreground">Booking No</div>
                         <div className="font-medium">{mainBooking.Booking_NO}</div>
                         <div className="text-xs text-muted-foreground">{bookingJobs.length} service(s)</div>
                       </div>
-                      <div className="flex flex-col">
+                      <div>
+                        <div className="text-xs text-muted-foreground">Service Time</div>
                         <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                           <span>{mainBooking.Booking_date}</span>
                         </div>
                         <div className="flex items-center mt-1">
-                          <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <Clock className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                           <span>{mainBooking.booking_time}</span>
                         </div>
                       </div>
                       <div className="text-right">
-                        Total: ₹{bookingJobs.reduce((sum, job) => sum + (job.price || 0), 0)}
+                        <div className="text-xs text-muted-foreground">Total</div>
+                        <div>₹{bookingJobs.reduce((sum, job) => sum + (job.price || 0), 0)}</div>
                       </div>
                     </div>
                   </AccordionTrigger>

@@ -24,14 +24,18 @@ const DesktopBookingView = ({
   if (isAccordionItem) {
     const booking = bookings[0];
     return (
-      <div className="grid grid-cols-4 gap-4 w-full text-sm">
-        <div className="font-medium">
-          <div>{booking.Purpose}</div>
-          {booking.ServiceName && booking.ServiceName !== booking.Purpose && (
-            <div className="text-xs text-muted-foreground">{booking.ServiceName}</div>
-          )}
+      <div className="grid grid-cols-3 gap-4 w-full text-sm">
+        <div>
+          <div className="text-xs text-muted-foreground">Service</div>
+          <div className="font-medium">
+            {booking.Purpose}
+            {booking.ServiceName && booking.ServiceName !== booking.Purpose && (
+              <div className="text-xs text-muted-foreground">{booking.ServiceName}</div>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col">
+        <div>
+          <div className="text-xs text-muted-foreground">Service Time</div>
           <div className="flex items-center">
             <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
             <span>{booking.Booking_date}</span>
@@ -41,9 +45,9 @@ const DesktopBookingView = ({
             <span>{booking.booking_time}</span>
           </div>
         </div>
-        <div>{booking.Booking_NO}</div>
         <div className="text-right">
-          {booking.price ? `₹${booking.price}` : ''}
+          <div className="text-xs text-muted-foreground">Total</div>
+          <div>{booking.price ? `₹${booking.price}` : '₹0'}</div>
         </div>
       </div>
     );
@@ -55,8 +59,8 @@ const DesktopBookingView = ({
       <TableHeader>
         <TableRow>
           <TableHead className="w-[300px]">Service</TableHead>
-          <TableHead>Date & Time</TableHead>
-          <TableHead>Booking #</TableHead>
+          <TableHead>Service Time</TableHead>
+          <TableHead>Booking No</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
