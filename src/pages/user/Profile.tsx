@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,11 +58,34 @@ const Profile = () => {
           const { data, error } = await supabase
             .from('UserMST')
             .select('FirstName, LastName, Username, PhoneNo')
-            .eq('id', Number(user.id))
+            .eq('Username', user.email)
             .single();
             
           if (error) {
-            console.error("Error fetching user profile:", error);
+            console.error("Error fetching user profile by Username:", error);
+            
+            // Fallback to searching by ID if Username search fails
+            const { data: idData, error: idError } = await supabase
+              .from('UserMST')
+              .select('FirstName, LastName, Username, PhoneNo')
+              .eq('id', Number(user.id))
+              .single();
+              
+            if (idError) {
+              console.error("Error fetching user profile by ID:", idError);
+              return;
+            }
+            
+            if (idData) {
+              setFormData(prev => ({
+                ...prev,
+                email: user?.email || "",
+                firstName: idData.FirstName || "",
+                lastName: idData.LastName || "",
+                phone: idData.PhoneNo?.toString() || ""
+              }));
+              console.log("User profile data loaded via ID:", idData);
+            }
             return;
           }
           
@@ -73,7 +97,7 @@ const Profile = () => {
               lastName: data.LastName || "",
               phone: data.PhoneNo?.toString() || ""
             }));
-            console.log("User profile data loaded:", data);
+            console.log("User profile data loaded via Username:", data);
           }
         }
       } catch (error) {
@@ -120,17 +144,32 @@ const Profile = () => {
           if (error) throw error;
         }
       } else {
+        // First try to update by Username
         const { error } = await supabase
           .from('UserMST')
-          .upsert({
-            id: Number(user.id),
+          .update({
             FirstName: formData.firstName,
             LastName: formData.lastName,
-            PhoneNo: formData.phone ? Number(formData.phone) : null,
-            Username: user.email
-          });
+            PhoneNo: formData.phone ? Number(formData.phone) : null
+          })
+          .eq('Username', user.email);
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error updating by Username:", error);
+          
+          // Fallback to updating by ID
+          const { error: idError } = await supabase
+            .from('UserMST')
+            .update({
+              FirstName: formData.firstName,
+              LastName: formData.lastName,
+              PhoneNo: formData.phone ? Number(formData.phone) : null,
+              Username: user.email // Ensure Username is updated too
+            })
+            .eq('id', Number(user.id));
+            
+          if (idError) throw idError;
+        }
       }
       
       toast({
@@ -148,8 +187,6 @@ const Profile = () => {
       setIsLoading(false);
     }
   };
-
-  const displayPhoneNumber = formData.phone ? `+91 ${formData.phone}` : '';
 
   return (
     <ProtectedRoute>

@@ -1,18 +1,28 @@
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Instagram, Facebook, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useState } from "react";
 import AuthModal from "@/components/auth/AuthModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState("member");
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   
   const openAuthModal = (tab: string) => {
     setAuthModalTab(tab);
     setIsAuthModalOpen(true);
+  };
+  
+  const handleBookingClick = (e: React.MouseEvent) => {
+    if (isAuthenticated && user?.role === 'member') {
+      e.preventDefault();
+      navigate("/user/bookings");
+    }
   };
   
   return <footer className="bg-accent/30 pt-16 pb-8">
@@ -52,7 +62,8 @@ export default function Footer() {
               href: "/about#faq"
             }, {
               name: "Booking",
-              href: "/booking"
+              href: isAuthenticated && user?.role === 'member' ? "/user/bookings" : "/booking",
+              onClick: handleBookingClick
             }, {
               name: "Admin Signin",
               onClick: () => openAuthModal("admin")
@@ -61,7 +72,11 @@ export default function Footer() {
               onClick: () => openAuthModal("artist")
             }].map(link => <li key={link.name}>
                   {link.href ? (
-                    <Link to={link.href} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
+                    <Link 
+                      to={link.href} 
+                      className="flex items-center text-muted-foreground hover:text-primary transition-colors"
+                      onClick={link.onClick}
+                    >
                       <ChevronRight size={16} className="mr-1" />
                       {link.name}
                     </Link>
