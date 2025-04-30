@@ -38,7 +38,7 @@ const MobileBookingView = ({
               {booking.booking_time}
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-right pl-2">
             <div className="text-xs text-muted-foreground">Booking #</div>
             <div className="text-sm font-medium">{booking.Booking_NO}</div>
           </div>
@@ -64,7 +64,7 @@ const MobileBookingView = ({
                 </div>
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-right pl-2">
               <div className="text-xs text-muted-foreground">Booking #</div>
               <div className="text-sm font-medium">{booking.Booking_NO}</div>
             </div>

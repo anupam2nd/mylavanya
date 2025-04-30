@@ -7,7 +7,7 @@ import BookingDetailsModal from "./BookingDetailsModal";
 import MobileBookingView from "./MobileBookingView";
 import DesktopBookingView from "./DesktopBookingView";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { Calendar, Clock, ChevronDown } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 
@@ -106,7 +106,7 @@ const BookingsList = ({ filteredBookings, clearFilters }: BookingsListProps) => 
               ) : (
                 <>
                   <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                    <div className="grid grid-cols-4 gap-4 w-full text-sm">
+                    <div className="grid grid-cols-3 gap-4 w-full text-sm">
                       <div>
                         <div className="font-medium">{mainBooking.Booking_NO}</div>
                         <div className="text-xs text-muted-foreground">{bookingJobs.length} service(s)</div>
@@ -120,14 +120,6 @@ const BookingsList = ({ filteredBookings, clearFilters }: BookingsListProps) => 
                           <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                           <span>{mainBooking.booking_time}</span>
                         </div>
-                      </div>
-                      <div>
-                        {mainBooking.name}
-                        {mainBooking.Phone_no && (
-                          <div className="text-xs text-muted-foreground">
-                            {mainBooking.Phone_no}
-                          </div>
-                        )}
                       </div>
                       <div className="text-right">
                         Total: ₹{bookingJobs.reduce((sum, job) => sum + (job.price || 0), 0)}
