@@ -27,6 +27,12 @@ const BookingDetailsModal = ({
 }: BookingDetailsModalProps) => {
   if (!booking) return null;
 
+  // Check if the booking has an artist assigned by either ArtistId or checking the status
+  const isArtistAssigned = booking.ArtistId !== undefined && booking.ArtistId !== null;
+  const showArtistInfo = isArtistAssigned || 
+                        (booking.Status && booking.Status.toUpperCase().includes('BEAUTICIAN') && 
+                         booking.Status.toUpperCase().includes('ASSIGNED'));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -76,7 +82,7 @@ const BookingDetailsModal = ({
           
           <div>
             <p className="text-sm font-medium mb-1">Artist</p>
-            {booking.ArtistId ? (
+            {showArtistInfo ? (
               <div>
                 <div className="flex items-center">
                   <User className="h-4 w-4 mr-2 text-muted-foreground" />

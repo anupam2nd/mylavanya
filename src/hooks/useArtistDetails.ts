@@ -7,6 +7,7 @@ export interface ArtistDetails {
   ArtistLastName?: string;
   ArtistPhno?: number;
   emailid?: string;
+  ArtistEmpCode?: string;
 }
 
 export const useArtistDetails = (artistIds: (number | undefined)[]) => {
@@ -16,10 +17,17 @@ export const useArtistDetails = (artistIds: (number | undefined)[]) => {
   useEffect(() => {
     const fetchArtistDetails = async () => {
       try {
-        const filteredIds = artistIds.filter((id): id is number => id !== undefined);
+        // Filter out undefined or null IDs
+        const filteredIds = artistIds.filter((id): id is number => 
+          id !== undefined && id !== null && !isNaN(id));
         
-        if (filteredIds.length === 0) return;
+        // If there are no valid IDs, return early
+        if (filteredIds.length === 0) {
+          console.log("No valid artist IDs to fetch");
+          return;
+        }
         
+        // Use Set to ensure we only have unique IDs
         const uniqueArtistIds = [...new Set(filteredIds)];
         
         console.log("Fetching artist details for IDs:", uniqueArtistIds);
@@ -27,12 +35,12 @@ export const useArtistDetails = (artistIds: (number | undefined)[]) => {
         setLoading(true);
         const { data, error } = await supabase
           .from('ArtistMST')
-          .select('ArtistId, ArtistFirstName, ArtistLastName, ArtistPhno, emailid')
+          .select('ArtistId, ArtistFirstName, ArtistLastName, ArtistPhno, emailid, ArtistEmpCode')
           .in('ArtistId', uniqueArtistIds);
 
         if (error) {
           console.error('Error fetching artist details:', error);
-          throw error;
+          return;
         }
 
         console.log("Artist details fetched:", data);
@@ -44,23 +52,30 @@ export const useArtistDetails = (artistIds: (number | undefined)[]) => {
               ArtistFirstName: artist.ArtistFirstName,
               ArtistLastName: artist.ArtistLastName,
               ArtistPhno: artist.ArtistPhno,
-              emailid: artist.emailid
+              emailid: artist.emailid,
+              ArtistEmpCode: artist.ArtistEmpCode
             };
           }
         });
 
         setArtistDetails(artistMap);
       } catch (error) {
-        console.error('Error fetching artist details:', error);
+        console.error('Error in artist details fetch:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (artistIds.length > 0) {
+    // Deduplicate and filter out invalid IDs before triggering the fetch
+    const validIds = [...new Set(artistIds.filter(id => 
+      id !== undefined && id !== null && !isNaN(id)
+    ))];
+    
+    // Only trigger the fetch if the valid IDs array has changed
+    if (validIds.length > 0) {
       fetchArtistDetails();
     }
-  }, [artistIds]);
+  }, [JSON.stringify(artistIds)]); // Use JSON.stringify to compare array contents
 
   const getArtistName = (artistId?: number) => {
     if (!artistId || !artistDetails[artistId]) return 'Not assigned';

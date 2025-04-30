@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Booking } from "@/hooks/useBookings";
 import { useArtistDetails } from "@/hooks/useArtistDetails";
@@ -19,7 +19,7 @@ const BookingsList = ({ filteredBookings, clearFilters }: BookingsListProps) => 
   // Extract all artist IDs to fetch their details
   const artistIds = filteredBookings
     .map(booking => booking.ArtistId)
-    .filter(id => id !== undefined);
+    .filter(id => id !== undefined && id !== null);
     
   console.log("Artist IDs extracted:", artistIds);
     
