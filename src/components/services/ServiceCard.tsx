@@ -1,6 +1,11 @@
 
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Heart } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface ServiceCardProps {
   service: {
@@ -47,6 +52,10 @@ const ServiceCard = ({
   service,
   onClick
 }: ServiceCardProps) => {
+  const { isAuthenticated, user } = useAuth();
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
   const serviceImage = getServiceImage(service.prodid, service.pname);
   
   // Calculate netPayable if not provided but discount is available
@@ -55,6 +64,98 @@ const ServiceCard = ({
     : service.discount 
       ? service.pprice - (service.pprice * service.discount / 100) 
       : service.pprice;
+  
+  useEffect(() => {
+    // Check if service is in the user's wishlist
+    const checkWishlistStatus = async () => {
+      if (!isAuthenticated || !user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('wishlist')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('service_id', service.prodid)
+          .maybeSingle();
+          
+        if (error) throw error;
+        setIsInWishlist(!!data);
+      } catch (error) {
+        console.error("Error checking wishlist status:", error);
+      }
+    };
+    
+    checkWishlistStatus();
+  }, [isAuthenticated, user, service.prodid]);
+  
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to add items to your wishlist",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      if (isInWishlist) {
+        // Get the wishlist item id first
+        const { data: wishlistItem, error: fetchError } = await supabase
+          .from('wishlist')
+          .select('id')
+          .eq('user_id', user!.id)
+          .eq('service_id', service.prodid)
+          .single();
+          
+        if (fetchError) throw fetchError;
+        
+        // Remove from wishlist
+        const { error: removeError } = await supabase
+          .from('wishlist')
+          .delete()
+          .eq('id', wishlistItem.id)
+          .eq('user_id', user!.id);
+          
+        if (removeError) throw removeError;
+        
+        setIsInWishlist(false);
+        toast({
+          title: "Removed from wishlist",
+          description: `${service.pname} has been removed from your wishlist`,
+        });
+      } else {
+        // Add to wishlist
+        const { error: addError } = await supabase
+          .from('wishlist')
+          .insert({
+            user_id: user!.id,
+            service_id: service.prodid
+          });
+          
+        if (addError) throw addError;
+        
+        setIsInWishlist(true);
+        toast({
+          title: "Added to wishlist",
+          description: `${service.pname} has been added to your wishlist`,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem updating your wishlist",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -101,10 +202,25 @@ const ServiceCard = ({
           {service.pdesc || "Professional beauty service for your special occasions"}
         </p>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
-        <ButtonCustom onClick={onClick} className="w-full" variant="primary-gradient">
+      <CardFooter className="p-4 pt-0 flex gap-2">
+        <ButtonCustom onClick={onClick} className="flex-1" variant="primary-gradient">
           Book Now
         </ButtonCustom>
+        <button
+          onClick={handleWishlistToggle}
+          disabled={isLoading}
+          className={`flex items-center justify-center p-2 rounded-full transition-colors ${
+            isInWishlist 
+              ? 'bg-rose-100 text-rose-500 hover:bg-rose-200' 
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+          }`}
+          aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          <Heart 
+            className={`${isInWishlist ? 'fill-rose-500' : ''} transition-all ${isLoading ? 'animate-pulse' : ''}`}
+            size={18} 
+          />
+        </button>
       </CardFooter>
     </Card>
   );

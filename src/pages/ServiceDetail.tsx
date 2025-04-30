@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
+import { Heart } from "lucide-react";
 
 const getServiceImage = (serviceId: number, serviceName: string | null) => {
   switch (serviceId) {
@@ -42,6 +43,8 @@ const ServiceDetail = () => {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { user, isAuthenticated } = useAuth();
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   useEffect(() => {
     const fetchServiceDetails = async () => {
@@ -85,6 +88,32 @@ const ServiceDetail = () => {
       fetchServiceDetails();
     }
   }, [serviceId]);
+  
+  useEffect(() => {
+    // Check if service is in the user's wishlist
+    const checkWishlistStatus = async () => {
+      if (!isAuthenticated || !user || !serviceId) return;
+      
+      try {
+        const serviceIdNumber = parseInt(serviceId);
+        if (isNaN(serviceIdNumber)) return;
+        
+        const { data, error } = await supabase
+          .from('wishlist')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('service_id', serviceIdNumber)
+          .maybeSingle();
+          
+        if (error) throw error;
+        setIsInWishlist(!!data);
+      } catch (error) {
+        console.error("Error checking wishlist status:", error);
+      }
+    };
+    
+    checkWishlistStatus();
+  }, [isAuthenticated, user, serviceId]);
 
   const handleBookingSuccess = () => {
     setShowBookingForm(false);
@@ -105,6 +134,73 @@ const ServiceDetail = () => {
     setTimeout(() => {
       setShowBookingForm(true);
     }, 300);
+  };
+  
+  const handleWishlistToggle = async () => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    
+    if (!serviceId || !user) return;
+    const serviceIdNumber = parseInt(serviceId);
+    if (isNaN(serviceIdNumber)) return;
+    
+    setWishlistLoading(true);
+    
+    try {
+      if (isInWishlist) {
+        // Get the wishlist item id first
+        const { data: wishlistItem, error: fetchError } = await supabase
+          .from('wishlist')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('service_id', serviceIdNumber)
+          .single();
+          
+        if (fetchError) throw fetchError;
+        
+        // Remove from wishlist
+        const { error: removeError } = await supabase
+          .from('wishlist')
+          .delete()
+          .eq('id', wishlistItem.id)
+          .eq('user_id', user.id);
+          
+        if (removeError) throw removeError;
+        
+        setIsInWishlist(false);
+        toast({
+          title: "Removed from wishlist",
+          description: `${service?.ProductName || 'Service'} has been removed from your wishlist`,
+        });
+      } else {
+        // Add to wishlist
+        const { error: addError } = await supabase
+          .from('wishlist')
+          .insert({
+            user_id: user.id,
+            service_id: serviceIdNumber
+          });
+          
+        if (addError) throw addError;
+        
+        setIsInWishlist(true);
+        toast({
+          title: "Added to wishlist",
+          description: `${service?.ProductName || 'Service'} has been added to your wishlist`,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem updating your wishlist",
+        variant: "destructive"
+      });
+    } finally {
+      setWishlistLoading(false);
+    }
   };
 
   if (loading) {
@@ -220,16 +316,39 @@ const ServiceDetail = () => {
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
               <h2 className="text-lg font-semibold mb-3 text-center">Book This Service</h2>
               
-              {!showBookingForm ? <ButtonCustom variant="primary-gradient" className="w-full" size="lg" onClick={handleBookNowClick}>
-                  Book Now
-                </ButtonCustom> : <BookingForm 
+              {!showBookingForm ? (
+                <div className="space-y-3">
+                  <ButtonCustom 
+                    variant="primary-gradient" 
+                    className="w-full" 
+                    size="lg" 
+                    onClick={handleBookNowClick}
+                  >
+                    Book Now
+                  </ButtonCustom>
+                  
+                  <ButtonCustom 
+                    variant="outline" 
+                    className={`w-full flex items-center justify-center gap-2 ${
+                      isInWishlist ? 'border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600' : ''
+                    }`}
+                    onClick={handleWishlistToggle}
+                    disabled={wishlistLoading}
+                  >
+                    <Heart className={`${isInWishlist ? 'fill-rose-500' : ''} ${wishlistLoading ? 'animate-pulse' : ''}`} size={18} />
+                    {isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                  </ButtonCustom>
+                </div>
+              ) : (
+                <BookingForm 
                   serviceId={service.prod_id} 
                   serviceName={formattedServiceName} 
                   servicePrice={finalPrice}
                   serviceOriginalPrice={service.Price}
                   onCancel={() => setShowBookingForm(false)} 
                   onSuccess={handleBookingSuccess} 
-                />}
+                />
+              )}
               
               <div className="border-t mt-6 pt-6">
                 <h3 className="font-medium text-center mb-4">Need Help?</h3>
