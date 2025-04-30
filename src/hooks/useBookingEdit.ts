@@ -90,6 +90,10 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
                 updates.Assignedto = artistFullName;
                 updates.ArtistId = artistData.ArtistId;
                 updates.AssignedToEmpCode = artistData.ArtistEmpCode;
+                
+                // Set the assignment time
+                updates.AssingnedON = now.toISOString();
+                
                 console.log(`Assigning artist ${artistFullName} to booking`);
               }
             } catch (error) {
@@ -103,7 +107,7 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
           // Debug the currentUser object to see what's available
           console.log("Current User data for AssignedBY:", JSON.stringify(values.currentUser));
           
-          // Use the user's role as AssignedBY, ensuring we use the correct property
+          // Update AssignedBY with the user's role
           if (values.currentUser.role) {
             updates.AssignedBY = values.currentUser.role;
             console.log("Setting AssignedBY to user role:", updates.AssignedBY);
@@ -124,10 +128,13 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
             console.log("No user info available, defaulting AssignedBY to 'unknown'");
           }
           
-          // Set the new AssignedByUser field to the username
+          // Set the AssignedByUser field to the username/email
           if (values.currentUser.Username) {
             updates.AssignedByUser = values.currentUser.Username;
             console.log("Setting AssignedByUser to:", values.currentUser.Username);
+          } else if (values.currentUser.email) {
+            updates.AssignedByUser = values.currentUser.email;
+            console.log("Setting AssignedByUser to email:", values.currentUser.email);
           }
         } else {
           // No user data available

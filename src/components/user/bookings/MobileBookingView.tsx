@@ -24,9 +24,13 @@ const MobileBookingView = ({
       {bookings.map((booking) => {
         // Check if the booking has an artist assigned by either ArtistId or checking the status
         const isArtistAssigned = booking.ArtistId !== undefined && booking.ArtistId !== null;
-        const showArtistInfo = isArtistAssigned || 
-                              (booking.Status && booking.Status.toUpperCase().includes('BEAUTICIAN') && 
-                               booking.Status.toUpperCase().includes('ASSIGNED'));
+        const hasBeauticianStatus = booking.Status && 
+                                    (booking.Status.toUpperCase().includes('BEAUTICIAN') || 
+                                     booking.Status.toUpperCase().includes('ASSIGNED'));
+        
+        const showArtistInfo = isArtistAssigned || hasBeauticianStatus;
+        const artistName = getArtistName(booking.ArtistId);
+        const artistPhone = getArtistPhone(booking.ArtistId);
         
         return (
           <Card key={booking.Booking_NO} className="hover:shadow-md transition-shadow">
@@ -56,11 +60,11 @@ const MobileBookingView = ({
                 {showArtistInfo ? (
                   <>
                     <p className="text-sm flex items-center">
-                      <User className="h-3 w-3 mr-1" /> {getArtistName(booking.ArtistId)}
+                      <User className="h-3 w-3 mr-1" /> {artistName !== 'Not assigned' ? artistName : 'Not assigned'}
                     </p>
-                    {getArtistPhone(booking.ArtistId) && (
+                    {artistPhone && (
                       <p className="text-xs flex items-center text-muted-foreground">
-                        <Phone className="h-3 w-3 mr-1" /> {getArtistPhone(booking.ArtistId)}
+                        <Phone className="h-3 w-3 mr-1" /> {artistPhone}
                       </p>
                     )}
                   </>

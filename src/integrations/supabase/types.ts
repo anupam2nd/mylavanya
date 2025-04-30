@@ -153,6 +153,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "BookMST_AssignedByUser_fkey"
+            columns: ["AssignedByUser"]
+            isOneToOne: false
+            referencedRelation: "UserMST"
+            referencedColumns: ["Username"]
+          },
+          {
             foreignKeyName: "BookMST_AssignedToEmpCode_fkey"
             columns: ["AssignedToEmpCode"]
             isOneToOne: false
