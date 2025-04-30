@@ -113,20 +113,43 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
             console.log("Setting AssignedBY to user role:", updates.AssignedBY);
           }
           
-          // Always set AssignedByUser to the Username field (email) from UserMST
+          // First verify if Username exists in UserMST to avoid foreign key constraint violation
           if (values.currentUser.Username) {
-            updates.AssignedByUser = values.currentUser.Username;
-            console.log("Setting AssignedByUser to:", values.currentUser.Username);
+            // Verify the Username exists in the UserMST table
+            const { data: userData, error: userError } = await supabase
+              .from('UserMST')
+              .select('Username')
+              .eq('Username', values.currentUser.Username)
+              .single();
+              
+            if (!userError && userData) {
+              // Username exists in UserMST, safe to use as AssignedByUser
+              updates.AssignedByUser = values.currentUser.Username;
+              console.log("Setting AssignedByUser to Username (verified in UserMST):", values.currentUser.Username);
+            } else {
+              console.warn("Username not found in UserMST, cannot set AssignedByUser");
+              // Do not set AssignedByUser to avoid foreign key constraint violation
+            }
           } else if (values.currentUser.email) {
-            // Fallback to email if Username is not available
-            updates.AssignedByUser = values.currentUser.email;
-            console.log("Setting AssignedByUser to email:", values.currentUser.email);
+            // Verify the email exists in the UserMST table as Username
+            const { data: userData, error: userError } = await supabase
+              .from('UserMST')
+              .select('Username')
+              .eq('Username', values.currentUser.email)
+              .single();
+              
+            if (!userError && userData) {
+              updates.AssignedByUser = values.currentUser.email;
+              console.log("Setting AssignedByUser to email (verified in UserMST):", values.currentUser.email);
+            } else {
+              console.warn("Email not found in UserMST as Username, cannot set AssignedByUser");
+              // Do not set AssignedByUser to avoid foreign key constraint violation
+            }
           } else {
-            // No user data available
-            updates.AssignedByUser = 'unknown@user.com';
-            console.log("No Username available, setting default AssignedByUser");
+            console.warn("No Username or email available in currentUser, cannot set AssignedByUser");
           }
           
+          // If AssignedBY is still not set, use fallback
           if (!updates.AssignedBY) {
             // If no role is available, fall back to name or username
             if (values.currentUser.FirstName || values.currentUser.LastName) {
@@ -139,9 +162,8 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
             }
           }
         } else {
-          // No user data available
+          // No user data available, do not set AssignedByUser to avoid foreign key constraint violation
           updates.AssignedBY = 'unknown';
-          updates.AssignedByUser = 'unknown@user.com';
         }
       }
       

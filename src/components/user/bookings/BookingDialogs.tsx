@@ -19,6 +19,8 @@ const BookingDialogs = ({ bookings, setBookings, currentUser }: BookingDialogsPr
   const { toast } = useToast();
   const { statusOptions } = useStatusOptions();
 
+  console.log("BookingDialogs - Current user:", currentUser);
+
   const {
     editBooking,
     openDialog,
@@ -65,6 +67,7 @@ const BookingDialogs = ({ bookings, setBookings, currentUser }: BookingDialogsPr
               currentUser
             };
             
+            console.log("EditBookingDialog - Saving with current user:", currentUser);
             await handleSaveChanges(formValues);
           }}
           statusOptions={statusOptions}

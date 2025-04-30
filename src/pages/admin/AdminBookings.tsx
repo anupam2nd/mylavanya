@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,37 +59,59 @@ const AdminBookings = () => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const { data: authSession } = await supabase.auth.getSession();
-        
-        if (authSession?.session?.user?.id) {
-          const userId = parseInt(authSession.session.user.id, 10);
+        if (authUser && authUser.email) {
+          // First try to fetch by email from auth context
+          const { data, error } = await supabase
+            .from('UserMST')
+            .select('Username, FirstName, LastName, role')
+            .eq('Username', authUser.email)
+            .single();
+            
+          if (!error && data) {
+            console.log("Current user data fetched by email:", data);
+            setCurrentUser(data);
+            return;
+          }
           
-          if (!isNaN(userId)) {
-            const { data, error } = await supabase
-              .from('UserMST')
-              .select('Username, FirstName, LastName, role')
-              .eq('id', userId)
-              .single();
-              
-            if (!error && data) {
-              console.log("Current user data fetched:", data);
-              setCurrentUser(data);
-            } else {
-              console.error("Error fetching user data:", error);
-              if (authUser) {
-                setCurrentUser({
-                  Username: authUser.email?.split('@')[0] || '',
-                  FirstName: '',
-                  LastName: '',
-                  role: authUser.role
-                });
+          // If that fails, try by ID if available
+          const { data: authSession } = await supabase.auth.getSession();
+          
+          if (authSession?.session?.user?.id) {
+            const userId = parseInt(authSession.session.user.id, 10);
+            
+            if (!isNaN(userId)) {
+              const { data: userData, error: userError } = await supabase
+                .from('UserMST')
+                .select('Username, FirstName, LastName, role')
+                .eq('id', userId)
+                .single();
+                
+              if (!userError && userData) {
+                console.log("Current user data fetched by ID:", userData);
+                setCurrentUser(userData);
+              } else {
+                console.error("Error fetching user data by ID:", userError);
+                if (authUser) {
+                  setCurrentUser({
+                    Username: authUser.email || '',
+                    FirstName: '',
+                    LastName: '',
+                    role: authUser.role
+                  });
+                }
               }
             }
           } else {
-            console.error("Invalid user ID format:", authSession.session.user.id);
+            console.warn("No active session found");
+            if (authUser) {
+              setCurrentUser({
+                Username: authUser.email || '',
+                FirstName: '',
+                LastName: '',
+                role: authUser.role
+              });
+            }
           }
-        } else {
-          console.warn("No active session found");
         }
       } catch (error) {
         console.error('Error in fetchCurrentUser:', error);
