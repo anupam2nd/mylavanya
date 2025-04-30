@@ -38,9 +38,23 @@ const Wishlist = () => {
         setLoading(true);
         console.log("Fetching wishlist for user:", user.id);
         
-        // Use the get_user_wishlist function to fetch wishlist items with service details
+        // Instead of using the RPC function, query the wishlist table directly
+        // and join with the PriceMST table to get service details
         const { data, error } = await supabase
-          .rpc('get_user_wishlist', { user_uuid: user.id });
+          .from('wishlist')
+          .select(`
+            id,
+            user_id,
+            service_id,
+            created_at,
+            PriceMST!inner(
+              ProductName,
+              Price,
+              Category,
+              Description
+            )
+          `)
+          .eq('user_id', user.id);
 
         if (error) {
           console.error("Supabase error:", error);
@@ -48,7 +62,20 @@ const Wishlist = () => {
         }
         
         console.log("Wishlist data received:", data);
-        setWishlistItems(data || []);
+        
+        // Transform the data to match the WishlistItem interface
+        const formattedItems = data?.map(item => ({
+          id: item.id,
+          service_id: item.service_id,
+          user_id: item.user_id,
+          created_at: item.created_at,
+          service_name: item.PriceMST.ProductName,
+          service_price: item.PriceMST.Price,
+          service_category: item.PriceMST.Category,
+          service_description: item.PriceMST.Description
+        })) || [];
+        
+        setWishlistItems(formattedItems);
       } catch (error) {
         console.error("Error fetching wishlist:", error);
         toast({
@@ -68,12 +95,12 @@ const Wishlist = () => {
     if (!user) return;
     
     try {
-      // Use the remove_from_wishlist function to delete the item
+      // Delete directly from the wishlist table
       const { error } = await supabase
-        .rpc('remove_from_wishlist', { 
-          wishlist_id_param: itemId, 
-          user_id_param: user.id 
-        });
+        .from('wishlist')
+        .delete()
+        .eq('id', itemId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
       

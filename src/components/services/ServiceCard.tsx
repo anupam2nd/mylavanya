@@ -72,6 +72,8 @@ const ServiceCard = ({
       
       try {
         console.log("Checking wishlist status for service:", service.prodid, "User:", user.id);
+        
+        // Query the wishlist table directly without using RPC function
         const { data, error } = await supabase
           .from('wishlist')
           .select('id')
@@ -110,7 +112,7 @@ const ServiceCard = ({
     
     try {
       if (isInWishlist) {
-        // Get the wishlist item id first
+        // Get the wishlist item directly from the database
         const { data: wishlistItem, error: fetchError } = await supabase
           .from('wishlist')
           .select('id')
@@ -123,7 +125,7 @@ const ServiceCard = ({
           throw fetchError;
         }
         
-        // Remove from wishlist
+        // Remove from wishlist directly
         const { error: removeError } = await supabase
           .from('wishlist')
           .delete()
@@ -141,7 +143,7 @@ const ServiceCard = ({
           description: `${service.pname} has been removed from your wishlist`,
         });
       } else {
-        // Add to wishlist
+        // Add to wishlist directly
         console.log("Adding to wishlist, user id:", user!.id, "service id:", service.prodid);
         const { error: addError } = await supabase
           .from('wishlist')
