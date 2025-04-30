@@ -11,14 +11,52 @@ interface DesktopBookingViewProps {
   getArtistName: (artistId?: number) => string;
   getArtistPhone: (artistId?: number) => string;
   onViewDetails: (booking: Booking) => void;
+  isAccordionItem?: boolean;
 }
 
 const DesktopBookingView = ({
   bookings,
   getArtistName,
   getArtistPhone,
-  onViewDetails
+  onViewDetails,
+  isAccordionItem = false
 }: DesktopBookingViewProps) => {
+  if (isAccordionItem) {
+    // For accordion we show a simplified single row
+    const booking = bookings[0];
+    return (
+      <div className="grid grid-cols-5 gap-4 w-full">
+        <div className="font-medium">
+          <div className="max-w-[250px]">{booking.Purpose}</div>
+          {booking.ServiceName && booking.ServiceName !== booking.Purpose && (
+            <div className="text-xs text-muted-foreground">{booking.ServiceName}</div>
+          )}
+        </div>
+        <div>
+          <div className="flex items-center">
+            <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+            <span>{booking.Booking_date}</span>
+          </div>
+          <div className="flex items-center mt-1">
+            <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+            <span>{booking.booking_time}</span>
+          </div>
+        </div>
+        <div>{booking.Booking_NO}</div>
+        <div>
+          <StatusBadge status={booking.Status || 'pending'} />
+        </div>
+        <div className="flex items-center">
+          {booking.ArtistId ? (
+            <span>{getArtistName(booking.ArtistId)}</span>
+          ) : (
+            <span className="text-muted-foreground">Not assigned</span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Table>
       <TableHeader>

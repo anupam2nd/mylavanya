@@ -11,13 +11,15 @@ interface MobileBookingViewProps {
   getArtistName: (artistId?: number) => string;
   getArtistPhone: (artistId?: number) => string;
   onViewDetails: (booking: Booking) => void;
+  isAccordionItem?: boolean;
 }
 
 const MobileBookingView = ({
   bookings,
   getArtistName,
   getArtistPhone,
-  onViewDetails
+  onViewDetails,
+  isAccordionItem = false
 }: MobileBookingViewProps) => {
   return (
     <div className="space-y-4">
@@ -33,7 +35,7 @@ const MobileBookingView = ({
         const artistPhone = getArtistPhone(booking.ArtistId);
         
         return (
-          <Card key={booking.Booking_NO} className="hover:shadow-md transition-shadow">
+          <Card key={booking.Booking_NO} className={`hover:shadow-md transition-shadow ${isAccordionItem ? 'shadow-none border-0' : ''}`}>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">{booking.Purpose}</CardTitle>
               <div className="mt-2">
@@ -72,16 +74,18 @@ const MobileBookingView = ({
                   <p className="text-sm">Not assigned</p>
                 )}
               </div>
-              <div className="pt-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full" 
-                  onClick={() => onViewDetails(booking)}
-                >
-                  View Details
-                </Button>
-              </div>
+              {!isAccordionItem && (
+                <div className="pt-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full" 
+                    onClick={() => onViewDetails(booking)}
+                  >
+                    View Details
+                  </Button>
+                </div>
+              )}
             </div>
           </Card>
         );
