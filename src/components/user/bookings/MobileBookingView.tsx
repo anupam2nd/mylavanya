@@ -1,9 +1,6 @@
 
 import React from "react";
-import { Calendar, Clock, Phone, User } from "lucide-react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { Button } from "@/components/ui/button";
+import { Calendar, Clock } from "lucide-react";
 import { Booking } from "@/hooks/useBookings";
 
 interface MobileBookingViewProps {
@@ -21,75 +18,66 @@ const MobileBookingView = ({
   onViewDetails,
   isAccordionItem = false
 }: MobileBookingViewProps) => {
+  if (bookings.length === 0) return null;
+  
+  // For accordion item view, we just show a summary of the main booking
+  if (isAccordionItem) {
+    const booking = bookings[0];
+    
+    return (
+      <div className="w-full">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="font-medium text-sm">{booking.Purpose}</div>
+            <div className="text-xs text-muted-foreground flex items-center mt-0.5">
+              <Calendar className="h-3 w-3 mr-1" /> 
+              {booking.Booking_date}
+            </div>
+            <div className="text-xs text-muted-foreground flex items-center mt-0.5">
+              <Clock className="h-3 w-3 mr-1" /> 
+              {booking.booking_time}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-xs text-muted-foreground">Booking #</div>
+            <div className="text-sm font-medium">{booking.Booking_NO}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Standard view for non-accordion usage
   return (
     <div className="space-y-4">
-      {bookings.map((booking) => {
-        // Check if the booking has an artist assigned by either ArtistId or checking the status
-        const isArtistAssigned = booking.ArtistId !== undefined && booking.ArtistId !== null;
-        const hasBeauticianStatus = booking.Status && 
-                                    (booking.Status.toUpperCase().includes('BEAUTICIAN') || 
-                                     booking.Status.toUpperCase().includes('ASSIGNED'));
-        
-        const showArtistInfo = isArtistAssigned || hasBeauticianStatus;
-        const artistName = getArtistName(booking.ArtistId);
-        const artistPhone = getArtistPhone(booking.ArtistId);
-        
-        return (
-          <Card key={booking.Booking_NO} className={`hover:shadow-md transition-shadow ${isAccordionItem ? 'shadow-none border-0' : ''}`}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">{booking.Purpose}</CardTitle>
-              <div className="mt-2">
-                <StatusBadge status={booking.Status || 'pending'} />
-              </div>
-            </CardHeader>
-            <div className="p-4 pt-0 space-y-3">
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <p className="text-xs text-muted-foreground">Date:</p>
-                  <p className="flex items-center"><Calendar className="h-3 w-3 mr-1" /> {booking.Booking_date}</p>
+      {bookings.map((booking) => (
+        <div key={booking.Booking_NO} className="p-4 border rounded-lg bg-white">
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="text-sm font-medium">{booking.Purpose}</div>
+              <div className="flex flex-wrap gap-x-4 mt-1.5 text-xs text-muted-foreground">
+                <div className="flex items-center">
+                  <Calendar className="h-3 w-3 mr-1" /> {booking.Booking_date}
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Time:</p>
-                  <p className="flex items-center"><Clock className="h-3 w-3 mr-1" /> {booking.booking_time}</p>
+                <div className="flex items-center">
+                  <Clock className="h-3 w-3 mr-1" /> {booking.booking_time}
                 </div>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Booking #:</p>
-                <p className="text-sm font-medium">{booking.Booking_NO}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Artist:</p>
-                {showArtistInfo ? (
-                  <>
-                    <p className="text-sm flex items-center">
-                      <User className="h-3 w-3 mr-1" /> {artistName !== 'Not assigned' ? artistName : 'Not assigned'}
-                    </p>
-                    {artistPhone && (
-                      <p className="text-xs flex items-center text-muted-foreground">
-                        <Phone className="h-3 w-3 mr-1" /> {artistPhone}
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm">Not assigned</p>
-                )}
-              </div>
-              {!isAccordionItem && (
-                <div className="pt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full" 
-                    onClick={() => onViewDetails(booking)}
-                  >
-                    View Details
-                  </Button>
-                </div>
-              )}
             </div>
-          </Card>
-        );
-      })}
+            <div className="text-right">
+              <div className="text-xs text-muted-foreground">Booking #</div>
+              <div className="text-sm font-medium">{booking.Booking_NO}</div>
+            </div>
+          </div>
+          
+          <button 
+            className="w-full text-center text-xs text-primary font-medium mt-3 py-1.5 border border-primary/20 rounded-md hover:bg-primary/5"
+            onClick={() => onViewDetails(booking)}
+          >
+            View Details
+          </button>
+        </div>
+      ))}
     </div>
   );
 };

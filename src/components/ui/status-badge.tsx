@@ -18,32 +18,31 @@ interface StatusBadgeProps extends Omit<BadgeProps, "variant"> {
 const getStatusStyles = (status: StatusType) => {
   const normalizedStatus = status.toLowerCase();
   
-  switch (normalizedStatus) {
-    case "completed":
-      return {
-        bg: "bg-green-100",
-        text: "text-green-800",
-      };
-    case "pending":
-      return {
-        bg: "bg-yellow-100",
-        text: "text-yellow-800",
-      };
-    case "processing":
-      return {
-        bg: "bg-blue-100",
-        text: "text-blue-800",
-      };
-    case "cancelled":
-      return {
-        bg: "bg-red-100",
-        text: "text-red-800",
-      };
-    default:
-      return {
-        bg: "bg-gray-100",
-        text: "text-gray-800",
-      };
+  if (normalizedStatus.includes("completed")) {
+    return {
+      bg: "bg-green-100",
+      text: "text-green-800",
+    };
+  } else if (normalizedStatus.includes("pending")) {
+    return {
+      bg: "bg-yellow-100",
+      text: "text-yellow-800",
+    };
+  } else if (normalizedStatus.includes("processing") || normalizedStatus.includes("assigned") || normalizedStatus.includes("beautician")) {
+    return {
+      bg: "bg-blue-100",
+      text: "text-blue-800",
+    };
+  } else if (normalizedStatus.includes("cancelled")) {
+    return {
+      bg: "bg-red-100",
+      text: "text-red-800",
+    };
+  } else {
+    return {
+      bg: "bg-gray-100",
+      text: "text-gray-800",
+    };
   }
 };
 
@@ -57,11 +56,17 @@ export const StatusBadge = ({
 }: StatusBadgeProps) => {
   const styles = getStatusStyles(status);
   
+  // Format status for display
+  const displayStatus = status
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+  
   const badge = (
     <Badge
       {...props}
       className={cn(
-        "px-3 py-1 rounded-full font-medium border-0",
+        "px-2 py-0.5 rounded-full font-medium border-0 text-xs",
         styles.bg,
         styles.text,
         classNames?.root,
@@ -69,7 +74,7 @@ export const StatusBadge = ({
       )}
     >
       <span className={cn(classNames?.text)}>
-        {status.toUpperCase()}
+        {displayStatus}
       </span>
     </Badge>
   );
