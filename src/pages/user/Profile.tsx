@@ -54,6 +54,30 @@ const Profile = () => {
             }
           }
         } 
+        else if (user.role === 'member') {
+          // Fetch member data from MemberMST table
+          const { data, error } = await supabase
+            .from('MemberMST')
+            .select('MemberFirstName, MemberLastName, MemberPhNo, MemberEmailId')
+            .eq('MemberEmailId', user.email)
+            .single();
+            
+          if (error) {
+            console.error("Error fetching member profile:", error);
+            return;
+          }
+          
+          if (data) {
+            setFormData(prev => ({
+              ...prev,
+              email: user?.email || "",
+              firstName: data.MemberFirstName || "",
+              lastName: data.MemberLastName || "",
+              phone: data.MemberPhNo || ""
+            }));
+            console.log("Member profile data loaded:", data);
+          }
+        }
         else {
           const { data, error } = await supabase
             .from('UserMST')
@@ -143,7 +167,21 @@ const Profile = () => {
             
           if (error) throw error;
         }
-      } else {
+      } 
+      else if (user.role === 'member') {
+        // Update member data in MemberMST
+        const { error } = await supabase
+          .from('MemberMST')
+          .update({
+            MemberFirstName: formData.firstName,
+            MemberLastName: formData.lastName, 
+            MemberPhNo: formData.phone || null
+          })
+          .eq('MemberEmailId', user.email);
+          
+        if (error) throw error;
+      }
+      else {
         // First try to update by Username
         const { error } = await supabase
           .from('UserMST')

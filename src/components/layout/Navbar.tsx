@@ -129,7 +129,7 @@ const Navbar = () => {
                 {isAuthenticated ? (
                   user?.role === "member" ? (
                     <div className="space-y-2">
-                      <div className="font-medium text-primary">{displayName}</div>
+                      <div className="font-medium text-primary">Welcome {displayName}</div>
                       <Link to="/profile" className="block py-2 text-gray-700 hover:text-primary" onClick={closeMenu}>
                         My Profile
                       </Link>

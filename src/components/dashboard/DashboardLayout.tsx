@@ -43,7 +43,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
       >
         <div className="flex items-center justify-between h-16 px-6 border-b">
           <Link to="/" className="flex items-center">
-            <span className="text-xl font-serif font-bold">My<span className="text-primary">Lavanya</span></span>
+            <span className="text-xl font-serif font-bold"><span className="text-primary">Lavanya</span></span>
           </Link>
           <Button
             variant="ghost"
