@@ -48,10 +48,10 @@ export const useBookingSubmit = () => {
       const totalPrice = data.selectedServices.reduce((sum, service) => 
         sum + (service.price * (service.quantity || 1)), 0);
       
-      // Create a toast without JSX
+      // Create a toast without the payment note
       toast({
         title: "Booking Successful!",
-        description: `Your appointment has been scheduled.\nYour booking reference number is: ${bookingRef}\nTotal amount: ₹${totalPrice.toFixed(2)}\nNote: Your booking is not confirmed until payment is made.`,
+        description: `Your appointment has been scheduled.\nYour booking reference number is: ${bookingRef}\nTotal amount: ₹${totalPrice.toFixed(2)}`,
         duration: 15000,
       });
       

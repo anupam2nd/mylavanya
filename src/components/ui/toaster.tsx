@@ -42,14 +42,6 @@ export function Toaster() {
                     </div>
                   );
                 }
-                // If this is the payment note
-                else if (line.includes('not confirmed')) {
-                  return (
-                    <div key={index} className="font-semibold text-lg bg-red-50 p-2 rounded border border-red-200 text-red-700 mt-2">
-                      {line}
-                    </div>
-                  );
-                }
                 // Regular line
                 else {
                   return <div key={index}>{line}</div>;

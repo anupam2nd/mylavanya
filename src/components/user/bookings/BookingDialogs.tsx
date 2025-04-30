@@ -10,7 +10,7 @@ import { useStatusOptions } from "@/hooks/useStatusOptions";
 interface BookingDialogsProps {
   bookings: Booking[];
   setBookings: React.Dispatch<React.SetStateAction<Booking[]>>;
-  currentUser: { Username?: string, FirstName?: string, LastName?: string } | null;
+  currentUser: { Username?: string, FirstName?: string, LastName?: string, role?: string } | null;
 }
 
 const BookingDialogs = ({ bookings, setBookings, currentUser }: BookingDialogsProps) => {
