@@ -44,19 +44,23 @@ const MobileBookingView = ({
               <p className="text-xs text-muted-foreground">Booking #:</p>
               <p className="text-sm font-medium">{booking.Booking_NO}</p>
             </div>
-            {booking.ArtistId && (
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Artist:</p>
-                <p className="text-sm flex items-center">
-                  <User className="h-3 w-3 mr-1" /> {getArtistName(booking.ArtistId)}
-                </p>
-                {getArtistPhone(booking.ArtistId) && (
-                  <p className="text-xs flex items-center text-muted-foreground">
-                    <Phone className="h-3 w-3 mr-1" /> {getArtistPhone(booking.ArtistId)}
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Artist:</p>
+              {booking.ArtistId ? (
+                <>
+                  <p className="text-sm flex items-center">
+                    <User className="h-3 w-3 mr-1" /> {getArtistName(booking.ArtistId)}
                   </p>
-                )}
-              </div>
-            )}
+                  {getArtistPhone(booking.ArtistId) && (
+                    <p className="text-xs flex items-center text-muted-foreground">
+                      <Phone className="h-3 w-3 mr-1" /> {getArtistPhone(booking.ArtistId)}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm">Not assigned</p>
+              )}
+            </div>
             <div className="pt-2">
               <Button 
                 variant="outline" 

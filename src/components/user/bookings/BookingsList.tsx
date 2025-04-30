@@ -1,12 +1,11 @@
 
 import React, { useState } from "react";
-import { Booking } from '@/hooks/useBookings';
-import BookingDetailsModal from "./BookingDetailsModal";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { Booking } from "@/hooks/useBookings";
 import { useArtistDetails } from "@/hooks/useArtistDetails";
+import BookingDetailsModal from "./BookingDetailsModal";
 import MobileBookingView from "./MobileBookingView";
 import DesktopBookingView from "./DesktopBookingView";
-import EmptyBookingState from "./EmptyBookingState";
 
 interface BookingsListProps {
   filteredBookings: Booking[];
@@ -14,52 +13,55 @@ interface BookingsListProps {
 }
 
 const BookingsList = ({ filteredBookings, clearFilters }: BookingsListProps) => {
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const isMobile = useIsMobile();
   
-  // Extract artist IDs from bookings
+  // Extract all artist IDs to fetch their details
   const artistIds = filteredBookings
     .map(booking => booking.ArtistId)
-    .filter((id): id is number => id !== undefined);
-
-  // Get artist details
+    .filter(id => id !== undefined);
+    
+  console.log("Artist IDs extracted:", artistIds);
+    
+  // Use the hook to get artist details
   const { getArtistName, getArtistPhone } = useArtistDetails(artistIds);
-
+  
   const handleViewDetails = (booking: Booking) => {
     setSelectedBooking(booking);
-    setIsDetailsModalOpen(true);
+  };
+  
+  const handleCloseModal = () => {
+    setSelectedBooking(null);
   };
 
-  // If no bookings found after filtering
-  if (filteredBookings.length === 0) {
-    return <EmptyBookingState clearFilters={clearFilters} />;
-  }
-
   return (
-    <div className="space-y-6">
+    <>
       {isMobile ? (
         <MobileBookingView 
-          bookings={filteredBookings}
+          bookings={filteredBookings} 
           getArtistName={getArtistName}
           getArtistPhone={getArtistPhone}
           onViewDetails={handleViewDetails}
         />
       ) : (
         <DesktopBookingView 
-          bookings={filteredBookings}
+          bookings={filteredBookings} 
           getArtistName={getArtistName}
           getArtistPhone={getArtistPhone}
           onViewDetails={handleViewDetails}
         />
       )}
       
-      <BookingDetailsModal 
-        booking={selectedBooking}
-        open={isDetailsModalOpen}
-        onOpenChange={setIsDetailsModalOpen}
-      />
-    </div>
+      {selectedBooking && (
+        <BookingDetailsModal 
+          booking={selectedBooking} 
+          open={!!selectedBooking} 
+          onOpenChange={handleCloseModal}
+          getArtistName={getArtistName}
+          getArtistPhone={getArtistPhone}
+        />
+      )}
+    </>
   );
 };
 

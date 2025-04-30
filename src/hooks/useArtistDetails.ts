@@ -22,14 +22,21 @@ export const useArtistDetails = (artistIds: (number | undefined)[]) => {
         
         const uniqueArtistIds = [...new Set(filteredIds)];
         
+        console.log("Fetching artist details for IDs:", uniqueArtistIds);
+        
         setLoading(true);
         const { data, error } = await supabase
           .from('ArtistMST')
           .select('ArtistId, ArtistFirstName, ArtistLastName, ArtistPhno, emailid')
           .in('ArtistId', uniqueArtistIds);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching artist details:', error);
+          throw error;
+        }
 
+        console.log("Artist details fetched:", data);
+        
         const artistMap: Record<number, ArtistDetails> = {};
         data?.forEach(artist => {
           if (artist.ArtistId) {
@@ -61,7 +68,6 @@ export const useArtistDetails = (artistIds: (number | undefined)[]) => {
     return `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || 'Not available';
   };
 
-  // Updated to return a string instead of number | ""
   const getArtistPhone = (artistId?: number): string => {
     if (!artistId || !artistDetails[artistId]) return '';
     return artistDetails[artistId].ArtistPhno ? artistDetails[artistId].ArtistPhno!.toString() : '';

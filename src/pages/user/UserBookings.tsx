@@ -11,6 +11,8 @@ const UserBookings = () => {
   const { user } = useAuth();
   const { bookings, setBookings, loading, currentUser } = useUserBookings();
   
+  console.log("UserBookings - Current bookings:", bookings);
+  
   // Determine user roles
   const isMember = user?.role === 'member';
   const isArtist = user?.role === 'artist';
