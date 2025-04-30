@@ -36,12 +36,18 @@ const Wishlist = () => {
 
       try {
         setLoading(true);
+        console.log("Fetching wishlist for user:", user.id);
+        
         // Use the get_user_wishlist function to fetch wishlist items with service details
         const { data, error } = await supabase
           .rpc('get_user_wishlist', { user_uuid: user.id });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase error:", error);
+          throw error;
+        }
         
+        console.log("Wishlist data received:", data);
         setWishlistItems(data || []);
       } catch (error) {
         console.error("Error fetching wishlist:", error);

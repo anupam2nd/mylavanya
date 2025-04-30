@@ -71,6 +71,7 @@ const ServiceCard = ({
       if (!isAuthenticated || !user) return;
       
       try {
+        console.log("Checking wishlist status for service:", service.prodid, "User:", user.id);
         const { data, error } = await supabase
           .from('wishlist')
           .select('id')
@@ -78,8 +79,13 @@ const ServiceCard = ({
           .eq('service_id', service.prodid)
           .maybeSingle();
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error checking wishlist status:", error);
+          throw error;
+        }
+        
         setIsInWishlist(!!data);
+        console.log("Service in wishlist:", !!data);
       } catch (error) {
         console.error("Error checking wishlist status:", error);
       }
@@ -112,7 +118,10 @@ const ServiceCard = ({
           .eq('service_id', service.prodid)
           .single();
           
-        if (fetchError) throw fetchError;
+        if (fetchError) {
+          console.error("Error fetching wishlist item:", fetchError);
+          throw fetchError;
+        }
         
         // Remove from wishlist
         const { error: removeError } = await supabase
@@ -121,7 +130,10 @@ const ServiceCard = ({
           .eq('id', wishlistItem.id)
           .eq('user_id', user!.id);
           
-        if (removeError) throw removeError;
+        if (removeError) {
+          console.error("Error removing from wishlist:", removeError);
+          throw removeError;
+        }
         
         setIsInWishlist(false);
         toast({
@@ -130,6 +142,7 @@ const ServiceCard = ({
         });
       } else {
         // Add to wishlist
+        console.log("Adding to wishlist, user id:", user!.id, "service id:", service.prodid);
         const { error: addError } = await supabase
           .from('wishlist')
           .insert({
@@ -137,7 +150,10 @@ const ServiceCard = ({
             service_id: service.prodid
           });
           
-        if (addError) throw addError;
+        if (addError) {
+          console.error("Error adding to wishlist:", addError);
+          throw addError;
+        }
         
         setIsInWishlist(true);
         toast({
