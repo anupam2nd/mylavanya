@@ -188,9 +188,9 @@ const Wishlist = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {wishlistItems.map((item) => (
               <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                <div className="p-4 flex flex-col h-full">
+                <div className="p-4 flex flex-col h-full relative">
                   <div className="flex justify-between items-start">
-                    <div>
+                    <div className="max-w-[85%]">
                       <h3 className="font-medium truncate">{item.service_name}</h3>
                       {item.service_category && (
                         <Badge variant="outline" className="mt-1">{item.service_category}</Badge>
@@ -198,7 +198,7 @@ const Wishlist = () => {
                     </div>
                     <button 
                       onClick={() => handleRemoveFromWishlist(item.id)}
-                      className="text-gray-500 hover:text-red-500 transition-colors"
+                      className="text-gray-500 hover:text-red-500 transition-colors absolute top-4 right-4"
                       aria-label="Remove from wishlist"
                     >
                       <X size={18} />
