@@ -7,6 +7,14 @@ export type FilterDateType = "booking" | "creation";
 export type SortDirection = "asc" | "desc";
 export type SortField = "creation_date" | "booking_date";
 
+// Function to normalize status values for comparison
+const normalizeStatusValue = (status: string | undefined | null): string => {
+  if (!status) return "";
+  
+  // Convert to lowercase and replace spaces with underscores
+  return status.toLowerCase().replace(/\s+/g, '_');
+};
+
 export const useBookingFilters = (bookings: Booking[]) => {
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -42,11 +50,13 @@ export const useBookingFilters = (bookings: Booking[]) => {
       console.log("Available statuses:", [...new Set(bookings.map(b => b.Status))]);
       
       result = result.filter(booking => {
-        // Handle status comparison case-insensitively
-        const bookingStatus = booking.Status?.toLowerCase();
-        const filterStatusValue = statusFilter.toLowerCase();
+        // Normalize both the booking status and the filter value
+        const normalizedBookingStatus = normalizeStatusValue(booking.Status);
+        const normalizedFilterStatus = normalizeStatusValue(statusFilter);
         
-        return bookingStatus === filterStatusValue;
+        console.log(`Comparing normalized status: "${normalizedBookingStatus}" with filter: "${normalizedFilterStatus}"`);
+        
+        return normalizedBookingStatus === normalizedFilterStatus;
       });
     }
     

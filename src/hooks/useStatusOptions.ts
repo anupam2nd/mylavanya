@@ -1,48 +1,65 @@
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-export interface StatusOption {
-  status_code: string;
-  status_name: string;
-  description?: string;
-  active: boolean;
-}
-
-export interface FormattedStatusOption {
-  value: string;
-  label: string;
-}
+// Helper function to normalize status for display and filtering
+const formatStatusValue = (statusCode: string) => {
+  return statusCode.toLowerCase().replace(/\s+/g, '_');
+};
 
 export const useStatusOptions = () => {
-  const [statusOptions, setStatusOptions] = useState<StatusOption[]>([]);
-  const [formattedStatusOptions, setFormattedStatusOptions] = useState<FormattedStatusOption[]>([]);
+  const [statusOptions, setStatusOptions] = useState<{ value: string; label: string }[]>([]);
+  const [formattedStatusOptions, setFormattedStatusOptions] = useState<{ value: string; label: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStatusOptions = async () => {
       try {
+        setLoading(true);
         const { data, error } = await supabase
           .from('statusmst')
-          .select('status_code, status_name, description, active')
+          .select('status_code, status_name')
           .eq('active', true);
 
-        if (error) throw error;
-        setStatusOptions(data || []);
-        
-        // Transform data to match expected format for BookingFilters
-        setFormattedStatusOptions(
-          (data || []).map(option => ({
-            value: option.status_code,
-            label: option.status_name
-          }))
-        );
-      } catch (error) {
-        console.error('Error fetching status options:', error);
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          // Create two versions of status options:
+          // 1. Original status codes for internal use
+          const options = data.map(status => ({
+            value: status.status_code,
+            label: status.status_name
+          }));
+          setStatusOptions(options);
+
+          // 2. Formatted status codes for UI display and filtering
+          const formattedOptions = data.map(status => ({
+            value: formatStatusValue(status.status_code),
+            label: status.status_name
+          }));
+          setFormattedStatusOptions(formattedOptions);
+
+          console.log("Status options loaded:", options);
+          console.log("Formatted status options:", formattedOptions);
+        }
+      } catch (err) {
+        console.error('Error fetching status options:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchStatusOptions();
   }, []);
 
-  return { statusOptions, formattedStatusOptions };
+  return {
+    statusOptions,
+    formattedStatusOptions,
+    loading,
+    error
+  };
 };

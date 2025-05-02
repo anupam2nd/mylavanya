@@ -86,6 +86,9 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
     }
   };
 
+  // Debug the status options
+  console.log("Status options available:", statusOptions);
+
   return (
     <div className="flex flex-wrap gap-2 items-center justify-end">
       <div className="relative">
@@ -98,7 +101,13 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
         />
       </div>
 
-      <Select value={statusFilter} onValueChange={setStatusFilter}>
+      <Select 
+        value={statusFilter} 
+        onValueChange={(value) => {
+          console.log("Selected status:", value);
+          setStatusFilter(value);
+        }}
+      >
         <SelectTrigger className="w-[150px]">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
