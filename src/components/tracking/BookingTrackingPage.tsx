@@ -1,172 +1,146 @@
 
-import React, { useState } from "react";
-import TrackingForm from "./TrackingForm";
-import BookingDetails from "./BookingDetails";
-import BookingTrackingHeader from "./BookingTrackingHeader";
-import TrackingError from "./TrackingError";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Tables } from "@/integrations/supabase/types";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "@/hooks/use-toast";
+import TrackingForm, { TrackingFormValues } from "@/components/tracking/TrackingForm";
+import BookingDetails, { BookingData } from "@/components/tracking/BookingDetails";
+import TrackingError from "@/components/tracking/TrackingError";
+import { useAuth } from "@/context/AuthContext";
+import { useBookings } from "@/hooks/useBookings";
+import BookingTrackingHeader from "./BookingTrackingHeader";
 
-type BookingWithServiceMST = Tables<'BookMST'> & {
-  services?: {
-    id: number;
-    name: string;
-    price: number;
-    quantity: number;
-  }[];
-};
-
-export const BookingTrackingPage: React.FC = () => {
-  const [booking, setBooking] = useState<BookingWithServiceMST | null>(null);
+export function BookingTrackingPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState<BookingData[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { isAuthenticated, user } = useAuth();
+  const { hasBookings, checkUserHasBookings } = useBookings();
+  const navigate = useNavigate();
 
-  const handleSearch = async (
-    searchType: "reference" | "phone",
-    searchValue: string
-  ) => {
-    setLoading(true);
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to track your booking.",
+        variant: "destructive",
+      });
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Check if user has bookings
+  useEffect(() => {
+    const checkUserBookings = async () => {
+      if (!isAuthenticated || !user?.email) return;
+      
+      try {
+        const hasAnyBookings = await checkUserHasBookings();
+        
+        // If user has no bookings, show a message and redirect
+        if (!hasAnyBookings) {
+          toast({
+            title: "No Bookings Found",
+            description: "You haven't made any bookings yet.",
+            variant: "destructive",
+          });
+          navigate("/");
+        }
+      } catch (error) {
+        console.error("Error checking bookings:", error);
+      }
+    };
+    
+    checkUserBookings();
+  }, [isAuthenticated, user, navigate, checkUserHasBookings]);
+
+  // If not authenticated or loading booking check, don't render the page content
+  if (!isAuthenticated || hasBookings === null) {
+    return null;
+  }
+  
+  // If user has no bookings, we'll already be redirected by the effect
+  if (hasBookings === false) {
+    return null;
+  }
+
+  const handleSubmit = async (data: TrackingFormValues) => {
+    setIsLoading(true);
     setError(null);
-    setBooking(null);
-
+    setBookingDetails([]);
+    
     try {
-      let query;
-      if (searchType === "reference") {
-        // Convert the Booking_NO from string to number for comparison
-        const bookingNumber = parseInt(searchValue.trim(), 10);
-        if (isNaN(bookingNumber)) {
-          setError("Invalid booking reference number");
-          setLoading(false);
-          return;
-        }
-        
-        query = supabase
-          .from("BookMST")
-          .select("*")
-          .eq("Booking_NO", bookingNumber); // Fixed: Now properly passing a number
-      } else {
-        // Phone search - Convert phone to number for the query
-        const phoneNumber = parseInt(searchValue.trim(), 10);
-        if (isNaN(phoneNumber)) {
-          setError("Invalid phone number");
-          setLoading(false);
-          return;
-        }
-        
-        query = supabase
-          .from("BookMST")
-          .select("*")
-          .eq("Phone_no", phoneNumber); // Fixed: Now properly passing a number
+      // Convert phone to number for comparison with the database
+      const phoneNumber = parseInt(data.phone.replace(/\D/g, ''));
+      
+      // Get all bookings matching the reference and phone number
+      const { data: bookingsData, error: bookingError } = await supabase
+        .from("BookMST")
+        .select("*, ArtistId, jobno") // Ensure we select the jobno field
+        .eq("Booking_NO", data.bookingRef) // Use string comparison instead of integer
+        .eq("Phone_no", phoneNumber);
+
+      if (bookingError) {
+        throw bookingError;
       }
 
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) {
-        console.error("Error fetching booking:", fetchError);
-        setError("Failed to fetch booking information");
-        setLoading(false);
+      if (!bookingsData || bookingsData.length === 0) {
+        setError("No booking found with the provided details. Please check and try again.");
         return;
       }
 
-      if (!data || data.length === 0) {
-        setError(
-          "No booking found with the provided " +
-            (searchType === "reference" ? "reference" : "phone number")
-        );
-        setLoading(false);
-        return;
-      }
+      console.log("Raw booking data:", bookingsData);
 
-      // For now, just use the first booking if multiple were found
-      const bookingWithServices = {
-        ...data[0],
-        services: data[0].Product
-          ? [
-              {
-                id: data[0].Product || 0, // Ensure id is always a number
-                name: data[0].ProductName || "Unknown Service",
-                price: data[0].price || 0,
-                quantity: data[0].Qty || 1,
-              },
-            ]
-          : [],
-      };
+      // Transform data to ensure Booking_NO is a string
+      const detailedBookings: BookingData[] = bookingsData.map(booking => {
+        return {
+          ...booking,
+          Booking_NO: String(booking.Booking_NO), // Ensure Booking_NO is a string
+          Services: booking.ServiceName || "General Service",
+          Subservice: booking.SubService || "Standard",
+          ProductName: booking.ProductName || "Unknown Service",
+          ArtistId: booking.ArtistId, // Ensure ArtistId is included
+          jobno: booking.jobno // Ensure jobno is included
+        };
+      });
 
-      setBooking(bookingWithServices);
-    } catch (err) {
-      console.error("Unexpected error:", err);
-      setError("An unexpected error occurred. Please try again.");
+      console.log("Detailed bookings:", detailedBookings);
+      setBookingDetails(detailedBookings);
+
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+      setError("Failed to retrieve booking information. Please try again later.");
+      toast({
+        title: "Error",
+        description: "Failed to retrieve booking information.",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // Transform booking data to match the expected format for BookingDetails
-  const transformBookingData = (booking: BookingWithServiceMST | null): {
-    bookingDetails: Array<{
-      Booking_NO: string;
-      Purpose: string;
-      Phone_no: number;
-      Booking_date: string;
-      booking_time: string;
-      Status: string;
-      price: number;
-      ProductName: string;
-      Qty: number;
-      Address?: string;
-      Pincode?: number;
-      name?: string;
-      email?: string;
-      id?: number;
-      Services?: string;
-      Subservice?: string;
-      Assignedto?: string;
-      AssignedBY?: string;
-      ArtistId?: number;
-      jobno?: number;
-    }>
-  } | null => {
-    if (!booking) return null;
-    
-    return {
-      bookingDetails: [{
-        Booking_NO: booking.Booking_NO ? booking.Booking_NO.toString() : '',
-        Purpose: booking.Purpose || '',
-        Phone_no: booking.Phone_no || 0,
-        Booking_date: booking.Booking_date || '',
-        booking_time: booking.booking_time || '',
-        Status: booking.Status || '',
-        price: booking.price || 0,
-        ProductName: booking.ProductName || '',
-        Qty: booking.Qty || 1,
-        Address: booking.Address,
-        Pincode: booking.Pincode,
-        name: booking.name,
-        email: booking.email,
-        id: booking.id,
-        Services: booking.ServiceName, // Using ServiceName as Services
-        Subservice: booking.SubService,
-        Assignedto: booking.Assignedto,
-        AssignedBY: booking.AssignedBY,
-        ArtistId: booking.ArtistId,
-        jobno: booking.jobno
-      }]
-    };
-  };
-
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8">
-      <BookingTrackingHeader />
-      
-      {!booking && (
-        <TrackingForm onSearch={handleSearch} loading={loading} />
-      )}
-      
-      {error && <TrackingError message={error} />}
-      
-      {booking && transformBookingData(booking) && (
-        <BookingDetails bookingDetails={transformBookingData(booking)!.bookingDetails} />
-      )}
+    <div className="container mx-auto px-4 py-12">
+      <div className="max-w-3xl mx-auto">
+        <BookingTrackingHeader />
+
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle>Booking Tracker</CardTitle>
+            <CardDescription>
+              Please enter the details below to track your booking
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TrackingForm onSubmit={handleSubmit} isLoading={isLoading} />
+            <TrackingError error={error} />
+            {bookingDetails.length > 0 && <BookingDetails bookingDetails={bookingDetails} />}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-};
+}

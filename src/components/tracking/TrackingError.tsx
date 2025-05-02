@@ -2,15 +2,15 @@
 import React from 'react';
 
 interface TrackingErrorProps {
-  message: string | null;
+  error: string | null;
 }
 
-const TrackingError = ({ message }: TrackingErrorProps) => {
-  if (!message) return null;
+const TrackingError = ({ error }: TrackingErrorProps) => {
+  if (!error) return null;
   
   return (
     <div className="mt-6 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
-      {message}
+      {error}
     </div>
   );
 };

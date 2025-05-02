@@ -21,7 +21,6 @@ import AdminServices from "./pages/admin/AdminServices";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminStatus from "./pages/admin/AdminStatus";
 import AdminArtists from "./pages/admin/AdminArtists";
-import WishlistInsights from "./pages/admin/WishlistInsights";
 import UserDashboard from "./pages/user/UserDashboard";
 import UserBookings from "./pages/user/UserBookings";
 import Profile from "./pages/user/Profile";
@@ -78,7 +77,6 @@ const App = () => (
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/status" element={<AdminStatus />} />
             <Route path="/admin/artists" element={<AdminArtists />} />
-            <Route path="/admin/wishlist-insights" element={<WishlistInsights />} />
             
             {/* User Routes */}
             <Route path="/user/dashboard" element={<UserDashboard />} />

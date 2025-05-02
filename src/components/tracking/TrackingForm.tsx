@@ -16,11 +16,11 @@ const trackingFormSchema = z.object({
 export type TrackingFormValues = z.infer<typeof trackingFormSchema>;
 
 interface TrackingFormProps {
-  onSearch: (searchType: "reference" | "phone", searchValue: string) => Promise<void>;
-  loading: boolean;
+  onSubmit: (data: TrackingFormValues) => Promise<void>;
+  isLoading: boolean;
 }
 
-const TrackingForm = ({ onSearch, loading }: TrackingFormProps) => {
+const TrackingForm = ({ onSubmit, isLoading }: TrackingFormProps) => {
   const form = useForm<TrackingFormValues>({
     resolver: zodResolver(trackingFormSchema),
     defaultValues: {
@@ -30,7 +30,7 @@ const TrackingForm = ({ onSearch, loading }: TrackingFormProps) => {
   });
 
   const handleFormSubmit = async (data: TrackingFormValues) => {
-    await onSearch("reference", data.bookingRef);
+    await onSubmit(data);
   };
 
   return (
@@ -83,8 +83,8 @@ const TrackingForm = ({ onSearch, loading }: TrackingFormProps) => {
           />
         </div>
 
-        <Button type="submit" className="w-full" size="lg" disabled={loading}>
-          {loading ? (
+        <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+          {isLoading ? (
             <>
               <span className="mr-2">Tracking...</span>
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
