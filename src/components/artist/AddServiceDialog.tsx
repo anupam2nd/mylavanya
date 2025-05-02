@@ -159,7 +159,7 @@ const AddServiceDialog = ({
       const { data: maxJobNoData } = await supabase
         .from("BookMST")
         .select("jobno")
-        .eq("Booking_NO", bookingNo)
+        .eq("Booking_NO", parseInt(bookingNo, 10))
         .order("jobno", { ascending: false })
         .limit(1);
       
@@ -181,19 +181,19 @@ const AddServiceDialog = ({
         }
       }
       
-      // Fix the type error - convert string to number when using parseInt
-      const phoneNumber = parseInt(customerPhone, 10);
+      // Convert phone string to number if possible, otherwise use 0
+      const phoneNumber = customerPhone ? parseInt(customerPhone, 10) : 0;
       
       // Add the new service to BookMST
       const { error } = await supabase
         .from("BookMST")
         .insert({
-          Booking_NO: parseInt(bookingNo, 10), // Convert string to number
+          Booking_NO: parseInt(bookingNo, 10),
           Purpose: selectedService.ProductName,
           Status: "start", // as specified in requirements
           name: customerName,
           email: customerEmail,
-          Phone_no: phoneNumber, // Now using the parsed integer
+          Phone_no: phoneNumber,
           Booking_date: new Date().toISOString().split('T')[0],
           booking_time: new Date().toTimeString().split(' ')[0].substring(0, 5),
           jobno: nextJobNo,
