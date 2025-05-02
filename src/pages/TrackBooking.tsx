@@ -1,6 +1,6 @@
 
 import MainLayout from "@/components/layout/MainLayout";
-import BookingTrackingPage from "@/components/tracking/BookingTrackingPage";
+import { BookingTrackingPage } from "@/components/tracking/BookingTrackingPage";
 
 const TrackBooking = () => {
   return (

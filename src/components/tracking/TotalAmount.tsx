@@ -21,9 +21,7 @@ const TotalAmount = ({
     if (value === undefined || value === null || isNaN(value)) {
       return '0.00';
     }
-    // Handle value potentially being a string due to the database type change
-    const numericValue = typeof value === 'number' ? value : parseFloat(String(value));
-    return numericValue.toFixed(2);
+    return value.toFixed(2);
   };
 
   return (

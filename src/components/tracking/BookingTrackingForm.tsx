@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import BookingDetails, { BookingData } from "./BookingDetails";
+import BookingDetails from "./BookingDetails";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -90,8 +90,6 @@ export function BookingTrackingForm() {
     );
   }
 
-  const transformedBookingData = bookingDetails ? transformBookingDetails(bookingDetails) : [];
-
   return (
     <div className="mx-auto max-w-md space-y-6 p-4">
       <div className="space-y-2 text-center">
@@ -117,13 +115,7 @@ export function BookingTrackingForm() {
         onReferenceSubmit={onReferenceSubmit}
       />
 
-      {bookingDetails && (
-        <BookingDetails 
-          date={bookingDetails.date} 
-          time={bookingDetails.time}
-          bookingDetails={transformedBookingData} 
-        />
-      )}
+      {bookingDetails && <BookingDetails bookingDetails={transformBookingDetails(bookingDetails)} />}
     </div>
   );
 }
