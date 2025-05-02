@@ -52,19 +52,39 @@ const BookingsList = ({ filteredBookings, clearFilters }: BookingsListProps) => 
         {Object.entries(groupedBookings).map(([bookingNo, bookingJobs]) => {
           // Use the first booking in each group as the main booking info
           const mainBooking = bookingJobs[0];
+          const totalAmount = bookingJobs.reduce((sum, job) => sum + (job.price || 0), 0);
           
           return (
             <AccordionItem key={bookingNo} value={bookingNo} className="border bg-card overflow-hidden rounded-lg shadow-sm transition-all hover:shadow-md">
               {isMobile ? (
                 <>
                   <AccordionTrigger className="px-4 py-3 hover:no-underline group">
-                    <MobileBookingView 
-                      bookings={[mainBooking]} 
-                      getArtistName={getArtistName}
-                      getArtistPhone={getArtistPhone}
-                      onViewDetails={() => {}}
-                      isAccordionItem={true}
-                    />
+                    <div className="flex-1 flex items-center justify-between pr-4">
+                      <div className="flex-grow flex flex-col">
+                        <div className="flex items-start space-x-4">
+                          <div>
+                            <div className="text-xs text-muted-foreground mb-0.5">Booking No</div>
+                            <div className="font-medium text-sm">{mainBooking.Booking_NO}</div>
+                            <div className="text-xs text-muted-foreground mt-1">{bookingJobs.length} service(s)</div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground mb-0.5">Service Time</div>
+                            <div className="text-xs flex items-center mt-1">
+                              <Calendar className="h-3 w-3 mr-1 text-muted-foreground" /> 
+                              {mainBooking.Booking_date}
+                            </div>
+                            <div className="text-xs flex items-center mt-0.5">
+                              <Clock className="h-3 w-3 mr-1 text-muted-foreground" /> 
+                              {mainBooking.booking_time}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground mb-0.5">Total</div>
+                            <div className="text-sm font-medium">₹{totalAmount}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
                   </AccordionTrigger>
                   <AccordionContent className="bg-muted/30">
@@ -107,28 +127,30 @@ const BookingsList = ({ filteredBookings, clearFilters }: BookingsListProps) => 
               ) : (
                 <>
                   <AccordionTrigger className="px-6 py-4 hover:no-underline group">
-                    <div className="grid grid-cols-12 gap-6 w-full text-sm">
-                      <div className="col-span-4 text-left">
-                        <div className="text-xs text-muted-foreground">Booking No</div>
-                        <div className="font-medium">{mainBooking.Booking_NO}</div>
-                        <div className="text-xs text-muted-foreground mt-1">{bookingJobs.length} service(s)</div>
-                      </div>
-                      <div className="col-span-5 text-left">
-                        <div className="text-xs text-muted-foreground mb-1">Service Time</div>
-                        <div className="flex flex-col space-y-1">
-                          <div className="flex items-center">
-                            <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-                            <span>{mainBooking.Booking_date}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Clock className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-                            <span>{mainBooking.booking_time}</span>
+                    <div className="flex-1 flex items-center justify-between pr-4">
+                      <div className="flex items-start space-x-12">
+                        <div className="text-left">
+                          <div className="text-xs text-muted-foreground">Booking No</div>
+                          <div className="font-medium">{mainBooking.Booking_NO}</div>
+                          <div className="text-xs text-muted-foreground mt-1">{bookingJobs.length} service(s)</div>
+                        </div>
+                        <div className="text-left">
+                          <div className="text-xs text-muted-foreground mb-1">Service Time</div>
+                          <div className="flex flex-col space-y-1">
+                            <div className="flex items-center">
+                              <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                              <span>{mainBooking.Booking_date}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Clock className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                              <span>{mainBooking.booking_time}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="col-span-3 text-right">
-                        <div className="text-xs text-muted-foreground">Total</div>
-                        <div className="font-medium text-base">₹{bookingJobs.reduce((sum, job) => sum + (job.price || 0), 0)}</div>
+                        <div className="text-left">
+                          <div className="text-xs text-muted-foreground">Total</div>
+                          <div className="font-medium text-base">₹{totalAmount}</div>
+                        </div>
                       </div>
                     </div>
                     <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />

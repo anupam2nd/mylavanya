@@ -26,12 +26,12 @@ const DesktopBookingView = ({
     return (
       <div className="grid grid-cols-3 gap-4 w-full text-sm">
         <div className="text-left">
-          <div className="text-xs text-muted-foreground mb-1">Service</div>
+          <div className="text-xs text-muted-foreground mb-1">Booking No</div>
           <div className="font-medium">
-            {booking.Purpose}
-            {booking.ServiceName && booking.ServiceName !== booking.Purpose && (
-              <div className="text-xs text-muted-foreground mt-0.5">{booking.ServiceName}</div>
-            )}
+            {booking.Booking_NO}
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {booking.Purpose?.substring(0, 20)}{booking.Purpose?.length > 20 ? '...' : ''}
+            </div>
           </div>
         </div>
         <div className="text-left">
@@ -47,7 +47,7 @@ const DesktopBookingView = ({
             </div>
           </div>
         </div>
-        <div className="text-right">
+        <div className="text-left">
           <div className="text-xs text-muted-foreground mb-1">Total</div>
           <div className="font-medium">{booking.price ? `₹${booking.price}` : '₹0'}</div>
         </div>
