@@ -1,146 +1,154 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
-import TrackingForm, { TrackingFormValues } from "@/components/tracking/TrackingForm";
-import BookingDetails, { BookingData } from "@/components/tracking/BookingDetails";
-import TrackingError from "@/components/tracking/TrackingError";
-import { useAuth } from "@/context/AuthContext";
-import { useBookings } from "@/hooks/useBookings";
+import React, { useEffect, useState } from "react";
 import BookingTrackingHeader from "./BookingTrackingHeader";
+import { useParams } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import BookingHeader from "./BookingHeader";
+import BookingDetails from "./BookingDetails";
+import ServicesList from "./ServicesList";
+import CustomerDetails from "./CustomerDetails";
+import TotalAmount from "./TotalAmount";
+import TrackingError from "./TrackingError";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export function BookingTrackingPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [bookingDetails, setBookingDetails] = useState<BookingData[]>([]);
+interface BookingService {
+  id: number;
+  Product?: number;
+  Purpose: string;
+  price?: number;
+  Qty?: number;
+}
+
+export interface BookingMST {
+  Booking_NO: string; // Changed to string type to match the useBookings interface
+  name: string;
+  email?: string;
+  Phone_no: number;
+  Address?: string;
+  Pincode?: number;
+  Booking_date: string;
+  booking_time: string;
+  Status: string;
+  services: BookingService[];
+  totalAmount: number;
+}
+
+const BookingTrackingPage = () => {
+  const { bookingRef } = useParams<{ bookingRef: string }>();
+  const { toast } = useToast();
+  const [booking, setBooking] = useState<BookingMST | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, user } = useAuth();
-  const { hasBookings, checkUserHasBookings } = useBookings();
-  const navigate = useNavigate();
 
-  // Redirect unauthenticated users
   useEffect(() => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to track your booking.",
-        variant: "destructive",
-      });
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate]);
-
-  // Check if user has bookings
-  useEffect(() => {
-    const checkUserBookings = async () => {
-      if (!isAuthenticated || !user?.email) return;
-      
-      try {
-        const hasAnyBookings = await checkUserHasBookings();
-        
-        // If user has no bookings, show a message and redirect
-        if (!hasAnyBookings) {
-          toast({
-            title: "No Bookings Found",
-            description: "You haven't made any bookings yet.",
-            variant: "destructive",
-          });
-          navigate("/");
-        }
-      } catch (error) {
-        console.error("Error checking bookings:", error);
-      }
-    };
-    
-    checkUserBookings();
-  }, [isAuthenticated, user, navigate, checkUserHasBookings]);
-
-  // If not authenticated or loading booking check, don't render the page content
-  if (!isAuthenticated || hasBookings === null) {
-    return null;
-  }
-  
-  // If user has no bookings, we'll already be redirected by the effect
-  if (hasBookings === false) {
-    return null;
-  }
-
-  const handleSubmit = async (data: TrackingFormValues) => {
-    setIsLoading(true);
-    setError(null);
-    setBookingDetails([]);
-    
-    try {
-      // Convert phone to number for comparison with the database
-      const phoneNumber = parseInt(data.phone.replace(/\D/g, ''));
-      
-      // Get all bookings matching the reference and phone number
-      const { data: bookingsData, error: bookingError } = await supabase
-        .from("BookMST")
-        .select("*, ArtistId, jobno") // Ensure we select the jobno field
-        .eq("Booking_NO", data.bookingRef) // Use string comparison instead of integer
-        .eq("Phone_no", phoneNumber);
-
-      if (bookingError) {
-        throw bookingError;
-      }
-
-      if (!bookingsData || bookingsData.length === 0) {
-        setError("No booking found with the provided details. Please check and try again.");
+    const fetchBookingDetails = async () => {
+      if (!bookingRef) {
+        setError("Booking reference is required");
+        setLoading(false);
         return;
       }
 
-      console.log("Raw booking data:", bookingsData);
+      try {
+        setLoading(true);
 
-      // Transform data to ensure Booking_NO is a string
-      const detailedBookings: BookingData[] = bookingsData.map(booking => {
-        return {
-          ...booking,
-          Booking_NO: String(booking.Booking_NO), // Ensure Booking_NO is a string
-          Services: booking.ServiceName || "General Service",
-          Subservice: booking.SubService || "Standard",
-          ProductName: booking.ProductName || "Unknown Service",
-          ArtistId: booking.ArtistId, // Ensure ArtistId is included
-          jobno: booking.jobno // Ensure jobno is included
-        };
-      });
+        // Fetch all bookings with the same booking reference
+        const { data, error } = await supabase
+          .from("BookMST")
+          .select("*")
+          .eq("Booking_NO", bookingRef);
 
-      console.log("Detailed bookings:", detailedBookings);
-      setBookingDetails(detailedBookings);
+        if (error) throw error;
 
-    } catch (error) {
-      console.error("Error fetching booking details:", error);
-      setError("Failed to retrieve booking information. Please try again later.");
-      toast({
-        title: "Error",
-        description: "Failed to retrieve booking information.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        if (!data || data.length === 0) {
+          setError("Booking not found");
+          setLoading(false);
+          return;
+        }
+
+        // Group services under the same booking
+        const services = data.map((booking) => ({
+          id: booking.id,
+          Product: booking.Product,
+          Purpose: booking.Purpose,
+          price: booking.price,
+          Qty: booking.Qty,
+        }));
+
+        // Calculate total amount
+        const totalAmount = services.reduce(
+          (total, service) => total + (service.price || 0) * (service.Qty || 1),
+          0
+        );
+
+        // Use the first booking's data for common details
+        const firstBooking = data[0];
+        
+        setBooking({
+          Booking_NO: String(firstBooking.Booking_NO), // Convert to string explicitly
+          name: firstBooking.name || "",
+          email: firstBooking.email,
+          Phone_no: firstBooking.Phone_no,
+          Address: firstBooking.Address,
+          Pincode: firstBooking.Pincode,
+          Booking_date: firstBooking.Booking_date || "",
+          booking_time: firstBooking.booking_time || "",
+          Status: firstBooking.Status || "",
+          services,
+          totalAmount,
+        });
+      } catch (error) {
+        console.error("Error fetching booking:", error);
+        setError("Failed to load booking details");
+        toast({
+          title: "Error",
+          description: "Failed to load booking details",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookingDetails();
+  }, [bookingRef, toast]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <BookingTrackingHeader />
+        <div className="bg-white rounded-lg shadow-md p-6 mt-4 space-y-4">
+          <Skeleton className="h-8 w-full mb-4" />
+          <Skeleton className="h-24 w-full mb-4" />
+          <Skeleton className="h-32 w-full mb-4" />
+          <Skeleton className="h-16 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !booking) {
+    return <TrackingError error={error || "Booking not found"} />;
+  }
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-3xl mx-auto">
-        <BookingTrackingHeader />
-
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>Booking Tracker</CardTitle>
-            <CardDescription>
-              Please enter the details below to track your booking
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TrackingForm onSubmit={handleSubmit} isLoading={isLoading} />
-            <TrackingError error={error} />
-            {bookingDetails.length > 0 && <BookingDetails bookingDetails={bookingDetails} />}
-          </CardContent>
-        </Card>
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <BookingTrackingHeader />
+      <div className="bg-white rounded-lg shadow-md p-6 mt-4 space-y-6">
+        <BookingHeader bookingNo={booking.Booking_NO} status={booking.Status} />
+        <BookingDetails date={booking.Booking_date} time={booking.booking_time} />
+        <ServicesList services={booking.services} />
+        <CustomerDetails
+          name={booking.name}
+          email={booking.email}
+          phone={booking.Phone_no}
+          address={booking.Address}
+          pincode={booking.Pincode}
+        />
+        <TotalAmount amount={booking.totalAmount} />
       </div>
     </div>
   );
-}
+};
+
+export default BookingTrackingPage;
