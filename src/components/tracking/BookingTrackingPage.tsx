@@ -59,11 +59,15 @@ const BookingTrackingPage = () => {
       let query = supabase
         .from("BookMST")
         .select("*")
-        .eq("Booking_NO", bookingReference.toString());
+        .eq("Booking_NO", bookingReference);
 
       // Add phone number filter if provided
       if (phoneNumber) {
-        query = query.eq("Phone_no", phoneNumber);
+        // Convert phoneNumber to number if it's a string
+        const phoneAsNumber = phoneNumber ? parseInt(phoneNumber, 10) : undefined;
+        if (!isNaN(phoneAsNumber)) {
+          query = query.eq("Phone_no", phoneAsNumber);
+        }
       }
 
       const { data, error } = await query;
