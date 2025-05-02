@@ -1,12 +1,30 @@
 
 import { Card } from "@/components/ui/card";
 
-interface BookingDetailsProps {
-  date: string;
-  time: string;
+export interface BookingData {
+  Booking_NO: string;
+  Purpose?: string;
+  Phone_no?: number;
+  Booking_date: string;
+  booking_time: string;
+  Status?: string;
+  price?: number;
+  ProductName?: string;
+  Qty?: number;
+  name?: string;
+  email?: string;
+  Address?: string;
+  Pincode?: number;
+  ArtistId?: number;
 }
 
-const BookingDetails: React.FC<BookingDetailsProps> = ({ date, time }) => {
+export interface BookingDetailsProps {
+  date: string;
+  time: string;
+  bookingDetails?: BookingData[];
+}
+
+const BookingDetails: React.FC<BookingDetailsProps> = ({ date, time, bookingDetails }) => {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>

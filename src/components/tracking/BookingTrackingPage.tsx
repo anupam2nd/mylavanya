@@ -4,7 +4,7 @@ import BookingTrackingHeader from "./BookingTrackingHeader";
 import { useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import BookingHeader from "./BookingHeader";
-import BookingDetails from "./BookingDetails";
+import BookingDetails, { BookingData } from "./BookingDetails";
 import ServicesList from "./ServicesList";
 import CustomerDetails from "./CustomerDetails";
 import TotalAmount from "./TotalAmount";
@@ -57,7 +57,7 @@ const BookingTrackingPage = () => {
         const { data, error } = await supabase
           .from("BookMST")
           .select("*")
-          .eq("Booking_NO", bookingRef); // No need to convert to number
+          .eq("Booking_NO", bookingRef); // Use string comparison
 
         if (error) throw error;
 
@@ -133,6 +133,20 @@ const BookingTrackingPage = () => {
     return <TrackingError error={error || "Booking not found"} />;
   }
 
+  // Create a BookingData object from our booking
+  const bookingData: BookingData = {
+    Booking_NO: booking.Booking_NO,
+    Purpose: booking.services[0]?.Purpose,
+    Phone_no: booking.Phone_no,
+    Booking_date: booking.Booking_date,
+    booking_time: booking.booking_time,
+    Status: booking.Status,
+    name: booking.name,
+    email: booking.email,
+    Address: booking.Address,
+    Pincode: booking.Pincode
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <BookingTrackingHeader />
@@ -140,18 +154,7 @@ const BookingTrackingPage = () => {
         <BookingHeader bookingNo={booking.Booking_NO} status={booking.Status} />
         <BookingDetails date={booking.Booking_date} time={booking.booking_time} />
         <ServicesList services={booking.services as any} />
-        <CustomerDetails
-          booking={{
-            name: booking.name,
-            email: booking.email,
-            Phone_no: booking.Phone_no,
-            Address: booking.Address,
-            Pincode: booking.Pincode,
-            Booking_date: booking.Booking_date,
-            booking_time: booking.booking_time,
-            Status: booking.Status
-          }}
-        />
+        <CustomerDetails booking={bookingData} />
         <TotalAmount amount={booking.totalAmount} />
       </div>
     </div>

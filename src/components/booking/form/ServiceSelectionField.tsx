@@ -48,6 +48,7 @@ const ServiceSelectionField: React.FC<ServiceSelectionFieldProps> = ({ initialSe
         quantity: 1
       };
       
+      // Ensure that all required fields are provided
       form.setValue("selectedServices", [
         ...currentServices,
         newService
