@@ -57,7 +57,7 @@ const BookingTrackingPage = () => {
         const { data, error } = await supabase
           .from("BookMST")
           .select("*")
-          .eq("Booking_NO", bookingRef); // Use string comparison
+          .eq("Booking_NO", bookingRef.toString()); // Ensure it's a string
 
         if (error) throw error;
 
@@ -152,7 +152,7 @@ const BookingTrackingPage = () => {
       <BookingTrackingHeader />
       <div className="bg-white rounded-lg shadow-md p-6 mt-4 space-y-6">
         <BookingHeader bookingNo={booking.Booking_NO} status={booking.Status} />
-        <BookingDetails date={booking.Booking_date} time={booking.booking_time} />
+        <BookingDetails date={booking.Booking_date} time={booking.booking_time} bookingDetails={[bookingData]} />
         <ServicesList services={booking.services as any} />
         <CustomerDetails booking={bookingData} />
         <TotalAmount amount={booking.totalAmount} />
