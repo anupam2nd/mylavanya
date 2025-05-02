@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -5,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import StatusList from "@/components/admin/status/StatusList";
+import AddStatusForm from "@/components/admin/status/AddStatusForm";
 import { StatusOption, useStatusOptions } from "@/hooks/useStatusOptions";
 import { useAuth } from "@/context/AuthContext";
 import { Search, X, Download, Filter } from "lucide-react";
@@ -43,8 +45,19 @@ const AdminStatus = () => {
 
       if (error) throw error;
       
-      setStatuses(data || []);
-      setFilteredStatuses(data || []);
+      // Transform database results into StatusOption format
+      const statusOptions: StatusOption[] = (data || []).map(status => ({
+        value: status.status_code, // Add the required value property
+        label: status.status_name, // Add the required label property
+        status_code: status.status_code,
+        status_name: status.status_name,
+        description: status.description,
+        active: status.active,
+        id: status.id
+      }));
+      
+      setStatuses(statusOptions);
+      setFilteredStatuses(statusOptions);
     } catch (error) {
       console.error('Error fetching statuses:', error);
       toast({
