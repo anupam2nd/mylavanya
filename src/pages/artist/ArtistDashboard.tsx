@@ -115,7 +115,7 @@ const ArtistDashboard = () => {
     setSelectedBooking({
       id: booking.id,
       bookingNo: booking.Booking_NO.toString(),
-      customerPhone: booking.Phone_no.toString(),
+      customerPhone: booking.Phone_no ? booking.Phone_no.toString() : '',
       customerName: booking.name,
       customerEmail: booking.email || ''
     });
@@ -224,9 +224,13 @@ const ArtistDashboard = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Check if Object.entries(groupedBookings) is valid and non-empty before using map */}
                 {Object.entries(groupedBookings).length > 0 ? 
                   Object.entries(groupedBookings).map(([bookingNo, bookingsGroup]) => {
+                    // Check if bookingsGroup exists and is an array before using map
+                    if (!bookingsGroup || !Array.isArray(bookingsGroup) || bookingsGroup.length === 0) {
+                      return null;
+                    }
+                    
                     // Use the first booking in the group for the customer details
                     const firstBooking = bookingsGroup[0];
                     
@@ -249,7 +253,7 @@ const ArtistDashboard = () => {
                         </CardHeader>
                         <CardContent>
                           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {bookingsGroup && Array.isArray(bookingsGroup) ? bookingsGroup.map((booking) => (
+                            {bookingsGroup.map((booking) => (
                               <Card key={`${booking.id}-${booking.jobno}`} className="overflow-hidden">
                                 <div className={`h-2 w-full 
                                   ${booking.Status === 'confirmed' ? 'bg-blue-500' : 
@@ -284,11 +288,7 @@ const ArtistDashboard = () => {
                                   </div>
                                 </CardContent>
                               </Card>
-                            )) : (
-                              <div className="text-center py-4 text-muted-foreground col-span-3">
-                                Error loading booking details
-                              </div>
-                            )}
+                            ))}
                           </div>
                         </CardContent>
                       </Card>

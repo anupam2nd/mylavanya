@@ -169,26 +169,30 @@ const AddServiceDialog = ({
 
       // Get artist details
       let artistName = "Artist";
+      let artistEmpCode = "";
       if (user) {
         const { data: artistData } = await supabase
           .from("ArtistMST")
-          .select("ArtistFirstName, ArtistLastName")
+          .select("ArtistFirstName, ArtistLastName, ArtistEmpCode")
           .eq("ArtistId", parseInt(user.id, 10))
           .single();
           
         if (artistData) {
           artistName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim();
+          artistEmpCode = artistData.ArtistEmpCode || '';
         }
       }
       
       // Convert phone string to number if possible, otherwise use 0
       const phoneNumber = customerPhone ? parseInt(customerPhone, 10) : 0;
       
+      const bookingNoAsNumber = parseInt(bookingNo, 10);
+      
       // Add the new service to BookMST
       const { error } = await supabase
         .from("BookMST")
         .insert({
-          Booking_NO: parseInt(bookingNo, 10),
+          Booking_NO: bookingNoAsNumber,
           Purpose: selectedService.ProductName,
           Status: "start", // as specified in requirements
           name: customerName,
@@ -199,12 +203,15 @@ const AddServiceDialog = ({
           jobno: nextJobNo,
           ArtistId: user ? parseInt(user.id, 10) : null,
           Assignedto: artistName,
-          AssignedBY: user?.email || "",
+          AssignedBY: artistName, // Artist is adding the service
+          AssignedByUser: user?.email || "",
           AssingnedON: new Date().toISOString(),
           ServiceName: selectedService.Services || "",
           SubService: selectedService.Subservice || "",
           ProductName: selectedService.ProductName || "",
+          AssignedToEmpCode: artistEmpCode, // Artist emp code from ArtistMST
           price: selectedService.Price || 0,
+          StatusUpdated: new Date().toISOString(), // When the service is added
           Qty: 1
         });
 
