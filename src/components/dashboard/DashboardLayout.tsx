@@ -105,6 +105,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
             </>
           ) : (
             <>
+              {/* FIX: Update the Link path for artists to go to their correct dashboard */}
               <Link to={isAdmin ? "/admin/dashboard" : (isArtist ? "/artist/dashboard" : "/user/dashboard")} 
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
                 <Home className="w-5 h-5 mr-3" />

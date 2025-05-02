@@ -60,11 +60,14 @@ export default function Footer() {
             }, {
               name: "FAQ",
               href: "/about#faq"
-            }, {
+            }, 
+            // Only show booking link if user is authenticated
+            ...(isAuthenticated ? [{
               name: "Booking",
-              href: isAuthenticated && user?.role === 'member' ? "/user/bookings" : "/booking",
+              href: user?.role === 'member' ? "/user/bookings" : "/booking",
               onClick: handleBookingClick
-            }, {
+            }] : []),
+            {
               name: "Admin Signin",
               onClick: () => openAuthModal("admin")
             }, {

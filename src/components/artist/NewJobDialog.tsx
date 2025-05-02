@@ -140,7 +140,7 @@ const NewJobDialog = ({
     
     try {
       // Create a job record in BookMST table with the 'new_job' status
-      // FIX: Use a single object instead of an array for insert
+      // Using a single object for insert and ensuring Phone_no is converted to a number type
       const { data, error } = await supabase
         .from("BookMST")
         .insert({
@@ -149,7 +149,7 @@ const NewJobDialog = ({
           Status: "new_job",
           name: customerName,
           email: customerEmail,
-          Phone_no: customerPhone,
+          Phone_no: parseInt(customerPhone, 10), // Convert string to number
           Booking_date: new Date().toISOString().split('T')[0],
           booking_time: new Date().toTimeString().split(' ')[0].substring(0, 5),
           // Reference to the original booking - ensure this is a number
@@ -272,7 +272,6 @@ const NewJobDialog = ({
                         render={({ slots }) => (
                           <InputOTPGroup>
                             {slots.map((slot, i) => (
-                              // FIX: Add the required index prop 
                               <InputOTPSlot key={i} {...slot} index={i} />
                             ))}
                           </InputOTPGroup>
