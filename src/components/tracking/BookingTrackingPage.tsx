@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import BookingTrackingHeader from "./BookingTrackingHeader";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import BookingHeader from "./BookingHeader";
 import BookingDetails, { BookingData } from "./BookingDetails";
@@ -11,6 +11,7 @@ import TotalAmount from "./TotalAmount";
 import TrackingError from "./TrackingError";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import TrackingForm from "./TrackingForm";
 
 interface BookingService {
   id: number;
@@ -18,7 +19,7 @@ interface BookingService {
   Purpose: string;
   price?: number;
   Qty?: number;
-  ProductName?: string; // Added this to match Service interface
+  ProductName?: string;
 }
 
 export interface BookingMST {
@@ -38,84 +39,105 @@ export interface BookingMST {
 const BookingTrackingPage = () => {
   const { bookingRef } = useParams<{ bookingRef: string }>();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [booking, setBooking] = useState<BookingMST | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchBookingDetails = async () => {
-      if (!bookingRef) {
+  const fetchBookingDetails = async (bookingReference: string, phoneNumber?: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!bookingReference) {
         setError("Booking reference is required");
         setLoading(false);
         return;
       }
 
-      try {
-        setLoading(true);
+      // Fetch all bookings with the same booking reference
+      let query = supabase
+        .from("BookMST")
+        .select("*")
+        .eq("Booking_NO", bookingReference.toString());
 
-        // Fetch all bookings with the same booking reference
-        const { data, error } = await supabase
-          .from("BookMST")
-          .select("*")
-          .eq("Booking_NO", bookingRef.toString()); // Ensure it's a string
-
-        if (error) throw error;
-
-        if (!data || data.length === 0) {
-          setError("Booking not found");
-          setLoading(false);
-          return;
-        }
-
-        // Group services under the same booking
-        const services = data.map((booking) => ({
-          id: booking.id || 0, // Ensure id is always present
-          Product: booking.Product,
-          Purpose: booking.Purpose || "",
-          price: booking.price,
-          Qty: booking.Qty,
-          ProductName: booking.ProductName || "" // Add ProductName to match Service interface
-        }));
-
-        // Calculate total amount
-        const totalAmount = services.reduce(
-          (total, service) => total + (service.price || 0) * (service.Qty || 1),
-          0
-        );
-
-        // Use the first booking's data for common details
-        const firstBooking = data[0];
-        
-        setBooking({
-          Booking_NO: String(firstBooking.Booking_NO),
-          name: firstBooking.name || "",
-          email: firstBooking.email,
-          Phone_no: firstBooking.Phone_no,
-          Address: firstBooking.Address,
-          Pincode: firstBooking.Pincode,
-          Booking_date: firstBooking.Booking_date || "",
-          booking_time: firstBooking.booking_time || "",
-          Status: firstBooking.Status || "",
-          services,
-          totalAmount,
-        });
-      } catch (error) {
-        console.error("Error fetching booking:", error);
-        setError("Failed to load booking details");
-        toast({
-          title: "Error",
-          description: "Failed to load booking details",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
+      // Add phone number filter if provided
+      if (phoneNumber) {
+        query = query.eq("Phone_no", phoneNumber);
       }
-    };
 
-    fetchBookingDetails();
-  }, [bookingRef, toast]);
+      const { data, error } = await query;
 
-  if (loading) {
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        setError("Booking not found");
+        setLoading(false);
+        return;
+      }
+
+      // Group services under the same booking
+      const services = data.map((booking) => ({
+        id: booking.id || 0, // Ensure id is always present
+        Product: booking.Product,
+        Purpose: booking.Purpose || "",
+        price: booking.price,
+        Qty: booking.Qty,
+        ProductName: booking.ProductName || ""
+      }));
+
+      // Calculate total amount
+      const totalAmount = services.reduce(
+        (total, service) => total + (service.price || 0) * (service.Qty || 1),
+        0
+      );
+
+      // Use the first booking's data for common details
+      const firstBooking = data[0];
+      
+      setBooking({
+        Booking_NO: String(firstBooking.Booking_NO),
+        name: firstBooking.name || "",
+        email: firstBooking.email,
+        Phone_no: firstBooking.Phone_no,
+        Address: firstBooking.Address,
+        Pincode: firstBooking.Pincode,
+        Booking_date: firstBooking.Booking_date || "",
+        booking_time: firstBooking.booking_time || "",
+        Status: firstBooking.Status || "",
+        services,
+        totalAmount,
+      });
+
+      // If successful, update URL with booking reference for sharing
+      if (!bookingRef) {
+        navigate(`/track-booking/${bookingReference}`, { replace: true });
+      }
+    } catch (error) {
+      console.error("Error fetching booking:", error);
+      setError("Failed to load booking details");
+      toast({
+        title: "Error",
+        description: "Failed to load booking details",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // If bookingRef is provided in URL, fetch details automatically
+  useEffect(() => {
+    if (bookingRef) {
+      fetchBookingDetails(bookingRef);
+    }
+  }, [bookingRef]);
+
+  const handleTrackingSubmit = async (data: { bookingRef: string; phone: string }) => {
+    await fetchBookingDetails(data.bookingRef, data.phone);
+  };
+
+  if (bookingRef && loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <BookingTrackingHeader />
@@ -124,6 +146,19 @@ const BookingTrackingPage = () => {
           <Skeleton className="h-24 w-full mb-4" />
           <Skeleton className="h-32 w-full mb-4" />
           <Skeleton className="h-16 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  // If there's no booking reference in the URL or booking data, show the tracking form
+  if (!bookingRef && !booking) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <BookingTrackingHeader />
+        <div className="bg-white rounded-lg shadow-md p-6 mt-4">
+          <TrackingForm onSubmit={handleTrackingSubmit} isLoading={loading} />
+          {error && <TrackingError error={error} />}
         </div>
       </div>
     );

@@ -68,6 +68,7 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/track-booking" element={<TrackBooking />} />
+            <Route path="/track-booking/:bookingRef" element={<TrackBooking />} />
             <Route path="/wishlist" element={<Wishlist />} />
             
             {/* Admin Routes */}
