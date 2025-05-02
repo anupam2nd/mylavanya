@@ -59,6 +59,7 @@ interface Artist {
   Source: string | null;
   ArtistRating: number | null;
   Active: boolean | null;
+  emailid: string;
 }
 
 const artistSchema = z.object({
@@ -76,7 +77,8 @@ const artistSchema = z.object({
       (val) => val === '' || val === undefined || (!isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 5),
       { message: "Rating must be between 0 and 5" }
     ),
-  Active: z.boolean().default(true)
+  Active: z.boolean().default(true),
+  emailid: z.string().email("Please enter a valid email address").min(1, "Email is required"),
 });
 
 type ArtistFormValues = z.infer<typeof artistSchema>;
@@ -109,7 +111,8 @@ const AdminArtists = () => {
       Artistgrp: "",
       Source: "",
       ArtistRating: "0",
-      Active: true
+      Active: true,
+      emailid: ""
     }
   });
 
@@ -203,7 +206,8 @@ const AdminArtists = () => {
       Artistgrp: "",
       Source: "",
       ArtistRating: "0",
-      Active: true
+      Active: true,
+      emailid: ""
     });
     setOpenDialog(true);
   };
@@ -219,7 +223,8 @@ const AdminArtists = () => {
       Artistgrp: artist.Artistgrp || "",
       Source: artist.Source || "",
       ArtistRating: artist.ArtistRating ? String(artist.ArtistRating) : "0",
-      Active: artist.Active === null ? true : artist.Active
+      Active: artist.Active === null ? true : artist.Active,
+      emailid: artist.emailid || ""
     });
     setOpenDialog(true);
   };
@@ -296,7 +301,8 @@ const AdminArtists = () => {
         Artistgrp: values.Artistgrp || null,
         Source: values.Source || null,
         ArtistRating: values.ArtistRating ? Number(values.ArtistRating) : null,
-        Active: values.Active
+        Active: values.Active,
+        emailid: values.emailid // Added emailid field
       };
 
       if (isNewArtist) {
@@ -541,6 +547,22 @@ const AdminArtists = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
+                    name="emailid"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Email <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} type="email" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
                     name="ArtistEmpCode"
                     render={({ field }) => (
                       <FormItem>
@@ -552,7 +574,9 @@ const AdminArtists = () => {
                       </FormItem>
                     )}
                   />
-                  
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="ArtistPhno"
@@ -568,9 +592,7 @@ const AdminArtists = () => {
                       </FormItem>
                     )}
                   />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                  
                   <FormField
                     control={form.control}
                     name="Artistgrp"
@@ -596,7 +618,9 @@ const AdminArtists = () => {
                       </FormItem>
                     )}
                   />
-                  
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="Source"
@@ -610,9 +634,7 @@ const AdminArtists = () => {
                       </FormItem>
                     )}
                   />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                  
                   <FormField
                     control={form.control}
                     name="ArtistRating"
@@ -632,28 +654,28 @@ const AdminArtists = () => {
                       </FormItem>
                     )}
                   />
-                  
-                  <FormField
-                    control={form.control}
-                    name="Active"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-end space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>
-                            Active Status
-                          </FormLabel>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="Active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Active Status
+                        </FormLabel>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <DialogFooter>
                   <Button 
