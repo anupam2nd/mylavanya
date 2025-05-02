@@ -45,11 +45,18 @@ export const BookingTrackingPage: React.FC = () => {
           .select("*")
           .eq("Booking_NO", bookingNumber); // Fixed: Now properly passing a number
       } else {
-        // Phone search
+        // Phone search - Convert phone to number for the query
+        const phoneNumber = parseInt(searchValue.trim(), 10);
+        if (isNaN(phoneNumber)) {
+          setError("Invalid phone number");
+          setLoading(false);
+          return;
+        }
+        
         query = supabase
           .from("BookMST")
           .select("*")
-          .eq("Phone_no", searchValue.trim()); // Here we might need to convert to number as well, but let's see the result first
+          .eq("Phone_no", phoneNumber); // Fixed: Now properly passing a number
       }
 
       const { data, error: fetchError } = await query;
