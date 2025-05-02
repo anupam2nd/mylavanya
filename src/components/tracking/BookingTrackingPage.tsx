@@ -75,11 +75,21 @@ export function BookingTrackingPage() {
       // Convert phone to number for comparison with the database
       const phoneNumber = parseInt(data.phone.replace(/\D/g, ''));
       
+      // Parse booking reference to number for comparison
+      // This fixes the TypeScript error by ensuring we're passing a number to .eq()
+      const bookingRefNumber = parseInt(data.bookingRef.trim());
+      
+      if (isNaN(bookingRefNumber)) {
+        setError("Invalid booking reference. Please enter a valid number.");
+        setIsLoading(false);
+        return;
+      }
+      
       // Get all bookings matching the reference and phone number
       const { data: bookingsData, error: bookingError } = await supabase
         .from("BookMST")
         .select("*, ArtistId, jobno") // Ensure we select the jobno field
-        .eq("Booking_NO", data.bookingRef) // Use string comparison instead of integer
+        .eq("Booking_NO", bookingRefNumber) // Now using a number value
         .eq("Phone_no", phoneNumber);
 
       if (bookingError) {
