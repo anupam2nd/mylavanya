@@ -140,22 +140,21 @@ const NewJobDialog = ({
     
     try {
       // Create a job record in BookMST table with the 'new_job' status
+      // FIX: Use a single object instead of an array for insert
       const { data, error } = await supabase
         .from("BookMST")
-        .insert([
-          {
-            Purpose: values.description,
-            price: parseFloat(values.price),
-            Status: "new_job",
-            name: customerName,
-            email: customerEmail,
-            Phone_no: customerPhone,
-            Booking_date: new Date().toISOString().split('T')[0],
-            booking_time: new Date().toTimeString().split(' ')[0].substring(0, 5),
-            // Reference to the original booking
-            jobno: bookingId
-          }
-        ])
+        .insert({
+          Purpose: values.description,
+          price: parseFloat(values.price),
+          Status: "new_job",
+          name: customerName,
+          email: customerEmail,
+          Phone_no: customerPhone,
+          Booking_date: new Date().toISOString().split('T')[0],
+          booking_time: new Date().toTimeString().split(' ')[0].substring(0, 5),
+          // Reference to the original booking - ensure this is a number
+          jobno: bookingId
+        })
         .select();
 
       if (error) throw error;
@@ -272,8 +271,9 @@ const NewJobDialog = ({
                         {...field}
                         render={({ slots }) => (
                           <InputOTPGroup>
-                            {slots.map((slot, index) => (
-                              <InputOTPSlot key={index} {...slot} />
+                            {slots.map((slot, i) => (
+                              // FIX: Add the required index prop 
+                              <InputOTPSlot key={i} {...slot} index={i} />
                             ))}
                           </InputOTPGroup>
                         )}
