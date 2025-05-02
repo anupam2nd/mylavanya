@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import NewJobDialog from "@/components/artist/NewJobDialog";
+import AddServiceDialog from "@/components/artist/AddServiceDialog";
 
 const ArtistDashboard = () => {
   const { user } = useAuth();
@@ -23,8 +24,8 @@ const ArtistDashboard = () => {
     lastName: ''
   });
 
-  // State for the new job dialog
-  const [isNewJobDialogOpen, setIsNewJobDialogOpen] = useState(false);
+  // State for the add service dialog
+  const [isAddServiceDialogOpen, setIsAddServiceDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<{
     id: number;
     bookingNo: string;
@@ -110,16 +111,26 @@ const ArtistDashboard = () => {
     fetchArtistBookings();
   }, [user]);
 
-  const handleAddNewJob = (booking: any) => {
+  const handleAddNewService = (booking: any) => {
     setSelectedBooking({
       id: booking.id,
       bookingNo: booking.Booking_NO,
-      customerPhone: booking.Phone_no,
+      customerPhone: booking.Phone_no.toString(),
       customerName: booking.name,
       customerEmail: booking.email || ''
     });
-    setIsNewJobDialogOpen(true);
+    setIsAddServiceDialogOpen(true);
   };
+
+  // Group bookings by Booking_NO to organize them better
+  const groupedBookings = bookings.reduce((acc: Record<string, any[]>, booking) => {
+    const bookingNo = booking.Booking_NO?.toString() || 'unknown';
+    if (!acc[bookingNo]) {
+      acc[bookingNo] = [];
+    }
+    acc[bookingNo].push(booking);
+    return acc;
+  }, {});
 
   // Get full name from artist details or use fallback from user object
   const getFullName = () => {
@@ -199,7 +210,7 @@ const ArtistDashboard = () => {
         
         {/* Bookings List */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex justify-between items-center">
             <CardTitle>Assigned Bookings</CardTitle>
           </CardHeader>
           <CardContent>
@@ -212,68 +223,87 @@ const ArtistDashboard = () => {
                 You don't have any active bookings assigned to you yet.
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {bookings.map((booking) => (
-                  <Card key={booking.id} className="overflow-hidden">
-                    <div className={`h-2 w-full 
-                      ${booking.Status === 'confirmed' ? 'bg-blue-500' : 
-                        booking.Status === 'beautician_assigned' ? 'bg-purple-500' : 
-                          booking.Status === 'done' || booking.Status === 'completed' ? 'bg-green-500' : 
-                            'bg-gray-500'}`} 
-                    />
-                    <CardContent className="p-4">
-                      <h3 className="font-medium truncate mb-1">{booking.Purpose}</h3>
-                      <div className="text-sm text-muted-foreground mb-2">
-                        <p>Client: {booking.name}</p>
-                        <p>Service: {booking.ServiceName} {booking.SubService ? `- ${booking.SubService}` : ''}</p>
-                      </div>
-                      <div className="flex items-center text-xs text-muted-foreground mb-2">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        <span>{format(new Date(booking.Booking_date), 'PP')}</span>
-                        <Clock className="w-3 h-3 ml-3 mr-1" />
-                        <span>{booking.booking_time}</span>
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <div className={`px-2 py-1 text-xs font-medium rounded-full 
-                          ${booking.Status === 'confirmed' ? 'bg-blue-100 text-blue-800' : 
-                            booking.Status === 'beautician_assigned' ? 'bg-purple-100 text-purple-800' : 
-                              booking.Status === 'done' || booking.Status === 'completed' ? 'bg-green-100 text-green-800' : 
-                                'bg-gray-100 text-gray-800'}`}>
-                          {booking.Status === 'beautician_assigned' ? 'Assigned' : 
-                            booking.Status.charAt(0).toUpperCase() + booking.Status.slice(1)}
+              <div className="space-y-6">
+                {Object.entries(groupedBookings).map(([bookingNo, bookingsGroup]) => {
+                  // Use the first booking in the group for the customer details
+                  const firstBooking = bookingsGroup[0];
+                  
+                  return (
+                    <Card key={bookingNo} className="border-primary/20">
+                      <CardHeader className="pb-2 flex flex-row justify-between items-center">
+                        <div>
+                          <h3 className="text-base font-medium">Booking #{bookingNo}</h3>
+                          <p className="text-sm text-muted-foreground">Customer: {firstBooking.name}</p>
                         </div>
-                        <div className="text-sm font-medium">
-                          ₹{booking.price || 0}
+                        <Button 
+                          onClick={() => handleAddNewService(firstBooking)}
+                          variant="outline" 
+                          size="sm"
+                          className="flex items-center gap-2"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Add New Service
+                        </Button>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                          {bookingsGroup.map((booking) => (
+                            <Card key={`${booking.id}-${booking.jobno}`} className="overflow-hidden">
+                              <div className={`h-2 w-full 
+                                ${booking.Status === 'confirmed' ? 'bg-blue-500' : 
+                                  booking.Status === 'beautician_assigned' ? 'bg-purple-500' : 
+                                    booking.Status === 'done' || booking.Status === 'completed' ? 'bg-green-500' : 
+                                      'bg-gray-500'}`} 
+                              />
+                              <CardContent className="p-4">
+                                <h3 className="font-medium truncate mb-1">{booking.Purpose}</h3>
+                                <div className="text-sm text-muted-foreground mb-2">
+                                  <p>Service: {booking.ServiceName} {booking.SubService ? `- ${booking.SubService}` : ''}</p>
+                                  <p>Job #: {booking.jobno || 'N/A'}</p>
+                                </div>
+                                <div className="flex items-center text-xs text-muted-foreground mb-2">
+                                  <Calendar className="w-3 h-3 mr-1" />
+                                  <span>{booking.Booking_date && format(new Date(booking.Booking_date), 'PP')}</span>
+                                  <Clock className="w-3 h-3 ml-3 mr-1" />
+                                  <span>{booking.booking_time}</span>
+                                </div>
+                                <div className="flex items-center justify-between mt-2">
+                                  <div className={`px-2 py-1 text-xs font-medium rounded-full 
+                                    ${booking.Status === 'confirmed' ? 'bg-blue-100 text-blue-800' : 
+                                      booking.Status === 'beautician_assigned' ? 'bg-purple-100 text-purple-800' : 
+                                        booking.Status === 'done' || booking.Status === 'completed' ? 'bg-green-100 text-green-800' : 
+                                          'bg-gray-100 text-gray-800'}`}>
+                                    {booking.Status === 'beautician_assigned' ? 'Assigned' : 
+                                      booking.Status.charAt(0).toUpperCase() + booking.Status.slice(1)}
+                                  </div>
+                                  <div className="text-sm font-medium">
+                                    ₹{booking.price || 0}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
                         </div>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full mt-3 flex items-center gap-2"
-                        onClick={() => handleAddNewJob(booking)}
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add New Job
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* New Job Dialog */}
+        {/* Add Service Dialog */}
         {selectedBooking && (
-          <NewJobDialog
-            open={isNewJobDialogOpen}
-            onOpenChange={setIsNewJobDialogOpen}
+          <AddServiceDialog
+            open={isAddServiceDialogOpen}
+            onOpenChange={setIsAddServiceDialogOpen}
             bookingId={selectedBooking.id}
             bookingNo={selectedBooking.bookingNo}
             customerPhone={selectedBooking.customerPhone}
             customerName={selectedBooking.customerName}
             customerEmail={selectedBooking.customerEmail}
-            onJobCreated={fetchArtistBookings}
+            onServiceAdded={fetchArtistBookings}
           />
         )}
       </DashboardLayout>
