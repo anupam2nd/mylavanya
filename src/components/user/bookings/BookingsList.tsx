@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Booking } from "@/hooks/useBookings";
@@ -57,157 +56,99 @@ const BookingsList = ({ filteredBookings, clearFilters }: BookingsListProps) => 
           return (
             <AccordionItem key={bookingNo} value={bookingNo} className="border bg-card overflow-hidden rounded-lg shadow-sm transition-all hover:shadow-md">
               {isMobile ? (
-                <>
-                  <AccordionTrigger className="px-4 py-3 hover:no-underline group">
-                    <div className="flex-1 flex items-center justify-between pr-4">
-                      <div className="flex-grow flex flex-col">
-                        <div className="flex items-start space-x-4">
-                          <div>
-                            <div className="text-xs text-muted-foreground mb-0.5">Booking No</div>
-                            <div className="font-medium text-sm">{mainBooking.Booking_NO}</div>
-                            <div className="text-xs text-muted-foreground mt-1">{bookingJobs.length} service(s)</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground mb-0.5">Service Time</div>
-                            <div className="text-xs flex items-center mt-1">
-                              <Calendar className="h-3 w-3 mr-1 text-muted-foreground" /> 
-                              {mainBooking.Booking_date}
-                            </div>
-                            <div className="text-xs flex items-center mt-0.5">
-                              <Clock className="h-3 w-3 mr-1 text-muted-foreground" /> 
-                              {mainBooking.booking_time}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground mb-0.5">Total</div>
-                            <div className="text-sm font-medium">₹{totalAmount}</div>
-                          </div>
+                <AccordionTrigger className="px-4 py-3 hover:no-underline group">
+                  <div className="flex-1 flex items-center justify-between pr-4 text-xs">
+                    <div className="grid grid-cols-3 gap-2 w-full">
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-0.5">Booking No</div>
+                        <div className="font-medium text-xs">{mainBooking.Booking_NO}</div>
+                        <div className="text-xs text-muted-foreground mt-1">{bookingJobs.length} service(s)</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-0.5">Service Time</div>
+                        <div className="text-xs flex items-center mt-1">
+                          <Calendar className="h-3 w-3 mr-1 text-muted-foreground" /> 
+                          {mainBooking.Booking_date}
+                        </div>
+                        <div className="text-xs flex items-center mt-0.5">
+                          <Clock className="h-3 w-3 mr-1 text-muted-foreground" /> 
+                          {mainBooking.booking_time}
                         </div>
                       </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-0.5">Total</div>
+                        <div className="text-xs font-medium">₹{totalAmount}</div>
+                      </div>
                     </div>
-                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                  </AccordionTrigger>
-                  <AccordionContent className="bg-muted/30">
-                    <div className="px-4 py-2 space-y-3">
-                      {bookingJobs.map((job, index) => (
-                        <div key={`${job.Booking_NO}-${index}`} className="rounded-md bg-white p-3 shadow-sm hover:shadow transition-shadow">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <div className="text-sm font-medium">{job.Purpose || job.ServiceName}</div>
-                              {job.SubService && <div className="text-xs text-muted-foreground">{job.SubService}</div>}
-                              <div className="mt-1.5">
-                                <StatusBadge status={job.Status || 'pending'} className="text-xs" />
-                              </div>
-                            </div>
-                            <div className="text-sm">₹{job.price || 'N/A'}</div>
-                          </div>
-                          
-                          {job.ArtistId && (
-                            <div className="mt-2 text-xs border-t pt-2 text-muted-foreground">
-                              <p className="font-medium text-foreground">Artist: {getArtistName(job.ArtistId)}</p>
-                              {getArtistPhone(job.ArtistId) && <p>Phone: {getArtistPhone(job.ArtistId)}</p>}
-                            </div>
-                          )}
-                          
-                          <div className="mt-2 text-right">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="text-xs h-7 text-primary hover:text-primary-foreground hover:bg-primary"
-                              onClick={() => handleViewDetails(job)}
-                            >
-                              View Details
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </>
+                  </div>
+                </AccordionTrigger>
               ) : (
-                <>
-                  <AccordionTrigger className="px-6 py-4 hover:no-underline group">
-                    <div className="flex-1 flex items-center justify-between pr-4">
-                      <div className="flex items-start space-x-12">
-                        <div className="text-left">
-                          <div className="text-xs text-muted-foreground">Booking No</div>
-                          <div className="font-medium">{mainBooking.Booking_NO}</div>
-                          <div className="text-xs text-muted-foreground mt-1">{bookingJobs.length} service(s)</div>
-                        </div>
-                        <div className="text-left">
-                          <div className="text-xs text-muted-foreground mb-1">Service Time</div>
-                          <div className="flex flex-col space-y-1">
-                            <div className="flex items-center">
-                              <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-                              <span>{mainBooking.Booking_date}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <Clock className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-                              <span>{mainBooking.booking_time}</span>
-                            </div>
+                <AccordionTrigger className="px-6 py-4 hover:no-underline group">
+                  <div className="flex-1 flex items-center justify-between pr-4 text-sm">
+                    <div className="grid grid-cols-3 gap-8 w-full">
+                      <div className="text-left">
+                        <div className="text-xs text-muted-foreground">Booking No</div>
+                        <div className="font-medium text-xs">{mainBooking.Booking_NO}</div>
+                        <div className="text-xs text-muted-foreground mt-1">{bookingJobs.length} service(s)</div>
+                      </div>
+                      <div className="text-left">
+                        <div className="text-xs text-muted-foreground mb-1">Service Time</div>
+                        <div className="flex flex-col space-y-1">
+                          <div className="flex items-center text-xs">
+                            <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
+                            <span>{mainBooking.Booking_date}</span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
+                            <span>{mainBooking.booking_time}</span>
                           </div>
                         </div>
-                        <div className="text-left">
-                          <div className="text-xs text-muted-foreground">Total</div>
-                          <div className="font-medium text-base">₹{totalAmount}</div>
-                        </div>
+                      </div>
+                      <div className="text-left">
+                        <div className="text-xs text-muted-foreground">Total</div>
+                        <div className="font-medium text-xs">₹{totalAmount}</div>
                       </div>
                     </div>
-                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                  </AccordionTrigger>
-                  <AccordionContent className="bg-muted/30 px-6 py-4">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="text-left text-xs text-muted-foreground">
-                            <th className="pb-2 font-medium">Service</th>
-                            <th className="pb-2 font-medium">Status</th>
-                            <th className="pb-2 font-medium">Artist</th>
-                            <th className="pb-2 font-medium">Quantity</th>
-                            <th className="pb-2 font-medium">Price</th>
-                            <th className="pb-2 text-right font-medium">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {bookingJobs.map((job, index) => (
-                            <tr key={`${job.Booking_NO}-${index}`} className="border-t border-gray-100 hover:bg-muted/50">
-                              <td className="py-3">
-                                <div className="font-medium">{job.Purpose || job.ServiceName}</div>
-                                {job.SubService && <div className="text-xs text-muted-foreground">{job.SubService}</div>}
-                              </td>
-                              <td className="py-3">
-                                <StatusBadge status={job.Status || 'pending'} className="text-xs" />
-                              </td>
-                              <td className="py-3">
-                                {job.ArtistId ? (
-                                  <div>
-                                    <div className="font-medium">{getArtistName(job.ArtistId)}</div>
-                                    <div className="text-xs text-muted-foreground">{getArtistPhone(job.ArtistId)}</div>
-                                  </div>
-                                ) : (
-                                  <span className="text-muted-foreground">Not assigned</span>
-                                )}
-                              </td>
-                              <td className="py-3">{job.Qty || 1}</td>
-                              <td className="py-3">₹{job.price || 'N/A'}</td>
-                              <td className="py-3 text-right">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="text-xs h-7 text-primary hover:text-primary-foreground hover:bg-primary"
-                                  onClick={() => handleViewDetails(job)}
-                                >
-                                  View Details
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </AccordionContent>
-                </>
+                  </div>
+                </AccordionTrigger>
               )}
+              
+              <AccordionContent className="bg-muted/30">
+                <div className="px-4 py-2 space-y-3">
+                  {bookingJobs.map((job, index) => (
+                    <div key={`${job.Booking_NO}-${index}`} className="rounded-md bg-white p-3 shadow-sm hover:shadow transition-shadow">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="text-sm font-medium">{job.Purpose || job.ServiceName}</div>
+                          {job.SubService && <div className="text-xs text-muted-foreground">{job.SubService}</div>}
+                          <div className="mt-1.5">
+                            <StatusBadge status={job.Status || 'pending'} className="text-xs" />
+                          </div>
+                        </div>
+                        <div className="text-sm">₹{job.price || 'N/A'}</div>
+                      </div>
+                      
+                      {job.ArtistId && (
+                        <div className="mt-2 text-xs border-t pt-2 text-muted-foreground">
+                          <p className="font-medium text-foreground">Artist: {getArtistName(job.ArtistId)}</p>
+                          {getArtistPhone(job.ArtistId) && <p>Phone: {getArtistPhone(job.ArtistId)}</p>}
+                        </div>
+                      )}
+                      
+                      <div className="mt-2 text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs h-7 text-primary hover:text-primary-foreground hover:bg-primary"
+                          onClick={() => handleViewDetails(job)}
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </AccordionContent>
             </AccordionItem>
           );
         })}
