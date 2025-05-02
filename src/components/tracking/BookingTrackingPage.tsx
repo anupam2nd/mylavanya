@@ -1,9 +1,9 @@
 
 import React, { useState } from "react";
-import { TrackingForm } from "./TrackingForm";
-import { BookingDetails } from "./BookingDetails";
-import { BookingTrackingHeader } from "./BookingTrackingHeader";
-import { TrackingError } from "./TrackingError";
+import TrackingForm from "./TrackingForm";
+import BookingDetails from "./BookingDetails";
+import BookingTrackingHeader from "./BookingTrackingHeader";
+import TrackingError from "./TrackingError";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -76,7 +76,7 @@ export const BookingTrackingPage: React.FC = () => {
         services: data[0].Product
           ? [
               {
-                id: data[0].Product,
+                id: data[0].Product || 0, // Ensure id is always a number
                 name: data[0].ProductName || "Unknown Service",
                 price: data[0].price || 0,
                 quantity: data[0].Qty || 1,
