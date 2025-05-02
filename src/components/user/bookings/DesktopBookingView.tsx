@@ -25,29 +25,31 @@ const DesktopBookingView = ({
     const booking = bookings[0];
     return (
       <div className="grid grid-cols-3 gap-4 w-full text-sm">
-        <div>
-          <div className="text-xs text-muted-foreground">Service</div>
+        <div className="text-left">
+          <div className="text-xs text-muted-foreground mb-1">Service</div>
           <div className="font-medium">
             {booking.Purpose}
             {booking.ServiceName && booking.ServiceName !== booking.Purpose && (
-              <div className="text-xs text-muted-foreground">{booking.ServiceName}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{booking.ServiceName}</div>
             )}
           </div>
         </div>
-        <div>
-          <div className="text-xs text-muted-foreground">Service Time</div>
-          <div className="flex items-center">
-            <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-            <span>{booking.Booking_date}</span>
-          </div>
-          <div className="flex items-center mt-1">
-            <Clock className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-            <span>{booking.booking_time}</span>
+        <div className="text-left">
+          <div className="text-xs text-muted-foreground mb-1">Service Time</div>
+          <div className="flex flex-col space-y-1">
+            <div className="flex items-center">
+              <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              <span>{booking.Booking_date}</span>
+            </div>
+            <div className="flex items-center">
+              <Clock className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              <span>{booking.booking_time}</span>
+            </div>
           </div>
         </div>
         <div className="text-right">
-          <div className="text-xs text-muted-foreground">Total</div>
-          <div>{booking.price ? `₹${booking.price}` : '₹0'}</div>
+          <div className="text-xs text-muted-foreground mb-1">Total</div>
+          <div className="font-medium">{booking.price ? `₹${booking.price}` : '₹0'}</div>
         </div>
       </div>
     );
@@ -58,10 +60,10 @@ const DesktopBookingView = ({
     <Table className="text-sm">
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[300px]">Service</TableHead>
-          <TableHead>Service Time</TableHead>
-          <TableHead>Booking No</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead className="w-[300px] font-medium">Service</TableHead>
+          <TableHead className="font-medium">Service Time</TableHead>
+          <TableHead className="font-medium">Booking No</TableHead>
+          <TableHead className="text-right font-medium">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -70,19 +72,19 @@ const DesktopBookingView = ({
             <TableCell className="font-medium">
               <div>{booking.Purpose}</div>
               {booking.ServiceName && booking.ServiceName !== booking.Purpose && (
-                <div className="text-xs text-muted-foreground">{booking.ServiceName}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{booking.ServiceName}</div>
               )}
               {booking.SubService && (
-                <div className="text-xs text-muted-foreground">{booking.SubService}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{booking.SubService}</div>
               )}
             </TableCell>
             <TableCell>
-              <div className="flex flex-col">
+              <div className="flex flex-col space-y-1">
                 <div className="flex items-center">
                   <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                   <span>{booking.Booking_date}</span>
                 </div>
-                <div className="flex items-center mt-1">
+                <div className="flex items-center">
                   <Clock className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                   <span>{booking.booking_time}</span>
                 </div>
@@ -93,7 +95,7 @@ const DesktopBookingView = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="h-8 text-xs"
+                className="h-8 text-xs hover:bg-primary hover:text-primary-foreground transition-colors"
                 onClick={() => onViewDetails(booking)}
               >
                 View Details

@@ -26,21 +26,25 @@ const MobileBookingView = ({
     
     return (
       <div className="w-full">
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <div className="text-xs text-muted-foreground">Booking No</div>
+        <div className="flex flex-1 items-start">
+          <div className="flex-1 text-left">
+            <div className="text-xs text-muted-foreground mb-0.5">Booking No</div>
             <div className="font-medium text-sm">{booking.Booking_NO}</div>
-            <div className="text-xs text-muted-foreground flex items-center mt-1">
-              <Calendar className="h-3 w-3 mr-1" /> 
+            <div className="text-xs text-muted-foreground mt-1.5">{booking.Purpose?.substring(0, 20)}{booking.Purpose?.length > 20 ? '...' : ''}</div>
+          </div>
+          <div className="min-w-[110px] text-left pl-4">
+            <div className="text-xs text-muted-foreground mb-0.5">Service Time</div>
+            <div className="text-xs flex items-center mt-1">
+              <Calendar className="h-3 w-3 mr-1 text-muted-foreground" /> 
               {booking.Booking_date}
             </div>
-            <div className="text-xs text-muted-foreground flex items-center mt-0.5">
-              <Clock className="h-3 w-3 mr-1" /> 
+            <div className="text-xs flex items-center mt-0.5">
+              <Clock className="h-3 w-3 mr-1 text-muted-foreground" /> 
               {booking.booking_time}
             </div>
           </div>
-          <div className="text-right pl-4">
-            <div className="text-xs text-muted-foreground">Total</div>
+          <div className="min-w-[80px] text-right pl-4">
+            <div className="text-xs text-muted-foreground mb-0.5">Total</div>
             <div className="text-sm font-medium">₹{booking.price || 0}</div>
           </div>
         </div>
@@ -52,31 +56,32 @@ const MobileBookingView = ({
   return (
     <div className="space-y-4">
       {bookings.map((booking) => (
-        <div key={booking.Booking_NO} className="p-4 border rounded-lg bg-white">
+        <div key={booking.Booking_NO} className="p-4 border rounded-lg bg-white shadow-sm hover:shadow transition-shadow">
           <div className="flex justify-between items-start">
-            <div className="flex-1">
+            <div className="flex-1 text-left">
               <div className="text-xs text-muted-foreground">Service</div>
               <div className="text-sm font-medium">{booking.Purpose}</div>
-              <div className="flex flex-wrap gap-x-4 mt-1.5 text-xs text-muted-foreground">
+              <div className="text-xs text-muted-foreground mt-1">Booking No: {booking.Booking_NO}</div>
+            </div>
+            <div className="min-w-[110px] text-left pl-4">
+              <div className="text-xs text-muted-foreground mb-1">Service Time</div>
+              <div className="flex flex-col space-y-0.5 text-xs">
                 <div className="flex items-center">
-                  <Calendar className="h-3 w-3 mr-1" /> {booking.Booking_date}
+                  <Calendar className="h-3 w-3 mr-1 text-muted-foreground" /> {booking.Booking_date}
                 </div>
                 <div className="flex items-center">
-                  <Clock className="h-3 w-3 mr-1" /> {booking.booking_time}
+                  <Clock className="h-3 w-3 mr-1 text-muted-foreground" /> {booking.booking_time}
                 </div>
               </div>
             </div>
-            <div className="text-right pl-4">
-              <div className="text-xs text-muted-foreground">Booking No</div>
-              <div className="text-sm font-medium">{booking.Booking_NO}</div>
-              {booking.price && (
-                <div className="text-xs mt-1">₹{booking.price}</div>
-              )}
+            <div className="min-w-[60px] text-right pl-2">
+              <div className="text-xs text-muted-foreground mb-1">Amount</div>
+              <div className="font-medium">₹{booking.price}</div>
             </div>
           </div>
           
           <button 
-            className="w-full text-center text-xs text-primary font-medium mt-3 py-1.5 border border-primary/20 rounded-md hover:bg-primary/5"
+            className="w-full text-center text-xs text-primary font-medium mt-3 py-1.5 border border-primary/20 rounded-md hover:bg-primary hover:text-white transition-colors"
             onClick={() => onViewDetails(booking)}
           >
             View Details

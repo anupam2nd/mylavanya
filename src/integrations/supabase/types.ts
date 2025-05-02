@@ -20,7 +20,7 @@ export type Database = {
           ArtistPhno: number | null
           ArtistRating: number | null
           created_at: string
-          emailid: string | null
+          emailid: string
           password: string | null
           Source: string | null
           userid: string | null
@@ -36,7 +36,7 @@ export type Database = {
           ArtistPhno?: number | null
           ArtistRating?: number | null
           created_at?: string
-          emailid?: string | null
+          emailid: string
           password?: string | null
           Source?: string | null
           userid?: string | null
@@ -52,7 +52,7 @@ export type Database = {
           ArtistPhno?: number | null
           ArtistRating?: number | null
           created_at?: string
-          emailid?: string | null
+          emailid?: string
           password?: string | null
           Source?: string | null
           userid?: string | null

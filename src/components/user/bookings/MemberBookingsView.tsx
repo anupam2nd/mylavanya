@@ -55,8 +55,8 @@ const MemberBookingsView = ({ bookings, loading }: MemberBookingsViewProps) => {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+    <Card className="shadow-sm hover:shadow transition-shadow">
+      <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0 bg-card border-b">
         <CardTitle>My Bookings</CardTitle>
         <div className="flex items-center space-x-2">
           <BookingFilters
@@ -79,9 +79,15 @@ const MemberBookingsView = ({ bookings, loading }: MemberBookingsViewProps) => {
             sortField={sortField}
             setSortField={setSortField}
           />
+          <ExportButton
+            data={filteredBookings}
+            filename="my_bookings"
+            headers={bookingHeaders}
+            buttonText="Export"
+          />
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 sm:p-6">
         {loading ? (
           <div className="p-8 flex justify-center items-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
