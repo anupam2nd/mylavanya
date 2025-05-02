@@ -204,7 +204,7 @@ const AddServiceDialog = ({
           ArtistId: user ? parseInt(user.id, 10) : null,
           Assignedto: artistName,
           AssignedBY: artistName, // Artist is adding the service
-          AssignedByUser: user?.email || "",
+          // AssignedByUser: user?.email || "",
           AssingnedON: new Date().toISOString(),
           ServiceName: selectedService.Services || "",
           SubService: selectedService.Subservice || "",
