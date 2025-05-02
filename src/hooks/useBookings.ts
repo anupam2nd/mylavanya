@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export interface Booking {
   id: number;
-  Booking_NO: string; // Changed to string to maintain consistency across app
+  Booking_NO: string; // Always treat as string to avoid type mismatches
   jobno?: number;
   name: string;
   email?: string; // Make email optional to match database structure
@@ -28,7 +28,7 @@ export interface Booking {
   AssingnedON?: string;
   ArtistId?: number;
   created_at?: string;
-  prod_id?: number; // Changed from 'Product' to match database schema
+  prod_id?: number;
   Scheme?: string;
 }
 
@@ -36,7 +36,7 @@ export const useBookings = () => {
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasBookings, setHasBookings] = useState(false);
+  const [hasBookings, setHasBookings] = useState<boolean | null>(null);
   const { user } = useAuth();
 
   const fetchBookings = async () => {

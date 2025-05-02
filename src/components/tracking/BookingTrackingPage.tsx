@@ -79,7 +79,7 @@ export function BookingTrackingPage() {
       const { data: bookingsData, error: bookingError } = await supabase
         .from("BookMST")
         .select("*, ArtistId, jobno") // Ensure we select the jobno field
-        .eq("Booking_NO", parseInt(data.bookingRef)) // Convert to number for database query
+        .eq("Booking_NO", data.bookingRef) // Use string comparison instead of integer
         .eq("Phone_no", phoneNumber);
 
       if (bookingError) {

@@ -64,7 +64,7 @@ export const createBookingEntries = async (
         Status: statusName, // Use status name instead of code for readability
         StatusUpdated: currentTime, // Set initial status update time
         price: service.price,
-        Booking_NO: bookingRef, // Store as string for proper representation
+        Booking_NO: bookingRef, // Store booking reference as string, not number
         Qty: service.quantity || 1,
         Address: data.address,
         Pincode: parseInt(data.pincode),
