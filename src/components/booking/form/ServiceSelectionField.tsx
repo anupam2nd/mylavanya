@@ -40,6 +40,7 @@ const ServiceSelectionField: React.FC<ServiceSelectionFieldProps> = ({ initialSe
     
     // Check if service already exists in the selected list
     if (!currentServices.some(s => s.id === service.prod_id)) {
+      // Create a new service with all required fields explicitly defined
       const newService: SelectedService = {
         id: service.prod_id,
         name: serviceName,

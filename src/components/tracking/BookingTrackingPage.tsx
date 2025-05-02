@@ -90,9 +90,13 @@ const BookingTrackingPage = () => {
         ProductName: booking.ProductName || ""
       }));
 
-      // Calculate total amount
+      // Calculate total amount - ensure proper handling of numeric type
       const totalAmount = services.reduce(
-        (total, service) => total + (service.price || 0) * (service.Qty || 1),
+        (total, service) => {
+          const price = typeof service.price === 'number' ? service.price : parseFloat(service.price || '0');
+          const qty = service.Qty || 1;
+          return total + (price * qty);
+        },
         0
       );
 
