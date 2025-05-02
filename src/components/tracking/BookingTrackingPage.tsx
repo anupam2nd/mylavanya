@@ -1,146 +1,110 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { TrackingForm } from "./TrackingForm";
+import { BookingDetails } from "./BookingDetails";
+import { BookingTrackingHeader } from "./BookingTrackingHeader";
+import { TrackingError } from "./TrackingError";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
-import TrackingForm, { TrackingFormValues } from "@/components/tracking/TrackingForm";
-import BookingDetails, { BookingData } from "@/components/tracking/BookingDetails";
-import TrackingError from "@/components/tracking/TrackingError";
-import { useAuth } from "@/context/AuthContext";
-import { useBookings } from "@/hooks/useBookings";
-import BookingTrackingHeader from "./BookingTrackingHeader";
+import { Tables } from "@/integrations/supabase/types";
 
-export function BookingTrackingPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [bookingDetails, setBookingDetails] = useState<BookingData[]>([]);
+type BookingWithServiceMST = Tables<'BookMST'> & {
+  services?: {
+    id: number;
+    name: string;
+    price: number;
+    quantity: number;
+  }[];
+};
+
+export const BookingTrackingPage: React.FC = () => {
+  const [booking, setBooking] = useState<BookingWithServiceMST | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, user } = useAuth();
-  const { hasBookings, checkUserHasBookings } = useBookings();
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  // Redirect unauthenticated users
-  useEffect(() => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to track your booking.",
-        variant: "destructive",
-      });
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate]);
-
-  // Check if user has bookings
-  useEffect(() => {
-    const checkUserBookings = async () => {
-      if (!isAuthenticated || !user?.email) return;
-      
-      try {
-        const hasAnyBookings = await checkUserHasBookings();
-        
-        // If user has no bookings, show a message and redirect
-        if (!hasAnyBookings) {
-          toast({
-            title: "No Bookings Found",
-            description: "You haven't made any bookings yet.",
-            variant: "destructive",
-          });
-          navigate("/");
-        }
-      } catch (error) {
-        console.error("Error checking bookings:", error);
-      }
-    };
-    
-    checkUserBookings();
-  }, [isAuthenticated, user, navigate, checkUserHasBookings]);
-
-  // If not authenticated or loading booking check, don't render the page content
-  if (!isAuthenticated || hasBookings === null) {
-    return null;
-  }
-  
-  // If user has no bookings, we'll already be redirected by the effect
-  if (hasBookings === false) {
-    return null;
-  }
-
-  const handleSubmit = async (data: TrackingFormValues) => {
-    setIsLoading(true);
+  const handleSearch = async (
+    searchType: "reference" | "phone",
+    searchValue: string
+  ) => {
+    setLoading(true);
     setError(null);
-    setBookingDetails([]);
-    
-    try {
-      // Convert phone to number for comparison with the database
-      const phoneNumber = parseInt(data.phone.replace(/\D/g, ''));
-      
-      // Get all bookings matching the reference and phone number
-      const { data: bookingsData, error: bookingError } = await supabase
-        .from("BookMST")
-        .select("*, ArtistId, jobno") // Ensure we select the jobno field
-        .eq("Booking_NO", data.bookingRef) // Use string comparison instead of integer
-        .eq("Phone_no", phoneNumber);
+    setBooking(null);
 
-      if (bookingError) {
-        throw bookingError;
+    try {
+      let query;
+      if (searchType === "reference") {
+        // Convert the Booking_NO from string to number for comparison
+        const bookingNumber = parseInt(searchValue.trim(), 10);
+        if (isNaN(bookingNumber)) {
+          setError("Invalid booking reference number");
+          setLoading(false);
+          return;
+        }
+        
+        query = supabase
+          .from("BookMST")
+          .select("*")
+          .eq("Booking_NO", bookingNumber);
+      } else {
+        // Phone search
+        query = supabase
+          .from("BookMST")
+          .select("*")
+          .eq("Phone_no", searchValue.trim());
       }
 
-      if (!bookingsData || bookingsData.length === 0) {
-        setError("No booking found with the provided details. Please check and try again.");
+      const { data, error: fetchError } = await query;
+
+      if (fetchError) {
+        console.error("Error fetching booking:", fetchError);
+        setError("Failed to fetch booking information");
+        setLoading(false);
         return;
       }
 
-      console.log("Raw booking data:", bookingsData);
+      if (!data || data.length === 0) {
+        setError(
+          "No booking found with the provided " +
+            (searchType === "reference" ? "reference" : "phone number")
+        );
+        setLoading(false);
+        return;
+      }
 
-      // Transform data to ensure Booking_NO is a string
-      const detailedBookings: BookingData[] = bookingsData.map(booking => {
-        return {
-          ...booking,
-          Booking_NO: String(booking.Booking_NO), // Ensure Booking_NO is a string
-          Services: booking.ServiceName || "General Service",
-          Subservice: booking.SubService || "Standard",
-          ProductName: booking.ProductName || "Unknown Service",
-          ArtistId: booking.ArtistId, // Ensure ArtistId is included
-          jobno: booking.jobno // Ensure jobno is included
-        };
-      });
+      // For now, just use the first booking if multiple were found
+      const bookingWithServices = {
+        ...data[0],
+        services: data[0].Product
+          ? [
+              {
+                id: data[0].Product,
+                name: data[0].ProductName || "Unknown Service",
+                price: data[0].price || 0,
+                quantity: data[0].Qty || 1,
+              },
+            ]
+          : [],
+      };
 
-      console.log("Detailed bookings:", detailedBookings);
-      setBookingDetails(detailedBookings);
-
-    } catch (error) {
-      console.error("Error fetching booking details:", error);
-      setError("Failed to retrieve booking information. Please try again later.");
-      toast({
-        title: "Error",
-        description: "Failed to retrieve booking information.",
-        variant: "destructive",
-      });
+      setBooking(bookingWithServices);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setError("An unexpected error occurred. Please try again.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-3xl mx-auto">
-        <BookingTrackingHeader />
-
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>Booking Tracker</CardTitle>
-            <CardDescription>
-              Please enter the details below to track your booking
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TrackingForm onSubmit={handleSubmit} isLoading={isLoading} />
-            <TrackingError error={error} />
-            {bookingDetails.length > 0 && <BookingDetails bookingDetails={bookingDetails} />}
-          </CardContent>
-        </Card>
-      </div>
+    <div className="container max-w-4xl mx-auto px-4 py-8">
+      <BookingTrackingHeader />
+      
+      {!booking && (
+        <TrackingForm onSearch={handleSearch} loading={loading} />
+      )}
+      
+      {error && <TrackingError message={error} />}
+      
+      {booking && <BookingDetails booking={booking} />}
     </div>
   );
-}
+};

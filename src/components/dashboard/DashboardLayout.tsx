@@ -1,7 +1,7 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, User, Settings, Home, Calendar, Heart, Package, Paintbrush, Users as UsersIcon, ListChecks } from "lucide-react";
+import { Menu, X, LogOut, User, Settings, Home, Calendar, Heart, Package, Paintbrush, Users as UsersIcon, ListChecks, FileHeart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
@@ -30,8 +30,9 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller';
   const isSuperAdmin = user?.role === 'superadmin';
+  const isController = user?.role === 'controller';
   const isMember = user?.role === 'member';
 
   return (
@@ -115,7 +116,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                 <span>Bookings</span>
               </Link>
 
-              {(isAdmin || isSuperAdmin) && (
+              {(isAdmin) && (
                 <>
                   <Link to="/admin/services"
                     className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
@@ -127,6 +128,12 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                     className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
                     <Paintbrush className="w-5 h-5 mr-3" />
                     <span>Artists</span>
+                  </Link>
+
+                  <Link to="/admin/wishlist-insights"
+                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                    <FileHeart className="w-5 h-5 mr-3" />
+                    <span>Wishlist Insights</span>
                   </Link>
                 </>
               )}
