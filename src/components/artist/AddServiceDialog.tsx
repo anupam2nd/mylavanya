@@ -181,16 +181,19 @@ const AddServiceDialog = ({
         }
       }
       
+      // Fix the type error - convert string to number when using parseInt
+      const phoneNumber = parseInt(customerPhone, 10);
+      
       // Add the new service to BookMST
       const { error } = await supabase
         .from("BookMST")
         .insert({
-          Booking_NO: bookingNo,
+          Booking_NO: parseInt(bookingNo, 10), // Convert string to number
           Purpose: selectedService.ProductName,
           Status: "start", // as specified in requirements
           name: customerName,
           email: customerEmail,
-          Phone_no: parseInt(customerPhone, 10), // Convert string to number
+          Phone_no: phoneNumber, // Now using the parsed integer
           Booking_date: new Date().toISOString().split('T')[0],
           booking_time: new Date().toTimeString().split(' ')[0].substring(0, 5),
           jobno: nextJobNo,

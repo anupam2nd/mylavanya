@@ -224,70 +224,77 @@ const ArtistDashboard = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                {Object.entries(groupedBookings).map(([bookingNo, bookingsGroup]) => {
-                  // Use the first booking in the group for the customer details
-                  const firstBooking = bookingsGroup[0];
-                  
-                  return (
-                    <Card key={bookingNo} className="border-primary/20">
-                      <CardHeader className="pb-2 flex flex-row justify-between items-center">
-                        <div>
-                          <h3 className="text-base font-medium">Booking #{bookingNo}</h3>
-                          <p className="text-sm text-muted-foreground">Customer: {firstBooking.name}</p>
-                        </div>
-                        <Button 
-                          onClick={() => handleAddNewService(firstBooking)}
-                          variant="outline" 
-                          size="sm"
-                          className="flex items-center gap-2"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Add New Service
-                        </Button>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                          {bookingsGroup.map((booking) => (
-                            <Card key={`${booking.id}-${booking.jobno}`} className="overflow-hidden">
-                              <div className={`h-2 w-full 
-                                ${booking.Status === 'confirmed' ? 'bg-blue-500' : 
-                                  booking.Status === 'beautician_assigned' ? 'bg-purple-500' : 
-                                    booking.Status === 'done' || booking.Status === 'completed' ? 'bg-green-500' : 
-                                      'bg-gray-500'}`} 
-                              />
-                              <CardContent className="p-4">
-                                <h3 className="font-medium truncate mb-1">{booking.Purpose}</h3>
-                                <div className="text-sm text-muted-foreground mb-2">
-                                  <p>Service: {booking.ServiceName} {booking.SubService ? `- ${booking.SubService}` : ''}</p>
-                                  <p>Job #: {booking.jobno || 'N/A'}</p>
-                                </div>
-                                <div className="flex items-center text-xs text-muted-foreground mb-2">
-                                  <Calendar className="w-3 h-3 mr-1" />
-                                  <span>{booking.Booking_date && format(new Date(booking.Booking_date), 'PP')}</span>
-                                  <Clock className="w-3 h-3 ml-3 mr-1" />
-                                  <span>{booking.booking_time}</span>
-                                </div>
-                                <div className="flex items-center justify-between mt-2">
-                                  <div className={`px-2 py-1 text-xs font-medium rounded-full 
-                                    ${booking.Status === 'confirmed' ? 'bg-blue-100 text-blue-800' : 
-                                      booking.Status === 'beautician_assigned' ? 'bg-purple-100 text-purple-800' : 
-                                        booking.Status === 'done' || booking.Status === 'completed' ? 'bg-green-100 text-green-800' : 
-                                          'bg-gray-100 text-gray-800'}`}>
-                                    {booking.Status === 'beautician_assigned' ? 'Assigned' : 
-                                      booking.Status.charAt(0).toUpperCase() + booking.Status.slice(1)}
+                {/* Check if Object.entries(groupedBookings) is valid before using map */}
+                {Object.entries(groupedBookings).length > 0 ? 
+                  Object.entries(groupedBookings).map(([bookingNo, bookingsGroup]) => {
+                    // Use the first booking in the group for the customer details
+                    const firstBooking = bookingsGroup[0];
+                    
+                    return (
+                      <Card key={bookingNo} className="border-primary/20">
+                        <CardHeader className="pb-2 flex flex-row justify-between items-center">
+                          <div>
+                            <h3 className="text-base font-medium">Booking #{bookingNo}</h3>
+                            <p className="text-sm text-muted-foreground">Customer: {firstBooking.name}</p>
+                          </div>
+                          <Button 
+                            onClick={() => handleAddNewService(firstBooking)}
+                            variant="outline" 
+                            size="sm"
+                            className="flex items-center gap-2"
+                          >
+                            <Plus className="h-4 w-4" />
+                            Add New Service
+                          </Button>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            {bookingsGroup.map((booking) => (
+                              <Card key={`${booking.id}-${booking.jobno}`} className="overflow-hidden">
+                                <div className={`h-2 w-full 
+                                  ${booking.Status === 'confirmed' ? 'bg-blue-500' : 
+                                    booking.Status === 'beautician_assigned' ? 'bg-purple-500' : 
+                                      booking.Status === 'done' || booking.Status === 'completed' ? 'bg-green-500' : 
+                                        'bg-gray-500'}`} 
+                                />
+                                <CardContent className="p-4">
+                                  <h3 className="font-medium truncate mb-1">{booking.Purpose}</h3>
+                                  <div className="text-sm text-muted-foreground mb-2">
+                                    <p>Service: {booking.ServiceName} {booking.SubService ? `- ${booking.SubService}` : ''}</p>
+                                    <p>Job #: {booking.jobno || 'N/A'}</p>
                                   </div>
-                                  <div className="text-sm font-medium">
-                                    ₹{booking.price || 0}
+                                  <div className="flex items-center text-xs text-muted-foreground mb-2">
+                                    <Calendar className="w-3 h-3 mr-1" />
+                                    <span>{booking.Booking_date && format(new Date(booking.Booking_date), 'PP')}</span>
+                                    <Clock className="w-3 h-3 ml-3 mr-1" />
+                                    <span>{booking.booking_time}</span>
                                   </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                                  <div className="flex items-center justify-between mt-2">
+                                    <div className={`px-2 py-1 text-xs font-medium rounded-full 
+                                      ${booking.Status === 'confirmed' ? 'bg-blue-100 text-blue-800' : 
+                                        booking.Status === 'beautician_assigned' ? 'bg-purple-100 text-purple-800' : 
+                                          booking.Status === 'done' || booking.Status === 'completed' ? 'bg-green-100 text-green-800' : 
+                                            'bg-gray-100 text-gray-800'}`}>
+                                      {booking.Status === 'beautician_assigned' ? 'Assigned' : 
+                                        booking.Status.charAt(0).toUpperCase() + booking.Status.slice(1)}
+                                    </div>
+                                    <div className="text-sm font-medium">
+                                      ₹{booking.price || 0}
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })
+                : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Could not organize your bookings. Please try refreshing the page.
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
