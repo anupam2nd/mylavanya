@@ -38,10 +38,15 @@ export const useBookingFilters = (bookings: Booking[]) => {
     }
     
     if (statusFilter && statusFilter !== "all") {
+      console.log("Filtering by status:", statusFilter);
+      console.log("Available statuses:", [...new Set(bookings.map(b => b.Status))]);
+      
       result = result.filter(booking => {
-        // Match either by status_code or status_name
-        return booking.Status === statusFilter || 
-               booking.Status.toLowerCase() === statusFilter.toLowerCase();
+        // Handle status comparison case-insensitively
+        const bookingStatus = booking.Status?.toLowerCase();
+        const filterStatusValue = statusFilter.toLowerCase();
+        
+        return bookingStatus === filterStatusValue;
       });
     }
     
