@@ -18,10 +18,11 @@ interface BookingService {
   Purpose: string;
   price?: number;
   Qty?: number;
+  ProductName?: string; // Added this to match Service interface
 }
 
 export interface BookingMST {
-  Booking_NO: string; // Changed to string type to match the useBookings interface
+  Booking_NO: string;
   name: string;
   email?: string;
   Phone_no: number;
@@ -56,7 +57,7 @@ const BookingTrackingPage = () => {
         const { data, error } = await supabase
           .from("BookMST")
           .select("*")
-          .eq("Booking_NO", bookingRef);
+          .eq("Booking_NO", bookingRef); // No need to convert to number
 
         if (error) throw error;
 
@@ -68,11 +69,12 @@ const BookingTrackingPage = () => {
 
         // Group services under the same booking
         const services = data.map((booking) => ({
-          id: booking.id,
+          id: booking.id || 0, // Ensure id is always present
           Product: booking.Product,
-          Purpose: booking.Purpose,
+          Purpose: booking.Purpose || "",
           price: booking.price,
           Qty: booking.Qty,
+          ProductName: booking.ProductName || "" // Add ProductName to match Service interface
         }));
 
         // Calculate total amount
@@ -85,7 +87,7 @@ const BookingTrackingPage = () => {
         const firstBooking = data[0];
         
         setBooking({
-          Booking_NO: String(firstBooking.Booking_NO), // Convert to string explicitly
+          Booking_NO: String(firstBooking.Booking_NO),
           name: firstBooking.name || "",
           email: firstBooking.email,
           Phone_no: firstBooking.Phone_no,
@@ -137,13 +139,18 @@ const BookingTrackingPage = () => {
       <div className="bg-white rounded-lg shadow-md p-6 mt-4 space-y-6">
         <BookingHeader bookingNo={booking.Booking_NO} status={booking.Status} />
         <BookingDetails date={booking.Booking_date} time={booking.booking_time} />
-        <ServicesList services={booking.services} />
+        <ServicesList services={booking.services as any} />
         <CustomerDetails
-          name={booking.name}
-          email={booking.email}
-          phone={booking.Phone_no}
-          address={booking.Address}
-          pincode={booking.Pincode}
+          booking={{
+            name: booking.name,
+            email: booking.email,
+            Phone_no: booking.Phone_no,
+            Address: booking.Address,
+            Pincode: booking.Pincode,
+            Booking_date: booking.Booking_date,
+            booking_time: booking.booking_time,
+            Status: booking.Status
+          }}
         />
         <TotalAmount amount={booking.totalAmount} />
       </div>
