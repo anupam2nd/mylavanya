@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { parseISO, format } from "date-fns";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, Plus } from "lucide-react";
 import { toast } from "sonner";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { Button } from "@/components/ui/button";
+import NewJobDialog from "@/components/artist/NewJobDialog";
 
 const ArtistDashboard = () => {
   const { user } = useAuth();
@@ -20,6 +22,16 @@ const ArtistDashboard = () => {
     firstName: '',
     lastName: ''
   });
+
+  // State for the new job dialog
+  const [isNewJobDialogOpen, setIsNewJobDialogOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<{
+    id: number;
+    bookingNo: string;
+    customerPhone: string;
+    customerName: string;
+    customerEmail: string;
+  } | null>(null);
   
   // Fetch artist details
   useEffect(() => {
@@ -52,50 +64,62 @@ const ArtistDashboard = () => {
     fetchArtistDetails();
   }, [user]);
   
-  useEffect(() => {
-    const fetchArtistBookings = async () => {
-      if (!user) return;
-      
-      setIsLoading(true);
-      try {
-        console.log("Fetching bookings for artist ID:", user.id);
-        
-        // Convert string ID to number for the query
-        const artistId = parseInt(user.id, 10);
-        
-        // Make sure we have a valid number before querying
-        if (isNaN(artistId)) {
-          console.error("Invalid artist ID:", user.id);
-          toast.error("Could not load bookings: invalid artist ID");
-          setIsLoading(false);
-          return;
-        }
-        
-        const { data, error } = await supabase
-          .from('BookMST')
-          .select('*')
-          .eq('ArtistId', artistId)
-          .not('Status', 'in', '("pending","cancelled","Pending","Cancelled","P","C")')
-          .order('Booking_date', { ascending: false });
-        
-        if (error) {
-          console.error("Error fetching artist bookings:", error);
-          toast.error("Failed to load your assigned bookings");
-          return;
-        }
-        
-        console.log("Artist bookings:", data);
-        setBookings(data || []);
-      } catch (error) {
-        console.error("Unexpected error fetching artist bookings:", error);
-        toast.error("An unexpected error occurred");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Fetch bookings
+  const fetchArtistBookings = async () => {
+    if (!user) return;
     
+    setIsLoading(true);
+    try {
+      console.log("Fetching bookings for artist ID:", user.id);
+      
+      // Convert string ID to number for the query
+      const artistId = parseInt(user.id, 10);
+      
+      // Make sure we have a valid number before querying
+      if (isNaN(artistId)) {
+        console.error("Invalid artist ID:", user.id);
+        toast.error("Could not load bookings: invalid artist ID");
+        setIsLoading(false);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('BookMST')
+        .select('*')
+        .eq('ArtistId', artistId)
+        .not('Status', 'in', '("pending","cancelled","Pending","Cancelled","P","C")')
+        .order('Booking_date', { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching artist bookings:", error);
+        toast.error("Failed to load your assigned bookings");
+        return;
+      }
+      
+      console.log("Artist bookings:", data);
+      setBookings(data || []);
+    } catch (error) {
+      console.error("Unexpected error fetching artist bookings:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchArtistBookings();
   }, [user]);
+
+  const handleAddNewJob = (booking: any) => {
+    setSelectedBooking({
+      id: booking.id,
+      bookingNo: booking.Booking_NO,
+      customerPhone: booking.Phone_no,
+      customerName: booking.name,
+      customerEmail: booking.email || ''
+    });
+    setIsNewJobDialogOpen(true);
+  };
 
   // Get full name from artist details or use fallback from user object
   const getFullName = () => {
@@ -222,6 +246,15 @@ const ArtistDashboard = () => {
                           ₹{booking.price || 0}
                         </div>
                       </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full mt-3 flex items-center gap-2"
+                        onClick={() => handleAddNewJob(booking)}
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add New Job
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
@@ -229,6 +262,20 @@ const ArtistDashboard = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* New Job Dialog */}
+        {selectedBooking && (
+          <NewJobDialog
+            open={isNewJobDialogOpen}
+            onOpenChange={setIsNewJobDialogOpen}
+            bookingId={selectedBooking.id}
+            bookingNo={selectedBooking.bookingNo}
+            customerPhone={selectedBooking.customerPhone}
+            customerName={selectedBooking.customerName}
+            customerEmail={selectedBooking.customerEmail}
+            onJobCreated={fetchArtistBookings}
+          />
+        )}
       </DashboardLayout>
     </ProtectedRoute>
   );

@@ -34,6 +34,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   const isSuperAdmin = user?.role === 'superadmin';
   const isMember = user?.role === 'member';
   const isController = user?.role === 'controller';
+  const isArtist = user?.role === 'artist';
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -104,7 +105,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
             </>
           ) : (
             <>
-              <Link to={isAdmin ? "/admin/dashboard" : "/user/dashboard"} 
+              <Link to={isAdmin ? "/admin/dashboard" : (isArtist ? "/artist/dashboard" : "/user/dashboard")} 
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
                 <Home className="w-5 h-5 mr-3" />
                 <span>Dashboard</span>
