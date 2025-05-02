@@ -33,6 +33,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   const isSuperAdmin = user?.role === 'superadmin';
   const isMember = user?.role === 'member';
+  const isController = user?.role === 'controller';
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -115,7 +116,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                 <span>Bookings</span>
               </Link>
 
-              {(isAdmin || isSuperAdmin) && (
+              {(isAdmin || isSuperAdmin || isController) && (
                 <>
                   <Link to="/admin/services"
                     className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
@@ -127,6 +128,12 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                     className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
                     <Paintbrush className="w-5 h-5 mr-3" />
                     <span>Artists</span>
+                  </Link>
+                  
+                  <Link to="/admin/wishlist"
+                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                    <Heart className="w-5 h-5 mr-3" />
+                    <span>Customer Wishlists</span>
                   </Link>
                 </>
               )}
