@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -6,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import StatusList from "@/components/admin/status/StatusList";
-import AddStatusForm from "@/components/admin/status/AddStatusForm";
-import { StatusOption } from "@/hooks/useStatusOptions";
+import { StatusOption, useStatusOptions } from "@/hooks/useStatusOptions";
 import { useAuth } from "@/context/AuthContext";
 import { Search, X, Download, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
