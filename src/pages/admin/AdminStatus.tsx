@@ -2,25 +2,14 @@
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import StatusList from "@/components/admin/status/StatusList";
-import AddStatusForm from "@/components/admin/status/AddStatusForm";
-import { StatusOption, useStatusOptions } from "@/hooks/useStatusOptions";
+import { StatusOption } from "@/hooks/useStatusOptions";
 import { useAuth } from "@/context/AuthContext";
-import { Search, X, Download, Filter } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { exportToCSV } from "@/utils/exportUtils";
-import { format } from "date-fns";
+import StatusFilters from "@/components/admin/status/filters/StatusFilters";
+import AdminStatusHeader from "@/components/admin/status/AdminStatusHeader";
+import AdminStatusContent from "@/components/admin/status/AdminStatusContent";
 
 const AdminStatus = () => {
   const { toast } = useToast();
@@ -102,126 +91,38 @@ const AdminStatus = () => {
     setSearchQuery("");
     setActiveFilter("all");
   };
-  
-  // Export current filtered data to CSV
-  const handleExportCSV = () => {
-    try {
-      // Custom headers for better readability
-      const headers = {
-        status_code: 'Status Code',
-        status_name: 'Status Name',
-        description: 'Description',
-        active: 'Active',
-        id: 'ID'
-      };
-      
-      // Generate timestamp for the filename
-      const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm');
-      const fileName = `statuses_export_${timestamp}.csv`;
-      
-      exportToCSV(filteredStatuses, fileName, headers);
-      
-      toast({
-        title: "Export successful",
-        description: "Your report has been downloaded",
-      });
-    } catch (error) {
-      console.error('Error exporting data:', error);
-      toast({
-        title: "Export failed",
-        description: "There was a problem creating your report",
-        variant: "destructive"
-      });
-    }
-  };
 
   return (
     <ProtectedRoute allowedRoles={['superadmin']}>
       <DashboardLayout title="Status Management">
         <Card>
-          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
-            <CardTitle>Status List</CardTitle>
-            <div className="flex items-center space-x-2">
-              <Button 
-                variant="outline"
-                onClick={handleExportCSV}
-                className="flex items-center"
-                disabled={filteredStatuses.length === 0}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Export CSV
-              </Button>
-              <button 
-                onClick={() => setShowAddForm(!showAddForm)} 
-                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
-              >
-                {showAddForm ? 'Hide Form' : 'Add New Status'}
-              </button>
-            </div>
+          <CardHeader>
+            <AdminStatusHeader 
+              filteredStatuses={filteredStatuses}
+              showAddForm={showAddForm}
+              setShowAddForm={setShowAddForm}
+            />
           </CardHeader>
           <CardContent>
-            {showAddForm && (
-              <div className="mb-6 p-4 border rounded-md bg-gray-50">
-                <AddStatusForm onStatusAdded={() => {
-                  fetchStatuses();
-                  setShowAddForm(false);
-                }} />
-              </div>
-            )}
+            <StatusFilters
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              activeFilter={activeFilter}
+              setActiveFilter={setActiveFilter}
+              clearFilters={clearFilters}
+            />
             
-            {/* Filter Controls */}
-            <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search status codes or names..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
-              <Select
-                value={activeFilter}
-                onValueChange={setActiveFilter}
-              >
-                <SelectTrigger className="flex items-center">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active Statuses</SelectItem>
-                  <SelectItem value="inactive">Inactive Statuses</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button 
-                variant="outline" 
-                onClick={clearFilters}
-                className="flex items-center"
-              >
-                <X className="mr-2 h-4 w-4" />
-                Clear Filters
-              </Button>
-            </div>
-            
-            {loading ? (
-              <div className="p-8 flex justify-center items-center">Loading...</div>
-            ) : filteredStatuses.length === 0 ? (
-              <p className="text-muted-foreground py-4 text-center">
-                No statuses match your filters. Try adjusting your search criteria.
-              </p>
-            ) : (
-              <>
-                <div className="mb-4 text-sm text-muted-foreground">
-                  Showing {filteredStatuses.length} of {statuses.length} statuses
-                </div>
-                <StatusList 
-                  statuses={filteredStatuses} 
-                  onUpdate={fetchStatuses} 
-                  isSuperAdmin={isSuperAdmin} 
-                />
-              </>
-            )}
+            <AdminStatusContent
+              statuses={statuses}
+              filteredStatuses={filteredStatuses}
+              loading={loading}
+              showAddForm={showAddForm}
+              onStatusAdded={() => {
+                fetchStatuses();
+                setShowAddForm(false);
+              }}
+              isSuperAdmin={isSuperAdmin}
+            />
           </CardContent>
         </Card>
       </DashboardLayout>
