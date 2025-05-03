@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useArtistStatusUpdate } from "@/hooks/useArtistStatusUpdate";
-import { Loader2 } from "lucide-react";
+import { Loader2, MapPin } from "lucide-react";
 
 interface DirectStatusUpdateDialogProps {
   open: boolean;
@@ -42,10 +42,13 @@ const DirectStatusUpdateDialog = ({
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <p>
-              This will update the booking status to "On The Way" and notify the customer
-              that you're on your way to provide the service.
-            </p>
+            <div className="flex items-start">
+              <MapPin className="h-5 w-5 text-primary mr-2 mt-0.5" />
+              <p>
+                This will update the booking status to "On The Way" and notify the customer
+                that you're traveling to their location to provide the service.
+              </p>
+            </div>
           </div>
           <DialogFooter className="sm:justify-end">
             <Button

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { parseISO, format } from "date-fns";
-import { Calendar, Clock, Plus } from "lucide-react";
+import { Calendar, Clock, MapPin, Plus } from "lucide-react";
 import { toast } from "sonner";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
@@ -239,7 +239,18 @@ const ArtistDashboard = () => {
                         <CardHeader className="pb-2 flex flex-row justify-between items-center">
                           <div>
                             <h3 className="text-base font-medium">Booking #{bookingNo}</h3>
-                            <p className="text-sm text-muted-foreground">Customer: {firstBooking.name}</p>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <span>Customer: {firstBooking.name}</span>
+                              {firstBooking.Address && (
+                                <div className="flex items-center ml-4 text-xs">
+                                  <MapPin className="w-3 h-3 mr-1 text-muted-foreground" />
+                                  <span className="truncate max-w-[200px]">
+                                    {firstBooking.Address}
+                                    {firstBooking.Pincode && `, ${firstBooking.Pincode}`}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <Button 
                             onClick={() => handleAddNewService(firstBooking)}
