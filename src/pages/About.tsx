@@ -1,9 +1,46 @@
 
+import { useEffect, useState } from "react";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { supabase } from "@/integrations/supabase/client";
+
+interface FaqItem {
+  id: number;
+  question: string;
+  answer: string;
+}
 
 export default function About() {
+  const [faqs, setFaqs] = useState<FaqItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('FaqMST')
+          .select('id, question, answer')
+          .order('id', { ascending: true });
+        
+        if (error) {
+          throw error;
+        }
+        
+        setFaqs(data || []);
+      } catch (err) {
+        console.error('Error fetching FAQs:', err);
+        setError('Failed to load FAQs. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchFaqs();
+  }, []);
+
   return (
     <>
       <Navbar />
@@ -55,79 +92,28 @@ export default function About() {
             <div className="max-w-3xl mx-auto px-4">
               <h2 className="text-3xl md:text-4xl font-display font-bold mb-12 text-center">Frequently Asked <span className="text-primary">Questions</span></h2>
               
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
-                  <AccordionTrigger className="text-lg font-medium">
-                    What services do you offer?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    We offer a wide range of beauty services including bridal makeup, party makeup, hairstyling, mehendi, and various other beauty treatments. Check our Services page for a complete list.
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="item-2">
-                  <AccordionTrigger className="text-lg font-medium">
-                    How far in advance should I book my appointment?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    We recommend booking at least 2 weeks in advance for regular services and 4-6 weeks for bridal services to ensure availability, especially during peak wedding seasons.
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="item-3">
-                  <AccordionTrigger className="text-lg font-medium">
-                    Do you provide at-home services?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    Yes, we provide at-home beauty services within Kolkata. Additional travel charges may apply depending on your location.
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="item-4">
-                  <AccordionTrigger className="text-lg font-medium">
-                    What products do you use for your services?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    We use high-quality, professional-grade products from renowned brands that are suitable for all skin types. All our products are cruelty-free and have been tested for safety.
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="item-5">
-                  <AccordionTrigger className="text-lg font-medium">
-                    Do you offer trial sessions for bridal makeup?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    Yes, we highly recommend trial sessions for bridal makeup to ensure you're completely satisfied with the look on your special day. Trial sessions are charged separately.
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="item-6">
-                  <AccordionTrigger className="text-lg font-medium">
-                    What is your cancellation policy?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    Cancellations made 48 hours or more before the scheduled appointment will receive a full refund. Cancellations within 24-48 hours will receive a 50% refund, and those made less than 24 hours in advance are not eligible for a refund.
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="item-7">
-                  <AccordionTrigger className="text-lg font-medium">
-                    Do I need to pay a deposit to book a service?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    Yes, a 25% deposit is required to secure your booking. The remaining balance is due on the day of service.
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="item-8">
-                  <AccordionTrigger className="text-lg font-medium">
-                    How can I make a payment?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    We accept payments via credit/debit cards, UPI, and bank transfers. All prices are inclusive of applicable taxes.
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+              {loading ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary border-opacity-50"></div>
+                </div>
+              ) : error ? (
+                <p className="text-center text-red-500">{error}</p>
+              ) : faqs.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No FAQs available at the moment.</p>
+              ) : (
+                <Accordion type="single" collapsible className="w-full">
+                  {faqs.map((faq) => (
+                    <AccordionItem key={faq.id} value={`item-${faq.id}`}>
+                      <AccordionTrigger className="text-lg font-medium">
+                        {faq.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        {faq.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              )}
             </div>
           </section>
         </div>

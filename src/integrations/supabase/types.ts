@@ -168,6 +168,27 @@ export type Database = {
           },
         ]
       }
+      FaqMST: {
+        Row: {
+          answer: string | null
+          created_at: string
+          id: number
+          question: string | null
+        }
+        Insert: {
+          answer?: string | null
+          created_at?: string
+          id?: number
+          question?: string | null
+        }
+        Update: {
+          answer?: string | null
+          created_at?: string
+          id?: number
+          question?: string | null
+        }
+        Relationships: []
+      }
       MemberMST: {
         Row: {
           id: number

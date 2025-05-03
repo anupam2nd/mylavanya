@@ -35,10 +35,10 @@ export default function Footer() {
             </Link>
             <p className="text-muted-foreground">Premium beauty & makeup services for your special events. We make you glow on your big day.</p>
             <div className="flex items-center space-x-4 pt-2">
-              <a href="#" className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" aria-label="Instagram">
+              <a href="https://www.instagram.com/mylavanya_dot_com/" target="_blank" rel="noopener noreferrer" className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" aria-label="Instagram">
                 <Instagram size={18} />
               </a>
-              <a href="#" className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" aria-label="Facebook">
+              <a href="https://www.facebook.com/share/1A9R26xyuP/" target="_blank" rel="noopener noreferrer" className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" aria-label="Facebook">
                 <Facebook size={18} />
               </a>
             </div>
