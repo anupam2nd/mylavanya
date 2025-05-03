@@ -1,35 +1,17 @@
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useForm, Controller } from "react-hook-form";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+
+import ServiceSelectionStep from "./ServiceSelectionStep";
+import OtpVerificationStep from "./OtpVerificationStep";
+import ProcessingIndicator from "./ProcessingIndicator";
+import { useServiceAddition } from "@/hooks/useServiceAddition";
 
 interface AddServiceDialogProps {
   open: boolean;
@@ -42,18 +24,6 @@ interface AddServiceDialogProps {
   onServiceAdded: () => void;
 }
 
-// Define form schemas
-const serviceFormSchema = z.object({
-  serviceId: z.string().min(1, "Please select a service"),
-});
-
-const otpFormSchema = z.object({
-  otp: z.string().length(4, "OTP must be exactly 4 digits"),
-});
-
-type ServiceFormValues = z.infer<typeof serviceFormSchema>;
-type OTPFormValues = z.infer<typeof otpFormSchema>;
-
 const AddServiceDialog = ({
   open,
   onOpenChange,
@@ -64,349 +34,90 @@ const AddServiceDialog = ({
   customerEmail,
   onServiceAdded
 }: AddServiceDialogProps) => {
-  const { user } = useAuth();
-  const [step, setStep] = useState<"service" | "otp" | "processing">("service");
-  const [services, setServices] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [generatedOTP, setGeneratedOTP] = useState("");
-  const [selectedService, setSelectedService] = useState<any>(null);
-  // Add state variables to store the original booking's address and pincode
-  const [bookingAddress, setBookingAddress] = useState<string | null>(null);
-  const [bookingPincode, setBookingPincode] = useState<number | null>(null);
-
-  // Form handling
-  const serviceForm = useForm<ServiceFormValues>({
-    resolver: zodResolver(serviceFormSchema),
-    defaultValues: {
-      serviceId: "",
-    }
+  const {
+    step,
+    services,
+    isLoading,
+    selectedService,
+    setStep,
+    fetchServices,
+    fetchBookingDetails,
+    handleServiceSelection,
+    verifyOTP,
+    resetDialog
+  } = useServiceAddition({
+    bookingId,
+    bookingNo,
+    customerName,
+    customerPhone,
+    customerEmail,
+    onServiceAdded,
+    onClose: () => onOpenChange(false)
   });
 
-  const otpForm = useForm<OTPFormValues>({
-    resolver: zodResolver(otpFormSchema),
-    defaultValues: {
-      otp: "",
-    }
-  });
-
-  // Get services from PriceMST
+  // Fetch services and booking details when dialog is opened
   useEffect(() => {
-    const fetchServices = async () => {
-      if (!open) return;
-      
-      try {
-        setIsLoading(true);
-        const { data, error } = await supabase
-          .from("PriceMST")
-          .select("*")
-          .eq("active", true);
-
-        if (error) throw error;
-
-        setServices(data || []);
-      } catch (error) {
-        console.error("Error fetching services:", error);
-        toast.error("Failed to load services");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchServices();
-  }, [open]);
-
-  // Fetch the original booking details to get address and pincode
-  useEffect(() => {
-    const fetchBookingDetails = async () => {
-      if (!open || !bookingId) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from("BookMST")
-          .select("Address, Pincode")
-          .eq("id", bookingId)
-          .single();
-
-        if (error) {
-          console.error("Error fetching booking details:", error);
-          return;
-        }
-
-        if (data) {
-          setBookingAddress(data.Address || null);
-          // Ensure pincode is a number or null
-          setBookingPincode(data.Pincode ? Number(data.Pincode) : null);
-          console.log("Fetched original booking address:", data.Address);
-          console.log("Fetched original booking pincode:", data.Pincode);
-        }
-      } catch (error) {
-        console.error("Error in fetchBookingDetails:", error);
-      }
-    };
-
-    fetchBookingDetails();
-  }, [open, bookingId]);
-
-  const handleServiceSelection = async (data: ServiceFormValues) => {
-    try {
-      setIsLoading(true);
-      
-      // Find the selected service
-      const service = services.find(s => s.prod_id.toString() === data.serviceId);
-      if (!service) {
-        toast.error("Selected service not found");
-        return;
-      }
-      
-      setSelectedService(service);
-      
-      // Generate a 4-digit OTP
-      const otp = Math.floor(1000 + Math.random() * 9000).toString();
-      setGeneratedOTP(otp);
-      
-      // In a real-world scenario, you'd send this OTP to the customer's phone
-      console.log("Generated OTP:", otp);
-      toast.info(`OTP: ${otp} (would be sent to customer's phone in production)`);
-      
-      // Move to OTP verification step
-      setStep("otp");
-    } catch (error) {
-      console.error("Error selecting service:", error);
-      toast.error("Failed to process service selection");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const verifyOTP = async (data: OTPFormValues) => {
-    try {
-      setStep("processing");
-      
-      // In production, verify the OTP against what was sent to the customer
-      if (data.otp !== generatedOTP) {
-        toast.error("Invalid OTP. Please try again.");
-        setStep("otp");
-        return;
-      }
-      
-      // Get the next job number
-      let nextJobNo = 1;
-      const { data: maxJobNoData } = await supabase
-        .from("BookMST")
-        .select("jobno")
-        .eq("Booking_NO", parseInt(bookingNo, 10))
-        .order("jobno", { ascending: false })
-        .limit(1);
-      
-      if (maxJobNoData && maxJobNoData.length > 0 && maxJobNoData[0].jobno) {
-        nextJobNo = maxJobNoData[0].jobno + 1;
-      }
-
-      // Get artist details
-      let artistName = "Artist";
-      let artistEmpCode = "";
-      if (user) {
-        const { data: artistData } = await supabase
-          .from("ArtistMST")
-          .select("ArtistFirstName, ArtistLastName, ArtistEmpCode")
-          .eq("ArtistId", parseInt(user.id, 10))
-          .single();
-          
-        if (artistData) {
-          artistName = `${artistData.ArtistFirstName || ''} ${artistData.ArtistLastName || ''}`.trim();
-          artistEmpCode = artistData.ArtistEmpCode || '';
-        }
-      }
-      
-      // Convert phone string to number if possible, otherwise use 0
-      const phoneNumber = customerPhone ? parseInt(customerPhone, 10) : 0;
-      
-      const bookingNoAsNumber = parseInt(bookingNo, 10);
-      
-      // Add the new service to BookMST
-      const { error } = await supabase
-        .from("BookMST")
-        .insert({
-          Booking_NO: bookingNoAsNumber,
-          Purpose: selectedService.ProductName,
-          Status: "start", // as specified in requirements
-          name: customerName,
-          email: customerEmail,
-          Phone_no: phoneNumber,
-          Booking_date: new Date().toISOString().split('T')[0],
-          booking_time: new Date().toTimeString().split(' ')[0].substring(0, 5),
-          jobno: nextJobNo,
-          ArtistId: user ? parseInt(user.id, 10) : null,
-          Assignedto: artistName,
-          AssignedBY: artistName, // Artist is adding the service
-          // AssignedByUser: user?.email || "",
-          AssingnedON: new Date().toISOString(),
-          ServiceName: selectedService.Services || "",
-          SubService: selectedService.Subservice || "",
-          ProductName: selectedService.ProductName || "",
-          AssignedToEmpCode: artistEmpCode, // Artist emp code from ArtistMST
-          price: selectedService.Price || 0,
-          StatusUpdated: new Date().toISOString(), // When the service is added
-          Qty: 1,
-          // Important: Include the address and pincode from the original booking
-          Address: bookingAddress,
-          // Ensure pincode is a number or null when inserting
-          Pincode: bookingPincode
-        });
-
-      if (error) throw error;
-      
-      toast.success("Service added successfully!");
-      onServiceAdded();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error adding service:", error);
-      toast.error("Failed to add service");
-    }
-  };
-
-  const resetDialog = () => {
-    setStep("service");
-    serviceForm.reset();
-    otpForm.reset();
-    setSelectedService(null);
-    setGeneratedOTP("");
-    setBookingAddress(null);
-    setBookingPincode(null);
-  };
-
-  // Reset the form when dialog is closed
-  useEffect(() => {
-    if (!open) {
+    if (open) {
+      fetchServices();
+      fetchBookingDetails();
+    } else {
       resetDialog();
     }
   }, [open]);
+
+  const getDialogTitle = () => {
+    switch (step) {
+      case "service":
+        return "Add New Service";
+      case "otp":
+        return "Verify Customer OTP";
+      case "processing":
+        return "Processing...";
+      default:
+        return "Add Service";
+    }
+  };
+
+  const getDialogDescription = () => {
+    switch (step) {
+      case "service":
+        return `Adding a new service to booking #${bookingNo} for ${customerName}`;
+      case "otp":
+        return "Please ask the customer to enter the OTP sent to their phone";
+      case "processing":
+        return "Please wait while we process your request...";
+      default:
+        return "";
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {step === "service" ? "Add New Service" : 
-             step === "otp" ? "Verify Customer OTP" :
-             "Processing..."}
-          </DialogTitle>
-          <DialogDescription>
-            {step === "service" ? 
-              `Adding a new service to booking #${bookingNo} for ${customerName}` : 
-              step === "otp" ? 
-              "Please ask the customer to enter the OTP sent to their phone" :
-              "Please wait while we process your request..."}
-          </DialogDescription>
+          <DialogTitle>{getDialogTitle()}</DialogTitle>
+          <DialogDescription>{getDialogDescription()}</DialogDescription>
         </DialogHeader>
         
         {step === "service" && (
-          <form onSubmit={serviceForm.handleSubmit(handleServiceSelection)}>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="service">Select Service</Label>
-                <Controller
-                  name="serviceId"
-                  control={serviceForm.control}
-                  render={({ field }) => (
-                    <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value}
-                      disabled={isLoading}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a service" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {services.map((service) => (
-                          <SelectItem 
-                            key={service.prod_id} 
-                            value={service.prod_id.toString()}
-                          >
-                            {service.ProductName} - ₹{service.Price || 0}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {serviceForm.formState.errors.serviceId && (
-                  <p className="text-sm text-destructive">{serviceForm.formState.errors.serviceId.message}</p>
-                )}
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  "Next"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
+          <ServiceSelectionStep
+            services={services}
+            isLoading={isLoading}
+            onSelect={handleServiceSelection}
+            onCancel={() => onOpenChange(false)}
+          />
         )}
         
         {step === "otp" && (
-          <form onSubmit={otpForm.handleSubmit(verifyOTP)}>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="otp">Enter 4-digit OTP</Label>
-                <div className="flex justify-center">
-                  <Controller
-                    name="otp"
-                    control={otpForm.control}
-                    render={({ field }) => (
-                      <InputOTP maxLength={4} {...field}>
-                        <InputOTPGroup>
-                          {[0, 1, 2, 3].map((index) => (
-                            <InputOTPSlot key={index} index={index} />
-                          ))}
-                        </InputOTPGroup>
-                      </InputOTP>
-                    )}
-                  />
-                </div>
-                {otpForm.formState.errors.otp && (
-                  <p className="text-sm text-center text-destructive">{otpForm.formState.errors.otp.message}</p>
-                )}
-              </div>
-              <div className="text-center text-sm text-muted-foreground">
-                Adding: {selectedService?.ProductName} - ₹{selectedService?.Price || 0}
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" type="button" onClick={() => setStep("service")}>
-                Back
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  "Verify & Add Service"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
+          <OtpVerificationStep
+            isLoading={isLoading}
+            serviceDetails={selectedService}
+            onVerify={verifyOTP}
+            onBack={() => setStep("service")}
+          />
         )}
         
-        {step === "processing" && (
-          <div className="flex flex-col items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="mt-4 text-center text-muted-foreground">
-              Adding service to booking...
-            </p>
-          </div>
-        )}
+        {step === "processing" && <ProcessingIndicator />}
       </DialogContent>
     </Dialog>
   );
