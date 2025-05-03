@@ -106,19 +106,21 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
           ) : (
             <>
               {/* FIX: Update the Link path for artists to go to their correct dashboard */}
-              <Link to={isAdmin ? "/admin/dashboard" : (isArtist ? "/artist/dashboard" : "/user/dashboard")} 
+              <Link to={isAdmin || isController ? "/admin/dashboard" : (isArtist ? "/artist/dashboard" : "/user/dashboard")} 
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
                 <Home className="w-5 h-5 mr-3" />
                 <span>Dashboard</span>
               </Link>
 
-              <Link to={isAdmin ? "/admin/bookings" : "/user/bookings"}
-                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Calendar className="w-5 h-5 mr-3" />
-                <span>Bookings</span>
-              </Link>
+              {!isController && (
+                <Link to={isAdmin ? "/admin/bookings" : "/user/bookings"}
+                  className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                  <Calendar className="w-5 h-5 mr-3" />
+                  <span>Bookings</span>
+                </Link>
+              )}
 
-              {(isAdmin || isSuperAdmin || isController) && (
+              {(isAdmin || isSuperAdmin) && (
                 <>
                   <Link to="/admin/services"
                     className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
@@ -140,7 +142,24 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                 </>
               )}
 
-              {isSuperAdmin && (
+              {/* Controller users get the same options as admin except 'Services' and 'Bookings' */}
+              {isController && (
+                <>
+                  <Link to="/admin/artists"
+                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                    <Paintbrush className="w-5 h-5 mr-3" />
+                    <span>Artists</span>
+                  </Link>
+                  
+                  <Link to="/admin/wishlist"
+                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                    <Heart className="w-5 h-5 mr-3" />
+                    <span>Customer Wishlists</span>
+                  </Link>
+                </>
+              )}
+
+              {(isSuperAdmin || isController) && (
                 <>
                   <Link to="/admin/users"
                     className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
