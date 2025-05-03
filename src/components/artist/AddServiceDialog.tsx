@@ -72,7 +72,7 @@ const AddServiceDialog = ({
   const [selectedService, setSelectedService] = useState<any>(null);
   // Add state variables to store the original booking's address and pincode
   const [bookingAddress, setBookingAddress] = useState<string | null>(null);
-  const [bookingPincode, setBookingPincode] = useState<string | number | null>(null);
+  const [bookingPincode, setBookingPincode] = useState<number | null>(null);
 
   // Form handling
   const serviceForm = useForm<ServiceFormValues>({
@@ -134,7 +134,8 @@ const AddServiceDialog = ({
 
         if (data) {
           setBookingAddress(data.Address || null);
-          setBookingPincode(data.Pincode || null);
+          // Ensure pincode is a number or null
+          setBookingPincode(data.Pincode ? Number(data.Pincode) : null);
           console.log("Fetched original booking address:", data.Address);
           console.log("Fetched original booking pincode:", data.Pincode);
         }
@@ -249,6 +250,7 @@ const AddServiceDialog = ({
           Qty: 1,
           // Important: Include the address and pincode from the original booking
           Address: bookingAddress,
+          // Ensure pincode is a number or null when inserting
           Pincode: bookingPincode
         });
 
