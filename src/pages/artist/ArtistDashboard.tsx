@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { parseISO, format } from "date-fns";
-import { Calendar, Clock, MapPin, Plus } from "lucide-react";
+import { Calendar, Clock, MapPin, Plus, IndianRupee } from "lucide-react";
 import { toast } from "sonner";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ const ArtistDashboard = () => {
   const { user } = useAuth();
   const [bookings, setBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [totalEarnings, setTotalEarnings] = useState<number>(0);
   const [artistDetails, setArtistDetails] = useState<{
     firstName: string;
     lastName: string;
@@ -65,6 +67,20 @@ const ArtistDashboard = () => {
     fetchArtistDetails();
   }, [user]);
   
+  // Calculate total earnings from completed services
+  const calculateTotalEarnings = (bookingsData: any[]) => {
+    const completedBookings = bookingsData.filter(booking => 
+      booking.Status === "done" || booking.Status === "completed"
+    );
+    
+    const earnings = completedBookings.reduce((sum, booking) => {
+      const price = booking.price ? parseFloat(booking.price) : 0;
+      return sum + price;
+    }, 0);
+    
+    setTotalEarnings(earnings);
+  };
+  
   // Fetch bookings
   const fetchArtistBookings = async () => {
     if (!user) return;
@@ -99,6 +115,7 @@ const ArtistDashboard = () => {
       
       console.log("Artist bookings:", data);
       setBookings(data || []);
+      calculateTotalEarnings(data || []);
     } catch (error) {
       console.error("Unexpected error fetching artist bookings:", error);
       toast.error("An unexpected error occurred");
@@ -154,7 +171,7 @@ const ArtistDashboard = () => {
         </div>
         
         {/* Stats Cards */}
-        <div className="grid gap-6 md:grid-cols-3 mb-6">
+        <div className="grid gap-6 md:grid-cols-4 mb-6">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">
@@ -203,6 +220,24 @@ const ArtistDashboard = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 Services you've successfully completed
+              </p>
+            </CardContent>
+          </Card>
+          
+          {/* New Card for Total Generated Amount */}
+          <Card className="bg-primary/5 border-primary/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center">
+                <IndianRupee className="h-4 w-4 mr-1 text-primary" />
+                Total Generated Amount
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">
+                {isLoading ? "..." : `₹${totalEarnings.toLocaleString('en-IN')}`}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Revenue from completed services
               </p>
             </CardContent>
           </Card>
