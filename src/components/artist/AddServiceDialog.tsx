@@ -70,6 +70,9 @@ const AddServiceDialog = ({
   const [isLoading, setIsLoading] = useState(false);
   const [generatedOTP, setGeneratedOTP] = useState("");
   const [selectedService, setSelectedService] = useState<any>(null);
+  // Add state variables to store the original booking's address and pincode
+  const [bookingAddress, setBookingAddress] = useState<string | null>(null);
+  const [bookingPincode, setBookingPincode] = useState<string | number | null>(null);
 
   // Form handling
   const serviceForm = useForm<ServiceFormValues>({
@@ -111,6 +114,37 @@ const AddServiceDialog = ({
 
     fetchServices();
   }, [open]);
+
+  // Fetch the original booking details to get address and pincode
+  useEffect(() => {
+    const fetchBookingDetails = async () => {
+      if (!open || !bookingId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from("BookMST")
+          .select("Address, Pincode")
+          .eq("id", bookingId)
+          .single();
+
+        if (error) {
+          console.error("Error fetching booking details:", error);
+          return;
+        }
+
+        if (data) {
+          setBookingAddress(data.Address || null);
+          setBookingPincode(data.Pincode || null);
+          console.log("Fetched original booking address:", data.Address);
+          console.log("Fetched original booking pincode:", data.Pincode);
+        }
+      } catch (error) {
+        console.error("Error in fetchBookingDetails:", error);
+      }
+    };
+
+    fetchBookingDetails();
+  }, [open, bookingId]);
 
   const handleServiceSelection = async (data: ServiceFormValues) => {
     try {
@@ -212,7 +246,10 @@ const AddServiceDialog = ({
           AssignedToEmpCode: artistEmpCode, // Artist emp code from ArtistMST
           price: selectedService.Price || 0,
           StatusUpdated: new Date().toISOString(), // When the service is added
-          Qty: 1
+          Qty: 1,
+          // Important: Include the address and pincode from the original booking
+          Address: bookingAddress,
+          Pincode: bookingPincode
         });
 
       if (error) throw error;
@@ -232,6 +269,8 @@ const AddServiceDialog = ({
     otpForm.reset();
     setSelectedService(null);
     setGeneratedOTP("");
+    setBookingAddress(null);
+    setBookingPincode(null);
   };
 
   // Reset the form when dialog is closed
