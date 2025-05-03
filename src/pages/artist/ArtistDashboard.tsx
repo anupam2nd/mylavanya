@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +10,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import NewJobDialog from "@/components/artist/NewJobDialog";
 import AddServiceDialog from "@/components/artist/AddServiceDialog";
+import ArtistBookingCard from "@/components/artist/ArtistBookingCard";
 
 const ArtistDashboard = () => {
   const { user } = useAuth();
@@ -254,40 +254,11 @@ const ArtistDashboard = () => {
                         <CardContent>
                           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {bookingsGroup.map((booking) => (
-                              <Card key={`${booking.id}-${booking.jobno}`} className="overflow-hidden">
-                                <div className={`h-2 w-full 
-                                  ${booking.Status === 'confirmed' ? 'bg-blue-500' : 
-                                    booking.Status === 'beautician_assigned' ? 'bg-purple-500' : 
-                                      booking.Status === 'done' || booking.Status === 'completed' ? 'bg-green-500' : 
-                                        'bg-gray-500'}`} 
-                                />
-                                <CardContent className="p-4">
-                                  <h3 className="font-medium truncate mb-1">{booking.Purpose}</h3>
-                                  <div className="text-sm text-muted-foreground mb-2">
-                                    <p>Service: {booking.ServiceName} {booking.SubService ? `- ${booking.SubService}` : ''}</p>
-                                    <p>Job #: {booking.jobno || 'N/A'}</p>
-                                  </div>
-                                  <div className="flex items-center text-xs text-muted-foreground mb-2">
-                                    <Calendar className="w-3 h-3 mr-1" />
-                                    <span>{booking.Booking_date && format(new Date(booking.Booking_date), 'PP')}</span>
-                                    <Clock className="w-3 h-3 ml-3 mr-1" />
-                                    <span>{booking.booking_time}</span>
-                                  </div>
-                                  <div className="flex items-center justify-between mt-2">
-                                    <div className={`px-2 py-1 text-xs font-medium rounded-full 
-                                      ${booking.Status === 'confirmed' ? 'bg-blue-100 text-blue-800' : 
-                                        booking.Status === 'beautician_assigned' ? 'bg-purple-100 text-purple-800' : 
-                                          booking.Status === 'done' || booking.Status === 'completed' ? 'bg-green-100 text-green-800' : 
-                                            'bg-gray-100 text-gray-800'}`}>
-                                      {booking.Status === 'beautician_assigned' ? 'Assigned' : 
-                                        booking.Status.charAt(0).toUpperCase() + booking.Status.slice(1)}
-                                    </div>
-                                    <div className="text-sm font-medium">
-                                      ₹{booking.price || 0}
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
+                              <ArtistBookingCard
+                                key={`${booking.id}-${booking.jobno}`}
+                                booking={booking}
+                                onStatusUpdated={fetchArtistBookings}
+                              />
                             ))}
                           </div>
                         </CardContent>
