@@ -5,7 +5,7 @@ import AuthModalHeader from "./AuthModalHeader";
 import LoginForm from "./LoginForm";
 import MemberLoginForm from "./MemberLoginForm";
 import ArtistLoginForm from "./ArtistLoginForm";
-import RegisterForm from "./RegisterForm";
+import RegisterForm from "./register/RegisterForm";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
