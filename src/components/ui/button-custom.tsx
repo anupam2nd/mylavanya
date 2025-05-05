@@ -12,7 +12,8 @@ export interface ButtonCustomProps
     | "ghost"
     | "link"
     | "glass"
-    | "primary-gradient";
+    | "primary-gradient"
+    | "primary-outline";
   size?: "sm" | "md" | "lg" | "icon";
   isLoading?: boolean;
 }
@@ -34,6 +35,7 @@ const ButtonCustom = React.forwardRef<HTMLButtonElement, ButtonCustomProps>(
             "text-primary underline-offset-4 hover:underline": variant === "link",
             "backdrop-blur-md bg-white/20 border border-white/20 text-foreground hover:bg-white/30 shadow-sm": variant === "glass",
             "bg-gradient-to-r from-primary to-rose-400 text-white hover:from-primary/90 hover:to-rose-400/90 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all": variant === "primary-gradient",
+            "border-2 border-primary text-primary hover:bg-primary/10 transition-colors": variant === "primary-outline",
             "h-10 px-6 py-2": size === "md",
             "h-9 px-4 text-sm": size === "sm",
             "h-12 px-8 text-base": size === "lg",
