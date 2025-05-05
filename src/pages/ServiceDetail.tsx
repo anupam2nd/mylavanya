@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,31 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
-import { Heart } from "lucide-react";
-
-const getServiceImage = (serviceId: number, serviceName: string | null) => {
-  switch (serviceId) {
-    case 1:
-      return "/lovable-uploads/d9a82f47-9bdb-4fc4-93d0-5fbcff7b79ed.jpg";
-    case 2:
-      return "/lovable-uploads/1167ac24-9ba6-4ffb-9110-6d3d68d873e7.png";
-    case 3:
-      return "/lovable-uploads/0b9c4ec6-8c62-4d2f-a9b8-bfcf1f87fabd.jpg";
-    case 4:
-      return "/lovable-uploads/e1283d7b-c007-46fc-98c6-f102af72e922.png";
-    default:
-      if (serviceName && serviceName.toLowerCase().includes("bridal")) {
-        return "/lovable-uploads/d9a82f47-9bdb-4fc4-93d0-5fbcff7b79ed.jpg";
-      } else if (serviceName && serviceName.toLowerCase().includes("event")) {
-        return "/lovable-uploads/1167ac24-9ba6-4ffb-9110-6d3d68d873e7.png";
-      } else if (serviceName && serviceName.toLowerCase().includes("hair")) {
-        return "/lovable-uploads/0b9c4ec6-8c62-4d2f-a9b8-bfcf1f87fabd.jpg";
-      } else if (serviceName && serviceName.toLowerCase().includes("nail")) {
-        return "/lovable-uploads/e1283d7b-c007-46fc-98c6-f102af72e922.png";
-      }
-      return "/placeholder.svg";
-  }
-};
+import { Heart, Image } from "lucide-react";
 
 const ServiceDetail = () => {
   const { serviceId } = useParams<{ serviceId: string; }>();
@@ -229,7 +206,8 @@ const ServiceDetail = () => {
       </div>;
   }
 
-  const serviceImage = getServiceImage(service.prod_id, service.ProductName);
+  // Use imageUrl directly from service data
+  const serviceImage = service.imageUrl || "/placeholder.svg";
   
   const formattedServiceName = service ? [
     service.Services,
@@ -288,7 +266,13 @@ const ServiceDetail = () => {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="h-64 sm:h-80 bg-gray-200">
-                <img alt={service.ProductName} className="w-full h-full object-cover" src={serviceImage} />
+                {serviceImage ? (
+                  <img alt={service.ProductName} className="w-full h-full object-cover" src={serviceImage} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Image className="h-16 w-16 text-gray-300" />
+                  </div>
+                )}
               </div>
               <div className="p-6">
                 <h2 className="text-2xl font-semibold mb-4">Service Description</h2>

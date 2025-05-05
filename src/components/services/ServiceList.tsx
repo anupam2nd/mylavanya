@@ -24,6 +24,7 @@ interface Service {
   Subservice: string | null;
   NetPayable: number | null;
   Category: string | null;
+  imageUrl: string | null;
 }
 
 const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => {
@@ -134,7 +135,8 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
                   discount: service.Discount,
                   netPayable: service.NetPayable,
                   services: service.Services,
-                  subservice: service.Subservice
+                  subservice: service.Subservice,
+                  imageUrl: service.imageUrl
                 }}
                 onClick={() => handleServiceClick(service.prod_id)}
               />

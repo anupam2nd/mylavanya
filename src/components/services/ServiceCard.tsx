@@ -1,7 +1,11 @@
 
 import { CardContent, Card } from "@/components/ui/card";
 import { ButtonCustom } from "@/components/ui/button-custom";
-import { Image } from "lucide-react";
+import { Heart, Image } from "lucide-react";
+import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface ServiceCardProps {
   service: {
@@ -20,6 +24,7 @@ interface ServiceCardProps {
 
 const ServiceCard = ({ service, onClick }: ServiceCardProps) => {
   const { 
+    prodid,
     pname, 
     pprice, 
     pdesc, 
@@ -30,11 +35,112 @@ const ServiceCard = ({ service, onClick }: ServiceCardProps) => {
     imageUrl
   } = service;
   
+  const { user, isAuthenticated } = useAuth();
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  
   const displayPrice = netPayable !== null && netPayable !== undefined 
     ? netPayable 
     : pprice;
   
   const hasDiscount = discount && discount > 0;
+
+  // Check wishlist status when component mounts
+  useState(() => {
+    const checkWishlistStatus = async () => {
+      if (!isAuthenticated || !user) return;
+      
+      try {
+        setWishlistLoading(true);
+        const { data, error } = await supabase
+          .from('wishlist')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('service_id', prodid)
+          .maybeSingle();
+          
+        if (error) throw error;
+        setIsInWishlist(!!data);
+      } catch (error) {
+        console.error("Error checking wishlist status:", error);
+      } finally {
+        setWishlistLoading(false);
+      }
+    };
+    
+    checkWishlistStatus();
+  });
+  
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to add items to your wishlist",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!user) return;
+    
+    setWishlistLoading(true);
+    
+    try {
+      if (isInWishlist) {
+        // Get the wishlist item id first
+        const { data: wishlistItem, error: fetchError } = await supabase
+          .from('wishlist')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('service_id', prodid)
+          .single();
+          
+        if (fetchError) throw fetchError;
+        
+        // Remove from wishlist
+        const { error: removeError } = await supabase
+          .from('wishlist')
+          .delete()
+          .eq('id', wishlistItem.id)
+          .eq('user_id', user.id);
+          
+        if (removeError) throw removeError;
+        
+        setIsInWishlist(false);
+        toast({
+          title: "Removed from wishlist",
+          description: `${pname} has been removed from your wishlist`,
+        });
+      } else {
+        // Add to wishlist
+        const { error: addError } = await supabase
+          .from('wishlist')
+          .insert({
+            user_id: user.id,
+            service_id: prodid
+          });
+          
+        if (addError) throw addError;
+        
+        setIsInWishlist(true);
+        toast({
+          title: "Added to wishlist",
+          description: `${pname} has been added to your wishlist`,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem updating your wishlist",
+        variant: "destructive"
+      });
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
   
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md">
@@ -89,13 +195,27 @@ const ServiceCard = ({ service, onClick }: ServiceCardProps) => {
             )}
           </div>
           
-          <div className="mt-4">
+          <div className="mt-4 flex gap-2">
             <ButtonCustom 
               variant="primary-outline" 
-              className="w-full"
+              className="flex-1"
               onClick={onClick}
             >
               View Details
+            </ButtonCustom>
+            
+            <ButtonCustom
+              variant="outline"
+              className={`w-10 flex items-center justify-center ${
+                isInWishlist ? 'border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600' : ''
+              }`}
+              onClick={handleWishlistToggle}
+              disabled={wishlistLoading}
+            >
+              <Heart 
+                className={`${isInWishlist ? 'fill-rose-500' : ''} ${wishlistLoading ? 'animate-pulse' : ''}`} 
+                size={18} 
+              />
             </ButtonCustom>
           </div>
         </div>
