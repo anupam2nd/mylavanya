@@ -31,6 +31,8 @@ import WishlistController from "./pages/admin/WishlistController";
 import ControllerDashboard from "./pages/controller/ControllerDashboard";
 import ControllerBookings from "./pages/controller/ControllerBookings";
 import ArtistActivity from "./pages/controller/ArtistActivity";
+import AdminFaqs from "./pages/admin/AdminFaqs";
+import AdminMembers from "./pages/admin/AdminMembers";
 
 // Log to confirm App is being loaded
 console.log("App component rendering");
@@ -82,6 +84,8 @@ const App = () => (
             <Route path="/admin/status" element={<AdminStatus />} />
             <Route path="/admin/artists" element={<AdminArtists />} />
             <Route path="/admin/wishlist" element={<WishlistController />} />
+            <Route path="/admin/faqs" element={<AdminFaqs />} />
+            <Route path="/admin/members" element={<AdminMembers />} />
             
             {/* Controller Routes */}
             <Route path="/controller/dashboard" element={<ControllerDashboard />} />

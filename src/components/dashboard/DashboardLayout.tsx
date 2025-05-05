@@ -1,7 +1,6 @@
-
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, User, Settings, Home, Calendar, Heart, Package, Paintbrush, Users as UsersIcon, ListChecks, Activity } from "lucide-react";
+import { Menu, X, LogOut, User, Settings, Home, Calendar, Heart, Package, Paintbrush, Users as UsersIcon, ListChecks, Activity, HelpCircle, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
@@ -167,7 +166,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                 </>
               )}
 
-              {/* Removed controller from this section - only superadmin can see Users and Status Management now */}
+              {/* Added new section for SuperAdmin table management */}
               {isSuperAdmin && (
                 <>
                   <Link to="/admin/users"
@@ -180,6 +179,19 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                     className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
                     <ListChecks className="w-5 h-5 mr-3" />
                     <span>Status Management</span>
+                  </Link>
+                  
+                  {/* New links for FAQ and Member management */}
+                  <Link to="/admin/faqs"
+                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                    <HelpCircle className="w-5 h-5 mr-3" />
+                    <span>FAQ Management</span>
+                  </Link>
+                  
+                  <Link to="/admin/members"
+                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                    <UserPlus className="w-5 h-5 mr-3" />
+                    <span>Member Management</span>
                   </Link>
                 </>
               )}
