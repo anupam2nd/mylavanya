@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -428,6 +427,35 @@ const AdminServices = () => {
     }
   };
 
+  // Add a function to get the next available prod_id
+  const getNextProdId = async () => {
+    try {
+      // Get the maximum prod_id value from the PriceMST table
+      const { data, error } = await supabase
+        .from('PriceMST')
+        .select('prod_id')
+        .order('prod_id', { ascending: false })
+        .limit(1);
+      
+      if (error) {
+        console.error('Error fetching max prod_id:', error);
+        throw error;
+      }
+      
+      // If there are no records, start with 1, otherwise increment the max value
+      let nextId = 1;
+      if (data && data.length > 0) {
+        nextId = data[0].prod_id + 1;
+      }
+      
+      console.log("Next available prod_id:", nextId);
+      return nextId;
+    } catch (error) {
+      console.error('Error calculating next prod_id:', error);
+      throw error;
+    }
+  };
+
   const handleSave = async () => {
     try {
       console.log("Save initiated. Checking authentication...");
@@ -516,6 +544,7 @@ const AdminServices = () => {
         }
       }
 
+      // Prepare service data (without prod_id for now)
       const serviceData = {
         Services: serviceName,
         Subservice: subService || null,
@@ -533,9 +562,20 @@ const AdminServices = () => {
       console.log("Saving service data:", serviceData);
 
       if (isNewService) {
+        // Get next available prod_id before inserting
+        const nextProdId = await getNextProdId();
+        
+        // Add the prod_id to the service data
+        const serviceDataWithId = {
+          ...serviceData,
+          prod_id: nextProdId
+        };
+
+        console.log("Inserting new service with prod_id:", nextProdId);
+        
         const { data, error } = await supabase
           .from('PriceMST')
-          .insert([serviceData])
+          .insert([serviceDataWithId])
           .select();
 
         if (error) {
