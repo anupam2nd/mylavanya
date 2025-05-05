@@ -1,8 +1,7 @@
-
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader, Heart } from "lucide-react";
+import { Loader, Heart, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ExportButton } from "@/components/ui/export-button";
@@ -10,6 +9,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Badge } from "@/components/ui/badge";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { format } from "date-fns";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 interface WishlistItem {
   id: number;
@@ -21,6 +21,7 @@ interface WishlistItem {
   service_category: string;
   customer_name: string;
   product_created_at: string;
+  customer_email?: string;
 }
 
 interface ExportItem {
@@ -30,9 +31,18 @@ interface ExportItem {
   service_price: number;
 }
 
+interface ChartData {
+  name: string;
+  value: number;
+}
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
+
 const WishlistController = () => {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [totalWishlists, setTotalWishlists] = useState(0);
 
   useEffect(() => {
     const fetchAllWishlist = async () => {
@@ -83,27 +93,71 @@ const WishlistController = () => {
                 service_price: item.PriceMST.Price,
                 service_category: item.PriceMST.Category,
                 product_created_at: item.PriceMST.created_at,
-                customer_name: `${memberData.MemberFirstName || ''} ${memberData.MemberLastName || ''}`.trim() || 'Unknown'
+                customer_name: `${memberData.MemberFirstName || ''} ${memberData.MemberLastName || ''}`.trim() || 'Unknown',
+                customer_email: memberData.MemberEmailId
               };
             } else {
-              // If no member found, return with unknown customer name
-              return {
-                id: item.id,
-                service_id: item.service_id,
-                user_id: item.user_id,
-                created_at: item.created_at,
-                service_name: item.PriceMST.ProductName,
-                service_price: item.PriceMST.Price,
-                service_category: item.PriceMST.Category,
-                product_created_at: item.PriceMST.created_at,
-                customer_name: 'Unknown'
-              };
+              // If no member found, try to get user information from UserMST
+              const { data: userData } = await supabase
+                .from('UserMST')
+                .select('FirstName, LastName, email')
+                .eq('uuid', item.user_id)
+                .single();
+                
+              if (userData) {
+                return {
+                  id: item.id,
+                  service_id: item.service_id,
+                  user_id: item.user_id,
+                  created_at: item.created_at,
+                  service_name: item.PriceMST.ProductName,
+                  service_price: item.PriceMST.Price,
+                  service_category: item.PriceMST.Category,
+                  product_created_at: item.PriceMST.created_at,
+                  customer_name: `${userData.FirstName || ''} ${userData.LastName || ''}`.trim() || 'Unknown',
+                  customer_email: userData.email
+                };
+              } else {
+                // If still no user found, return with unknown customer name but keep the email
+                return {
+                  id: item.id,
+                  service_id: item.service_id,
+                  user_id: item.user_id,
+                  created_at: item.created_at,
+                  service_name: item.PriceMST.ProductName,
+                  service_price: item.PriceMST.Price,
+                  service_category: item.PriceMST.Category,
+                  product_created_at: item.PriceMST.created_at,
+                  customer_name: item.user_id.includes('@') ? item.user_id : 'Unknown',
+                  customer_email: item.user_id.includes('@') ? item.user_id : undefined
+                };
+              }
             }
           })
         );
         
         console.log("Wishlist data processed:", enhancedData);
         setWishlistItems(enhancedData);
+        setTotalWishlists(enhancedData.length);
+        
+        // Prepare chart data - group by product name and count occurrences
+        const productCounts: Record<string, number> = {};
+        enhancedData.forEach(item => {
+          if (productCounts[item.service_name]) {
+            productCounts[item.service_name]++;
+          } else {
+            productCounts[item.service_name] = 1;
+          }
+        });
+        
+        // Convert to chart data format
+        const chartDataArray = Object.entries(productCounts).map(([name, count]) => ({
+          name,
+          value: count
+        }));
+        
+        setChartData(chartDataArray);
+        
       } catch (error) {
         console.error("Error fetching wishlist:", error);
         toast({
@@ -135,10 +189,68 @@ const WishlistController = () => {
     service_price: 'Price'
   };
 
+  const renderLabel = ({ name, value, percent }: { name: string; value: number; percent: number }) => {
+    return `${name}: ${(percent * 100).toFixed(0)}%`;
+  };
+
   return (
     <ProtectedRoute allowedRoles={['admin', 'superadmin', 'controller']}>
-      <DashboardLayout title="Wishlist Controller">
-        <Card>
+      <DashboardLayout title="Customer Wishlist Details">
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Total Wishlist Items Card */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Wishlist Items</CardTitle>
+              <Heart className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalWishlists}</div>
+              <p className="text-xs text-muted-foreground">
+                Total items saved by customers
+              </p>
+            </CardContent>
+          </Card>
+          
+          {/* Demographic Chart Card */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Product Popularity</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="h-[200px]">
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={chartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={renderLabel}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [`${value} items`, 'Count']} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground">No wishlist data available</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      
+        <Card className="mt-4">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Customer Wishlists</CardTitle>
             <ExportButton
@@ -177,7 +289,11 @@ const WishlistController = () => {
                 <TableBody>
                   {wishlistItems.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.customer_name}</TableCell>
+                      <TableCell className="font-medium">
+                        {item.customer_name && item.customer_name !== 'Unknown' 
+                          ? item.customer_name 
+                          : (item.customer_email || 'Unknown')}
+                      </TableCell>
                       <TableCell>{item.service_name}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{item.service_category || 'Uncategorized'}</Badge>
