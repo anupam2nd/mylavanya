@@ -23,6 +23,7 @@ export default function About() {
         const { data, error } = await supabase
           .from('FaqMST')
           .select('id, question, answer')
+          .eq('active', true) // Only fetch active FAQs
           .order('id', { ascending: true });
         
         if (error) {
