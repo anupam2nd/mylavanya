@@ -14,17 +14,18 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Only redirect admin, superadmin, or artist roles to their dashboards
   useEffect(() => {
     if (user) {
-      // Only redirect admin, superadmin, or artist roles
-      if (user.role === 'superadmin' || user.role === 'admin' || user.role === 'artist') {
+      // Redirect admin, superadmin, controller, or artist roles to their dashboards
+      if (user.role === 'superadmin' || user.role === 'admin' || user.role === 'artist' || user.role === 'controller') {
         let redirectPath = '/user/dashboard';
         
         if (user.role === 'superadmin') {
           redirectPath = '/admin/status';
         } else if (user.role === 'admin') {
           redirectPath = '/admin/dashboard';
+        } else if (user.role === 'controller') {
+          redirectPath = '/controller/dashboard'; // Fixed redirection for controllers
         } else if (user.role === 'artist') {
           redirectPath = '/artist/dashboard';
         }

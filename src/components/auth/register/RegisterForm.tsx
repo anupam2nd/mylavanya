@@ -7,12 +7,14 @@ import AddressFields from "./AddressFields";
 import DateOfBirthField from "./DateOfBirthField";
 import PasswordFields from "./PasswordFields";
 import { useRegisterForm } from "./useRegisterForm";
+import { Button } from "@/components/ui/button";
 
 interface RegisterFormProps {
   onSuccess: (email: string, password: string) => void;
+  onSignInClick: () => void;
 }
 
-export default function RegisterForm({ onSuccess }: RegisterFormProps) {
+export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
   const { form, isLoading, handleRegister } = useRegisterForm({ onSuccess });
   
   return (
@@ -32,6 +34,19 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         >
           {isLoading ? "Creating Account..." : "Create Account"}
         </ButtonCustom>
+        
+        <div className="mt-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Button 
+              variant="link" 
+              className="p-0 h-auto text-primary"
+              onClick={onSignInClick}
+            >
+              Sign in
+            </Button>
+          </p>
+        </div>
       </form>
     </Form>
   );

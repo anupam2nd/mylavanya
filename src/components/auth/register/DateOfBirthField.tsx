@@ -9,19 +9,112 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { UseFormReturn } from "react-hook-form";
 import { RegisterFormValues } from "./RegisterFormSchema";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface DateOfBirthFieldProps {
   form: UseFormReturn<RegisterFormValues>;
 }
 
 export default function DateOfBirthField({ form }: DateOfBirthFieldProps) {
+  const [month, setMonth] = useState<number | undefined>(undefined);
+  const [year, setYear] = useState<number | undefined>(undefined);
+  
+  // Get years starting from 7 years ago
+  const currentYear = new Date().getFullYear();
+  const minYear = currentYear - 100; // Allow up to 100 years back
+  const maxYear = currentYear - 7; // Must be at least 7 years old
+  
+  const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => maxYear - i);
+  const months = [
+    { value: 0, label: "January" },
+    { value: 1, label: "February" },
+    { value: 2, label: "March" },
+    { value: 3, label: "April" },
+    { value: 4, label: "May" },
+    { value: 5, label: "June" },
+    { value: 6, label: "July" },
+    { value: 7, label: "August" },
+    { value: 8, label: "September" },
+    { value: 9, label: "October" },
+    { value: 10, label: "November" },
+    { value: 11, label: "December" },
+  ];
+
+  // Handle manual month and year selection
+  const handleYearChange = (selectedYear: string) => {
+    setYear(parseInt(selectedYear, 10));
+    
+    // If both month and year are selected, update the date
+    if (month !== undefined) {
+      const newDate = new Date(parseInt(selectedYear, 10), month, 1);
+      form.setValue("dob", newDate);
+    }
+  };
+
+  const handleMonthChange = (selectedMonth: string) => {
+    const monthValue = parseInt(selectedMonth, 10);
+    setMonth(monthValue);
+    
+    // If both month and year are selected, update the date
+    if (year !== undefined) {
+      const newDate = new Date(year, monthValue, 1);
+      form.setValue("dob", newDate);
+    }
+  };
+
+  // When a date is selected from calendar, update the month and year states
+  const handleCalendarSelect = (date: Date | undefined) => {
+    if (date) {
+      setMonth(date.getMonth());
+      setYear(date.getFullYear());
+    }
+  };
+
   return (
     <FormField
       control={form.control}
       name="dob"
       render={({ field }) => (
         <FormItem className="flex flex-col">
-          <FormLabel>Date of Birth</FormLabel>
+          <FormLabel>Date of Birth (must be at least 7 years old)</FormLabel>
+          
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <div>
+              <Select
+                onValueChange={handleMonthChange}
+                value={month !== undefined ? month.toString() : undefined}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Month" />
+                </SelectTrigger>
+                <SelectContent position="popper" className="overflow-y-auto max-h-[200px] z-50">
+                  {months.map((m) => (
+                    <SelectItem key={m.value} value={m.value.toString()}>
+                      {m.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Select
+                onValueChange={handleYearChange}
+                value={year !== undefined ? year.toString() : undefined}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent position="popper" className="overflow-y-auto max-h-[200px] z-50">
+                  {years.map((y) => (
+                    <SelectItem key={y} value={y.toString()}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
@@ -45,7 +138,10 @@ export default function DateOfBirthField({ form }: DateOfBirthFieldProps) {
               <Calendar
                 mode="single"
                 selected={field.value}
-                onSelect={field.onChange}
+                onSelect={(date) => {
+                  field.onChange(date);
+                  handleCalendarSelect(date);
+                }}
                 disabled={(date) => {
                   // Disable dates less than 7 years ago
                   const today = new Date();

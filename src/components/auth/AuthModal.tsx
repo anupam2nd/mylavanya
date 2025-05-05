@@ -41,6 +41,10 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
     }
     onClose();
   };
+
+  const toggleForm = () => {
+    setShowRegister(!showRegister);
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -62,6 +66,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
                 // We don't auto-login here, just show the login form again
                 toast.success("Registration successful! Please sign in with your new account.");
               }} 
+              onSignInClick={toggleForm}
             />
           ) : defaultTab === "artist" ? (
             <ArtistLoginForm />
@@ -76,7 +81,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
                   <Button 
                     variant="link" 
                     className="p-0 h-auto text-primary"
-                    onClick={() => setShowRegister(true)}
+                    onClick={toggleForm}
                   >
                     Register now
                   </Button>
