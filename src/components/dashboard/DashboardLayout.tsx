@@ -1,3 +1,4 @@
+
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, LogOut, User, Settings, Home, Calendar, Heart, Package, Paintbrush, Users as UsersIcon, ListChecks, Activity, HelpCircle, UserPlus } from "lucide-react";
@@ -127,6 +128,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                 <span>Bookings</span>
               </Link>
 
+              {/* Admin and SuperAdmin sections */}
               {(isAdmin || isSuperAdmin) && (
                 <>
                   <Link to="/admin/services"
@@ -145,6 +147,13 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                     className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
                     <Heart className="w-5 h-5 mr-3" />
                     <span>Customer Wishlists</span>
+                  </Link>
+
+                  {/* Add Artist Activity link for admin and superadmin users */}
+                  <Link to="/admin/artist-activity"
+                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                    <Activity className="w-5 h-5 mr-3" />
+                    <span>Artist Activity</span>
                   </Link>
                 </>
               )}
