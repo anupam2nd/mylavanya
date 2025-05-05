@@ -75,6 +75,13 @@ const AdminFaqs = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
+  // Get the next available ID for a new FAQ
+  const getNextAvailableId = () => {
+    if (faqs.length === 0) return 1;
+    const maxId = Math.max(...faqs.map(faq => faq.id));
+    return maxId + 1;
+  };
+  
   // Create new FAQ
   const handleCreateFaq = async () => {
     if (!formData.question || !formData.answer) {
@@ -87,15 +94,22 @@ const AdminFaqs = () => {
     }
     
     try {
+      // Get the next available ID
+      const nextId = getNextAvailableId();
+      
       const { data, error } = await supabase
         .from('FaqMST')
         .insert([{ 
+          id: nextId,
           question: formData.question,
           answer: formData.answer
         }])
         .select();
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating FAQ:', error);
+        throw error;
+      }
       
       if (data) {
         setFaqs([...faqs, data[0]]);

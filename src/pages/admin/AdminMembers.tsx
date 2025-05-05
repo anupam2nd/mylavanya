@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { Pencil, Trash, AlertTriangle } from "lucide-react";
+import { Pencil, Trash, AlertTriangle, Plus } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -37,7 +37,16 @@ const AdminMembers = () => {
   const [loading, setLoading] = useState(true);
   const [editingMember, setEditingMember] = useState<MemberItem | null>(null);
   const [deletingMember, setDeletingMember] = useState<MemberItem | null>(null);
-  const [formData, setFormData] = useState<Partial<MemberItem>>({});
+  const [isCreating, setIsCreating] = useState(false);
+  const [formData, setFormData] = useState<Partial<MemberItem>>({
+    MemberFirstName: '',
+    MemberLastName: '',
+    MemberEmailId: '',
+    MemberPhNo: '',
+    MemberAdress: '',
+    MemberPincode: '',
+    MemberStatus: true
+  });
   const { toast } = useToast();
   
   // Fetch members data
@@ -70,10 +79,81 @@ const AdminMembers = () => {
     fetchMembers();
   }, [toast]);
   
+  // Get the next available ID for a new member
+  const getNextAvailableId = () => {
+    if (members.length === 0) return 1;
+    const maxId = Math.max(...members.map(member => member.id));
+    return maxId + 1;
+  };
+  
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Open create dialog
+  const openCreateDialog = () => {
+    setFormData({
+      MemberFirstName: '',
+      MemberLastName: '',
+      MemberEmailId: '',
+      MemberPhNo: '',
+      MemberAdress: '',
+      MemberPincode: '',
+      MemberStatus: true
+    });
+    setIsCreating(true);
+  };
+  
+  // Create new member
+  const handleCreateMember = async () => {
+    if (!formData.MemberFirstName || !formData.MemberLastName || !formData.MemberEmailId) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all required fields (First Name, Last Name, Email).",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      // Get the next available ID
+      const nextId = getNextAvailableId();
+      
+      const { data, error } = await supabase
+        .from('MemberMST')
+        .insert([{
+          id: nextId,
+          MemberFirstName: formData.MemberFirstName,
+          MemberLastName: formData.MemberLastName, 
+          MemberEmailId: formData.MemberEmailId,
+          MemberPhNo: formData.MemberPhNo || '',
+          MemberAdress: formData.MemberAdress || '',
+          MemberPincode: formData.MemberPincode || '',
+          MemberStatus: formData.MemberStatus
+        }])
+        .select();
+      
+      if (error) throw error;
+      
+      if (data) {
+        setMembers([...members, data[0]]);
+      }
+      
+      setIsCreating(false);
+      toast({
+        title: "Member created",
+        description: "New member has been added successfully."
+      });
+    } catch (error) {
+      console.error('Error creating member:', error);
+      toast({
+        title: "Error creating member",
+        description: "There was a problem adding the new member.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle status toggle
@@ -185,7 +265,13 @@ const AdminMembers = () => {
     <ProtectedRoute allowedRoles={["superadmin"]}>
       <DashboardLayout title="Member Management">
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold">Manage Members</h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold">Manage Members</h2>
+            <Button onClick={openCreateDialog}>
+              <Plus className="h-4 w-4 mr-1" />
+              Add Member
+            </Button>
+          </div>
           
           <Card>
             <CardContent className="p-6">
@@ -252,6 +338,96 @@ const AdminMembers = () => {
             </CardContent>
           </Card>
         </div>
+        
+        {/* Create Member Dialog */}
+        <Dialog open={isCreating} onOpenChange={setIsCreating}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add New Member</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="MemberFirstName">First Name *</Label>
+                  <Input
+                    id="MemberFirstName"
+                    name="MemberFirstName"
+                    value={formData.MemberFirstName || ''}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="MemberLastName">Last Name *</Label>
+                  <Input
+                    id="MemberLastName"
+                    name="MemberLastName"
+                    value={formData.MemberLastName || ''}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="MemberEmailId">Email *</Label>
+                <Input
+                  id="MemberEmailId"
+                  name="MemberEmailId"
+                  type="email"
+                  value={formData.MemberEmailId || ''}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="MemberPhNo">Phone Number</Label>
+                <Input
+                  id="MemberPhNo"
+                  name="MemberPhNo"
+                  value={formData.MemberPhNo || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="MemberAdress">Address</Label>
+                <Input
+                  id="MemberAdress"
+                  name="MemberAdress"
+                  value={formData.MemberAdress || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="MemberPincode">Pincode</Label>
+                <Input
+                  id="MemberPincode"
+                  name="MemberPincode"
+                  value={formData.MemberPincode || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="MemberStatus" 
+                  checked={formData.MemberStatus}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, MemberStatus: !!checked }))}
+                />
+                <Label htmlFor="MemberStatus">Active</Label>
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button onClick={handleCreateMember}>Create Member</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         
         {/* Edit Member Dialog */}
         {editingMember && (
