@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 
 interface LoginCredentials {
@@ -25,7 +25,7 @@ export function useLogin() {
       
       const { data, error } = await supabase
         .from('UserMST')
-        .select('id, Username, role')
+        .select('id, Username, role, FirstName, LastName')
         .ilike('Username', normalizedEmail)
         .eq('password', password)
         .maybeSingle();
@@ -41,15 +41,31 @@ export function useLogin() {
         throw new Error('Invalid credentials');
       }
       
+      // Create a session for this user in Supabase for JWT-based auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password: password
+      }).catch(error => {
+        console.log("Auth sign-in failed, using custom auth only:", error);
+        return { data: null, error };
+      });
+      
+      if (authData?.session) {
+        console.log("Supabase auth session established:", authData.session.user.id);
+      } else {
+        console.log("Using custom auth only, no Supabase session");
+      }
+      
       // Login using the context function
       login({
         id: data.id.toString(),
         email: data.Username,
-        role: data.role
+        role: data.role,
+        firstName: data.FirstName,
+        lastName: data.LastName
       });
       
-      toast({
-        title: "Login successful",
+      toast.success("Login successful", {
         description: `Welcome back! You are now logged in as ${data.role}.`,
       });
       
@@ -59,7 +75,7 @@ export function useLogin() {
       } else if (data.role === 'admin') {
         navigate('/admin/dashboard');
       } else if (data.role === 'controller') {
-        navigate('/controller/dashboard'); // Fixed to redirect controllers directly to controller dashboard
+        navigate('/controller/dashboard');
       } else if (data.role === 'artist') {
         navigate('/artist/dashboard');
       } else {
@@ -69,9 +85,7 @@ export function useLogin() {
       return true;
     } catch (error) {
       console.error('Login error:', error);
-      toast({
-        variant: "destructive",
-        title: "Login failed",
+      toast.error("Login failed", {
         description: "Invalid email or password. Please try again.",
       });
       return false;

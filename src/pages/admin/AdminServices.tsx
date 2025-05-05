@@ -432,14 +432,17 @@ const AdminServices = () => {
     try {
       console.log("Save initiated. Checking authentication...");
       
-      // Verify authentication
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        console.error("Authentication error:", sessionError);
-        throw new Error("You must be logged in to save services");
+      // Use the current user from context instead of checking the session directly
+      if (!user || !user.id) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to save services. Please log in again.",
+          variant: "destructive"
+        });
+        throw new Error("Authentication required");
       }
       
-      console.log("Authentication verified:", session.user.id);
+      console.log("Authentication verified with user:", user);
       
       const priceValue = parseFloat(servicePrice);
       const discountValue = parseFloat(discount) || 0;
@@ -451,7 +454,7 @@ const AdminServices = () => {
 
       const productName = generateProductName();
       
-      // Check if the ProductName already exists (for new services or when changing existing service details)
+      // Check if the ProductName already exists
       if (productName) {
         const { data, error } = await supabase
           .from('PriceMST')
@@ -471,10 +474,38 @@ const AdminServices = () => {
       // Upload image if provided
       let imageUrl = currentService?.imageUrl || null;
       if (imageFile) {
-        console.log("Uploading image...");
+        console.log("Uploading image with authenticated user:", user.id);
         try {
-          imageUrl = await uploadImageToStorage(imageFile);
-          console.log("Image upload successful:", imageUrl);
+          // Force fetch auth session to ensure token freshness
+          const { data: sessionData } = await supabase.auth.getSession();
+          console.log("Current session status:", sessionData.session ? "Active" : "Not active");
+          
+          // Use the actual client-side authentication
+          const fileExt = imageFile.name.split('.').pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+          
+          console.log("Attempting to upload file:", fileName, "to bucket: service-images");
+          
+          const { error: uploadError, data } = await supabase.storage
+            .from('service-images')
+            .upload(fileName, imageFile, {
+              cacheControl: '3600',
+              upsert: false
+            });
+            
+          if (uploadError) {
+            console.error('Storage upload error:', uploadError);
+            throw uploadError;
+          }
+          
+          console.log("Upload successful:", data);
+          
+          const { data: urlData } = supabase.storage
+            .from('service-images')
+            .getPublicUrl(fileName);
+            
+          console.log("Public URL generated:", urlData.publicUrl);
+          imageUrl = urlData.publicUrl;
         } catch (uploadError) {
           console.error("Image upload failed:", uploadError);
           toast({

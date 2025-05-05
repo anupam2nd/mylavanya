@@ -19,11 +19,12 @@ export interface ButtonCustomProps
 }
 
 const ButtonCustom = React.forwardRef<HTMLButtonElement, ButtonCustomProps>(
-  ({ className, children, variant = "default", size = "md", isLoading, disabled, ...props }, ref) => {
+  ({ className, children, variant = "default", size = "md", isLoading, disabled, type = "button", ...props }, ref) => {
     const isDisabled = isLoading || disabled;
     
     return (
       <button
+        type={type}
         className={cn(
           "inline-flex items-center justify-center whitespace-nowrap rounded-full font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
           {
