@@ -157,6 +157,23 @@ const ServiceCard = ({ service, onClick }: ServiceCardProps) => {
             <Image className="h-12 w-12 text-gray-300" />
           </div>
         )}
+        
+        {/* Wishlist button as a floating button on the image */}
+        <button
+          onClick={handleWishlistToggle}
+          disabled={wishlistLoading}
+          className={`absolute top-2 right-2 p-2 rounded-full shadow-md ${
+            isInWishlist 
+              ? 'bg-rose-500 text-white hover:bg-rose-600' 
+              : 'bg-white text-gray-600 hover:bg-gray-100'
+          } transition-all duration-300 z-10`}
+          aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          <Heart 
+            className={`${isInWishlist ? 'fill-white' : ''} ${wishlistLoading ? 'animate-pulse' : ''}`} 
+            size={20} 
+          />
+        </button>
       </div>
       
       <CardContent className="p-4">
@@ -195,27 +212,13 @@ const ServiceCard = ({ service, onClick }: ServiceCardProps) => {
             )}
           </div>
           
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4">
             <ButtonCustom 
               variant="primary-gradient" 
-              className="flex-1"
+              className="w-full"
               onClick={onClick}
             >
               Book Now
-            </ButtonCustom>
-            
-            <ButtonCustom
-              variant="outline"
-              className={`w-10 flex items-center justify-center ${
-                isInWishlist ? 'border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600' : ''
-              }`}
-              onClick={handleWishlistToggle}
-              disabled={wishlistLoading}
-            >
-              <Heart 
-                className={`${isInWishlist ? 'fill-rose-500' : ''} ${wishlistLoading ? 'animate-pulse' : ''}`} 
-                size={18} 
-              />
             </ButtonCustom>
           </div>
         </div>
