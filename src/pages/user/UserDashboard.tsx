@@ -10,9 +10,16 @@ import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import { Booking } from "@/hooks/useBookings";
 import { toast } from "sonner";
 import RevenuePieChart from "@/components/user/RevenuePieChart";
+import { Navigate } from "react-router-dom";
 
 const UserDashboard = () => {
   const { user } = useAuth();
+  
+  // Redirect controller users to admin dashboard
+  if (user?.role === 'controller') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
