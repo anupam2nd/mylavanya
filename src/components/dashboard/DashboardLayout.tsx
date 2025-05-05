@@ -1,9 +1,10 @@
 
 import { ReactNode, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, User, Settings, Home, Calendar, Heart, Package, Paintbrush, Users as UsersIcon, ListChecks, Activity, HelpCircle, UserPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import Sidebar from "./Sidebar";
+import HeaderBar from "./HeaderBar";
+import AdminNav from "./AdminNav";
+import MemberNav from "./MemberNav";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -13,7 +14,6 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const handleResize = () => {
@@ -34,225 +34,29 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   const isSuperAdmin = user?.role === 'superadmin';
   const isMember = user?.role === 'member';
   const isController = user?.role === 'controller';
-  const isArtist = user?.role === 'artist';
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-white border-r border-gray-200 shadow-lg transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex items-center justify-between h-16 px-6 border-b">
-          <Link to="/" className="flex items-center">
-            <span className="text-xl font-serif font-bold"><span className="text-primary">Lavanya</span></span>
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-          >
-            <X size={20} />
-          </Button>
-        </div>
-        <nav className="p-4 space-y-1">
-          {isMember ? (
-            <>
-              <Link to="/"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Home className="w-5 h-5 mr-3" />
-                <span>Home</span>
-              </Link>
-              
-              <Link to="/user/bookings"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Calendar className="w-5 h-5 mr-3" />
-                <span>My Bookings</span>
-              </Link>
-              
-              <Link to="/services"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Package className="w-5 h-5 mr-3" />
-                <span>Services</span>
-              </Link>
-              
-              <Link to="/wishlist"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Heart className="w-5 h-5 mr-3" />
-                <span>Wishlist</span>
-              </Link>
-              
-              <div className="pt-4 mt-4 border-t border-gray-200">
-                <Link to="/profile"
-                  className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                  <User className="w-5 h-5 mr-3" />
-                  <span>Profile</span>
-                </Link>
-                <Link to="/settings"
-                  className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                  <Settings className="w-5 h-5 mr-3" />
-                  <span>Settings</span>
-                </Link>
-                <button
-                  onClick={logout}
-                  className="flex items-center w-full px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100"
-                >
-                  <LogOut className="w-5 h-5 mr-3" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Dashboard link for different user types */}
-              <Link to={
-                isAdmin ? "/admin/dashboard" : 
-                isController ? "/controller/dashboard" : 
-                isArtist ? "/artist/dashboard" : 
-                "/user/dashboard"
-              } 
-                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Home className="w-5 h-5 mr-3" />
-                <span>Dashboard</span>
-              </Link>
-
-              {/* Bookings link for different user types */}
-              <Link to={
-                isAdmin ? "/admin/bookings" : 
-                isController ? "/controller/bookings" : 
-                "/user/bookings"
-              }
-                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Calendar className="w-5 h-5 mr-3" />
-                <span>Bookings</span>
-              </Link>
-
-              {/* Admin and SuperAdmin sections */}
-              {(isAdmin || isSuperAdmin) && (
-                <>
-                  <Link to="/admin/services"
-                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                    <Package className="w-5 h-5 mr-3" />
-                    <span>Services</span>
-                  </Link>
-                  
-                  <Link to="/admin/artists"
-                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                    <Paintbrush className="w-5 h-5 mr-3" />
-                    <span>Artists</span>
-                  </Link>
-                  
-                  <Link to="/admin/wishlist"
-                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                    <Heart className="w-5 h-5 mr-3" />
-                    <span>Customer Wishlists</span>
-                  </Link>
-
-                  {/* Add Artist Activity link for admin and superadmin users */}
-                  <Link to="/admin/artist-activity"
-                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                    <Activity className="w-5 h-5 mr-3" />
-                    <span>Artist Activity</span>
-                  </Link>
-                </>
-              )}
-
-              {/* Controller users get Artist Activity and Wishlist options */}
-              {isController && (
-                <>
-                  <Link to="/controller/artist-activity"
-                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                    <Activity className="w-5 h-5 mr-3" />
-                    <span>Artist Activity</span>
-                  </Link>
-                  
-                  <Link to="/admin/wishlist"
-                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                    <Heart className="w-5 h-5 mr-3" />
-                    <span>Customer Wishlists</span>
-                  </Link>
-                </>
-              )}
-
-              {/* Added new section for SuperAdmin table management */}
-              {isSuperAdmin && (
-                <>
-                  <Link to="/admin/users"
-                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                    <UsersIcon className="w-5 h-5 mr-3" />
-                    <span>Users</span>
-                  </Link>
-                  
-                  <Link to="/admin/status"
-                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                    <ListChecks className="w-5 h-5 mr-3" />
-                    <span>Status Management</span>
-                  </Link>
-                  
-                  {/* New links for FAQ and Member management */}
-                  <Link to="/admin/faqs"
-                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                    <HelpCircle className="w-5 h-5 mr-3" />
-                    <span>FAQ Management</span>
-                  </Link>
-                  
-                  <Link to="/admin/members"
-                    className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                    <UserPlus className="w-5 h-5 mr-3" />
-                    <span>Member Management</span>
-                  </Link>
-                </>
-              )}
-
-              <div className="pt-4 mt-4 border-t border-gray-200">
-                <Link to="/profile"
-                  className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                  <User className="w-5 h-5 mr-3" />
-                  <span>Profile</span>
-                </Link>
-                <Link to="/settings"
-                  className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                  <Settings className="w-5 h-5 mr-3" />
-                  <span>Settings</span>
-                </Link>
-                <button
-                  onClick={logout}
-                  className="flex items-center w-full px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100"
-                >
-                  <LogOut className="w-5 h-5 mr-3" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            </>
-          )}
-        </nav>
-      </aside>
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)}>
+        {isMember ? (
+          <MemberNav logout={logout} />
+        ) : (
+          <AdminNav 
+            isAdmin={isAdmin} 
+            isSuperAdmin={isSuperAdmin} 
+            isController={isController} 
+            logout={logout} 
+          />
+        )}
+      </Sidebar>
 
       <div className="flex flex-col flex-1 overflow-hidden">
-        <header className="bg-white shadow-sm z-10">
-          <div className="px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="mr-4 lg:hidden"
-                onClick={() => setIsSidebarOpen(true)}
-              >
-                <Menu size={20} />
-              </Button>
-              <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
-            </div>
-            <div className="flex items-center">
-              <span className="text-sm font-medium text-gray-900 mr-2">
-                {user?.email}
-              </span>
-              <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                {user?.role}
-              </span>
-            </div>
-          </div>
-        </header>
+        <HeaderBar 
+          title={title} 
+          userEmail={user?.email}
+          userRole={user?.role}
+          onOpenSidebar={() => setIsSidebarOpen(true)}
+        />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-gray-50">
           {children}
