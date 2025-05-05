@@ -9,7 +9,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Badge } from "@/components/ui/badge";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { format } from "date-fns";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import WishlistProductChart from "@/components/charts/WishlistProductChart";
 
 interface WishlistItem {
   id: number;
@@ -35,8 +35,6 @@ interface ChartData {
   name: string;
   value: number;
 }
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
 
 const WishlistController = () => {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
@@ -98,9 +96,10 @@ const WishlistController = () => {
               };
             } else {
               // If no member found, try to get user information from UserMST
+              // Fix: Use Username instead of email column
               const { data: userData } = await supabase
                 .from('UserMST')
-                .select('FirstName, LastName, email')
+                .select('FirstName, LastName, Username')
                 .eq('uuid', item.user_id)
                 .single();
                 
@@ -115,7 +114,7 @@ const WishlistController = () => {
                   service_category: item.PriceMST.Category,
                   product_created_at: item.PriceMST.created_at,
                   customer_name: `${userData.FirstName || ''} ${userData.LastName || ''}`.trim() || 'Unknown',
-                  customer_email: userData.email
+                  customer_email: userData.Username // Fix: Use Username instead of email
                 };
               } else {
                 // If still no user found, return with unknown customer name but keep the email
@@ -189,10 +188,6 @@ const WishlistController = () => {
     service_price: 'Price'
   };
 
-  const renderLabel = ({ name, value, percent }: { name: string; value: number; percent: number }) => {
-    return `${name}: ${(percent * 100).toFixed(0)}%`;
-  };
-
   return (
     <ProtectedRoute allowedRoles={['admin', 'superadmin', 'controller']}>
       <DashboardLayout title="Customer Wishlist Details">
@@ -211,7 +206,7 @@ const WishlistController = () => {
             </CardContent>
           </Card>
           
-          {/* Demographic Chart Card */}
+          {/* Product Popularity Chart Card */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Product Popularity</CardTitle>
@@ -219,32 +214,7 @@ const WishlistController = () => {
             </CardHeader>
             <CardContent>
               <div className="h-[200px]">
-                {chartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={chartData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={renderLabel}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {chartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [`${value} items`, 'Count']} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-muted-foreground">No wishlist data available</p>
-                  </div>
-                )}
+                <WishlistProductChart data={chartData} />
               </div>
             </CardContent>
           </Card>
