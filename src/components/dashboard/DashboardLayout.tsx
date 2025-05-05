@@ -1,4 +1,3 @@
-
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, LogOut, User, Settings, Home, Calendar, Heart, Package, Paintbrush, Users as UsersIcon, ListChecks } from "lucide-react";
@@ -112,13 +111,12 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                 <span>Dashboard</span>
               </Link>
 
-              {!isController && (
-                <Link to={isAdmin ? "/admin/bookings" : "/user/bookings"}
-                  className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                  <Calendar className="w-5 h-5 mr-3" />
-                  <span>Bookings</span>
-                </Link>
-              )}
+              {/* Modified: Added Bookings back for controller users */}
+              <Link to={isAdmin || isController ? "/admin/bookings" : "/user/bookings"}
+                className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <Calendar className="w-5 h-5 mr-3" />
+                <span>Bookings</span>
+              </Link>
 
               {(isAdmin || isSuperAdmin) && (
                 <>
@@ -142,7 +140,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                 </>
               )}
 
-              {/* Controller users get the same options as admin except 'Services' and 'Bookings' */}
+              {/* Controller users get Artists and Wishlist options */}
               {isController && (
                 <>
                   <Link to="/admin/artists"
@@ -159,7 +157,8 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                 </>
               )}
 
-              {(isSuperAdmin || isController) && (
+              {/* Removed controller from this section - only superadmin can see Users and Status Management now */}
+              {isSuperAdmin && (
                 <>
                   <Link to="/admin/users"
                     className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
