@@ -1,6 +1,7 @@
+
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, User, Settings, Home, Calendar, Heart, Package, Paintbrush, Users as UsersIcon, ListChecks } from "lucide-react";
+import { Menu, X, LogOut, User, Settings, Home, Calendar, Heart, Package, Paintbrush, Users as UsersIcon, ListChecks, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
@@ -104,15 +105,24 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
             </>
           ) : (
             <>
-              {/* FIX: Update the Link path for artists to go to their correct dashboard */}
-              <Link to={isAdmin || isController ? "/admin/dashboard" : (isArtist ? "/artist/dashboard" : "/user/dashboard")} 
+              {/* Dashboard link for different user types */}
+              <Link to={
+                isAdmin ? "/admin/dashboard" : 
+                isController ? "/controller/dashboard" : 
+                isArtist ? "/artist/dashboard" : 
+                "/user/dashboard"
+              } 
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
                 <Home className="w-5 h-5 mr-3" />
                 <span>Dashboard</span>
               </Link>
 
-              {/* Modified: Added Bookings back for controller users */}
-              <Link to={isAdmin || isController ? "/admin/bookings" : "/user/bookings"}
+              {/* Bookings link for different user types */}
+              <Link to={
+                isAdmin ? "/admin/bookings" : 
+                isController ? "/controller/bookings" : 
+                "/user/bookings"
+              }
                 className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
                 <Calendar className="w-5 h-5 mr-3" />
                 <span>Bookings</span>
@@ -140,13 +150,13 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                 </>
               )}
 
-              {/* Controller users get Artists and Wishlist options */}
+              {/* Controller users get Artist Activity and Wishlist options */}
               {isController && (
                 <>
-                  <Link to="/admin/artists"
+                  <Link to="/controller/artist-activity"
                     className="flex items-center px-4 py-3 text-gray-700 rounded-md hover:bg-gray-100">
-                    <Paintbrush className="w-5 h-5 mr-3" />
-                    <span>Artists</span>
+                    <Activity className="w-5 h-5 mr-3" />
+                    <span>Artist Activity</span>
                   </Link>
                   
                   <Link to="/admin/wishlist"
