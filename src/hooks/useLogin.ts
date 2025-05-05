@@ -58,6 +58,10 @@ export function useLogin() {
         navigate('/admin/status');
       } else if (data.role === 'admin') {
         navigate('/admin/dashboard');
+      } else if (data.role === 'controller') {
+        navigate('/controller/dashboard'); // Fixed to redirect controllers directly to controller dashboard
+      } else if (data.role === 'artist') {
+        navigate('/artist/dashboard');
       } else {
         navigate('/user/dashboard');
       }

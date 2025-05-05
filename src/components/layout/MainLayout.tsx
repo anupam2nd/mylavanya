@@ -25,7 +25,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         } else if (user.role === 'admin') {
           redirectPath = '/admin/dashboard';
         } else if (user.role === 'controller') {
-          redirectPath = '/controller/dashboard'; // Fixed redirection for controllers
+          redirectPath = '/controller/dashboard';
         } else if (user.role === 'artist') {
           redirectPath = '/artist/dashboard';
         }

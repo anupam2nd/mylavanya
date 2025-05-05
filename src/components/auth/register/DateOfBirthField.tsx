@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -18,6 +18,7 @@ interface DateOfBirthFieldProps {
 export default function DateOfBirthField({ form }: DateOfBirthFieldProps) {
   const [month, setMonth] = useState<number | undefined>(undefined);
   const [year, setYear] = useState<number | undefined>(undefined);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   
   // Get years starting from 7 years ago
   const currentYear = new Date().getFullYear();
@@ -42,12 +43,13 @@ export default function DateOfBirthField({ form }: DateOfBirthFieldProps) {
 
   // Handle manual month and year selection
   const handleYearChange = (selectedYear: string) => {
-    setYear(parseInt(selectedYear, 10));
+    const yearValue = parseInt(selectedYear, 10);
+    setYear(yearValue);
     
     // If both month and year are selected, update the date
     if (month !== undefined) {
-      const newDate = new Date(parseInt(selectedYear, 10), month, 1);
-      form.setValue("dob", newDate);
+      const newDate = new Date(yearValue, month, 1);
+      form.setValue("dob", newDate, { shouldValidate: true });
     }
   };
 
@@ -58,7 +60,7 @@ export default function DateOfBirthField({ form }: DateOfBirthFieldProps) {
     // If both month and year are selected, update the date
     if (year !== undefined) {
       const newDate = new Date(year, monthValue, 1);
-      form.setValue("dob", newDate);
+      form.setValue("dob", newDate, { shouldValidate: true });
     }
   };
 
@@ -68,6 +70,23 @@ export default function DateOfBirthField({ form }: DateOfBirthFieldProps) {
       setMonth(date.getMonth());
       setYear(date.getFullYear());
     }
+  };
+
+  // When the form field value changes (from any source), update our local state
+  useEffect(() => {
+    const currentDate = form.getValues("dob");
+    if (currentDate) {
+      setMonth(currentDate.getMonth());
+      setYear(currentDate.getFullYear());
+    }
+  }, [form.getValues("dob")]);
+
+  // Set default view date for calendar based on selected month and year
+  const getDefaultCalendarDate = () => {
+    if (year && month !== undefined) {
+      return new Date(year, month, 1);
+    }
+    return undefined;
   };
 
   return (
@@ -115,7 +134,7 @@ export default function DateOfBirthField({ form }: DateOfBirthFieldProps) {
             </div>
           </div>
           
-          <Popover>
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
@@ -141,7 +160,9 @@ export default function DateOfBirthField({ form }: DateOfBirthFieldProps) {
                 onSelect={(date) => {
                   field.onChange(date);
                   handleCalendarSelect(date);
+                  setCalendarOpen(false); // Close popover when date is selected
                 }}
+                defaultMonth={getDefaultCalendarDate()}
                 disabled={(date) => {
                   // Disable dates less than 7 years ago
                   const today = new Date();
