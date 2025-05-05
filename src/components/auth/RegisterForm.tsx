@@ -41,12 +41,12 @@ const registerFormSchema = z.object({
   dob: z.date({
     required_error: "Date of birth is required",
   }).refine(date => {
-    // Check if the user is at least 13 years old
+    // Check if the user is at least 7 years old (changed from 13)
     const today = new Date();
-    const thirteenYearsAgo = new Date(today);
-    thirteenYearsAgo.setFullYear(today.getFullYear() - 13);
-    return date <= thirteenYearsAgo;
-  }, "You must be at least 13 years old"),
+    const sevenYearsAgo = new Date(today);
+    sevenYearsAgo.setFullYear(today.getFullYear() - 7);
+    return date <= sevenYearsAgo;
+  }, "You must be at least 7 years old"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
@@ -298,19 +298,20 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 z-50" align="start">
                   <Calendar
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
                     disabled={(date) => {
-                      // Disable dates less than 13 years ago
+                      // Disable dates less than 7 years ago (changed from 13)
                       const today = new Date();
-                      const thirteenYearsAgo = new Date();
-                      thirteenYearsAgo.setFullYear(today.getFullYear() - 13);
-                      return date > thirteenYearsAgo || date > today;
+                      const sevenYearsAgo = new Date();
+                      sevenYearsAgo.setFullYear(today.getFullYear() - 7);
+                      return date > sevenYearsAgo || date > today;
                     }}
                     initialFocus
+                    className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
               </Popover>
@@ -359,3 +360,4 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
     </Form>
   );
 }
+
