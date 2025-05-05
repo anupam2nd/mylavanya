@@ -5,6 +5,9 @@ import AuthModalHeader from "./AuthModalHeader";
 import LoginForm from "./LoginForm";
 import MemberLoginForm from "./MemberLoginForm";
 import ArtistLoginForm from "./ArtistLoginForm";
+import RegisterForm from "./RegisterForm";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,8 +18,13 @@ interface AuthModalProps {
 
 export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLoginSuccess }: AuthModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
   
   const getTitle = () => {
+    if (showRegister) {
+      return "Create Member Account";
+    }
+    
     switch(defaultTab) {
       case "artist":
         return "Artist Sign In";
@@ -39,17 +47,42 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
       <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden">
         <AuthModalHeader 
           title={getTitle()}
-          onClose={onClose}
+          onClose={() => {
+            setShowRegister(false);
+            onClose();
+          }}
           isLoading={isLoading}
         />
         
         <div className="p-6">
-          {defaultTab === "artist" ? (
+          {showRegister ? (
+            <RegisterForm 
+              onSuccess={(email, password) => {
+                setShowRegister(false);
+                // We don't auto-login here, just show the login form again
+                toast.success("Registration successful! Please sign in with your new account.");
+              }} 
+            />
+          ) : defaultTab === "artist" ? (
             <ArtistLoginForm />
           ) : defaultTab === "admin" ? (
             <LoginForm />
           ) : (
-            <MemberLoginForm onLoginSuccess={handleLoginSuccess} />
+            <>
+              <MemberLoginForm onLoginSuccess={handleLoginSuccess} />
+              <div className="mt-4 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Don't have an account?{" "}
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto text-primary"
+                    onClick={() => setShowRegister(true)}
+                  >
+                    Register now
+                  </Button>
+                </p>
+              </div>
+            </>
           )}
         </div>
         
