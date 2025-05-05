@@ -2,7 +2,7 @@
 import { CardContent, Card } from "@/components/ui/card";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { Heart, Image } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -46,7 +46,7 @@ const ServiceCard = ({ service, onClick }: ServiceCardProps) => {
   const hasDiscount = discount && discount > 0;
 
   // Check wishlist status when component mounts
-  useState(() => {
+  useEffect(() => {
     const checkWishlistStatus = async () => {
       if (!isAuthenticated || !user) return;
       
@@ -69,7 +69,7 @@ const ServiceCard = ({ service, onClick }: ServiceCardProps) => {
     };
     
     checkWishlistStatus();
-  });
+  }, [isAuthenticated, user, prodid]);
   
   const handleWishlistToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -197,11 +197,11 @@ const ServiceCard = ({ service, onClick }: ServiceCardProps) => {
           
           <div className="mt-4 flex gap-2">
             <ButtonCustom 
-              variant="primary-outline" 
+              variant="primary-gradient" 
               className="flex-1"
               onClick={onClick}
             >
-              View Details
+              Book Now
             </ButtonCustom>
             
             <ButtonCustom
