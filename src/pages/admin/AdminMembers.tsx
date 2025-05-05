@@ -1,10 +1,25 @@
 
 import { useEffect, useState } from "react";
+import { Pencil, Trash, AlertTriangle } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface MemberItem {
   id: number;
@@ -20,36 +35,151 @@ interface MemberItem {
 const AdminMembers = () => {
   const [members, setMembers] = useState<MemberItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingMember, setEditingMember] = useState<MemberItem | null>(null);
+  const [deletingMember, setDeletingMember] = useState<MemberItem | null>(null);
+  const [formData, setFormData] = useState<Partial<MemberItem>>({});
   const { toast } = useToast();
   
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('MemberMST')
-          .select('*')
-          .order('id', { ascending: true });
-          
-        if (error) {
-          throw error;
-        }
+  // Fetch members data
+  const fetchMembers = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('MemberMST')
+        .select('*')
+        .order('id', { ascending: true });
         
-        setMembers(data || []);
-      } catch (error) {
-        console.error('Error fetching members:', error);
-        toast({
-          title: "Error fetching members",
-          description: "There was a problem loading the member data.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
+      if (error) {
+        throw error;
       }
-    };
-    
+      
+      setMembers(data || []);
+    } catch (error) {
+      console.error('Error fetching members:', error);
+      toast({
+        title: "Error fetching members",
+        description: "There was a problem loading the member data.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchMembers();
   }, [toast]);
+  
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle status toggle
+  const handleStatusToggle = async (member: MemberItem) => {
+    try {
+      const { error } = await supabase
+        .from('MemberMST')
+        .update({ MemberStatus: !member.MemberStatus })
+        .eq('id', member.id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setMembers(members.map(m => 
+        m.id === member.id ? { ...m, MemberStatus: !m.MemberStatus } : m
+      ));
+      
+      toast({
+        title: "Status updated",
+        description: `Member ${member.MemberFirstName} ${member.MemberLastName} is now ${!member.MemberStatus ? 'active' : 'inactive'}.`,
+      });
+    } catch (error) {
+      console.error('Error updating member status:', error);
+      toast({
+        title: "Error updating status",
+        description: "There was a problem updating the member status.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Open edit dialog
+  const handleEditClick = (member: MemberItem) => {
+    setEditingMember(member);
+    setFormData({
+      MemberFirstName: member.MemberFirstName,
+      MemberLastName: member.MemberLastName,
+      MemberEmailId: member.MemberEmailId,
+      MemberPhNo: member.MemberPhNo,
+      MemberAdress: member.MemberAdress,
+      MemberPincode: member.MemberPincode,
+      MemberStatus: member.MemberStatus
+    });
+  };
+  
+  // Save edited member
+  const handleSaveEdit = async () => {
+    if (!editingMember) return;
+    
+    try {
+      const { error } = await supabase
+        .from('MemberMST')
+        .update(formData)
+        .eq('id', editingMember.id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setMembers(members.map(m => 
+        m.id === editingMember.id ? { ...m, ...formData } : m
+      ));
+      
+      setEditingMember(null);
+      toast({
+        title: "Member updated",
+        description: "Member information has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error updating member:', error);
+      toast({
+        title: "Error updating member",
+        description: "There was a problem updating the member information.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Delete member
+  const handleDelete = async () => {
+    if (!deletingMember) return;
+    
+    try {
+      const { error } = await supabase
+        .from('MemberMST')
+        .delete()
+        .eq('id', deletingMember.id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setMembers(members.filter(m => m.id !== deletingMember.id));
+      setDeletingMember(null);
+      
+      toast({
+        title: "Member deleted",
+        description: "Member has been deleted successfully.",
+      });
+    } catch (error) {
+      console.error('Error deleting member:', error);
+      toast({
+        title: "Error deleting member",
+        description: "There was a problem deleting the member.",
+        variant: "destructive",
+      });
+    }
+  };
   
   return (
     <ProtectedRoute allowedRoles={["superadmin"]}>
@@ -69,43 +199,173 @@ const AdminMembers = () => {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left pb-2">ID</th>
-                        <th className="text-left pb-2">Name</th>
-                        <th className="text-left pb-2">Email</th>
-                        <th className="text-left pb-2">Phone</th>
-                        <th className="text-left pb-2">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {members.map((member) => (
-                        <tr key={member.id} className="border-b">
-                          <td className="py-3">{member.id}</td>
-                          <td className="py-3">{member.MemberFirstName} {member.MemberLastName}</td>
-                          <td className="py-3">{member.MemberEmailId}</td>
-                          <td className="py-3">{member.MemberPhNo}</td>
-                          <td className="py-3">
-                            <span className={`px-2 py-1 rounded-full text-xs ${member.MemberStatus ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                              {member.MemberStatus ? 'Active' : 'Inactive'}
-                            </span>
-                          </td>
-                        </tr>
+                        <TableRow key={member.id}>
+                          <TableCell>{member.id}</TableCell>
+                          <TableCell>{member.MemberFirstName} {member.MemberLastName}</TableCell>
+                          <TableCell>{member.MemberEmailId}</TableCell>
+                          <TableCell>{member.MemberPhNo}</TableCell>
+                          <TableCell>
+                            <Switch
+                              checked={member.MemberStatus}
+                              onCheckedChange={() => handleStatusToggle(member)}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleEditClick(member)}
+                              >
+                                <Pencil className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={() => setDeletingMember(member)}
+                              >
+                                <Trash className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </CardContent>
           </Card>
-          
-          <div className="text-center mt-4">
-            <p className="text-sm text-muted-foreground">
-              This is a basic view. In a future update, we'll add features to create, edit, and delete member records.
-            </p>
-          </div>
         </div>
+        
+        {/* Edit Member Dialog */}
+        {editingMember && (
+          <Dialog open={Boolean(editingMember)} onOpenChange={() => setEditingMember(null)}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Edit Member</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="MemberFirstName">First Name</Label>
+                    <Input
+                      id="MemberFirstName"
+                      name="MemberFirstName"
+                      value={formData.MemberFirstName || ''}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="MemberLastName">Last Name</Label>
+                    <Input
+                      id="MemberLastName"
+                      name="MemberLastName"
+                      value={formData.MemberLastName || ''}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="MemberEmailId">Email</Label>
+                  <Input
+                    id="MemberEmailId"
+                    name="MemberEmailId"
+                    type="email"
+                    value={formData.MemberEmailId || ''}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="MemberPhNo">Phone Number</Label>
+                  <Input
+                    id="MemberPhNo"
+                    name="MemberPhNo"
+                    value={formData.MemberPhNo || ''}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="MemberAdress">Address</Label>
+                  <Input
+                    id="MemberAdress"
+                    name="MemberAdress"
+                    value={formData.MemberAdress || ''}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="MemberPincode">Pincode</Label>
+                  <Input
+                    id="MemberPincode"
+                    name="MemberPincode"
+                    value={formData.MemberPincode || ''}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="MemberStatus" 
+                    checked={formData.MemberStatus}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, MemberStatus: !!checked }))}
+                  />
+                  <Label htmlFor="MemberStatus">Active</Label>
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button onClick={handleSaveEdit}>Save Changes</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+        
+        {/* Delete Confirmation Dialog */}
+        {deletingMember && (
+          <Dialog open={Boolean(deletingMember)} onOpenChange={() => setDeletingMember(null)}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center">
+                  <AlertTriangle className="h-5 w-5 text-destructive mr-2" />
+                  Confirm Deletion
+                </DialogTitle>
+              </DialogHeader>
+              <div className="py-4">
+                <p>Are you sure you want to delete member <span className="font-semibold">
+                  {deletingMember.MemberFirstName} {deletingMember.MemberLastName}
+                </span>? This action cannot be undone.</p>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </DashboardLayout>
     </ProtectedRoute>
   );
