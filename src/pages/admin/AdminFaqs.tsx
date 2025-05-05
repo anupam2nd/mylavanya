@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { Pencil, Trash, AlertTriangle, Plus } from "lucide-react";
+import { Pencil, Trash, AlertTriangle, Plus, Check, X } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -19,12 +19,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 
 interface FaqItem {
   id: number;
   question: string;
   answer: string;
   created_at: string;
+  active: boolean;
 }
 
 const AdminFaqs = () => {
@@ -35,7 +37,8 @@ const AdminFaqs = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState<Partial<FaqItem>>({
     question: '',
-    answer: ''
+    answer: '',
+    active: true
   });
   const { toast } = useToast();
   
@@ -74,6 +77,11 @@ const AdminFaqs = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  // Handle switch toggle for active status
+  const handleSwitchChange = (checked: boolean) => {
+    setFormData(prev => ({ ...prev, active: checked }));
+  };
   
   // Get the next available ID for a new FAQ
   const getNextAvailableId = () => {
@@ -102,7 +110,8 @@ const AdminFaqs = () => {
         .insert([{ 
           id: nextId,
           question: formData.question,
-          answer: formData.answer
+          answer: formData.answer,
+          active: formData.active !== undefined ? formData.active : true
         }])
         .select();
         
@@ -116,7 +125,7 @@ const AdminFaqs = () => {
       }
       
       setIsCreating(false);
-      setFormData({ question: '', answer: '' });
+      setFormData({ question: '', answer: '', active: true });
       
       toast({
         title: "FAQ created",
@@ -132,12 +141,44 @@ const AdminFaqs = () => {
     }
   };
   
+  // Toggle FAQ active status
+  const handleToggleActive = async (faq: FaqItem) => {
+    try {
+      const newActiveStatus = !faq.active;
+      
+      const { error } = await supabase
+        .from('FaqMST')
+        .update({ active: newActiveStatus })
+        .eq('id', faq.id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setFaqs(faqs.map(f => 
+        f.id === faq.id ? { ...f, active: newActiveStatus } : f
+      ));
+      
+      toast({
+        title: newActiveStatus ? "FAQ activated" : "FAQ deactivated",
+        description: `FAQ has been ${newActiveStatus ? 'activated' : 'deactivated'} successfully.`,
+      });
+    } catch (error) {
+      console.error('Error toggling FAQ status:', error);
+      toast({
+        title: "Error updating FAQ",
+        description: "There was a problem updating the FAQ status.",
+        variant: "destructive",
+      });
+    }
+  };
+  
   // Open edit dialog
   const handleEditClick = (faq: FaqItem) => {
     setEditingFaq(faq);
     setFormData({
       question: faq.question,
-      answer: faq.answer
+      answer: faq.answer,
+      active: faq.active
     });
   };
   
@@ -159,7 +200,8 @@ const AdminFaqs = () => {
         .from('FaqMST')
         .update({
           question: formData.question,
-          answer: formData.answer
+          answer: formData.answer,
+          active: formData.active
         })
         .eq('id', editingFaq.id);
         
@@ -168,7 +210,7 @@ const AdminFaqs = () => {
       // Update local state
       setFaqs(faqs.map(f => 
         f.id === editingFaq.id 
-          ? { ...f, question: formData.question!, answer: formData.answer! } 
+          ? { ...f, question: formData.question!, answer: formData.answer!, active: formData.active! } 
           : f
       ));
       
@@ -219,7 +261,7 @@ const AdminFaqs = () => {
   
   // Reset form when opening create dialog
   const openCreateDialog = () => {
-    setFormData({ question: '', answer: '' });
+    setFormData({ question: '', answer: '', active: true });
     setIsCreating(true);
   };
   
@@ -253,15 +295,35 @@ const AdminFaqs = () => {
                         <TableHead>ID</TableHead>
                         <TableHead>Question</TableHead>
                         <TableHead>Answer</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {faqs.map((faq) => (
-                        <TableRow key={faq.id}>
+                        <TableRow key={faq.id} className={!faq.active ? "opacity-60" : ""}>
                           <TableCell>{faq.id}</TableCell>
                           <TableCell className="max-w-xs truncate">{faq.question}</TableCell>
                           <TableCell className="max-w-sm truncate">{faq.answer}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Switch 
+                                checked={faq.active} 
+                                onCheckedChange={() => handleToggleActive(faq)}
+                              />
+                              <span className="text-sm">
+                                {faq.active ? (
+                                  <span className="flex items-center text-green-600">
+                                    <Check className="h-4 w-4 mr-1" /> Active
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center text-red-600">
+                                    <X className="h-4 w-4 mr-1" /> Inactive
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                          </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
                               <Button 
@@ -321,6 +383,15 @@ const AdminFaqs = () => {
                   className="min-h-[120px]"
                 />
               </div>
+              
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="active"
+                  checked={formData.active}
+                  onCheckedChange={handleSwitchChange}
+                />
+                <Label htmlFor="active" className="cursor-pointer">Active</Label>
+              </div>
             </div>
             <DialogFooter>
               <DialogClose asChild>
@@ -358,6 +429,15 @@ const AdminFaqs = () => {
                     onChange={handleInputChange}
                     className="min-h-[120px]"
                   />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="edit-active"
+                    checked={formData.active}
+                    onCheckedChange={handleSwitchChange}
+                  />
+                  <Label htmlFor="edit-active" className="cursor-pointer">Active</Label>
                 </div>
               </div>
               <DialogFooter>

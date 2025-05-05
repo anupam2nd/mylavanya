@@ -170,18 +170,21 @@ export type Database = {
       }
       FaqMST: {
         Row: {
+          active: boolean | null
           answer: string | null
           created_at: string
           id: number
           question: string | null
         }
         Insert: {
+          active?: boolean | null
           answer?: string | null
           created_at?: string
           id?: number
           question?: string | null
         }
         Update: {
+          active?: boolean | null
           answer?: string | null
           created_at?: string
           id?: number
