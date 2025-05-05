@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit, Plus, Trash2, Power, Search, X } from "lucide-react";
+import { Edit, Plus, Trash2, Power, Search, X, Upload, Image } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +48,7 @@ import { ExportButton } from "@/components/ui/export-button";
 import { Switch } from "@/components/ui/switch";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 interface Service {
   prod_id: number;
@@ -61,6 +62,7 @@ interface Service {
   Category?: string | null;
   Discount?: number | null;
   NetPayable?: number | null;
+  imageUrl?: string | null;
 }
 
 const AdminServices = () => {
@@ -93,6 +95,12 @@ const AdminServices = () => {
   const [netPayable, setNetPayable] = useState("");
   const [priceFirst, setPriceFirst] = useState(true);
   
+  // Image upload state
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const serviceHeaders = {
     prod_id: 'ID',
     Services: 'Service Name',
@@ -104,7 +112,8 @@ const AdminServices = () => {
     Discount: 'Discount %',
     NetPayable: 'Net Payable',
     Description: 'Description',
-    active: 'Status'
+    active: 'Status',
+    imageUrl: 'Image'
   };
 
   useEffect(() => {
@@ -182,6 +191,9 @@ const AdminServices = () => {
     setDiscount("");
     setNetPayable("");
     setPriceFirst(true);
+    setImageFile(null);
+    setImagePreview(null);
+    setImageError(null);
     setOpenDialog(true);
   };
 
@@ -197,6 +209,9 @@ const AdminServices = () => {
     setDiscount(service.Discount?.toString() || "");
     setNetPayable(service.NetPayable?.toString() || "");
     setPriceFirst(true);
+    setImageFile(null);
+    setImagePreview(service.imageUrl || null);
+    setImageError(null);
     setOpenDialog(true);
   };
 
@@ -214,6 +229,16 @@ const AdminServices = () => {
     if (!serviceToDelete) return;
 
     try {
+      // Delete the image from storage if it exists
+      if (serviceToDelete.imageUrl) {
+        const imagePath = serviceToDelete.imageUrl.split('/').pop();
+        if (imagePath) {
+          await supabase.storage
+            .from('service-images')
+            .remove([imagePath]);
+        }
+      }
+
       const { error } = await supabase
         .from('PriceMST')
         .delete()
@@ -315,6 +340,68 @@ const AdminServices = () => {
     setPriceFirst(!priceFirst);
   };
 
+  // Handle image upload
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImageError(null);
+    const file = e.target.files?.[0];
+    
+    if (!file) {
+      return;
+    }
+    
+    // Validate file size (300KB max)
+    if (file.size > 300 * 1024) {
+      setImageError("Image size must be less than 300KB");
+      return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setImageError("Only JPEG, PNG and WEBP images are allowed");
+      return;
+    }
+    
+    setImageFile(file);
+    
+    // Create a preview URL
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setImagePreview(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadImageToStorage = async (file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      
+      const { error: uploadError, data } = await supabase.storage
+        .from('service-images')
+        .upload(fileName, file);
+        
+      if (uploadError) throw uploadError;
+      
+      const { data: urlData } = supabase.storage
+        .from('service-images')
+        .getPublicUrl(fileName);
+        
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  };
+
   const handleSave = async () => {
     try {
       const priceValue = parseFloat(servicePrice);
@@ -341,6 +428,12 @@ const AdminServices = () => {
         }
       }
 
+      // Upload image if provided
+      let imageUrl = currentService?.imageUrl || null;
+      if (imageFile) {
+        imageUrl = await uploadImageToStorage(imageFile);
+      }
+
       const serviceData = {
         Services: serviceName,
         Subservice: subService || null,
@@ -351,6 +444,7 @@ const AdminServices = () => {
         Price: priceValue,
         Discount: discountValue || null,
         NetPayable: netPayableValue || null,
+        imageUrl: imageUrl,
         active: true
       };
 
@@ -468,6 +562,7 @@ const AdminServices = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Image</TableHead>
                       <TableHead>Service</TableHead>
                       <TableHead>Product Name</TableHead>
                       <TableHead>Sub-service</TableHead>
@@ -482,6 +577,21 @@ const AdminServices = () => {
                   <TableBody>
                     {filteredServices.map((service) => (
                       <TableRow key={service.prod_id}>
+                        <TableCell>
+                          {service.imageUrl ? (
+                            <div className="w-10 h-10 relative rounded overflow-hidden">
+                              <img 
+                                src={service.imageUrl} 
+                                alt={service.Services} 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-10 h-10 bg-gray-100 flex items-center justify-center rounded">
+                              <Image className="w-5 h-5 text-gray-400" />
+                            </div>
+                          )}
+                        </TableCell>
                         <TableCell className="font-medium">{service.Services}</TableCell>
                         <TableCell className="max-w-xs truncate">{service.ProductName}</TableCell>
                         <TableCell>{service.Subservice}</TableCell>
@@ -656,6 +766,76 @@ const AdminServices = () => {
                 />
               </div>
               
+              <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="service-image" className="text-right pt-2">
+                  Service Image
+                </Label>
+                <div className="col-span-3">
+                  {imagePreview ? (
+                    <div className="mb-4 relative">
+                      <img 
+                        src={imagePreview} 
+                        alt="Service preview" 
+                        className="max-h-36 rounded-md border border-gray-200"
+                      />
+                      <Button 
+                        type="button" 
+                        variant="destructive" 
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={handleRemoveImage}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mb-4">
+                      <div className="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center">
+                        <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                        <p className="text-sm text-center mb-1">
+                          Click to upload an image
+                        </p>
+                        <p className="text-xs text-muted-foreground text-center">
+                          Max file size: 300KB. <br />
+                          Accepted formats: JPEG, PNG, WebP
+                        </p>
+                        <Input
+                          id="service-image"
+                          ref={fileInputRef}
+                          type="file"
+                          className="hidden"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={handleImageUpload}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          Select Image
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!imagePreview && (
+                    <Input
+                      id="service-image-visible"
+                      type="file"
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 text-sm"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleImageUpload}
+                    />
+                  )}
+                  
+                  {imageError && (
+                    <div className="text-red-500 text-xs mt-1">{imageError}</div>
+                  )}
+                </div>
+              </div>
+              
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="service-description" className="text-right">
                   Description
@@ -676,7 +856,7 @@ const AdminServices = () => {
               <Button 
                 type="submit" 
                 onClick={handleSave}
-                disabled={!serviceName || !servicePrice}
+                disabled={!serviceName || !servicePrice || !!imageError}
               >
                 Save
               </Button>

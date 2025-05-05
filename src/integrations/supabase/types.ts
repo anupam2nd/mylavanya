@@ -277,6 +277,7 @@ export type Database = {
           created_at: string | null
           Description: string | null
           Discount: number | null
+          image_url: string | null
           NetPayable: number | null
           Price: number | null
           prod_id: number
@@ -292,6 +293,7 @@ export type Database = {
           created_at?: string | null
           Description?: string | null
           Discount?: number | null
+          image_url?: string | null
           NetPayable?: number | null
           Price?: number | null
           prod_id?: number
@@ -307,6 +309,7 @@ export type Database = {
           created_at?: string | null
           Description?: string | null
           Discount?: number | null
+          image_url?: string | null
           NetPayable?: number | null
           Price?: number | null
           prod_id?: number
