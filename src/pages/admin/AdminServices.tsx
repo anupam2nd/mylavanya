@@ -70,7 +70,7 @@ const AdminServices = () => {
   const { user } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setIsLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openDeactivateDialog, setOpenDeactivateDialog] = useState(false);
@@ -119,7 +119,7 @@ const AdminServices = () => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        setLoading(true);
+        setIsLoading(true);
         const { data, error } = await supabase
           .from('PriceMST')
           .select('*')
@@ -136,7 +136,7 @@ const AdminServices = () => {
           variant: "destructive"
         });
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -382,19 +382,45 @@ const AdminServices = () => {
 
   const uploadImageToStorage = async (file: File) => {
     try {
+      // Check session first to ensure we're authenticated
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !sessionData.session) {
+        console.error('No authenticated session found:', sessionError);
+        // Try to get the session from our Auth context
+        if (!user) {
+          throw new Error("You must be logged in to upload images");
+        }
+        console.log("Using user from Auth context:", user.id);
+      } else {
+        console.log("Active session found:", sessionData.session.user.id);
+      }
+      
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       
+      console.log("Attempting to upload file:", fileName, "to bucket: service-images");
+      
       const { error: uploadError, data } = await supabase.storage
         .from('service-images')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
         
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw uploadError;
+      }
+      
+      console.log("Upload successful:", data);
       
       const { data: urlData } = supabase.storage
         .from('service-images')
         .getPublicUrl(fileName);
         
+      console.log("Public URL generated:", urlData.publicUrl);
+      
       return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -404,6 +430,17 @@ const AdminServices = () => {
 
   const handleSave = async () => {
     try {
+      console.log("Save initiated. Checking authentication...");
+      
+      // Verify authentication
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        console.error("Authentication error:", sessionError);
+        throw new Error("You must be logged in to save services");
+      }
+      
+      console.log("Authentication verified:", session.user.id);
+      
       const priceValue = parseFloat(servicePrice);
       const discountValue = parseFloat(discount) || 0;
       const netPayableValue = parseFloat(netPayable) || 0;
@@ -421,7 +458,10 @@ const AdminServices = () => {
           .select('prod_id')
           .eq('ProductName', productName);
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error checking existing product name:", error);
+          throw error;
+        }
         
         if (data && data.length > 0 && (!currentService || data[0].prod_id !== currentService.prod_id)) {
           throw new Error("A service with this combination of Service, Sub-service, and Scheme already exists");
@@ -431,7 +471,18 @@ const AdminServices = () => {
       // Upload image if provided
       let imageUrl = currentService?.imageUrl || null;
       if (imageFile) {
-        imageUrl = await uploadImageToStorage(imageFile);
+        console.log("Uploading image...");
+        try {
+          imageUrl = await uploadImageToStorage(imageFile);
+          console.log("Image upload successful:", imageUrl);
+        } catch (uploadError) {
+          console.error("Image upload failed:", uploadError);
+          toast({
+            title: "Image upload failed",
+            description: "There was a problem uploading the image, but we'll continue saving the service.",
+            variant: "destructive"
+          });
+        }
       }
 
       const serviceData = {
@@ -448,13 +499,20 @@ const AdminServices = () => {
         active: true
       };
 
+      console.log("Saving service data:", serviceData);
+
       if (isNewService) {
         const { data, error } = await supabase
           .from('PriceMST')
           .insert([serviceData])
           .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error inserting service:", error);
+          throw error;
+        }
+        
+        console.log("Service added successfully:", data);
         
         if (data && data.length > 0) {
           setServices([...services, data[0]]);
@@ -470,8 +528,13 @@ const AdminServices = () => {
           .update(serviceData)
           .eq('prod_id', currentService.prod_id);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error updating service:", error);
+          throw error;
+        }
 
+        console.log("Service updated successfully");
+        
         setServices(services.map(service => 
           service.prod_id === currentService.prod_id 
             ? { ...service, ...serviceData } 
