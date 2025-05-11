@@ -89,21 +89,13 @@ serve(async (req) => {
     const expiresAt = new Date(now.getTime() + 10 * 60 * 1000); // 10 minutes from now
     
     // First check if the service_otps table exists, if not create it
-    const { error: tableCheckError } = await supabase.rpc(
-      'get_table_columns',
-      { table_name: 'service_otps' }
-    ).maybeSingle();
+    const { error: createTableError } = await supabase.rpc(
+      'create_service_otps_table'
+    );
     
-    if (tableCheckError) {
-      // Table doesn't exist, create it
-      const { error: createTableError } = await supabase.rpc(
-        'create_service_otps_table'
-      ).single();
-      
-      if (createTableError) {
-        console.error("Error creating table:", createTableError);
-        // Continue anyway, as the migration might have created the table already
-      }
+    if (createTableError) {
+      console.error("Error creating table:", createTableError);
+      // Continue anyway, as the table might already exist
     }
     
     // Check if there's already an OTP for this booking and status type
@@ -130,7 +122,7 @@ serve(async (req) => {
       if (updateError) {
         console.error("Error updating OTP:", updateError);
         return new Response(
-          JSON.stringify({ error: "Failed to update OTP" }),
+          JSON.stringify({ error: "Failed to update OTP", details: updateError.message }),
           {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -146,13 +138,14 @@ serve(async (req) => {
           otp_code: otp,
           status_type: statusType,
           phone_number: phoneNumber,
-          expires_at: expiresAt.toISOString()
+          expires_at: expiresAt.toISOString(),
+          verified: false
         });
         
       if (insertError) {
         console.error("Error creating OTP:", insertError);
         return new Response(
-          JSON.stringify({ error: "Failed to create OTP" }),
+          JSON.stringify({ error: "Failed to create OTP", details: insertError.message }),
           {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
