@@ -418,6 +418,10 @@ export type Database = {
         Args: { service_id_param: number; user_id_param: string }
         Returns: undefined
       }
+      create_service_otps_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_booking_counts_by_status: {
         Args: Record<PropertyKey, never>
         Returns: {

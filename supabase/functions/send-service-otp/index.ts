@@ -89,27 +89,50 @@ serve(async (req) => {
     const expiresAt = new Date(now.getTime() + 10 * 60 * 1000); // 10 minutes from now
     
     // First check if the service_otps table exists, if not create it
-    const { error: createTableError } = await supabase.rpc(
-      'create_service_otps_table'
-    );
-    
-    if (createTableError) {
-      console.error("Error creating table:", createTableError);
-      // Continue anyway, as the table might already exist
+    try {
+      console.log("Ensuring service_otps table exists by calling create_service_otps_table function");
+      
+      // Use .execute() instead of just calling the function to avoid errors with return value
+      const { error: createTableError } = await supabase.rpc(
+        'create_service_otps_table'
+      );
+      
+      if (createTableError) {
+        console.error("Error calling create_service_otps_table function:", createTableError);
+        // Continue anyway, as the table might already exist from a migration
+      } else {
+        console.log("Table check/creation completed successfully");
+      }
+    } catch (tableError) {
+      console.error("Exception when checking/creating table:", tableError);
+      // Continue with the rest of the code
     }
     
     // Check if there's already an OTP for this booking and status type
-    const { data: existingOtps } = await supabase
-      .from("service_otps")
-      .select("id")
-      .eq("booking_id", bookingId)
-      .eq("status_type", statusType);
-    
-    // Use the first OTP record if it exists
-    const existingOtp = existingOtps && existingOtps.length > 0 ? existingOtps[0] : null;
+    console.log(`Checking for existing OTP for booking ${bookingId} and status ${statusType}`);
+    let existingOtp = null;
+    try {
+      const { data: existingOtps, error: selectError } = await supabase
+        .from("service_otps")
+        .select("id")
+        .eq("booking_id", bookingId)
+        .eq("status_type", statusType);
+      
+      if (selectError) {
+        console.error("Error checking existing OTP:", selectError);
+      } else if (existingOtps && existingOtps.length > 0) {
+        existingOtp = existingOtps[0];
+        console.log("Found existing OTP record:", existingOtp.id);
+      } else {
+        console.log("No existing OTP found, will insert new record");
+      }
+    } catch (selectError) {
+      console.error("Exception when checking existing OTP:", selectError);
+    }
     
     if (existingOtp) {
       // Update existing OTP
+      console.log(`Updating existing OTP record: ${existingOtp.id}`);
       const { error: updateError } = await supabase
         .from("service_otps")
         .update({
@@ -129,8 +152,10 @@ serve(async (req) => {
           }
         );
       }
+      console.log("Successfully updated existing OTP record");
     } else {
       // Create new OTP
+      console.log("Creating new OTP record");
       const { error: insertError } = await supabase
         .from("service_otps")
         .insert({
@@ -152,6 +177,7 @@ serve(async (req) => {
           }
         );
       }
+      console.log("Successfully created new OTP record");
     }
     
     // Construct the SMS API URL
@@ -169,7 +195,9 @@ Sampurna (STEP)`;
     smsUrl.searchParams.append("text", smsText);
     
     // Send SMS with OTP
-    console.log(`Sending SMS to ${phoneNumber} with URL: ${smsUrl.toString()}`);
+    console.log(`Sending SMS to ${phoneNumber}`);
+    console.log(`SMS API URL parameters: user_name=${smsApiUsername}, mobile=${phoneNumber}, sender_id=${smsApiSenderId}`);
+    
     try {
       const smsResponse = await fetch(smsUrl.toString());
       const smsResponseText = await smsResponse.text();

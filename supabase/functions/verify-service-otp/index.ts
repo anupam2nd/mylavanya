@@ -42,6 +42,23 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
     
     // Get OTP record
+    console.log(`Verifying OTP for booking ${bookingId}, status ${statusType}`);
+    
+    // First ensure the service_otps table exists
+    try {
+      const { error: createTableError } = await supabase.rpc(
+        'create_service_otps_table'
+      );
+      
+      if (createTableError) {
+        console.error("Error ensuring service_otps table exists:", createTableError);
+        // Continue anyway, as the table might already exist
+      }
+    } catch (tableError) {
+      console.error("Exception when checking/creating table:", tableError);
+      // Continue with the rest of the code
+    }
+    
     const { data: otpRecord, error: otpError } = await supabase
       .from("service_otps")
       .select("*")
@@ -52,6 +69,7 @@ serve(async (req) => {
       .single();
     
     if (otpError || !otpRecord) {
+      console.error("Error retrieving OTP record:", otpError);
       return new Response(
         JSON.stringify({ error: "Invalid OTP" }),
         {
@@ -63,6 +81,7 @@ serve(async (req) => {
     
     // Check if OTP is expired
     if (new Date() > new Date(otpRecord.expires_at)) {
+      console.log("OTP expired");
       return new Response(
         JSON.stringify({ error: "OTP expired" }),
         {
@@ -73,10 +92,15 @@ serve(async (req) => {
     }
     
     // Mark OTP as verified
-    await supabase
+    console.log(`Marking OTP with ID ${otpRecord.id} as verified`);
+    const { error: updateError } = await supabase
       .from("service_otps")
       .update({ verified: true })
       .eq("id", otpRecord.id);
+      
+    if (updateError) {
+      console.error("Error updating OTP verification status:", updateError);
+    }
     
     // Map statusType to actual status code
     let statusCode;
@@ -114,14 +138,16 @@ serve(async (req) => {
       }
     }
     
-    const { error: updateError } = await supabase
+    console.log(`Updating booking ${bookingId} status to ${statusName}`);
+    const { error: updateError2 } = await supabase
       .from("BookMST")
       .update(updates)
       .eq("id", bookingId);
     
-    if (updateError) {
+    if (updateError2) {
+      console.error("Error updating booking status:", updateError2);
       return new Response(
-        JSON.stringify({ error: "Failed to update booking status" }),
+        JSON.stringify({ error: "Failed to update booking status", details: updateError2.message }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -143,7 +169,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error processing OTP verification:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", details: error.message }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
