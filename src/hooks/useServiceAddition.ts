@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getNextAvailableId } from "@/utils/booking/idGenerator";
 
 interface ServiceAdditionProps {
   bookingId: number;
@@ -195,10 +196,15 @@ export const useServiceAddition = ({
       
       const bookingNoAsNumber = parseInt(bookingNo, 10);
       
+      // Get the next available ID
+      const nextId = await getNextAvailableId();
+      console.log("Got next available ID:", nextId);
+      
       // Add the new service to BookMST
       const { error } = await supabase
         .from("BookMST")
         .insert({
+          id: nextId, // Use the next available ID to avoid conflicts
           Booking_NO: bookingNoAsNumber,
           Purpose: selectedService.ProductName,
           Status: "service_started", // Set status as service_started after OTP verification
@@ -224,7 +230,10 @@ export const useServiceAddition = ({
           Pincode: bookingPincode
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error adding service:", error);
+        throw error;
+      }
       
       toast.success("Service added successfully!");
       onServiceAdded();
