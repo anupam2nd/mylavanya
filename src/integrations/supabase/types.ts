@@ -317,6 +317,39 @@ export type Database = {
         }
         Relationships: []
       }
+      service_otps: {
+        Row: {
+          booking_id: number
+          created_at: string
+          expires_at: string
+          id: number
+          otp_code: string
+          phone_number: string
+          status_type: string
+          verified: boolean
+        }
+        Insert: {
+          booking_id: number
+          created_at?: string
+          expires_at: string
+          id?: number
+          otp_code: string
+          phone_number: string
+          status_type: string
+          verified?: boolean
+        }
+        Update: {
+          booking_id?: number
+          created_at?: string
+          expires_at?: string
+          id?: number
+          otp_code?: string
+          phone_number?: string
+          status_type?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
       statusmst: {
         Row: {
           active: boolean

@@ -27,10 +27,10 @@ export const useServiceAddition = ({
   const [step, setStep] = useState<"service" | "otp" | "processing">("service");
   const [services, setServices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [generatedOTP, setGeneratedOTP] = useState("");
   const [selectedService, setSelectedService] = useState<any>(null);
   const [bookingAddress, setBookingAddress] = useState<string | null>(null);
   const [bookingPincode, setBookingPincode] = useState<number | null>(null);
+  const [otpSent, setOtpSent] = useState(false);
 
   const fetchServices = async () => {
     try {
@@ -87,13 +87,8 @@ export const useServiceAddition = ({
       
       setSelectedService(service);
       
-      // Generate a 4-digit OTP
-      const otp = Math.floor(1000 + Math.random() * 9000).toString();
-      setGeneratedOTP(otp);
-      
-      // In a real-world scenario, you'd send this OTP to the customer's phone
-      console.log("Generated OTP:", otp);
-      toast.info(`OTP: ${otp} (would be sent to customer's phone in production)`);
+      // Instead of generating OTP locally, use the edge function to send OTP to customer
+      await sendOtpToCustomer(serviceId);
       
       // Move to OTP verification step
       setStep("otp");
@@ -105,16 +100,66 @@ export const useServiceAddition = ({
     }
   };
 
+  // New function to send OTP via edge function
+  const sendOtpToCustomer = async (serviceId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Call the send-service-otp edge function
+      const { data, error } = await supabase.functions.invoke('send-service-otp', {
+        body: {
+          bookingId,
+          statusType: 'start', // We use 'start' since this is a new service that will be started
+        }
+      });
+
+      if (error) {
+        console.error("Error sending OTP:", error);
+        toast.error("Failed to send verification code to customer");
+        throw error;
+      }
+
+      console.log("OTP sent response:", data);
+      toast.success("Verification code sent to customer's phone", {
+        description: `Please ask ${customerName} to check their phone for the verification code.`
+      });
+      setOtpSent(true);
+      
+    } catch (error) {
+      console.error("Error in sendOtpToCustomer:", error);
+      toast.error("Failed to send verification code");
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const verifyOTP = async (otpValue: string) => {
     try {
       setStep("processing");
+      setIsLoading(true);
       
-      // In production, verify the OTP against what was sent to the customer
-      if (otpValue !== generatedOTP) {
-        toast.error("Invalid OTP. Please try again.");
+      // Verify OTP through the edge function
+      const { data: verifyResponse, error: verifyError } = await supabase.functions.invoke('verify-service-otp', {
+        body: {
+          bookingId,
+          otp: otpValue,
+          statusType: "start",
+          currentUser: user ? {
+            Username: user.email,
+            role: user.role,
+          } : null,
+        }
+      });
+      
+      if (verifyError || !verifyResponse?.success) {
+        toast.error(verifyResponse?.error || "Invalid OTP. Please try again.");
         setStep("otp");
+        setIsLoading(false);
         return;
       }
+      
+      toast.success("OTP verified successfully!");
       
       // Get the next job number
       let nextJobNo = 1;
@@ -156,7 +201,7 @@ export const useServiceAddition = ({
         .insert({
           Booking_NO: bookingNoAsNumber,
           Purpose: selectedService.ProductName,
-          Status: "start", // as specified in requirements
+          Status: "service_started", // Set status as service_started after OTP verification
           name: customerName,
           email: customerEmail,
           Phone_no: phoneNumber,
@@ -187,13 +232,15 @@ export const useServiceAddition = ({
     } catch (error) {
       console.error("Error adding service:", error);
       toast.error("Failed to add service");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const resetDialog = () => {
     setStep("service");
     setSelectedService(null);
-    setGeneratedOTP("");
+    setOtpSent(false);
     setBookingAddress(null);
     setBookingPincode(null);
   };
@@ -203,7 +250,7 @@ export const useServiceAddition = ({
     services,
     isLoading,
     selectedService,
-    generatedOTP,
+    otpSent,
     setStep,
     fetchServices,
     fetchBookingDetails,

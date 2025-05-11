@@ -14,7 +14,7 @@ import {
 
 // Define form schema
 const otpFormSchema = z.object({
-  otp: z.string().length(4, "OTP must be exactly 4 digits"),
+  otp: z.string().length(6, "OTP must be exactly 6 digits"),
 });
 
 type OTPFormValues = z.infer<typeof otpFormSchema>;
@@ -50,16 +50,24 @@ const OtpVerificationStep = ({
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="grid gap-4 py-4">
+        <div className="text-center mb-2">
+          <p className="text-sm text-muted-foreground">
+            A verification code has been sent to the customer's phone.
+          </p>
+          <p className="text-sm font-medium">
+            Please ask them to enter the 6-digit code to confirm adding this service.
+          </p>
+        </div>
         <div className="grid gap-2">
-          <Label htmlFor="otp">Enter 4-digit OTP</Label>
+          <Label htmlFor="otp">Enter 6-digit OTP</Label>
           <div className="flex justify-center">
             <Controller
               name="otp"
               control={control}
               render={({ field }) => (
-                <InputOTP maxLength={4} {...field}>
+                <InputOTP maxLength={6} {...field}>
                   <InputOTPGroup>
-                    {[0, 1, 2, 3].map((index) => (
+                    {[0, 1, 2, 3, 4, 5].map((index) => (
                       <InputOTPSlot key={index} index={index} />
                     ))}
                   </InputOTPGroup>
