@@ -35,8 +35,11 @@ const ArtistBookingCard = ({ booking, onStatusUpdated }: ArtistBookingCardProps)
 
   const formatStatusText = (status: string) => {
     const normalizedStatus = status.toLowerCase();
+    
+    // Fix the inconsistent display of "started" vs "service_started"
     if (normalizedStatus === 'beautician_assigned') return 'Assigned';
-    if (normalizedStatus === 'service_started') return 'Started';
+    if (normalizedStatus === 'service_started' || normalizedStatus === 'started') return 'Service Started';
+    
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
