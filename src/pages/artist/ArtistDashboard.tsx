@@ -4,10 +4,12 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { parseISO, format } from "date-fns";
 import { Calendar, Clock, MapPin, Plus, IndianRupee } from "lucide-react";
 import { toast } from "sonner";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
+import NewJobDialog from "@/components/artist/NewJobDialog";
 import AddServiceDialog from "@/components/artist/AddServiceDialog";
 import ArtistBookingCard from "@/components/artist/ArtistBookingCard";
 
@@ -16,7 +18,6 @@ const ArtistDashboard = () => {
   const [bookings, setBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [totalEarnings, setTotalEarnings] = useState<number>(0);
-  const [completedServices, setCompletedServices] = useState<number>(0);
   const [artistDetails, setArtistDetails] = useState<{
     firstName: string;
     lastName: string;
@@ -66,13 +67,11 @@ const ArtistDashboard = () => {
     fetchArtistDetails();
   }, [user]);
   
-  // Calculate total earnings from completed services and count completed services
-  const calculateStats = (bookingsData: any[]) => {
+  // Calculate total earnings from completed services
+  const calculateTotalEarnings = (bookingsData: any[]) => {
     const completedBookings = bookingsData.filter(booking => 
       booking.Status === "done" || booking.Status === "completed"
     );
-    
-    setCompletedServices(completedBookings.length);
     
     const earnings = completedBookings.reduce((sum, booking) => {
       const price = booking.price ? parseFloat(booking.price) : 0;
@@ -116,7 +115,7 @@ const ArtistDashboard = () => {
       
       console.log("Artist bookings:", data);
       setBookings(data || []);
-      calculateStats(data || []);
+      calculateTotalEarnings(data || []);
     } catch (error) {
       console.error("Unexpected error fetching artist bookings:", error);
       toast.error("An unexpected error occurred");
@@ -215,7 +214,9 @@ const ArtistDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {isLoading ? "..." : completedServices}
+                {isLoading ? "..." : bookings.filter(b => 
+                  b.Status === "done" || b.Status === "completed"
+                ).length}
               </div>
               <p className="text-xs text-muted-foreground">
                 Services you've successfully completed
@@ -223,7 +224,7 @@ const ArtistDashboard = () => {
             </CardContent>
           </Card>
           
-          {/* Card for Total Generated Amount */}
+          {/* New Card for Total Generated Amount */}
           <Card className="bg-primary/5 border-primary/20">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center">
