@@ -1,5 +1,4 @@
-
-import { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   PieChart, 
@@ -70,7 +69,7 @@ const RevenuePieChart = ({
   description
 }: RevenuePieChartProps) => {
   // State for active index to enhance interactivity
-  const [activeIndex, setActiveIndex] = React.useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const onPieEnter = (_: any, index: number) => {
     setActiveIndex(index);
