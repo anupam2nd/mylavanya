@@ -14,13 +14,13 @@ import { format } from "date-fns";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: string;
+  user_id: number;  // Changed from string to number
   created_at: string;
   service_name: string;
   service_price: number;
   service_category: string;
-  customer_name: string;
   product_created_at: string;
+  customer_name: string;
 }
 
 interface ExportItem {
@@ -65,11 +65,11 @@ const WishlistController = () => {
         // Fetch user information for each wishlist item
         const enhancedData = await Promise.all(
           data.map(async (item) => {
-            // Try to get member information from MemberMST
+            // Convert user_id to string when querying MemberMST since it expects a string
             const { data: memberData } = await supabase
               .from('MemberMST')
               .select('MemberFirstName, MemberLastName, MemberEmailId')
-              .eq('MemberEmailId', item.user_id)
+              .eq('id', item.user_id)
               .single();
 
             // If member found, use their name
