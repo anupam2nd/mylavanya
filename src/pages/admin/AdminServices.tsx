@@ -339,7 +339,7 @@ const AdminServices = () => {
     setPriceFirst(!priceFirst);
   };
 
-  // Handle image upload
+  // Handle image upload with improved validation
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     setImageError(null);
     const file = e.target.files?.[0];
@@ -361,14 +361,47 @@ const AdminServices = () => {
       return;
     }
     
-    setImageFile(file);
+    // Create image element to check dimensions
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
     
-    // Create a preview URL
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setImagePreview(event.target?.result as string);
+    img.onload = () => {
+      // Clean up object URL
+      URL.revokeObjectURL(objectUrl);
+      
+      // Check image resolution
+      if (img.width > 800 || img.height > 800) {
+        setImageError("Image resolution should not exceed 800x800 pixels");
+        return;
+      }
+      
+      // Check aspect ratio (4:3) with some tolerance
+      const aspectRatio = img.width / img.height;
+      const targetRatio = 4/3;
+      const tolerance = 0.1; // Allow some deviation from exact 4:3
+      
+      if (Math.abs(aspectRatio - targetRatio) > tolerance) {
+        setImageError("Image should have approximately 4:3 aspect ratio");
+        return;
+      }
+      
+      // If all validations pass, set the image
+      setImageFile(file);
+      
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImagePreview(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     };
-    reader.readAsDataURL(file);
+    
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      setImageError("Invalid image file");
+    };
+    
+    img.src = objectUrl;
   };
 
   const handleRemoveImage = () => {
@@ -930,7 +963,7 @@ const AdminServices = () => {
                           Click to upload an image
                         </p>
                         <p className="text-xs text-muted-foreground text-center">
-                          Max file size: 300KB. <br />
+                          Max file size: 300KB. Max resolution: 800px (4:3 ratio)<br />
                           Accepted formats: JPEG, PNG, WebP
                         </p>
                         <Input
