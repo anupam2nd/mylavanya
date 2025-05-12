@@ -111,36 +111,39 @@ const BookingStatusActions = ({
         {showOnTheWayButton && (
           <Button
             size="sm"
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 text-xs sm:text-sm"
             variant="outline"
             onClick={() => setShowDirectDialog(true)}
           >
-            <MapPin className="h-3.5 w-3.5" />
-            On The Way
+            <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+            <span className="hidden xs:inline">On The Way</span>
+            <span className="xs:hidden">Way</span>
           </Button>
         )}
         
         {showStartButton && (
           <Button
             size="sm"
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 text-xs sm:text-sm"
             variant="outline"
             onClick={() => handleStartOtpFlow("start")}
           >
-            <Play className="h-3.5 w-3.5" />
-            Start Service
+            <Play className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+            <span className="hidden xs:inline">Start Service</span>
+            <span className="xs:hidden">Start</span>
           </Button>
         )}
         
         {showCompleteButton && (
           <Button
             size="sm"
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 text-xs sm:text-sm"
             variant="outline"
             onClick={() => handleStartOtpFlow("complete")}
           >
-            <CheckCircle className="h-3.5 w-3.5" />
-            Complete
+            <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+            <span className="hidden xs:inline">Complete</span>
+            <span className="xs:hidden">Done</span>
           </Button>
         )}
       </div>

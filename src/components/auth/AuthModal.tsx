@@ -48,7 +48,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden max-h-[90vh] w-[95vw] sm:w-auto">
         <AuthModalHeader 
           title={getTitle()}
           onClose={() => {
@@ -58,7 +58,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
           isLoading={isLoading}
         />
         
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {showRegister ? (
             <RegisterForm 
               onSuccess={(email, password) => {
@@ -91,8 +91,8 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
           )}
         </div>
         
-        <div className="p-6 pt-2 border-t">
-          <div className="text-center text-sm">
+        <div className="p-4 sm:p-6 pt-2 border-t">
+          <div className="text-center text-xs sm:text-sm">
             By continuing, you agree to our{" "}
             <a href="/terms" className="text-primary hover:underline">Terms of Service</a>{" "}
             and{" "}

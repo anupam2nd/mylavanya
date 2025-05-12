@@ -185,14 +185,15 @@ const ControllerBookings = () => {
     <ProtectedRoute allowedRoles={['controller']}>
       <DashboardLayout title="Manage Bookings">
         <Card>
-          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+          <CardHeader className="flex flex-col space-y-2">
             <CardTitle>Booking Management</CardTitle>
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full">
               <ExportButton
                 data={filteredBookings}
                 filename="bookings"
                 headers={bookingHeaders}
-                buttonText="Export Bookings"
+                buttonText="Export"
+                className="w-full sm:w-auto"
               />
               <BookingFilters
                 searchQuery={searchQuery}
@@ -220,7 +221,7 @@ const ControllerBookings = () => {
             <div className="mb-4 text-sm text-muted-foreground">
               Showing {filteredBookings.length} of {bookings.length} bookings
               {sortField && (
-                <span className="ml-2">
+                <span className="ml-2 block sm:inline">
                   sorted by {sortField === "creation_date" ? "creation date" : "booking date"} ({sortDirection === "desc" ? "newest first" : "oldest first"})
                 </span>
               )}

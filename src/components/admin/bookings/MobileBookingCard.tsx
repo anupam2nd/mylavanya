@@ -28,13 +28,13 @@ export const MobileBookingCard: React.FC<MobileBookingCardProps> = ({
   return (
     <div 
       key={booking.id} 
-      className="bg-card rounded-lg shadow-sm border p-4 space-y-3"
+      className="bg-card rounded-lg shadow-sm border p-3 sm:p-4 space-y-2 sm:space-y-3"
     >
       <div className="flex justify-between items-start">
         <div>
-          <p className="font-medium text-sm">{booking.Booking_NO}</p>
-          <h4 className="font-medium">{booking.name}</h4>
-          <p className="text-xs text-muted-foreground">{booking.email}</p>
+          <p className="font-medium text-xs sm:text-sm">{booking.Booking_NO}</p>
+          <h4 className="font-medium text-sm sm:text-base">{booking.name}</h4>
+          <p className="text-xs text-muted-foreground truncate max-w-[200px]">{booking.email}</p>
           <div className="flex items-center mt-1 text-xs">
             <Phone className="h-3 w-3 mr-1 text-muted-foreground" />
             <span>{booking.Phone_no}</span>
@@ -43,7 +43,7 @@ export const MobileBookingCard: React.FC<MobileBookingCardProps> = ({
         <StatusBadge status={booking.Status || 'pending'} />
       </div>
       
-      <div className="grid grid-cols-2 gap-2 text-sm">
+      <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
         <div>
           <p className="text-muted-foreground text-xs">Date</p>
           <p>{booking.Booking_date ? format(new Date(booking.Booking_date), 'MMM dd, yyyy') : 'N/A'}</p>
@@ -54,14 +54,14 @@ export const MobileBookingCard: React.FC<MobileBookingCardProps> = ({
         </div>
         <div className="col-span-2">
           <p className="text-muted-foreground text-xs">Service</p>
-          <p>{booking.Purpose}</p>
+          <p className="truncate">{booking.Purpose}</p>
         </div>
       </div>
 
-      <div className="flex justify-between items-center pt-2">
+      <div className="flex justify-between items-center pt-1 sm:pt-2">
         <Drawer>
           <DrawerTrigger asChild>
-            <Button variant="ghost" size="sm" className="text-xs h-8 px-2">
+            <Button variant="ghost" size="sm" className="text-xs h-7 sm:h-8 px-1.5 sm:px-2">
               View Details
             </Button>
           </DrawerTrigger>
@@ -77,10 +77,10 @@ export const MobileBookingCard: React.FC<MobileBookingCardProps> = ({
           <Button 
             variant="outline" 
             size="sm"
-            className="h-8" 
+            className="h-7 sm:h-8 text-xs" 
             onClick={() => handleEditClick(booking)}
           >
-            <Edit className="h-4 w-4 mr-1" /> Edit
+            <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" /> <span className="hidden xs:inline">Edit</span>
           </Button>
         )}
       </div>

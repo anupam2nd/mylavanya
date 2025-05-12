@@ -89,19 +89,19 @@
     @apply font-display font-semibold tracking-tight;
   }
   h1 {
-    @apply text-4xl md:text-5xl lg:text-6xl leading-tight;
+    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight;
   }
   h2 {
-    @apply text-3xl md:text-4xl leading-tight;
+    @apply text-2xl sm:text-3xl md:text-4xl leading-tight;
   }
   h3 {
-    @apply text-2xl md:text-3xl;
+    @apply text-xl sm:text-2xl md:text-3xl;
   }
   p {
     @apply leading-relaxed font-sans;
   }
   section {
-    @apply py-20 md:py-28;
+    @apply py-12 sm:py-16 md:py-20 lg:py-28;
   }
   
   /* Custom scrollbar */
@@ -120,7 +120,7 @@
 
 @layer components {
   .container-custom {
-    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+    @apply container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8;
   }
   
   .text-balance {
@@ -148,10 +148,18 @@
   }
   
   .btn-primary {
-    @apply bg-primary text-white font-medium px-6 py-3 rounded-full shadow-button hover:shadow-lg hover:-translate-y-0.5 transition-all;
+    @apply bg-primary text-white font-medium px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-button hover:shadow-lg hover:-translate-y-0.5 transition-all;
   }
   
   .btn-outline {
-    @apply border border-primary/20 text-primary font-medium px-6 py-3 rounded-full hover:bg-primary/5 transition-all;
+    @apply border border-primary/20 text-primary font-medium px-4 sm:px-6 py-2 sm:py-3 rounded-full hover:bg-primary/5 transition-all;
+  }
+}
+
+@layer utilities {
+  /* Add responsive utilities for very small screens */
+  .text-xxs {
+    font-size: 0.625rem; /* 10px */
+    line-height: 0.875rem; /* 14px */
   }
 }

@@ -19,7 +19,7 @@ export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormP
   
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleRegister)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleRegister)} className="space-y-4 max-h-[70vh] overflow-y-auto px-1 py-2">
         <PersonalInfoFields form={form} />
         <ContactFields form={form} />
         <AddressFields form={form} />
