@@ -64,7 +64,7 @@ const Wishlist = () => {
         console.log("Wishlist data received:", data);
         
         // Transform the data to match the WishlistItem interface
-        const formattedItems = data?.map(item => ({
+        const formattedItems: WishlistItem[] = data?.map(item => ({
           id: item.id,
           service_id: item.service_id,
           user_id: item.user_id,

@@ -63,9 +63,9 @@ const WishlistController = () => {
         }
         
         // Fetch user information for each wishlist item
-        const enhancedData = await Promise.all(
+        const enhancedData: WishlistItem[] = await Promise.all(
           data.map(async (item) => {
-            // Convert user_id to string when querying MemberMST since it expects a string
+            // Query MemberMST with numeric user_id
             const { data: memberData } = await supabase
               .from('MemberMST')
               .select('MemberFirstName, MemberLastName, MemberEmailId')
