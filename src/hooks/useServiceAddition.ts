@@ -216,12 +216,14 @@ export const useServiceAddition = ({
           jobno: nextJobNo,
           ArtistId: user ? parseInt(user.id, 10) : null,
           Assignedto: artistName,
-          AssignedBY: artistName, // Artist is adding the service
+          // Use the role instead of the name for AssignedBY
+          AssignedBY: user ? user.role : 'artist', // Set the role from the user object
           AssingnedON: new Date().toISOString(),
           ServiceName: selectedService.Services || "",
           SubService: selectedService.Subservice || "",
           ProductName: selectedService.ProductName || "",
           AssignedToEmpCode: artistEmpCode, // Artist emp code from ArtistMST
+          AssignedByUser: user ? user.email : null, // Store the actual user email in AssignedByUser
           price: selectedService.Price || 0,
           StatusUpdated: new Date().toISOString(), // When the service is added
           Qty: 1,

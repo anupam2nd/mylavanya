@@ -70,7 +70,7 @@ const ArtistDashboard = () => {
   
   // Calculate total earnings and completed services count from completed services
   const calculateStats = (bookingsData: any[]) => {
-    // Fix: Consider all status variants that indicate completion
+    // Fix: Consider all status variants that indicate completion (case-insensitive)
     const completedStatuses = ['done', 'completed', 'DONE', 'COMPLETED'];
     const completedBookings = bookingsData.filter(booking => 
       booking.Status && completedStatuses.includes(booking.Status.toLowerCase())

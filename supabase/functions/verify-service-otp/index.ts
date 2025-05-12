@@ -129,6 +129,7 @@ serve(async (req) => {
     
     // Add assignee information if provided
     if (currentUser) {
+      // Use user's role instead of name for AssignedBY
       if (currentUser.role) {
         updates.AssignedBY = currentUser.role;
       }
