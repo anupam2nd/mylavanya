@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,14 +70,24 @@ const ArtistDashboard = () => {
   // Calculate total earnings from completed services
   const calculateTotalEarnings = (bookingsData: any[]) => {
     try {
+      // First, filter completed bookings properly
+      const completedStatuses = ["done", "completed"];
       const completedBookings = bookingsData.filter(booking => 
-        booking.Status === "done" || booking.Status === "completed"
+        completedStatuses.includes(booking.Status?.toLowerCase())
       );
       
+      console.log("Found completed bookings:", completedBookings.length);
+      
+      // Then calculate the sum of all prices from completed bookings
       const earnings = completedBookings.reduce((sum, booking) => {
-        // Ensure price is a valid number before adding
+        // Parse the price as a number, defaulting to 0 if invalid
         const price = booking.price ? parseFloat(booking.price) : 0;
-        return sum + price;
+        // Multiply by quantity if it exists, otherwise just add the price
+        const quantity = booking.Qty ? parseInt(booking.Qty, 10) : 1;
+        const bookingTotal = price * quantity;
+        
+        console.log(`Booking ID: ${booking.id}, Price: ${price}, Qty: ${quantity}, Total: ${bookingTotal}`);
+        return sum + bookingTotal;
       }, 0);
       
       console.log("Total earnings calculated:", earnings);
@@ -221,7 +232,7 @@ const ArtistDashboard = () => {
             <CardContent>
               <div className="text-2xl font-bold">
                 {isLoading ? "..." : bookings.filter(b => 
-                  b.Status === "done" || b.Status === "completed"
+                  b.Status?.toLowerCase() === "done" || b.Status?.toLowerCase() === "completed"
                 ).length}
               </div>
               <p className="text-xs text-muted-foreground">
