@@ -22,6 +22,7 @@ interface ExportButtonProps<T extends Record<string, any>> {
   buttonText?: string;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   dateField?: keyof T;
+  className?: string; // Added className prop to the interface
 }
 
 export function ExportButton<T extends Record<string, any>>({
@@ -30,7 +31,8 @@ export function ExportButton<T extends Record<string, any>>({
   headers,
   buttonText = 'Export CSV',
   variant = 'outline',
-  dateField
+  dateField,
+  className // Added className to destructuring
 }: ExportButtonProps<T>) {
   const { toast } = useToast();
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -131,7 +133,7 @@ export function ExportButton<T extends Record<string, any>>({
         variant={variant}
         onClick={handleExport}
         disabled={data.length === 0}
-        className="flex items-center"
+        className={`flex items-center ${className || ''}`} // Add className to the Button
       >
         <Download className="mr-2 h-4 w-4" />
         {buttonText}
@@ -144,7 +146,7 @@ export function ExportButton<T extends Record<string, any>>({
       <PopoverTrigger asChild>
         <Button
           variant={variant}
-          className="flex items-center"
+          className={`flex items-center ${className || ''}`} // Add className to the Button
           disabled={data.length === 0}
         >
           <Download className="mr-2 h-4 w-4" />
