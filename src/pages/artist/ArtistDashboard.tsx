@@ -70,17 +70,21 @@ const ArtistDashboard = () => {
   
   // Calculate total earnings and completed services count from completed services
   const calculateStats = (bookingsData: any[]) => {
-    // Filter for completed bookings using statuses like "done", "completed", etc.
+    // Fix: Consider all status variants that indicate completion
+    const completedStatuses = ['done', 'completed', 'DONE', 'COMPLETED'];
     const completedBookings = bookingsData.filter(booking => 
-      booking.Status === "done" || booking.Status === "completed"
+      booking.Status && completedStatuses.includes(booking.Status.toLowerCase())
     );
     
     // Set the count of completed services
     setCompletedServicesCount(completedBookings.length);
     
-    // Calculate earnings from completed services
+    // Fix: Calculate earnings from completed services with proper type handling
     const earnings = completedBookings.reduce((sum, booking) => {
-      const price = booking.price ? parseFloat(booking.price) : 0;
+      // Handle different price formats (string, number, null)
+      const price = typeof booking.price === 'number' ? booking.price :
+                   (typeof booking.price === 'string' ? parseFloat(booking.price) : 0);
+      
       return sum + price;
     }, 0);
     

@@ -136,9 +136,21 @@ const AdminArtistActivity = () => {
       
       // Calculate statistics
       const totalAssigned = statsData?.length || 0;
-      const completed = statsData?.filter(booking => booking.Status === 'done') || [];
+      
+      // Fix: Consider all status variants that indicate completion
+      const completedStatuses = ['done', 'completed', 'DONE', 'COMPLETED'];
+      const completed = statsData?.filter(booking => 
+        completedStatuses.includes(booking.Status?.toLowerCase() || '')
+      ) || [];
+      
       const totalCompleted = completed.length;
-      const totalRevenue = completed.reduce((sum, booking) => sum + (booking.price || 0), 0);
+      
+      // Fix: Ensure we're correctly summing the revenue from completed services
+      const totalRevenue = completed.reduce((sum, booking) => {
+        const price = typeof booking.price === 'number' ? booking.price : 
+                     (typeof booking.price === 'string' ? parseFloat(booking.price) : 0);
+        return sum + price;
+      }, 0);
       
       setActivityStats({
         total_assigned: totalAssigned,
@@ -160,8 +172,10 @@ const AdminArtistActivity = () => {
         booking_date: booking.Booking_date || '',
         service_name: booking.ServiceName || '',
         status: booking.Status || '',
-        price: booking.price || 0
+        price: typeof booking.price === 'number' ? booking.price : 
+               (typeof booking.price === 'string' ? parseFloat(booking.price) : 0)
       })) || []);
+      
     } catch (error) {
       console.error('Error fetching artist activity:', error);
       toast({
@@ -311,9 +325,9 @@ const AdminArtistActivity = () => {
                               <TableCell>{detail.service_name}</TableCell>
                               <TableCell>
                                 <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                                  detail.status === 'done' ? 'bg-green-100 text-green-800' :
-                                  detail.status === 'confirmed' || detail.status === 'beautician_assigned' ? 'bg-blue-100 text-blue-800' :
-                                  detail.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  detail.status.toLowerCase() === 'done' || detail.status.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' :
+                                  detail.status.toLowerCase() === 'confirmed' || detail.status.toLowerCase() === 'beautician_assigned' ? 'bg-blue-100 text-blue-800' :
+                                  detail.status.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
                                   {detail.status?.toUpperCase() || 'UNKNOWN'}
