@@ -31,45 +31,45 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, logout }: AdminNavProps
         <div className="px-3 py-2">
           <h2 className="mb-2 px-4 text-lg font-semibold">Management</h2>
           <div className="space-y-1">
-            <NavLink to="/admin/dashboard" icon={<Home className="mr-2 h-4 w-4" />}>
+            <NavLink to="/admin/dashboard" icon={Home}>
               Dashboard
             </NavLink>
             
-            <NavLink to="/admin/bookings" icon={<CalendarDays className="mr-2 h-4 w-4" />}>
+            <NavLink to="/admin/bookings" icon={CalendarDays}>
               Bookings
             </NavLink>
             
             {/* Artist Activity link - now available for all admin types */}
-            <NavLink to="/controller/artist-activity" icon={<Activity className="mr-2 h-4 w-4" />}>
+            <NavLink to="/controller/artist-activity" icon={Activity}>
               Artist Activity
             </NavLink>
 
             {(isAdmin || isSuperAdmin) && (
               <>
-                <NavLink to="/admin/services" icon={<BookText className="mr-2 h-4 w-4" />}>
+                <NavLink to="/admin/services" icon={BookText}>
                   Services
                 </NavLink>
                 
-                <NavLink to="/admin/status" icon={<FileBarChart2 className="mr-2 h-4 w-4" />}>
+                <NavLink to="/admin/status" icon={FileBarChart2}>
                   Status Manager
                 </NavLink>
                 
-                <NavLink to="/admin/artists" icon={<CircleUser className="mr-2 h-4 w-4" />}>
+                <NavLink to="/admin/artists" icon={CircleUser}>
                   Beauticians
                 </NavLink>
                 
-                <NavLink to="/admin/members" icon={<Users className="mr-2 h-4 w-4" />}>
+                <NavLink to="/admin/members" icon={Users}>
                   Members
                 </NavLink>
 
-                <NavLink to="/admin/faqs" icon={<FileQuestion className="mr-2 h-4 w-4" />}>
+                <NavLink to="/admin/faqs" icon={FileQuestion}>
                   FAQs
                 </NavLink>
               </>
             )}
 
             {isSuperAdmin && (
-              <NavLink to="/admin/users" icon={<Users className="mr-2 h-4 w-4" />}>
+              <NavLink to="/admin/users" icon={Users}>
                 Admin Users
               </NavLink>
             )}
@@ -77,7 +77,7 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, logout }: AdminNavProps
             {(isAdmin || isSuperAdmin) && (
               <NavLink
                 to="/admin/wishlist-controller"
-                icon={<Heart className="mr-2 h-4 w-4" />}
+                icon={Heart}
               >
                 Wishlist Controller
               </NavLink>
@@ -91,7 +91,7 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, logout }: AdminNavProps
         <Separator className="my-2" />
         <h2 className="mb-2 px-4 text-lg font-semibold">Account</h2>
         <div className="space-y-1">
-          <NavLink to="/user/settings" icon={<Settings className="mr-2 h-4 w-4" />}>
+          <NavLink to="/user/settings" icon={Settings}>
             Settings
           </NavLink>
           <Button

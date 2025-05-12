@@ -45,9 +45,11 @@ export default function UserDashboard() {
     });
   };
 
+  const dashboardTitle = `Welcome, ${user?.firstName || 'Member'}`;
+
   return (
     <ProtectedRoute allowedRoles={["member"]}>
-      <DashboardLayout title={`Welcome, ${user?.firstName || 'Member'}`}>
+      <DashboardLayout title={dashboardTitle}>
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Member Dashboard</h2>
