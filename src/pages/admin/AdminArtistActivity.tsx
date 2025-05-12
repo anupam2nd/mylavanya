@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Download } from "lucide-react";
 import { ExportButton } from "@/components/ui/export-button";
 import {
   Dialog,
@@ -34,7 +34,7 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 
-// Define interfaces for the data we'll use (identical to controller page)
+// Define interfaces for the data we'll use
 interface Artist {
   ArtistId: number;
   ArtistFirstName: string | null;
@@ -59,6 +59,19 @@ interface ArtistActivityDetails {
   price: number;
 }
 
+// For export functionality
+interface ArtistExportData {
+  artist_id: number;
+  artist_name: string;
+  email: string;
+  group: string;
+  phone: string;
+  status: string;
+  total_assigned: number;
+  total_completed: number;
+  total_revenue: number;
+}
+
 const AdminArtistActivity = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -72,6 +85,10 @@ const AdminArtistActivity = () => {
   const [activityDetails, setActivityDetails] = useState<ArtistActivityDetails[]>([]);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  
+  // Export data state
+  const [artistsExportData, setArtistsExportData] = useState<ArtistExportData[]>([]);
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Fetch artists on component mount
   useEffect(() => {
@@ -87,6 +104,9 @@ const AdminArtistActivity = () => {
         
         setArtists(data || []);
         setFilteredArtists(data || []);
+        
+        // Initialize export data with artist info
+        await prepareExportData(data || []);
       } catch (error) {
         console.error('Error fetching artists:', error);
         toast({
@@ -101,6 +121,68 @@ const AdminArtistActivity = () => {
 
     fetchArtists();
   }, []);
+
+  // Prepare export data for all artists
+  const prepareExportData = async (artistsList: Artist[]) => {
+    try {
+      setExportLoading(true);
+      
+      const exportData: ArtistExportData[] = [];
+      
+      // Process each artist to get their stats
+      for (const artist of artistsList) {
+        const { data: bookings, error } = await supabase
+          .from('BookMST')
+          .select('Status, price')
+          .eq('ArtistId', artist.ArtistId);
+          
+        if (error) {
+          console.error(`Error fetching bookings for artist ${artist.ArtistId}:`, error);
+          continue;
+        }
+        
+        // Calculate stats
+        const totalAssigned = bookings?.length || 0;
+        
+        const completedStatuses = ['done', 'completed', 'DONE', 'COMPLETED'];
+        const completed = bookings?.filter(booking => 
+          completedStatuses.includes(booking.Status?.toLowerCase() || '')
+        ) || [];
+        
+        const totalCompleted = completed.length;
+        
+        const totalRevenue = completed.reduce((sum, booking) => {
+          const price = typeof booking.price === 'number' ? booking.price : 
+                      (typeof booking.price === 'string' ? parseFloat(booking.price) : 0);
+          return sum + price;
+        }, 0);
+        
+        // Add to export data
+        exportData.push({
+          artist_id: artist.ArtistId,
+          artist_name: `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim(),
+          email: artist.emailid || '',
+          group: artist.Artistgrp || 'N/A',
+          phone: artist.ArtistPhno?.toString() || 'N/A',
+          status: artist.Active ? 'Active' : 'Inactive',
+          total_assigned: totalAssigned,
+          total_completed: totalCompleted,
+          total_revenue: totalRevenue
+        });
+      }
+      
+      setArtistsExportData(exportData);
+    } catch (error) {
+      console.error('Error preparing export data:', error);
+      toast({
+        title: "Failed to prepare export data",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setExportLoading(false);
+    }
+  };
 
   // Filter artists based on search query
   useEffect(() => {
@@ -196,13 +278,32 @@ const AdminArtistActivity = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Artist Activity Tracking</CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search artists..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8"
+            <div className="flex items-center gap-4">
+              <div className="relative w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search artists..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+              <ExportButton 
+                data={artistsExportData}
+                filename="artist_activity_summary"
+                dateField="booking_date" // This will use the current date for filtering
+                buttonText={exportLoading ? "Preparing..." : "Export Summary"}
+                variant="outline"
+                headers={{
+                  artist_name: "Artist Name",
+                  email: "Email",
+                  group: "Group",
+                  phone: "Phone",
+                  status: "Status",
+                  total_assigned: "Assigned",
+                  total_completed: "Completed",
+                  total_revenue: "Revenue (₹)"
+                }}
               />
             </div>
           </CardHeader>
