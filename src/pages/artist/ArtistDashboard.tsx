@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,16 +68,23 @@ const ArtistDashboard = () => {
   
   // Calculate total earnings from completed services
   const calculateTotalEarnings = (bookingsData: any[]) => {
-    const completedBookings = bookingsData.filter(booking => 
-      booking.Status === "done" || booking.Status === "completed"
-    );
-    
-    const earnings = completedBookings.reduce((sum, booking) => {
-      const price = booking.price ? parseFloat(booking.price) : 0;
-      return sum + price;
-    }, 0);
-    
-    setTotalEarnings(earnings);
+    try {
+      const completedBookings = bookingsData.filter(booking => 
+        booking.Status === "done" || booking.Status === "completed"
+      );
+      
+      const earnings = completedBookings.reduce((sum, booking) => {
+        // Ensure price is a valid number before adding
+        const price = booking.price ? parseFloat(booking.price) : 0;
+        return sum + price;
+      }, 0);
+      
+      console.log("Total earnings calculated:", earnings);
+      setTotalEarnings(earnings);
+    } catch (error) {
+      console.error("Error calculating earnings:", error);
+      setTotalEarnings(0); // Set to 0 if error occurs
+    }
   };
   
   // Fetch bookings
@@ -224,7 +230,7 @@ const ArtistDashboard = () => {
             </CardContent>
           </Card>
           
-          {/* New Card for Total Generated Amount */}
+          {/* Revenue Card */}
           <Card className="bg-primary/5 border-primary/20">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center">
