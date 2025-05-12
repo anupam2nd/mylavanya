@@ -21,6 +21,7 @@ import AdminServices from "./pages/admin/AdminServices";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminStatus from "./pages/admin/AdminStatus";
 import AdminArtists from "./pages/admin/AdminArtists";
+import AdminArtistActivity from "./pages/admin/AdminArtistActivity";
 import UserDashboard from "./pages/user/UserDashboard";
 import UserBookings from "./pages/user/UserBookings";
 import Profile from "./pages/user/Profile";
@@ -84,6 +85,7 @@ const App = () => (
             <Route path="/admin/status" element={<AdminStatus />} />
             <Route path="/admin/artists" element={<AdminArtists />} />
             <Route path="/admin/wishlist" element={<WishlistController />} />
+            <Route path="/admin/artist-activity" element={<AdminArtistActivity />} />
             <Route path="/admin/faqs" element={<AdminFaqs />} />
             <Route path="/admin/members" element={<AdminMembers />} />
             
