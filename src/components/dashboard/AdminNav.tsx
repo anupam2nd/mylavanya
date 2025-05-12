@@ -40,14 +40,14 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, logout }: AdminNavProps
           <NavLink to="/admin/services" icon={Package}>Services</NavLink>
           <NavLink to="/admin/artists" icon={Paintbrush}>Artists</NavLink>
           <NavLink to="/admin/wishlist" icon={Heart}>Customer Wishlists</NavLink>
-          <NavLink to="/admin/artist-activity" icon={Activity}>Artist Activity</NavLink>
+          <NavLink to={activityLink} icon={Activity}>Artist Activity</NavLink>
         </>
       )}
 
       {/* Controller users get Artist Activity and Wishlist options */}
       {isController && (
         <>
-          <NavLink to="/controller/artist-activity" icon={Activity}>Artist Activity</NavLink>
+          <NavLink to={activityLink} icon={Activity}>Artist Activity</NavLink>
           <NavLink to="/admin/wishlist" icon={Heart}>Customer Wishlists</NavLink>
         </>
       )}

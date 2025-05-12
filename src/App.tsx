@@ -31,6 +31,7 @@ import WishlistController from "./pages/admin/WishlistController";
 import ControllerDashboard from "./pages/controller/ControllerDashboard";
 import ControllerBookings from "./pages/controller/ControllerBookings";
 import ArtistActivity from "./pages/controller/ArtistActivity";
+import AdminArtistActivity from "./pages/admin/AdminArtistActivity";
 import AdminFaqs from "./pages/admin/AdminFaqs";
 import AdminMembers from "./pages/admin/AdminMembers";
 
@@ -86,7 +87,7 @@ const App = () => (
             <Route path="/admin/wishlist" element={<WishlistController />} />
             <Route path="/admin/faqs" element={<AdminFaqs />} />
             <Route path="/admin/members" element={<AdminMembers />} />
-            <Route path="/admin/artist-activity" element={<ArtistActivity />} />
+            <Route path="/admin/artist-activity" element={<AdminArtistActivity />} />
             
             {/* Controller Routes */}
             <Route path="/controller/dashboard" element={<ControllerDashboard />} />
