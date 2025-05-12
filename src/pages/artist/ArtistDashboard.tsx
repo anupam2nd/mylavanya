@@ -69,33 +69,16 @@ const ArtistDashboard = () => {
   
   // Calculate total earnings from completed services
   const calculateTotalEarnings = (bookingsData: any[]) => {
-    try {
-      // First, filter completed bookings properly
-      const completedStatuses = ["done", "completed"];
-      const completedBookings = bookingsData.filter(booking => 
-        completedStatuses.includes(booking.Status?.toLowerCase())
-      );
-      
-      console.log("Found completed bookings:", completedBookings.length);
-      
-      // Then calculate the sum of all prices from completed bookings
-      const earnings = completedBookings.reduce((sum, booking) => {
-        // Parse the price as a number, defaulting to 0 if invalid
-        const price = booking.price ? parseFloat(booking.price) : 0;
-        // Multiply by quantity if it exists, otherwise just add the price
-        const quantity = booking.Qty ? parseInt(booking.Qty, 10) : 1;
-        const bookingTotal = price * quantity;
-        
-        console.log(`Booking ID: ${booking.id}, Price: ${price}, Qty: ${quantity}, Total: ${bookingTotal}`);
-        return sum + bookingTotal;
-      }, 0);
-      
-      console.log("Total earnings calculated:", earnings);
-      setTotalEarnings(earnings);
-    } catch (error) {
-      console.error("Error calculating earnings:", error);
-      setTotalEarnings(0); // Set to 0 if error occurs
-    }
+    const completedBookings = bookingsData.filter(booking => 
+      booking.Status === "done" || booking.Status === "completed"
+    );
+    
+    const earnings = completedBookings.reduce((sum, booking) => {
+      const price = booking.price ? parseFloat(booking.price) : 0;
+      return sum + price;
+    }, 0);
+    
+    setTotalEarnings(earnings);
   };
   
   // Fetch bookings
@@ -232,7 +215,7 @@ const ArtistDashboard = () => {
             <CardContent>
               <div className="text-2xl font-bold">
                 {isLoading ? "..." : bookings.filter(b => 
-                  b.Status?.toLowerCase() === "done" || b.Status?.toLowerCase() === "completed"
+                  b.Status === "done" || b.Status === "completed"
                 ).length}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -241,7 +224,7 @@ const ArtistDashboard = () => {
             </CardContent>
           </Card>
           
-          {/* Revenue Card */}
+          {/* New Card for Total Generated Amount */}
           <Card className="bg-primary/5 border-primary/20">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center">
