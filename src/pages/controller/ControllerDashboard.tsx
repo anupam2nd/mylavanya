@@ -8,7 +8,6 @@ import { useBookings } from "@/hooks/useBookings";
 import BookingStatusPieChart from "@/components/admin/dashboard/BookingStatusPieChart";
 import MonthlyBookingTrendsChart from "@/components/admin/dashboard/MonthlyBookingTrendsChart";
 import BeauticianBookingsBarChart from "@/components/admin/dashboard/BeauticianBookingsBarChart";
-import RevenuePieChart from "@/components/user/RevenuePieChart";
 import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import { parseISO, subDays, format, isToday, isSameDay } from "date-fns";
 import { CalendarDays } from "lucide-react";
@@ -18,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import { Navigate } from "react-router-dom";
-import MonthlyBookingsChart from "@/components/admin/dashboard/MonthlyBookingsChart";
 
 const ControllerDashboard = () => {
   const { user } = useAuth();
@@ -156,8 +154,28 @@ const ControllerDashboard = () => {
           </Card>
         </div>
 
-        {/* Chart Filters */}
-        <div className="mb-4 mt-6">
+        {/* Monthly Booking Trends Chart */}
+        <div className="mb-8 mt-6">
+          <MonthlyBookingTrendsChart 
+            bookings={bookings} 
+            loading={loading}
+            startDate={appliedStartDate}
+            endDate={appliedEndDate}
+          />
+        </div>
+
+        {/* Beautician Bookings Bar Chart */}
+        <div className="mb-8">
+          <BeauticianBookingsBarChart
+            bookings={bookings}
+            loading={loading}
+            startDate={appliedStartDate}
+            endDate={appliedEndDate}
+          />
+        </div>
+
+        {/* Chart Filters - Moved here above the pie charts */}
+        <div className="mb-4">
           <ChartFilters
             startDate={startDate}
             setStartDate={setStartDate}
@@ -165,38 +183,6 @@ const ControllerDashboard = () => {
             setEndDate={setEndDate}
             applyFilters={applyFilters}
             resetFilters={resetFilters}
-          />
-        </div>
-
-        {/* Monthly Booking Trends & Monthly Bookings */}
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
-          <MonthlyBookingTrendsChart 
-            bookings={bookings} 
-            loading={loading}
-            startDate={appliedStartDate}
-            endDate={appliedEndDate}
-          />
-          <MonthlyBookingsChart
-            bookings={bookings}
-            loading={loading}
-            startDate={appliedStartDate}
-            endDate={appliedEndDate}
-          />
-        </div>
-
-        {/* Revenue Pie Chart & Beautician Performance Bar Chart */}
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
-          <RevenuePieChart
-            bookings={bookings}
-            loading={loading}
-            title="Revenue Distribution by Service"
-            description="Service-wise revenue breakdown"
-          />
-          <BeauticianBookingsBarChart
-            bookings={bookings}
-            loading={loading}
-            startDate={appliedStartDate}
-            endDate={appliedEndDate}
           />
         </div>
 
