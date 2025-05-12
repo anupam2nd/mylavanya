@@ -440,6 +440,13 @@ export type Database = {
             referencedRelation: "PriceMST"
             referencedColumns: ["prod_id"]
           },
+          {
+            foreignKeyName: "wishlist_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "MemberMST"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }

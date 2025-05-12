@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,7 +77,7 @@ const ServiceDetail = () => {
         const { data, error } = await supabase
           .from('wishlist')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('user_id', parseInt(user.id))
           .eq('service_id', serviceIdNumber)
           .maybeSingle();
           
@@ -131,7 +130,7 @@ const ServiceDetail = () => {
         const { data: wishlistItem, error: fetchError } = await supabase
           .from('wishlist')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('user_id', parseInt(user.id))
           .eq('service_id', serviceIdNumber)
           .single();
           
@@ -142,7 +141,7 @@ const ServiceDetail = () => {
           .from('wishlist')
           .delete()
           .eq('id', wishlistItem.id)
-          .eq('user_id', user.id);
+          .eq('user_id', parseInt(user.id));
           
         if (removeError) throw removeError;
         
@@ -156,7 +155,7 @@ const ServiceDetail = () => {
         const { error: addError } = await supabase
           .from('wishlist')
           .insert({
-            user_id: user.id,
+            user_id: parseInt(user.id),
             service_id: serviceIdNumber
           });
           
