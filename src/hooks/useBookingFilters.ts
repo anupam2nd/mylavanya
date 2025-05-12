@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { isAfter, isBefore, startOfDay, endOfDay, parseISO } from "date-fns";
 import { Booking } from "./useBookings";
+import { supabase } from "@/integrations/supabase/client";
 
 export type FilterDateType = "booking" | "creation";
 export type SortDirection = "asc" | "desc";
@@ -25,6 +26,35 @@ export const useBookingFilters = (bookings: Booking[]) => {
   const [filterDateType, setFilterDateType] = useState<FilterDateType>("booking");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [sortField, setSortField] = useState<SortField>("creation_date");
+  const [statusMapping, setStatusMapping] = useState<Record<string, string>>({});
+
+  // Fetch status mapping from statusmst table
+  useEffect(() => {
+    const fetchStatusMapping = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('statusmst')
+          .select('status_code, status_name')
+          .eq('active', true);
+        
+        if (error) throw error;
+        
+        if (data) {
+          // Create a mapping from status_code to status_name
+          const mapping: Record<string, string> = {};
+          data.forEach(status => {
+            mapping[normalizeStatusValue(status.status_code)] = status.status_name;
+          });
+          setStatusMapping(mapping);
+          console.log("Status mapping loaded:", mapping);
+        }
+      } catch (error) {
+        console.error('Error fetching status mapping:', error);
+      }
+    };
+    
+    fetchStatusMapping();
+  }, []);
 
   useEffect(() => {
     let result = [...bookings];
@@ -50,13 +80,21 @@ export const useBookingFilters = (bookings: Booking[]) => {
       console.log("Available statuses:", [...new Set(bookings.map(b => b.Status))]);
       
       result = result.filter(booking => {
-        // Normalize both the booking status and the filter value
-        const normalizedBookingStatus = normalizeStatusValue(booking.Status);
-        const normalizedFilterStatus = normalizeStatusValue(statusFilter);
+        if (!booking.Status) return false;
         
-        console.log(`Comparing normalized status: "${normalizedBookingStatus}" with filter: "${normalizedFilterStatus}"`);
-        
-        return normalizedBookingStatus === normalizedFilterStatus;
+        // First check if the booking status directly matches a status_name from the table
+        if (Object.values(statusMapping).some(name => 
+          name.toLowerCase() === booking.Status?.toLowerCase())) {
+          // If the status is a status_name, match it directly against the filter
+          return normalizeStatusValue(booking.Status) === normalizeStatusValue(statusFilter);
+        } else {
+          // If it's a status_code, try to match it using the mapping
+          const normalizedBookingStatus = normalizeStatusValue(booking.Status);
+          const normalizedFilterStatus = normalizeStatusValue(statusFilter);
+          
+          // Check if any of the status_codes map to the same status_name
+          return normalizedBookingStatus === normalizedFilterStatus;
+        }
       });
     }
     
@@ -88,7 +126,7 @@ export const useBookingFilters = (bookings: Booking[]) => {
     });
     
     setFilteredBookings(result);
-  }, [bookings, startDate, endDate, statusFilter, searchQuery, filterDateType, sortDirection, sortField]);
+  }, [bookings, startDate, endDate, statusFilter, statusMapping, searchQuery, filterDateType, sortDirection, sortField]);
 
   const clearFilters = () => {
     setStartDate(undefined);

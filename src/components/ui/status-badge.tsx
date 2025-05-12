@@ -2,6 +2,8 @@
 import { cn } from "@/lib/utils";
 import { Badge, BadgeProps } from "./badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export type StatusType = "completed" | "pending" | "cancelled" | "processing" | string;
 
@@ -15,10 +17,11 @@ interface StatusBadgeProps extends Omit<BadgeProps, "variant"> {
   };
 }
 
+// Map status codes to style configurations
 const getStatusStyles = (status: StatusType) => {
   const normalizedStatus = status.toLowerCase();
   
-  if (normalizedStatus.includes("completed")) {
+  if (normalizedStatus.includes("complete") || normalizedStatus.includes("done")) {
     return {
       bg: "bg-green-100",
       text: "text-green-800",
@@ -38,6 +41,16 @@ const getStatusStyles = (status: StatusType) => {
       bg: "bg-red-100",
       text: "text-red-800",
     };
+  } else if (normalizedStatus.includes("on_the_way") || normalizedStatus.includes("on the way")) {
+    return {
+      bg: "bg-amber-100",
+      text: "text-amber-800",
+    };
+  } else if (normalizedStatus.includes("start") || normalizedStatus.includes("service_started")) {
+    return {
+      bg: "bg-indigo-100", 
+      text: "text-indigo-800",
+    };
   } else {
     return {
       bg: "bg-gray-100",
@@ -54,13 +67,59 @@ export const StatusBadge = ({
   className, 
   ...props 
 }: StatusBadgeProps) => {
+  const [displayStatus, setDisplayStatus] = useState<string>(status);
   const styles = getStatusStyles(status);
-  
-  // Format status for display
-  const displayStatus = status
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
+
+  // Fetch appropriate status name for display
+  useEffect(() => {
+    const fetchStatusName = async () => {
+      try {
+        // First check if status is a status_code
+        const { data: codeData, error: codeError } = await supabase
+          .from('statusmst')
+          .select('status_name')
+          .eq('status_code', status)
+          .single();
+        
+        if (!codeError && codeData) {
+          setDisplayStatus(codeData.status_name);
+          return;
+        }
+        
+        // Then check if status matches a status_name
+        const { data: nameData, error: nameError } = await supabase
+          .from('statusmst')
+          .select('status_name')
+          .eq('status_name', status)
+          .single();
+        
+        if (!nameError && nameData) {
+          setDisplayStatus(nameData.status_name);
+          return;
+        }
+        
+        // Fallback to formatted display of the original status
+        const formatted = status
+          .split('_')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+        
+        setDisplayStatus(formatted);
+        
+      } catch (error) {
+        console.error('Error fetching status name:', error);
+        // Format the status as a fallback
+        const formatted = status
+          .split('_')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+        
+        setDisplayStatus(formatted);
+      }
+    };
+    
+    fetchStatusName();
+  }, [status]);
   
   const badge = (
     <Badge

@@ -3,6 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Clock, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import BookingStatusActions from "./BookingStatusActions";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ArtistBookingCardProps {
   booking: {
@@ -22,25 +24,112 @@ interface ArtistBookingCardProps {
   onStatusUpdated: () => void;
 }
 
+interface StatusMapping {
+  [key: string]: string;
+}
+
 const ArtistBookingCard = ({ booking, onStatusUpdated }: ArtistBookingCardProps) => {
+  const [statusMappings, setStatusMappings] = useState<StatusMapping>({});
+
+  useEffect(() => {
+    const fetchStatusMappings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('statusmst')
+          .select('status_code, status_name');
+        
+        if (error) throw error;
+        
+        if (data) {
+          const mappings: StatusMapping = {};
+          data.forEach(status => {
+            mappings[status.status_code.toLowerCase()] = status.status_name;
+            mappings[status.status_name.toLowerCase()] = status.status_name;
+          });
+          setStatusMappings(mappings);
+        }
+      } catch (error) {
+        console.error("Error fetching status mappings:", error);
+      }
+    };
+    
+    fetchStatusMappings();
+  }, []);
+
   const getStatusColorClass = (status: string) => {
     const normalizedStatus = status.toLowerCase();
+    
+    // Check if status is in our mappings
+    if (statusMappings[normalizedStatus]) {
+      const mappedStatus = statusMappings[normalizedStatus].toLowerCase();
+      
+      if (mappedStatus.includes("complete") || mappedStatus.includes("done")) {
+        return 'bg-green-500';
+      } else if (mappedStatus === 'confirmed') {
+        return 'bg-blue-500';
+      } else if (mappedStatus.includes('assigned')) {
+        return 'bg-purple-500';
+      } else if (mappedStatus.includes('on the way')) {
+        return 'bg-amber-500';
+      } else if (mappedStatus.includes('started')) {
+        return 'bg-indigo-500';
+      }
+    }
+    
+    // Fallback to direct status checks
     if (normalizedStatus === 'confirmed') return 'bg-blue-500';
-    if (normalizedStatus === 'beautician_assigned' || normalizedStatus === 'assigned') return 'bg-purple-500';
-    if (normalizedStatus === 'done' || normalizedStatus === 'completed') return 'bg-green-500';
-    if (normalizedStatus === 'on the way' || normalizedStatus === 'ontheway') return 'bg-amber-500';
-    if (normalizedStatus === 'service_started' || normalizedStatus === 'started') return 'bg-indigo-500';
+    if (normalizedStatus.includes('assigned')) return 'bg-purple-500';
+    if (normalizedStatus === 'done' || normalizedStatus === 'completed' || normalizedStatus === 'complete') return 'bg-green-500';
+    if (normalizedStatus.includes('on the way')) return 'bg-amber-500';
+    if (normalizedStatus.includes('started')) return 'bg-indigo-500';
+    
     return 'bg-gray-500';
   };
 
   const formatStatusText = (status: string) => {
     const normalizedStatus = status.toLowerCase();
     
-    // Fix the inconsistent display of "started" vs "service_started"
+    // Try to get the display name from our mappings
+    if (statusMappings[normalizedStatus]) {
+      return statusMappings[normalizedStatus];
+    }
+    
+    // Fallback to manual formatting
     if (normalizedStatus === 'beautician_assigned') return 'Assigned';
     if (normalizedStatus === 'service_started' || normalizedStatus === 'started') return 'Service Started';
     
     return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+  const getStatusBgClass = (status: string) => {
+    const normalizedStatus = status.toLowerCase();
+    
+    // Check if status is in our mappings
+    if (statusMappings[normalizedStatus]) {
+      const mappedStatus = statusMappings[normalizedStatus].toLowerCase();
+      
+      if (mappedStatus.includes("complete") || mappedStatus.includes("done")) {
+        return 'bg-green-100 text-green-800';
+      } else if (mappedStatus === 'confirmed') {
+        return 'bg-blue-100 text-blue-800';
+      } else if (mappedStatus.includes('assigned')) {
+        return 'bg-purple-100 text-purple-800';
+      } else if (mappedStatus.includes('on the way')) {
+        return 'bg-amber-100 text-amber-800';
+      } else if (mappedStatus.includes('started')) {
+        return 'bg-indigo-100 text-indigo-800';
+      }
+    }
+    
+    // Fallback to direct status checks
+    if (normalizedStatus === 'confirmed') return 'bg-blue-100 text-blue-800';
+    if (normalizedStatus.includes('assigned')) return 'bg-purple-100 text-purple-800';
+    if (normalizedStatus === 'done' || normalizedStatus === 'completed' || normalizedStatus === 'complete') 
+      return 'bg-green-100 text-green-800';
+    if (normalizedStatus.includes('on the way')) return 'bg-amber-100 text-amber-800';
+    if (normalizedStatus.includes('started')) return 'bg-indigo-100 text-indigo-800';
+    
+    return 'bg-gray-100 text-gray-800';
   };
 
   return (
@@ -72,13 +161,7 @@ const ArtistBookingCard = ({ booking, onStatusUpdated }: ArtistBookingCardProps)
           <span>{booking.booking_time}</span>
         </div>
         <div className="flex items-center justify-between mt-2">
-          <div className={`px-2 py-1 text-xs font-medium rounded-full 
-            ${booking.Status === 'confirmed' ? 'bg-blue-100 text-blue-800' : 
-              booking.Status === 'beautician_assigned' ? 'bg-purple-100 text-purple-800' : 
-                booking.Status === 'done' || booking.Status === 'completed' ? 'bg-green-100 text-green-800' : 
-                  booking.Status === 'on the way' || booking.Status === 'ontheway' ? 'bg-amber-100 text-amber-800' :
-                    booking.Status === 'service_started' || booking.Status === 'started' ? 'bg-indigo-100 text-indigo-800' :
-                      'bg-gray-100 text-gray-800'}`}>
+          <div className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBgClass(booking.Status)}`}>
             {formatStatusText(booking.Status)}
           </div>
           <div className="text-sm font-medium">

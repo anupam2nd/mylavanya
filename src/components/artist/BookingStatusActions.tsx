@@ -1,16 +1,22 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MapPin, Play, CheckCircle } from "lucide-react";
 import StatusUpdateDialog from "./StatusUpdateDialog";
 import DirectStatusUpdateDialog from "./DirectStatusUpdateDialog";
 import { StatusUpdateType } from "@/hooks/useArtistStatusUpdate";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BookingStatusActionsProps {
   bookingId: number;
   bookingNo: string;
   currentStatus: string;
   onStatusUpdated: () => void;
+}
+
+interface StatusCode {
+  status_code: string;
+  status_name: string;
 }
 
 const BookingStatusActions = ({
@@ -22,6 +28,32 @@ const BookingStatusActions = ({
   const [showDirectDialog, setShowDirectDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [statusType, setStatusType] = useState<StatusUpdateType>("start");
+  const [statusCodes, setStatusCodes] = useState<Record<string, string>>({});
+
+  // Fetch status codes from the database
+  useEffect(() => {
+    const fetchStatusCodes = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('statusmst')
+          .select('status_code, status_name');
+        
+        if (error) throw error;
+        
+        if (data) {
+          const codeMap: Record<string, string> = {};
+          data.forEach(status => {
+            codeMap[status.status_name.toLowerCase()] = status.status_code;
+          });
+          setStatusCodes(codeMap);
+        }
+      } catch (error) {
+        console.error('Error fetching status codes:', error);
+      }
+    };
+    
+    fetchStatusCodes();
+  }, []);
 
   const handleStartOtpFlow = (type: StatusUpdateType) => {
     setStatusType(type);
@@ -30,16 +62,32 @@ const BookingStatusActions = ({
 
   const normalizedStatus = currentStatus.toLowerCase();
   
+  // Helper function to check if status matches any of the given values
+  const statusMatches = (statusValues: string[]): boolean => {
+    const currentStatusLower = currentStatus.toLowerCase();
+    
+    // Check if the current status matches any of the status names
+    if (statusValues.some(val => currentStatusLower.includes(val))) {
+      return true;
+    }
+    
+    // Check if the current status is a code that maps to any of the status names
+    for (const statusName in statusCodes) {
+      if (statusValues.some(val => statusName.includes(val)) && 
+          statusCodes[statusName]?.toLowerCase() === currentStatusLower) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+  
   // Determine which buttons to show based on current status
-  const showOnTheWayButton = ["confirmed", "beautician_assigned", "assigned"].some(
-    status => normalizedStatus.includes(status)
-  );
+  const showOnTheWayButton = statusMatches(["confirmed", "beautician_assigned", "assigned", "beautician assigned", "confirmed"]);
   
-  const showStartButton = normalizedStatus.includes("on the way") || 
-                          normalizedStatus.includes("ontheway");
+  const showStartButton = statusMatches(["on the way", "ontheway", "on_the_way"]);
   
-  const showCompleteButton = normalizedStatus.includes("service_started") || 
-                             normalizedStatus.includes("start");
+  const showCompleteButton = statusMatches(["service_started", "start", "started", "service started"]);
 
   return (
     <>

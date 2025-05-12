@@ -56,7 +56,7 @@ interface ArtistActivityDetails {
   service_name: string;
   status: string;
   price: number;
-  artist_name: string; // Added artist name field to activity details
+  artist_name: string;
 }
 
 // For export functionality
@@ -123,6 +123,41 @@ const ArtistActivityPage = () => {
     fetchArtists();
   }, []);
 
+  // Fetch status mapping from statusmst table
+  const [statusMapping, setStatusMapping] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const fetchStatusMapping = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('statusmst')
+          .select('status_code, status_name');
+        
+        if (error) throw error;
+        
+        if (data) {
+          const mapping: Record<string, string> = {};
+          data.forEach(status => {
+            mapping[status.status_code.toLowerCase()] = status.status_name;
+            // Also add the status_name -> status_name mapping for direct comparisons
+            mapping[status.status_name.toLowerCase()] = status.status_name;
+          });
+          setStatusMapping(mapping);
+          console.log("Status mapping loaded:", mapping);
+        }
+      } catch (error) {
+        console.error('Error fetching status mapping:', error);
+      }
+    };
+    
+    fetchStatusMapping();
+  }, []);
+
+  // Helper function to get the correct status name
+  const getStatusName = (status: string): string => {
+    const normalizedStatus = status.toLowerCase();
+    return statusMapping[normalizedStatus] || status;
+  };
+
   // Prepare export data for all artists
   const prepareExportData = async (artistsList: Artist[]) => {
     try {
@@ -146,10 +181,21 @@ const ArtistActivityPage = () => {
         // Calculate stats
         const totalAssigned = bookings?.length || 0;
         
-        const completedStatuses = ['done', 'completed', 'DONE', 'COMPLETED'];
-        const completed = bookings?.filter(booking => 
-          completedStatuses.includes(booking.Status?.toLowerCase() || '')
-        ) || [];
+        // Get status mappings for "completed" status
+        const completeStatusCodes = Object.entries(statusMapping)
+          .filter(([_, name]) => name.toLowerCase() === 'completed' || name.toLowerCase() === 'done')
+          .map(([code]) => code);
+          
+        // Include both "completed" and legacy "done" status
+        const completedStatuses = [...completeStatusCodes, 'completed', 'done', 'complete', 'DONE', 'COMPLETED', 'COMPLETE'];
+        
+        const completed = bookings?.filter(booking => {
+          const status = booking.Status?.toLowerCase() || '';
+          return completedStatuses.includes(status) || 
+                 (statusMapping[status] && 
+                  (statusMapping[status].toLowerCase() === 'completed' || 
+                   statusMapping[status].toLowerCase() === 'done'));
+        }) || [];
         
         const totalCompleted = completed.length;
         
@@ -224,11 +270,21 @@ const ArtistActivityPage = () => {
       // Calculate statistics
       const totalAssigned = statsData?.length || 0;
       
-      // Fix: Consider all status variants that indicate completion
-      const completedStatuses = ['done', 'completed', 'DONE', 'COMPLETED'];
-      const completed = statsData?.filter(booking => 
-        completedStatuses.includes(booking.Status?.toLowerCase() || '')
-      ) || [];
+      // Get status mappings for "completed" status
+      const completeStatusCodes = Object.entries(statusMapping)
+        .filter(([_, name]) => name.toLowerCase() === 'completed' || name.toLowerCase() === 'done')
+        .map(([code]) => code);
+        
+      // Include both "completed" and legacy "done" status
+      const completedStatuses = [...completeStatusCodes, 'completed', 'done', 'complete', 'DONE', 'COMPLETED', 'COMPLETE'];
+      
+      const completed = statsData?.filter(booking => {
+        const status = booking.Status?.toLowerCase() || '';
+        return completedStatuses.includes(status) || 
+               (statusMapping[status] && 
+                (statusMapping[status].toLowerCase() === 'completed' || 
+                 statusMapping[status].toLowerCase() === 'done'));
+      }) || [];
       
       const totalCompleted = completed.length;
       
@@ -424,7 +480,7 @@ const ArtistActivityPage = () => {
                         service_name: "Service",
                         status: "Status",
                         price: "Amount",
-                        artist_name: "Artist Name" // Added artist name to headers
+                        artist_name: "Artist Name"
                       }}
                     />
                   </div>
@@ -448,12 +504,14 @@ const ArtistActivityPage = () => {
                               <TableCell>{detail.service_name}</TableCell>
                               <TableCell>
                                 <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                                  detail.status.toLowerCase() === 'done' || detail.status.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' :
-                                  detail.status.toLowerCase() === 'confirmed' || detail.status.toLowerCase() === 'beautician_assigned' ? 'bg-blue-100 text-blue-800' :
-                                  detail.status.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  getStatusName(detail.status).toLowerCase() === 'completed' || 
+                                  getStatusName(detail.status).toLowerCase() === 'done' ? 'bg-green-100 text-green-800' :
+                                  getStatusName(detail.status).toLowerCase() === 'confirmed' || 
+                                  getStatusName(detail.status).toLowerCase() === 'beautician assigned' ? 'bg-blue-100 text-blue-800' :
+                                  getStatusName(detail.status).toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
-                                  {detail.status?.toUpperCase() || 'UNKNOWN'}
+                                  {getStatusName(detail.status)?.toUpperCase() || 'UNKNOWN'}
                                 </span>
                               </TableCell>
                               <TableCell className="text-right">
