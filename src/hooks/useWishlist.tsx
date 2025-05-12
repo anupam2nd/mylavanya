@@ -19,7 +19,7 @@ export const useWishlist = (serviceId: number) => {
         const { data, error } = await supabase
           .from('wishlist')
           .select('id')
-          .eq('user_id', parseInt(user.id))
+          .eq('user_id', user.id)
           .eq('service_id', serviceId)
           .maybeSingle();
           
@@ -57,7 +57,7 @@ export const useWishlist = (serviceId: number) => {
         const { data: wishlistItem, error: fetchError } = await supabase
           .from('wishlist')
           .select('id')
-          .eq('user_id', parseInt(user.id))
+          .eq('user_id', user.id)
           .eq('service_id', serviceId)
           .single();
           
@@ -68,7 +68,7 @@ export const useWishlist = (serviceId: number) => {
           .from('wishlist')
           .delete()
           .eq('id', wishlistItem.id)
-          .eq('user_id', parseInt(user.id));
+          .eq('user_id', user.id);
           
         if (removeError) throw removeError;
         
@@ -82,7 +82,7 @@ export const useWishlist = (serviceId: number) => {
         const { error: addError } = await supabase
           .from('wishlist')
           .insert({
-            user_id: parseInt(user.id),
+            user_id: user.id,
             service_id: serviceId
           });
           

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: number;
+  user_id: string;
   created_at: string;
   service_name: string;
   service_price: number;
@@ -37,7 +38,8 @@ const Wishlist = () => {
         setLoading(true);
         console.log("Fetching wishlist for user:", user.id);
         
-        // Query the wishlist table directly and join with the PriceMST table
+        // Instead of using the RPC function, query the wishlist table directly
+        // and join with the PriceMST table to get service details
         const { data, error } = await supabase
           .from('wishlist')
           .select(`
@@ -52,7 +54,7 @@ const Wishlist = () => {
               Description
             )
           `)
-          .eq('user_id', parseInt(user.id));
+          .eq('user_id', user.id);
 
         if (error) {
           console.error("Supabase error:", error);
@@ -62,7 +64,7 @@ const Wishlist = () => {
         console.log("Wishlist data received:", data);
         
         // Transform the data to match the WishlistItem interface
-        const formattedItems: WishlistItem[] = data?.map(item => ({
+        const formattedItems = data?.map(item => ({
           id: item.id,
           service_id: item.service_id,
           user_id: item.user_id,
@@ -98,7 +100,7 @@ const Wishlist = () => {
         .from('wishlist')
         .delete()
         .eq('id', itemId)
-        .eq('user_id', parseInt(user.id));
+        .eq('user_id', user.id);
 
       if (error) throw error;
       

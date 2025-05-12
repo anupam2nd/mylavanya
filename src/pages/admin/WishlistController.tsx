@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import { format } from "date-fns";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: number;
+  user_id: string;
   created_at: string;
   service_name: string;
   service_price: number;
@@ -68,7 +69,7 @@ const WishlistController = () => {
             const { data: memberData } = await supabase
               .from('MemberMST')
               .select('MemberFirstName, MemberLastName, MemberEmailId')
-              .eq('id', item.user_id)
+              .eq('MemberEmailId', item.user_id)
               .single();
 
             // If member found, use their name

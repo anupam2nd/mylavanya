@@ -23,6 +23,11 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, logout }: AdminNavProps
     : isController 
       ? "/controller/bookings" 
       : "/user/bookings";
+      
+  // Activity link based on role
+  const activityLink = isAdmin || isSuperAdmin
+    ? "/admin/artist-activity"
+    : "/controller/artist-activity";
 
   return (
     <>
