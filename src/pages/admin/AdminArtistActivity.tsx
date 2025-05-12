@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -70,6 +69,7 @@ interface ArtistExportData {
   total_assigned: number;
   total_completed: number;
   total_revenue: number;
+  export_date: string; // Added this field for date filtering
 }
 
 const AdminArtistActivity = () => {
@@ -128,6 +128,7 @@ const AdminArtistActivity = () => {
       setExportLoading(true);
       
       const exportData: ArtistExportData[] = [];
+      const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
       
       // Process each artist to get their stats
       for (const artist of artistsList) {
@@ -167,7 +168,8 @@ const AdminArtistActivity = () => {
           status: artist.Active ? 'Active' : 'Inactive',
           total_assigned: totalAssigned,
           total_completed: totalCompleted,
-          total_revenue: totalRevenue
+          total_revenue: totalRevenue,
+          export_date: currentDate // Add the current date for filtering
         });
       }
       
@@ -291,7 +293,7 @@ const AdminArtistActivity = () => {
               <ExportButton 
                 data={artistsExportData}
                 filename="artist_activity_summary"
-                dateField="booking_date" // This will use the current date for filtering
+                dateField="export_date" // Using our new field for date filtering
                 buttonText={exportLoading ? "Preparing..." : "Export Summary"}
                 variant="outline"
                 headers={{
