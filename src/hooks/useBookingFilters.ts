@@ -27,6 +27,7 @@ export const useBookingFilters = (bookings: Booking[]) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [sortField, setSortField] = useState<SortField>("creation_date");
   const [statusMapping, setStatusMapping] = useState<Record<string, string>>({});
+  const [statusCodeMapping, setStatusCodeMapping] = useState<Record<string, string>>({});
 
   // Fetch status mapping from statusmst table
   useEffect(() => {
@@ -40,13 +41,22 @@ export const useBookingFilters = (bookings: Booking[]) => {
         if (error) throw error;
         
         if (data) {
-          // Create a mapping from status_code to status_name
-          const mapping: Record<string, string> = {};
+          // Create a mapping from status_name to status_code (normalized)
+          const nameToCode: Record<string, string> = {};
+          // Create a mapping from status_code to status_name (normalized)
+          const codeToName: Record<string, string> = {};
+          
           data.forEach(status => {
-            mapping[normalizeStatusValue(status.status_code)] = status.status_name;
+            const normalizedName = normalizeStatusValue(status.status_name);
+            const normalizedCode = normalizeStatusValue(status.status_code);
+            
+            nameToCode[normalizedName] = status.status_code;
+            codeToName[normalizedCode] = status.status_name;
           });
-          setStatusMapping(mapping);
-          console.log("Status mapping loaded:", mapping);
+          
+          setStatusMapping(nameToCode);
+          setStatusCodeMapping(codeToName);
+          console.log("Status mappings loaded:", { nameToCode, codeToName });
         }
       } catch (error) {
         console.error('Error fetching status mapping:', error);
@@ -55,6 +65,35 @@ export const useBookingFilters = (bookings: Booking[]) => {
     
     fetchStatusMapping();
   }, []);
+
+  // Helper function to check if a booking status matches the filter status
+  const statusMatches = (bookingStatus: string | undefined, filterStatus: string): boolean => {
+    if (!bookingStatus || filterStatus === "all") return filterStatus === "all";
+    
+    const normalizedBookingStatus = normalizeStatusValue(bookingStatus);
+    const normalizedFilterStatus = normalizeStatusValue(filterStatus);
+    
+    console.log(`Comparing booking status "${normalizedBookingStatus}" with filter "${normalizedFilterStatus}"`);
+    
+    // Direct match on normalized values
+    if (normalizedBookingStatus === normalizedFilterStatus) {
+      return true;
+    }
+    
+    // Check if the status code maps to the filter status name
+    const mappedStatusName = statusCodeMapping[normalizedBookingStatus];
+    if (mappedStatusName && normalizeStatusValue(mappedStatusName) === normalizedFilterStatus) {
+      return true;
+    }
+    
+    // Check if the status name maps to the filter status code
+    const mappedStatusCode = statusMapping[normalizedBookingStatus];
+    if (mappedStatusCode && normalizeStatusValue(mappedStatusCode) === normalizedFilterStatus) {
+      return true;
+    }
+    
+    return false;
+  };
 
   useEffect(() => {
     let result = [...bookings];
@@ -79,23 +118,7 @@ export const useBookingFilters = (bookings: Booking[]) => {
       console.log("Filtering by status:", statusFilter);
       console.log("Available statuses:", [...new Set(bookings.map(b => b.Status))]);
       
-      result = result.filter(booking => {
-        if (!booking.Status) return false;
-        
-        // First check if the booking status directly matches a status_name from the table
-        if (Object.values(statusMapping).some(name => 
-          name.toLowerCase() === booking.Status?.toLowerCase())) {
-          // If the status is a status_name, match it directly against the filter
-          return normalizeStatusValue(booking.Status) === normalizeStatusValue(statusFilter);
-        } else {
-          // If it's a status_code, try to match it using the mapping
-          const normalizedBookingStatus = normalizeStatusValue(booking.Status);
-          const normalizedFilterStatus = normalizeStatusValue(statusFilter);
-          
-          // Check if any of the status_codes map to the same status_name
-          return normalizedBookingStatus === normalizedFilterStatus;
-        }
-      });
+      result = result.filter(booking => statusMatches(booking.Status, statusFilter));
     }
     
     if (searchQuery.trim() !== '') {
@@ -126,7 +149,7 @@ export const useBookingFilters = (bookings: Booking[]) => {
     });
     
     setFilteredBookings(result);
-  }, [bookings, startDate, endDate, statusFilter, statusMapping, searchQuery, filterDateType, sortDirection, sortField]);
+  }, [bookings, startDate, endDate, statusFilter, statusMapping, statusCodeMapping, searchQuery, filterDateType, sortDirection, sortField]);
 
   const clearFilters = () => {
     setStartDate(undefined);

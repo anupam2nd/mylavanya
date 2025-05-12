@@ -51,8 +51,9 @@ export const useStatusOptions = () => {
           setStatusOptions(options);
 
           // Create formatted status options for UI display and filtering
+          // For form controls we use the status_name as the value to match displayed labels
           const formattedOptions = data.map(status => ({
-            value: formatStatusValue(status.status_code),
+            value: formatStatusValue(status.status_name), // Using status_name for consistency with UI
             label: status.status_name,
             status_code: status.status_code,
             status_name: status.status_name,

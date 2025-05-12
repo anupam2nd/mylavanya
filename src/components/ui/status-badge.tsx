@@ -21,7 +21,7 @@ interface StatusBadgeProps extends Omit<BadgeProps, "variant"> {
 const getStatusStyles = (status: StatusType) => {
   const normalizedStatus = status.toLowerCase();
   
-  if (normalizedStatus.includes("complete") || normalizedStatus.includes("done")) {
+  if (normalizedStatus.includes("complete") || normalizedStatus.includes("completed") || normalizedStatus.includes("done")) {
     return {
       bg: "bg-green-100",
       text: "text-green-800",
@@ -31,7 +31,12 @@ const getStatusStyles = (status: StatusType) => {
       bg: "bg-yellow-100",
       text: "text-yellow-800",
     };
-  } else if (normalizedStatus.includes("processing") || normalizedStatus.includes("assigned") || normalizedStatus.includes("beautician")) {
+  } else if (
+    normalizedStatus.includes("processing") || 
+    normalizedStatus.includes("assigned") || 
+    normalizedStatus.includes("beautician") || 
+    normalizedStatus.includes("beautician_assigned")
+  ) {
     return {
       bg: "bg-blue-100",
       text: "text-blue-800",
@@ -41,12 +46,16 @@ const getStatusStyles = (status: StatusType) => {
       bg: "bg-red-100",
       text: "text-red-800",
     };
-  } else if (normalizedStatus.includes("on_the_way") || normalizedStatus.includes("on the way")) {
+  } else if (normalizedStatus.includes("on_the_way") || normalizedStatus.includes("on the way") || normalizedStatus.includes("ontheway")) {
     return {
       bg: "bg-amber-100",
       text: "text-amber-800",
     };
-  } else if (normalizedStatus.includes("start") || normalizedStatus.includes("service_started")) {
+  } else if (
+    normalizedStatus.includes("start") || 
+    normalizedStatus.includes("service_started") ||
+    normalizedStatus.includes("service started")
+  ) {
     return {
       bg: "bg-indigo-100", 
       text: "text-indigo-800",
@@ -95,6 +104,28 @@ export const StatusBadge = ({
         
         if (!nameError && nameData) {
           setDisplayStatus(nameData.status_name);
+          return;
+        }
+        
+        // Try a case-insensitive match on status_name
+        const { data: nameDataCaseInsensitive } = await supabase
+          .from('statusmst')
+          .select('status_name')
+          .ilike('status_name', status);
+          
+        if (nameDataCaseInsensitive && nameDataCaseInsensitive.length > 0) {
+          setDisplayStatus(nameDataCaseInsensitive[0].status_name);
+          return;
+        }
+        
+        // Try a case-insensitive match on status_code
+        const { data: codeDataCaseInsensitive } = await supabase
+          .from('statusmst')
+          .select('status_name')
+          .ilike('status_code', status);
+          
+        if (codeDataCaseInsensitive && codeDataCaseInsensitive.length > 0) {
+          setDisplayStatus(codeDataCaseInsensitive[0].status_name);
           return;
         }
         

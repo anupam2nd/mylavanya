@@ -29,6 +29,7 @@ const BookingStatusActions = ({
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [statusType, setStatusType] = useState<StatusUpdateType>("start");
   const [statusCodes, setStatusCodes] = useState<Record<string, string>>({});
+  const [statusNames, setStatusNames] = useState<Record<string, string>>({});
 
   // Fetch status codes from the database
   useEffect(() => {
@@ -42,10 +43,14 @@ const BookingStatusActions = ({
         
         if (data) {
           const codeMap: Record<string, string> = {};
+          const nameMap: Record<string, string> = {};
           data.forEach(status => {
             codeMap[status.status_name.toLowerCase()] = status.status_code;
+            nameMap[status.status_code.toLowerCase()] = status.status_name;
           });
           setStatusCodes(codeMap);
+          setStatusNames(nameMap);
+          console.log("Status mappings loaded:", { codeMap, nameMap });
         }
       } catch (error) {
         console.error('Error fetching status codes:', error);
@@ -66,28 +71,39 @@ const BookingStatusActions = ({
   const statusMatches = (statusValues: string[]): boolean => {
     const currentStatusLower = currentStatus.toLowerCase();
     
-    // Check if the current status matches any of the status names
+    // Direct match on status name or code
     if (statusValues.some(val => currentStatusLower.includes(val))) {
       return true;
     }
     
     // Check if the current status is a code that maps to any of the status names
-    for (const statusName in statusCodes) {
-      if (statusValues.some(val => statusName.includes(val)) && 
-          statusCodes[statusName]?.toLowerCase() === currentStatusLower) {
-        return true;
-      }
+    const mappedStatusName = statusNames[currentStatusLower];
+    if (mappedStatusName && statusValues.some(val => mappedStatusName.toLowerCase().includes(val))) {
+      return true;
+    }
+    
+    // Check if the current status is a name that maps to any of the status codes
+    const mappedStatusCode = statusCodes[currentStatusLower];
+    if (mappedStatusCode && statusValues.some(val => mappedStatusCode.toLowerCase().includes(val))) {
+      return true;
     }
     
     return false;
   };
   
   // Determine which buttons to show based on current status
-  const showOnTheWayButton = statusMatches(["confirmed", "beautician_assigned", "assigned", "beautician assigned", "confirmed"]);
+  const showOnTheWayButton = statusMatches([
+    "confirmed", "beautician_assigned", "assigned", 
+    "beautician assigned", "confirmed"
+  ]);
   
-  const showStartButton = statusMatches(["on the way", "ontheway", "on_the_way"]);
+  const showStartButton = statusMatches([
+    "on the way", "ontheway", "on_the_way"
+  ]);
   
-  const showCompleteButton = statusMatches(["service_started", "start", "started", "service started"]);
+  const showCompleteButton = statusMatches([
+    "service_started", "start", "started", "service started"
+  ]);
 
   return (
     <>
