@@ -34,6 +34,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   const isSuperAdmin = user?.role === 'superadmin';
   const isMember = user?.role === 'member';
   const isController = user?.role === 'controller';
+  const isArtist = user?.role === 'artist';
 
   return (
     <div className="flex h-screen bg-gray-50">

@@ -86,6 +86,7 @@ const App = () => (
             <Route path="/admin/wishlist" element={<WishlistController />} />
             <Route path="/admin/faqs" element={<AdminFaqs />} />
             <Route path="/admin/members" element={<AdminMembers />} />
+            <Route path="/admin/artist-activity" element={<ArtistActivity />} />
             
             {/* Controller Routes */}
             <Route path="/controller/dashboard" element={<ControllerDashboard />} />

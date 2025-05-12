@@ -418,19 +418,19 @@ export type Database = {
           created_at: string | null
           id: number
           service_id: number
-          user_id: string
+          user_id: number
         }
         Insert: {
           created_at?: string | null
           id?: number
           service_id: number
-          user_id: string
+          user_id: number
         }
         Update: {
           created_at?: string | null
           id?: number
           service_id?: number
-          user_id?: string
+          user_id?: number
         }
         Relationships: [
           {
@@ -439,6 +439,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "PriceMST"
             referencedColumns: ["prod_id"]
+          },
+          {
+            foreignKeyName: "wishlist_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "MemberMST"
+            referencedColumns: ["id"]
           },
         ]
       }

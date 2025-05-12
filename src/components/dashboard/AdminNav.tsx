@@ -15,7 +15,7 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, logout }: AdminNavProps
     ? "/admin/dashboard" 
     : isController 
       ? "/controller/dashboard" 
-      : "/user/dashboard";
+      : "/artist/dashboard"; // Changed from "/user/dashboard" to "/artist/dashboard"
   
   // Bookings link for different user types
   const bookingsLink = isAdmin 
