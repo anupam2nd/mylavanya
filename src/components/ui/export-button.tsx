@@ -43,18 +43,31 @@ export function ExportButton<T extends Record<string, any>>({
     
     return data.filter(item => {
       // Handle various date formats (string, Date object, etc.)
-      let itemDate: Date;
+      let itemDate: Date | null = null;
       const dateValue = item[dateField];
       
       if (!dateValue) return false;
       
-      if (dateValue instanceof Date) {
-        itemDate = dateValue;
+      // Instead of using instanceof, check the type and convert appropriately
+      if (Object.prototype.toString.call(dateValue) === '[object Date]' && !isNaN(dateValue.getTime())) {
+        // It's already a valid Date object
+        itemDate = dateValue as Date;
       } else if (typeof dateValue === 'string') {
-        itemDate = new Date(dateValue);
-      } else {
-        return false;
+        // Convert string to Date
+        const parsedDate = new Date(dateValue);
+        if (!isNaN(parsedDate.getTime())) {
+          itemDate = parsedDate;
+        }
+      } else if (typeof dateValue === 'number') {
+        // Handle timestamp
+        const parsedDate = new Date(dateValue);
+        if (!isNaN(parsedDate.getTime())) {
+          itemDate = parsedDate;
+        }
       }
+      
+      // If we couldn't get a valid date, exclude this item
+      if (!itemDate) return false;
       
       // Set time to beginning and end of day for proper comparison
       const start = new Date(startDate);
