@@ -9,7 +9,8 @@ import {
   Card, 
   CardContent, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardFooter
 } from "@/components/ui/card";
 import { 
   Table, 
@@ -22,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { ExportButton } from "@/components/ui/export-button";
 import {
   Dialog,
   DialogContent,
@@ -304,7 +306,23 @@ const AdminArtistActivity = () => {
                 </div>
                 
                 <div className="border rounded-md">
-                  <h3 className="font-medium px-4 py-2 border-b bg-muted/50">Service History</h3>
+                  <div className="flex justify-between items-center px-4 py-2 border-b bg-muted/50">
+                    <h3 className="font-medium">Service History</h3>
+                    <ExportButton 
+                      data={activityDetails}
+                      filename={`artist_${selectedArtistId}_activities`}
+                      dateField="booking_date"
+                      buttonText="Export History"
+                      variant="outline"
+                      headers={{
+                        booking_no: "Booking No.",
+                        booking_date: "Date",
+                        service_name: "Service",
+                        status: "Status",
+                        price: "Amount"
+                      }}
+                    />
+                  </div>
                   {activityDetails.length > 0 ? (
                     <div className="overflow-x-auto">
                       <Table>
