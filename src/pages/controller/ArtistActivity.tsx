@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -55,6 +56,7 @@ interface ArtistActivityDetails {
   service_name: string;
   status: string;
   price: number;
+  artist_name: string; // Added artist name field to activity details
 }
 
 // For export functionality
@@ -258,7 +260,8 @@ const ArtistActivityPage = () => {
         service_name: booking.ServiceName || '',
         status: booking.Status || '',
         price: typeof booking.price === 'number' ? booking.price : 
-               (typeof booking.price === 'string' ? parseFloat(booking.price) : 0)
+               (typeof booking.price === 'string' ? parseFloat(booking.price) : 0),
+        artist_name: selectedArtistName // Add the artist name to each activity detail
       })) || []);
     } catch (error) {
       console.error('Error fetching artist activity:', error);
@@ -420,7 +423,8 @@ const ArtistActivityPage = () => {
                         booking_date: "Date",
                         service_name: "Service",
                         status: "Status",
-                        price: "Amount"
+                        price: "Amount",
+                        artist_name: "Artist Name" // Added artist name to headers
                       }}
                     />
                   </div>
