@@ -1,34 +1,42 @@
+
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Separator } from "@/components/ui/separator";
+
 interface HeroProps {
   onBookNow: () => void;
   onLogin: () => void;
   onArtistLogin: () => void;
 }
+
 const Hero = ({
   onBookNow,
   onLogin,
   onArtistLogin
 }: HeroProps) => {
   const isMobile = useIsMobile();
+  
   return <div className="relative bg-gradient-to-b from-secondary/30 to-background pt-28 pb-24 overflow-hidden py-0">
       {/* Background decorative elements */}
       <div className="absolute top-1/4 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/40 rounded-full blur-3xl -z-10"></div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Mobile Banner Image - Only visible on mobile */}
+        {isMobile && (
+          <div className="mb-8 -mx-4 sm:-mx-6">
+            <img 
+              src="/lovable-uploads/a719d374-9ef0-4cec-9e17-29c49750e86f.png" 
+              alt="Lavanya Beauty Services Banner" 
+              className="w-full h-auto object-cover"
+            />
+            <Separator className="mt-6" />
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* Mobile Hero Image - Only visible on mobile */}
-          {isMobile && <div className="block lg:hidden mb-8">
-              <div className="relative mx-auto w-40 h-40">
-                <div className="absolute -top-2 -left-2 w-12 h-12 bg-secondary rounded-full"></div>
-                <div className="absolute -bottom-4 -right-2 w-16 h-16 bg-accent/30 rounded-full"></div>
-                <div className="relative z-10">
-                  <img alt="Beauty Services" src="/lovable-uploads/eb79a949-570e-4f97-ad2b-169d9a42f5e4.jpg" className="w-full h-auto rounded-2xl shadow-card object-contain" />
-                </div>
-              </div>
-            </div>}
+          {/* Mobile small image is now removed in favor of the banner */}
           
           <div className="space-y-8 text-center lg:text-left max-w-2xl mx-auto lg:mx-0">
             <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-sm mb-2 animate-bounce-soft">
@@ -70,4 +78,5 @@ const Hero = ({
       </div>
     </div>;
 };
+
 export default Hero;
