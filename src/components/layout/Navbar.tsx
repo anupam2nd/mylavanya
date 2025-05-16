@@ -69,7 +69,11 @@ const Navbar = () => {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
             <Link to="/" className="flex items-center" onClick={closeMenu}>
-              <span className="text-xl font-bold text-primary">Lavanya</span>
+              <img 
+                src="/lovable-uploads/d54e9c20-bb5a-4b53-8583-572cd5d79e51.png" 
+                alt="Lavanya" 
+                className="h-10 md:h-12" 
+              />
             </Link>
 
             <div className="hidden md:flex items-center space-x-6">
