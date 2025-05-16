@@ -17,28 +17,44 @@ import { Textarea } from "@/components/ui/textarea";
 const testimonials = [
   {
     id: 1,
-    name: "Sarah Johnson",
+    name: "Shreyashi Sur",
     role: "Bride",
-    content: "The makeup artist was amazing! My wedding day look was perfect and lasted all day and night. Highly recommend their services.",
+    content: "I achieved the exact desired look thanks to this artist, who was truly exceptional and displayed such thoughtful understanding. Without a doubt, I will recommend Lavanya to everyone I know.",
     rating: 5,
     // Use Unsplash images for better quality testimonial photos
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&h=256&q=80"
+    image: "/images/testimonials/shreyasi.jpg"
   },
   {
     id: 2,
-    name: "Emily Davis",
-    role: "Event Organizer",
-    content: "We hired their team for a corporate event. The service was professional and everyone looked great. Will definitely book again.",
+    name: "Rima Samanta",
+    role: "Party Freak",
+    content: "The MUA was right on time. I told him to give me a classy look, and it was right on the money. I was the star of the party. Thank you, Lavanya... ",
     rating: 5,
-    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&h=256&q=80"
+    image: "/images/testimonials/rima.jpg"
   },
   {
     id: 3,
-    name: "Priya Sharma",
-    role: "Birthday Girl",
+    name: "Priyanka Ghosh",
+    role: "Nail Art",
     content: "Booked for my birthday party. The hairstylist was creative and gave me exactly what I wanted. The team was punctual and professional.",
     rating: 4,
-    image: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&h=256&q=80"
+    image: "/images/testimonials/priyanka.jpg"
+  },
+  {
+    id: 4,
+    name: "Meghna Roy",
+    role: "Frizzy Hair Treatment",
+    content: "I used to have a frizzy hair problem from childhood. I had too many treatments and visited so many therapists. Now I don't think I need to visit other therapists after getting in touch with Lavanya.",
+    rating: 4,
+    image: "/images/testimonials/megna.jpg"
+  },
+  {
+    id: 5,
+    name: "Mainak Bhattacharya",
+    role: "Facial",
+    content: "My friend recommended Lavanya to me. First of all, I didn't have that much faith in Lavanya but after the service I got, it left me speechless. Especially the massage was so amazing. Thank you, Lavanya.",
+    rating: 4,
+    image: "/images/testimonials/mainak.jpg"
   },
 ];
 
