@@ -9,11 +9,11 @@ import {
 } from "./carousel";
 
 const slideImages = [
-  "/images/slide/slide1.jpg",
-  "/images/slide/slide2.jpg",
-  "/images/slide/slide3.jpg",
-  "/images/slide/slide4.jpg",
-  "/images/slide/slide5.jpg"
+  "/lovable-uploads/80760050-36af-4279-88e1-c6c18a63dc64.png",
+  "/lovable-uploads/8973a2ef-29e7-40b3-8186-277bd5124e28.png",
+  "/lovable-uploads/8709d9d4-99a2-4f3d-b0b2-947283994525.png",
+  "/lovable-uploads/f6cafb16-47a5-4d53-952d-f2ce968cb9c5.png",
+  "/lovable-uploads/14cd0ec2-c36f-40d3-a2c8-a09bdf2bf310.png"
 ];
 
 const HeroSlideshow = () => {
