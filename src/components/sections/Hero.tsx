@@ -1,17 +1,21 @@
+
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 interface HeroProps {
   onBookNow: () => void;
   onLogin: () => void;
   onArtistLogin: () => void;
 }
+
 const Hero = ({
   onBookNow,
   onLogin,
   onArtistLogin
 }: HeroProps) => {
   const isMobile = useIsMobile();
+  
   return <div className="relative bg-gradient-to-b from-secondary/30 to-background pt-28 pb-24 overflow-hidden py-0">
       {/* Background decorative elements */}
       <div className="absolute top-1/4 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10"></div>
@@ -19,16 +23,18 @@ const Hero = ({
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* Mobile Hero Image - Only visible on mobile */}
-          {isMobile && <div className="block lg:hidden mb-8">
-              <div className="relative mx-auto w-40 h-40">
-                <div className="absolute -top-2 -left-2 w-12 h-12 bg-secondary rounded-full"></div>
-                <div className="absolute -bottom-4 -right-2 w-16 h-16 bg-accent/30 rounded-full"></div>
-                <div className="relative z-10">
-                  <img alt="Beauty Services" src="/lovable-uploads/eb79a949-570e-4f97-ad2b-169d9a42f5e4.jpg" className="w-full h-auto rounded-2xl shadow-card object-contain" />
-                </div>
+          {/* Mobile Banner Image - Only visible on mobile */}
+          {isMobile && (
+            <div className="block lg:hidden mb-6 w-full">
+              <div className="relative mx-auto w-full max-w-[300px]">
+                <img 
+                  alt="Lavanya Beauty Services" 
+                  src="/lovable-uploads/878caf4c-c7f5-47b5-834a-f01c2100eb0a.png" 
+                  className="w-full h-auto object-contain rounded-xl"
+                />
               </div>
-            </div>}
+            </div>
+          )}
           
           <div className="space-y-8 text-center lg:text-left max-w-2xl mx-auto lg:mx-0">
             <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-sm mb-2 animate-bounce-soft">
@@ -63,11 +69,16 @@ const Hero = ({
             <div className="absolute -top-4 -left-4 w-24 h-24 bg-secondary rounded-full"></div>
             <div className="absolute -bottom-10 -right-6 w-36 h-36 bg-accent/30 rounded-full"></div>
             <div className="relative z-10">
-              <img alt="Beauty Services" className="w-full h-auto rounded-2xl shadow-card object-contain" src="/lovable-uploads/265f8066-8eea-43e2-a9a0-754a8b3fdb20.png" />
+              <img 
+                alt="Beauty Services" 
+                className="w-full h-auto rounded-2xl shadow-card object-contain" 
+                src="/lovable-uploads/265f8066-8eea-43e2-a9a0-754a8b3fdb20.png" 
+              />
             </div>
           </div>
         </div>
       </div>
     </div>;
 };
+
 export default Hero;
