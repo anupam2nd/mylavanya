@@ -1,15 +1,21 @@
+
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 interface HeroProps {
   onBookNow: () => void;
   onLogin: () => void;
   onArtistLogin: () => void;
 }
+
 const Hero = ({
   onBookNow,
   onLogin,
   onArtistLogin
 }: HeroProps) => {
+  const isMobile = useIsMobile();
+  
   return <div className="relative bg-gradient-to-b from-secondary/30 to-background pt-28 pb-24 overflow-hidden py-0">
       {/* Background decorative elements */}
       <div className="absolute top-1/4 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10"></div>
@@ -18,6 +24,17 @@ const Hero = ({
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8 text-center lg:text-left max-w-2xl mx-auto lg:mx-0">
+            {/* Mobile Logo - Only visible on mobile */}
+            {isMobile && (
+              <div className="flex justify-center mb-6">
+                <img 
+                  src="/lovable-uploads/db51ddb7-ee75-4a08-a739-6e957ee82068.png" 
+                  alt="Lavanya Logo" 
+                  className="w-40 h-auto"
+                />
+              </div>
+            )}
+            
             <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-sm mb-2 animate-bounce-soft">
               <Sparkles size={16} className="mr-2" />
               <span>Premium Beauty Services</span>
@@ -45,15 +62,21 @@ const Hero = ({
             </div>
           </div>
           
+          {/* Desktop Logo - Only visible on desktop */}
           <div className="hidden lg:block relative">
             <div className="absolute -top-4 -left-4 w-24 h-24 bg-secondary rounded-full"></div>
             <div className="absolute -bottom-10 -right-6 w-36 h-36 bg-accent/30 rounded-full"></div>
             <div className="relative z-10">
-              <img alt="Beauty Services" className="w-full h-auto rounded-2xl shadow-card object-contain" src="/lovable-uploads/265f8066-8eea-43e2-a9a0-754a8b3fdb20.png" />
+              <img 
+                src="/lovable-uploads/db51ddb7-ee75-4a08-a739-6e957ee82068.png" 
+                alt="Lavanya Logo" 
+                className="w-full h-auto rounded-2xl shadow-card object-contain" 
+              />
             </div>
           </div>
         </div>
       </div>
     </div>;
 };
+
 export default Hero;
