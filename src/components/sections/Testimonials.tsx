@@ -22,7 +22,7 @@ const testimonials = [
     content: "I achieved the exact desired look thanks to this artist, who was truly exceptional and displayed such thoughtful understanding. Without a doubt, I will recommend Lavanya to everyone I know.",
     rating: 5,
     // Use Unsplash images for better quality testimonial photos
-    image: "/images/testimonials/shreyasi.jpg"
+    image: "/images/testimonials/shreyashi.jpg"
   },
   {
     id: 2,
