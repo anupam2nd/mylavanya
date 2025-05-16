@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Star, Quote, Edit2, Check } from "lucide-react";
 import {
   Carousel,
@@ -11,6 +10,7 @@ import {
 import AvatarUpload from "@/components/testimonials/AvatarUpload";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import useEmblaCarousel from "embla-carousel-react";
 
 // Create an easily customizable testimonials array
 // This can be edited directly or replaced with data from an API or CMS
@@ -93,8 +93,12 @@ const Testimonials = () => {
   const [localTestimonials, setLocalTestimonials] = useState(testimonials);
   const [editing, setEditing] = useState<EditingState>({ id: null, field: null });
   
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: "center",
+    loop: true,
+  });
+  
   // Check if we're in the Lovable editor environment
-  // This is a simple way to detect if we're in the editor vs. deployed site
   const isInLovableEditor = window.location.hostname.includes('lovable.dev') || 
                             window.location.hostname === 'localhost' || 
                             window.location.hostname === '127.0.0.1';
@@ -137,6 +141,25 @@ const Testimonials = () => {
     setEditing({ id: null, field: null });
   };
 
+  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setActiveIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    
+    emblaApi.on('select', onSelect);
+    onSelect();
+    
+    return () => {
+      emblaApi.off('select', onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
   return (
     <div className="py-24 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -149,24 +172,16 @@ const Testimonials = () => {
           </p>
         </div>
         
-        <div className="max-w-5xl mx-auto">
-          <Carousel
-            opts={{
-              align: "center",
-              loop: true,
-            }}
-            className="relative"
-            setApi={(api) => {
-              api?.on("select", () => {
-                setActiveIndex(api.selectedScrollSnap());
-                // Stop editing when carousel slides
-                stopEditing();
-              });
-            }}
-          >
-            <CarouselContent>
+        <div className="max-w-5xl mx-auto relative">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex -ml-4">
               {localTestimonials.map((testimonial, index) => (
-                <CarouselItem key={testimonial.id} className="md:basis-1/2 lg:basis-1/3">
+                <div 
+                  key={testimonial.id} 
+                  className="min-w-0 shrink-0 grow-0 basis-full md:basis-1/2 lg:basis-1/3 pl-4"
+                  role="group"
+                  aria-roledescription="slide"
+                >
                   <div 
                     className={`
                       bg-background p-8 rounded-2xl shadow-card border border-accent/20
@@ -290,12 +305,41 @@ const Testimonials = () => {
                       </div>
                     </div>
                   </div>
-                </CarouselItem>
+                </div>
               ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-0 sm:-left-12" />
-            <CarouselNext className="right-0 sm:-right-12" />
-          </Carousel>
+            </div>
+          </div>
+
+          <button 
+            onClick={scrollPrev}
+            className="absolute left-0 sm:-left-12 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-background border border-input flex items-center justify-center z-10 shadow-sm hover:bg-accent hover:text-accent-foreground"
+            aria-label="Previous slide"
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-4 w-4" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button 
+            onClick={scrollNext}
+            className="absolute right-0 sm:-right-12 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-background border border-input flex items-center justify-center z-10 shadow-sm hover:bg-accent hover:text-accent-foreground"
+            aria-label="Next slide"
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-4 w-4" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
 
           {/* Testimonial indicators */}
           <div className="flex justify-center mt-8 space-x-2">
@@ -306,12 +350,9 @@ const Testimonials = () => {
                   activeIndex === index ? "bg-primary" : "bg-gray-300"
                 }`}
                 onClick={() => {
-                  document.querySelectorAll("[data-carousel-item]")[index].scrollIntoView({
-                    behavior: "smooth",
-                    block: "nearest",
-                    inline: "center",
-                  });
+                  emblaApi?.scrollTo(index);
                 }}
+                aria-label={`Go to slide ${index + 1}`}
               />
             ))}
           </div>
