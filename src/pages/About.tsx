@@ -48,9 +48,7 @@ export default function About() {
                 <p className="text-lg text-muted-foreground mb-6">Welcome to Lavanya, a blend of beauty &amp; grace. We are a premium beauty &amp; makeup service provider specializing in making you look and feel your best for all your special occasions. </p>
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">Our Story</h2>
-                <p>
-                  Founded in 2020, Lavanya was born from a passion for beauty and a commitment to providing exceptional service. Our founder, with over 15 years of experience in the beauty industry, recognized the need for a personalized beauty service that caters to the unique needs of each client.
-                </p>
+                <p>Although Lavanya was officially founded in 2025, our team has been delivering trusted beauty and makeup services to clients for over a decade. Born from a passion for beauty and a commitment to exceptional, personalized care, our founder—who brings more than 15 years of industry expertise—recognized the need for bespoke beauty solutions tailored to each client’s unique needs. </p>
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">Our Mission</h2>
                 <p>
