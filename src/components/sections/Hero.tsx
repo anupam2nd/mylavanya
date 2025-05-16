@@ -19,7 +19,7 @@ const Hero = ({
   const isMobile = useIsMobile();
   
   return (
-    <div className="relative bg-gradient-to-b from-secondary/30 to-background overflow-hidden py-0">
+    <div className="relative bg-gradient-to-b from-secondary/30 to-background overflow-hidden py-16 md:py-24 lg:py-28">
       {/* Background decorative elements */}
       <div className="absolute top-1/4 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/40 rounded-full blur-3xl -z-10"></div>
