@@ -1,11 +1,12 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { 
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
-  CarouselPrevious
+  CarouselPrevious,
+  type CarouselApi
 } from "./carousel";
 
 const slideImages = [
@@ -18,15 +19,28 @@ const slideImages = [
 
 const HeroSlideshow = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [api, setApi] = useState<CarouselApi>();
+  
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    api.on("select", () => {
+      setCurrentSlide(api.selectedScrollSnap());
+    });
+  }, [api]);
   
   // Auto-advance slides
   useEffect(() => {
+    if (!api) return;
+    
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev === slideImages.length - 1 ? 0 : prev + 1));
+      api.scrollNext();
     }, 5000); // Change slide every 5 seconds
     
     return () => clearInterval(interval);
-  }, []);
+  }, [api]);
 
   return (
     <div className="relative w-full overflow-hidden">
@@ -37,6 +51,7 @@ const HeroSlideshow = () => {
           align: "start",
           loop: true,
         }}
+        setApi={setApi}
       >
         <CarouselContent>
           {slideImages.map((image, index) => (
@@ -68,7 +83,7 @@ const HeroSlideshow = () => {
                   ? "bg-primary w-4" 
                   : "bg-white/50 hover:bg-white/80"
               }`}
-              onClick={() => setCurrentSlide(index)}
+              onClick={() => api?.scrollTo(index)}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
