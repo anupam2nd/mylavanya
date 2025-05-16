@@ -1,19 +1,16 @@
-
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
-
 interface HeroProps {
   onBookNow: () => void;
   onLogin: () => void;
   onArtistLogin: () => void;
 }
-
 const Hero = ({
   onBookNow,
   onLogin,
   onArtistLogin
 }: HeroProps) => {
-  return <div className="relative bg-gradient-to-b from-secondary/30 to-background pt-28 pb-24 sm:pt-32 sm:pb-32 overflow-hidden">
+  return <div className="relative bg-gradient-to-b from-secondary/30 to-background pt-28 pb-24 sm:pt-32 sm:pb-32 overflow-hidden py-0">
       {/* Background decorative elements */}
       <div className="absolute top-1/4 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/40 rounded-full blur-3xl -z-10"></div>
@@ -59,5 +56,4 @@ const Hero = ({
       </div>
     </div>;
 };
-
 export default Hero;
