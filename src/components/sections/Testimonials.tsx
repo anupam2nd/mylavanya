@@ -171,10 +171,10 @@ const Testimonials = () => {
                     className={`
                       bg-background p-8 rounded-2xl shadow-card border border-accent/20
                       ${activeIndex === index ? "scale-105" : "scale-95 opacity-80"}
-                      transition-all duration-300
+                      transition-all duration-300 h-full flex flex-col
                     `}
                   >
-                    <div className="mb-6 relative">
+                    <div className="mb-6 relative flex-grow">
                       <Quote className="text-accent-foreground/10 absolute -top-2 -left-2" size={40} />
                       
                       {isInLovableEditor && editing.id === testimonial.id && editing.field === 'content' ? (
@@ -194,7 +194,7 @@ const Testimonials = () => {
                         </div>
                       ) : (
                         <div className="relative z-10 group">
-                          <p className="text-muted-foreground">{testimonial.content}</p>
+                          <p className="text-muted-foreground min-h-[120px]">{testimonial.content}</p>
                           {isInLovableEditor && (
                             <button 
                               onClick={() => startEditing(testimonial.id, 'content')}
@@ -219,7 +219,7 @@ const Testimonials = () => {
                       ))}
                     </div>
                     
-                    <div className="flex items-center">
+                    <div className="flex items-center mt-auto">
                       <div className="h-12 w-12 rounded-full overflow-hidden mr-4 bg-gray-100">
                         <AvatarUpload
                           initialImage={testimonial.image}
