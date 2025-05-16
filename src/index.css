@@ -154,6 +154,15 @@
   .btn-outline {
     @apply border border-primary/20 text-primary font-medium px-4 sm:px-6 py-2 sm:py-3 rounded-full hover:bg-primary/5 transition-all;
   }
+  
+  /* Slideshow specific styles */
+  .slideshow-gradient {
+    @apply bg-gradient-to-br from-secondary/50 via-accent/30 to-primary/10;
+  }
+  
+  .slide-item {
+    @apply overflow-hidden rounded-xl border-2 border-white/30 shadow-lg transition-all duration-500 hover:scale-105;
+  }
 }
 
 @layer utilities {
