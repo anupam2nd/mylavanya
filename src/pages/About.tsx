@@ -56,9 +56,7 @@ export default function About() {
                 </p>
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">Our Team</h2>
-                <p>
-                  Our team consists of highly skilled and certified beauty professionals who are passionate about their craft. Each member of our team undergoes rigorous training to ensure that they are up-to-date with the latest beauty trends and techniques.
-                </p>
+                <p>Our team consists of more than 50 highly skilled and certified beauty professionals who are passionate about their craft. Each member of our team undergoes rigorous training to ensure that they are up-to-date with the latest beauty trends and techniques. </p>
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">Our Approach</h2>
                 <p>
