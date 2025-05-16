@@ -35,8 +35,8 @@ const Hero = ({
             </div>
             
             <h1 className="font-display font-bold tracking-tight">
-              <span className="block">Enhance Your</span>
-              <span className="block text-gradient">Natural Beauty</span>
+              <span className="block text-left font-extrabold font-serif text-5xl">A Blend of Beauty &amp; Grace</span>
+              <span className="block text-gradient text-3xl font-semibold font-sans">-at Your Doorstep</span>
             </h1>
             
             <p className="text-lg text-muted-foreground mt-6 max-w-lg mx-auto lg:mx-0">Professional makeup artists, hair stylists, and beauty services for weddings, events, and special occasions delivered at your DOORSTEP.</p>
