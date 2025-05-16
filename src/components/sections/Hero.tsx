@@ -1,22 +1,18 @@
-
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
-
 interface HeroProps {
   onBookNow: () => void;
   onLogin: () => void;
   onArtistLogin: () => void;
 }
-
 const Hero = ({
   onBookNow,
   onLogin,
   onArtistLogin
 }: HeroProps) => {
   const isMobile = useIsMobile();
-  
   return <div className="relative bg-gradient-to-b from-secondary/30 to-background pt-28 pb-24 overflow-hidden py-0">
       {/* Background decorative elements */}
       <div className="absolute top-1/4 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10"></div>
@@ -24,16 +20,10 @@ const Hero = ({
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Mobile Banner Image - Only visible on mobile */}
-        {isMobile && (
-          <div className="mb-8 -mx-4 sm:-mx-6">
-            <img 
-              src="/lovable-uploads/a719d374-9ef0-4cec-9e17-29c49750e86f.png" 
-              alt="Lavanya Beauty Services Banner" 
-              className="w-full h-auto object-cover"
-            />
+        {isMobile && <div className="mb-8 -mx-4 sm:-mx-6">
+            <img src="/lovable-uploads/a719d374-9ef0-4cec-9e17-29c49750e86f.png" alt="Lavanya Beauty Services Banner" className="w-full h-auto object-cover" />
             <Separator className="mt-6" />
-          </div>
-        )}
+          </div>}
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Mobile small image is now removed in favor of the banner */}
@@ -78,5 +68,4 @@ const Hero = ({
       </div>
     </div>;
 };
-
 export default Hero;
