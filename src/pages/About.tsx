@@ -1,35 +1,31 @@
-
 import { useEffect, useState } from "react";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
-
 interface FaqItem {
   id: number;
   question: string;
   answer: string;
 }
-
 export default function About() {
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchFaqs = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('FaqMST')
-          .select('id, question, answer')
-          .eq('active', true) // Only fetch active FAQs
-          .order('id', { ascending: true });
-        
+        const {
+          data,
+          error
+        } = await supabase.from('FaqMST').select('id, question, answer').eq('active', true) // Only fetch active FAQs
+        .order('id', {
+          ascending: true
+        });
         if (error) {
           throw error;
         }
-        
         setFaqs(data || []);
       } catch (err) {
         console.error('Error fetching FAQs:', err);
@@ -38,12 +34,9 @@ export default function About() {
         setLoading(false);
       }
     };
-    
     fetchFaqs();
   }, []);
-
-  return (
-    <>
+  return <>
       <Navbar />
       <main className="pt-24 pb-16">
         <div className="container-custom">
@@ -52,9 +45,7 @@ export default function About() {
             
             <div className="max-w-3xl mx-auto">
               <div className="prose prose-lg max-w-none">
-                <p className="text-lg text-muted-foreground mb-6">
-                  Welcome to Lavanya, where beauty meets tradition. We are a premium beauty service provider specializing in making you look and feel your best for all your special occasions.
-                </p>
+                <p className="text-lg text-muted-foreground mb-6">Welcome to Lavanya, a blend of beauty &amp; grace. We are a premium beauty &amp; makeup service provider specializing in making you look and feel your best for all your special occasions. </p>
                 
                 <h2 className="text-2xl font-display mt-10 mb-4">Our Story</h2>
                 <p>
@@ -93,33 +84,22 @@ export default function About() {
             <div className="max-w-3xl mx-auto px-4">
               <h2 className="text-3xl md:text-4xl font-display font-bold mb-12 text-center">Frequently Asked <span className="text-primary">Questions</span></h2>
               
-              {loading ? (
-                <div className="flex justify-center items-center py-8">
+              {loading ? <div className="flex justify-center items-center py-8">
                   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary border-opacity-50"></div>
-                </div>
-              ) : error ? (
-                <p className="text-center text-red-500">{error}</p>
-              ) : faqs.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No FAQs available at the moment.</p>
-              ) : (
-                <Accordion type="single" collapsible className="w-full">
-                  {faqs.map((faq) => (
-                    <AccordionItem key={faq.id} value={`item-${faq.id}`}>
+                </div> : error ? <p className="text-center text-red-500">{error}</p> : faqs.length === 0 ? <p className="text-center text-muted-foreground py-8">No FAQs available at the moment.</p> : <Accordion type="single" collapsible className="w-full">
+                  {faqs.map(faq => <AccordionItem key={faq.id} value={`item-${faq.id}`}>
                       <AccordionTrigger className="text-lg font-medium">
                         {faq.question}
                       </AccordionTrigger>
                       <AccordionContent className="text-muted-foreground">
                         {faq.answer}
                       </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              )}
+                    </AccordionItem>)}
+                </Accordion>}
             </div>
           </section>
         </div>
       </main>
       <Footer />
-    </>
-  );
+    </>;
 }
