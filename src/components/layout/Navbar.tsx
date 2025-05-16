@@ -16,7 +16,8 @@ const Navbar = () => {
   const [authModalTab, setAuthModalTab] = useState("member");
   const {
     user,
-    isAuthenticated
+    isAuthenticated,
+    logout
   } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -56,6 +57,11 @@ const Navbar = () => {
   const openMemberSignIn = () => {
     setAuthModalTab("member");
     setIsAuthModalOpen(true);
+  };
+
+  const handleLogout = () => {
+    logout();
+    closeMenu();
   };
 
   return <>
@@ -142,11 +148,7 @@ const Navbar = () => {
                       <Button 
                         variant="ghost" 
                         className="text-red-500 hover:text-red-600 p-0 h-auto"
-                        onClick={() => {
-                          const { logout } = useAuth();
-                          logout();
-                          closeMenu();
-                        }}
+                        onClick={handleLogout}
                       >
                         Logout
                       </Button>

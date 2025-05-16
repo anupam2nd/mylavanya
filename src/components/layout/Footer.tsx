@@ -10,7 +10,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState("member");
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   
   const openAuthModal = (tab: string) => {
@@ -24,10 +24,15 @@ export default function Footer() {
       navigate("/user/bookings");
     }
   };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
   
   return <footer className="bg-accent/30 pt-16 pb-8">
       <div className="container-custom">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {/* Brand & About */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center">
@@ -117,16 +122,6 @@ export default function Footer() {
                 </a>
               </li>
             </ul>
-          </div>
-          
-          {/* Newsletter */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-medium">Newsletter</h4>
-            <p className="text-muted-foreground">Subscribe to receive updates on special offers and events.</p>
-            <form className="flex flex-col sm:flex-row gap-2">
-              <input type="email" placeholder="Your email" className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-              <ButtonCustom type="submit" size="sm">Subscribe</ButtonCustom>
-            </form>
           </div>
         </div>
         
