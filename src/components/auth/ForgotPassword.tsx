@@ -190,6 +190,14 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
     onClose();
   };
 
+  // Handle phone number input changes with proper digit-only filtering
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only digits and limit to 10 characters
+    const digitsOnly = value.replace(/\D/g, '');
+    setPhoneNumber(digitsOnly.slice(0, 10));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
@@ -214,8 +222,9 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
                 type="tel" 
                 placeholder="Enter your 10-digit phone number" 
                 value={phoneNumber}
+                onChange={handlePhoneNumberChange}
                 maxLength={10}
-                onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                inputMode="numeric"
               />
             </div>
             <Button 
