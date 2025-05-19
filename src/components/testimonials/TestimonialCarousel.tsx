@@ -34,13 +34,22 @@ const TestimonialCarousel: React.FC<TestimonialCarouselProps> = ({
     setActiveIndex(emblaApi.selectedScrollSnap());
   }, [emblaApi]);
 
+  // Auto-scrolling functionality
   useEffect(() => {
     if (!emblaApi) return;
-    
+
     emblaApi.on('select', onSelect);
     onSelect();
     
+    // Set up auto-scrolling interval
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        emblaApi.scrollNext();
+      }
+    }, 5000); // Slide every 5 seconds
+    
     return () => {
+      clearInterval(intervalId);
       emblaApi.off('select', onSelect);
     };
   }, [emblaApi, onSelect]);
