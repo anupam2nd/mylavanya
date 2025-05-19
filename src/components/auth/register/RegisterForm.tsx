@@ -8,6 +8,7 @@ import DateOfBirthField from "./DateOfBirthField";
 import PasswordFields from "./PasswordFields";
 import { useRegisterForm } from "./useRegisterForm";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface RegisterFormProps {
   onSuccess: (email: string, password: string) => void;
@@ -17,9 +18,14 @@ interface RegisterFormProps {
 export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
   const { form, isLoading, handleRegister } = useRegisterForm({ onSuccess });
   
+  const onSubmit = form.handleSubmit((data) => {
+    // OTP verification happens at the field level now
+    handleRegister(data);
+  });
+  
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleRegister)} className="space-y-4 max-h-[70vh] overflow-y-auto px-1 py-2">
+      <form onSubmit={onSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto px-1 py-2">
         <PersonalInfoFields form={form} />
         <ContactFields form={form} />
         <AddressFields form={form} />

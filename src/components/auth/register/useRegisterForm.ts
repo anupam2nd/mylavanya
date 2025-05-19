@@ -13,6 +13,7 @@ interface UseRegisterFormProps {
 
 export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
@@ -24,6 +25,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       address: "",
       pincode: "",
       sex: "Male",
+      dob: undefined,
       password: "",
       confirmPassword: "",
     },
@@ -57,7 +59,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       }
       
       // Format date for DB
-      const formattedDate = format(values.dob, 'yyyy-MM-dd');
+      const formattedDate = values.dob ? format(values.dob, 'yyyy-MM-dd') : null;
       
       // Insert new member
       const { data, error: insertError } = await supabase
@@ -103,6 +105,8 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
   return {
     form,
     isLoading,
-    handleRegister
+    handleRegister,
+    isPhoneVerified,
+    setIsPhoneVerified
   };
 }
