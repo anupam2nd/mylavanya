@@ -90,8 +90,10 @@ const Navbar = () => {
                 <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
                   Contact
                 </Link>
-                {/* NavTrackingButton will handle its own visibility */}
-                <NavTrackingButton />
+                {/* Reserve space for NavTrackingButton even when not visible */}
+                <div className="min-w-[130px]"> 
+                  <NavTrackingButton />
+                </div>
               </nav>
 
               {/* Login buttons */}
@@ -131,8 +133,10 @@ const Navbar = () => {
               <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
                 Contact
               </Link>
-              {/* NavTrackingButton will handle its own visibility */}
-              <NavTrackingButton isMobile={true} onClick={closeMenu} />
+              {/* Reserve space for mobile NavTrackingButton */}
+              <div className="min-h-[40px]">
+                <NavTrackingButton isMobile={true} onClick={closeMenu} />
+              </div>
               
               {/* Mobile login buttons */}
               <div className="pt-2 border-t border-gray-200">
@@ -177,8 +181,8 @@ const Navbar = () => {
             </nav>
           </div>}
       </header>
-      {/* Add spacing to account for fixed header */}
-      <div className={`${isScrolled ? "h-16" : "h-20"}`}></div>
+      {/* Use a fixed height spacer instead of dynamic height */}
+      <div className="h-20"></div>
       
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authModalTab} />
     </>;

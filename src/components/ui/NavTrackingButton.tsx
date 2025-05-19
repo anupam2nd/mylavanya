@@ -15,11 +15,17 @@ const NavTrackingButton = ({ isMobile, onClick }: NavTrackingButtonProps) => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const [hasBookings, setHasBookings] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Check if user has any bookings
   useEffect(() => {
     const checkUserBookings = async () => {
-      if (!isAuthenticated || !user?.email) return;
+      setIsLoading(true);
+      
+      if (!isAuthenticated || !user?.email) {
+        setIsLoading(false);
+        return;
+      }
       
       try {
         const { data, error } = await supabase
@@ -33,14 +39,16 @@ const NavTrackingButton = ({ isMobile, onClick }: NavTrackingButtonProps) => {
         }
       } catch (error) {
         console.error("Error checking bookings:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     
     checkUserBookings();
   }, [isAuthenticated, user]);
 
-  // If user is not authenticated or has no bookings, don't render anything
-  if (!isAuthenticated || !hasBookings) {
+  // If loading is complete and user has no bookings or is not authenticated, don't render anything
+  if (!isLoading && (!isAuthenticated || !hasBookings)) {
     return null;
   }
 
@@ -48,6 +56,15 @@ const NavTrackingButton = ({ isMobile, onClick }: NavTrackingButtonProps) => {
     navigate("/track-booking");
     if (onClick) onClick();
   };
+
+  // Show a placeholder during loading to prevent layout shifts
+  if (isLoading) {
+    return (
+      <div className={`w-full ${isMobile ? 'h-10' : 'h-9'} opacity-0`}>
+        <span className="sr-only">Loading booking status...</span>
+      </div>
+    );
+  }
 
   return (
     <Button
