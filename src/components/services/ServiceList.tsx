@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader } from "lucide-react";
@@ -127,17 +126,14 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
             {services.map((service) => (
               <ServiceCard 
                 key={service.prod_id}
-                service={{
-                  prodid: service.prod_id,
-                  pname: service.ProductName || "Unnamed Service",
-                  pprice: service.Price,
-                  pdesc: service.Description,
-                  discount: service.Discount,
-                  netPayable: service.NetPayable,
-                  services: service.Services,
-                  subservice: service.Subservice,
-                  imageUrl: service.imageUrl
-                }}
+                id={service.prod_id}
+                name={service.ProductName || "Unnamed Service"}
+                price={service.Price}
+                description={service.Description || ""}
+                discountedPrice={service.NetPayable || undefined}
+                imageUrl={service.imageUrl || undefined}
+                category={service.Category || undefined}
+                scheme={service.Scheme || undefined}
                 onClick={() => handleServiceClick(service.prod_id)}
               />
             ))}

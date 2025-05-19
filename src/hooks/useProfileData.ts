@@ -71,7 +71,11 @@ export const useProfileData = (user: User | null) => {
                 if (typeof data.ChildrenDetails === 'string') {
                   childrenDetails = JSON.parse(data.ChildrenDetails);
                 } else if (Array.isArray(data.ChildrenDetails)) {
-                  childrenDetails = data.ChildrenDetails as ChildDetail[];
+                  // Safely convert Json array to ChildDetail array
+                  childrenDetails = (data.ChildrenDetails as any[]).map(child => ({
+                    name: child.name || '',
+                    age: child.age || ''
+                  }));
                 }
               } catch (e) {
                 console.error("Error parsing ChildrenDetails:", e);

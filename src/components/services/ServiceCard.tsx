@@ -9,7 +9,7 @@ import { useWishlist } from "@/hooks/useWishlist";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 
-interface ServiceCardProps {
+export interface ServiceCardProps {
   id: number;
   name: string;
   description: string;
@@ -19,6 +19,7 @@ interface ServiceCardProps {
   category?: string;
   scheme?: string;
   isInWishlist?: boolean;
+  onClick?: () => void;
 }
 
 const ServiceCard = ({
@@ -31,6 +32,7 @@ const ServiceCard = ({
   category,
   scheme,
   isInWishlist = false,
+  onClick,
 }: ServiceCardProps) => {
   const { isAuthenticated, user } = useAuth();
   const { toggleWishlist, isInWishlist: wishlistStatus, wishlistLoading } = useWishlist(id);
@@ -38,7 +40,9 @@ const ServiceCard = ({
 
   const isMember = user?.role === 'member';
   
-  const handleWishlistToggle = async () => {
+  const handleWishlistToggle = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    
     if (!isAuthenticated) {
       toast.error("Please login to add items to your wishlist");
       return;
@@ -56,8 +60,15 @@ const ServiceCard = ({
     ? `${cleanDescription.substring(0, 100)}...` 
     : cleanDescription;
 
+  const handleCardClick = () => {
+    if (onClick) onClick();
+  };
+
   return (
-    <Card className="h-full flex flex-col overflow-hidden hover:shadow-md transition-shadow">
+    <Card 
+      className="h-full flex flex-col overflow-hidden hover:shadow-md transition-shadow"
+      onClick={handleCardClick}
+    >
       <div className="relative pt-[56.25%] bg-gray-100 overflow-hidden">
         {imageUrl ? (
           <img
