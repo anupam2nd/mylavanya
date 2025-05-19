@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ProfileFormData, ChildDetail } from "@/types/profile";
+import { ProfileFormData, ChildDetail, JsonCompatible } from "@/types/profile";
 import { Switch } from "@/components/ui/switch";
 import { PlusCircle, MinusCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -130,7 +130,7 @@ const ProfileForm = ({ initialData, userEmail, userRole, userId }: ProfileFormPr
             HasChildren: formData.hasChildren || false,
             NumberOfChildren: formData.numberOfChildren || 0,
             // Convert ChildrenDetails to JSON compatible format
-            ChildrenDetails: formData.childrenDetails || []
+            ChildrenDetails: formData.childrenDetails as JsonCompatible<ChildDetail[]>
           })
           .eq('MemberEmailId', userEmail);
           

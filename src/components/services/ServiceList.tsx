@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader } from "lucide-react";
@@ -24,6 +25,7 @@ interface Service {
   NetPayable: number | null;
   Category: string | null;
   imageUrl: string | null;
+  Scheme?: string | null;  // Add Scheme property as optional
 }
 
 const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => {
