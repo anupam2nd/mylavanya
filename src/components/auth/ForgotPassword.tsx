@@ -210,7 +210,7 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
               />
             </div>
             <Button 
-              className="w-full" 
+              className="w-full bg-pink-500 hover:bg-pink-600" 
               onClick={handleForgotPasswordSubmit}
               disabled={resetLoading || phoneNumber.length !== 10}
             >
@@ -237,7 +237,7 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
               />
             </div>
             <Button 
-              className="w-full" 
+              className="w-full bg-pink-500 hover:bg-pink-600" 
               onClick={handleForgotPasswordSubmit}
               disabled={resetLoading || otp.length !== 6}
             >
@@ -298,7 +298,7 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
               
               <Button 
                 type="submit" 
-                className="w-full"
+                className="w-full bg-pink-500 hover:bg-pink-600"
                 disabled={resetLoading}
               >
                 {resetLoading ? "Updating..." : "Reset Password"}
