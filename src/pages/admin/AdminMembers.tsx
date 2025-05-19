@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Pencil, Trash, AlertTriangle, Plus } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -304,10 +303,15 @@ const AdminMembers = () => {
                           <TableCell>{member.MemberEmailId}</TableCell>
                           <TableCell>{member.MemberPhNo}</TableCell>
                           <TableCell>
-                            <Switch
-                              checked={member.MemberStatus}
-                              onCheckedChange={() => handleStatusToggle(member)}
-                            />
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                checked={member.MemberStatus}
+                                onCheckedChange={() => handleStatusToggle(member)}
+                              />
+                              <span className={member.MemberStatus ? "text-green-600" : "text-red-600"}>
+                                {member.MemberStatus ? "Active" : "Inactive"}
+                              </span>
+                            </div>
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
