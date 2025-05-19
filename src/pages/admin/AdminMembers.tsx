@@ -273,7 +273,7 @@ const AdminMembers = () => {
             <Switch
               checked={member.MemberStatus}
               onCheckedChange={() => handleStatusToggle(member)}
-              className={cn("h-[18px] w-[36px]", "data-[state=checked]:bg-green-500")}
+              className={cn("h-[22px] w-[40px]")}
             />
             <span className={`text-xs ${member.MemberStatus ? "text-green-600" : "text-red-600"}`}>
               {member.MemberStatus ? "Active" : "Inactive"}
@@ -374,6 +374,7 @@ const AdminMembers = () => {
                               <Switch
                                 checked={member.MemberStatus}
                                 onCheckedChange={() => handleStatusToggle(member)}
+                                className={cn("h-[22px] w-[40px]")}
                               />
                               <span className={member.MemberStatus ? "text-green-600" : "text-red-600"}>
                                 {member.MemberStatus ? "Active" : "Inactive"}
