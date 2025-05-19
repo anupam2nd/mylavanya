@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
@@ -13,6 +13,7 @@ import { Heart, Image } from "lucide-react";
 const ServiceDetail = () => {
   const { serviceId } = useParams<{ serviceId: string; }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [service, setService] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +22,15 @@ const ServiceDetail = () => {
   const { user, isAuthenticated } = useAuth();
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+
+  // Ensure we have the correct path
+  useEffect(() => {
+    if (location.pathname.includes('/service/') && !location.pathname.includes('/services/')) {
+      // Redirect to the correct URL with 'services' (plural)
+      const correctPath = location.pathname.replace('/service/', '/services/');
+      navigate(correctPath, { replace: true });
+    }
+  }, [location.pathname, navigate]);
 
   useEffect(() => {
     const fetchServiceDetails = async () => {
@@ -179,6 +189,10 @@ const ServiceDetail = () => {
     }
   };
 
+  const handleBackNavigation = () => {
+    navigate("/services");
+  };
+
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -189,7 +203,7 @@ const ServiceDetail = () => {
     return <div className="container mx-auto px-4 py-16 text-center">
         <h2 className="text-2xl font-medium mb-4">Error Loading Service</h2>
         <p className="text-gray-600 mb-6">{error}</p>
-        <Button onClick={() => navigate("/services")}>
+        <Button onClick={handleBackNavigation}>
           Back to Services
         </Button>
       </div>;
@@ -199,7 +213,7 @@ const ServiceDetail = () => {
     return <div className="container mx-auto px-4 py-16 text-center">
         <h2 className="text-2xl font-medium mb-4">Service not found</h2>
         <p className="text-gray-600 mb-6">The service you are looking for does not exist.</p>
-        <Button onClick={() => navigate("/services")}>
+        <Button onClick={handleBackNavigation}>
           Back to Services
         </Button>
       </div>;
@@ -225,7 +239,7 @@ const ServiceDetail = () => {
   return <div className="min-h-screen bg-gray-50 pb-16">
       <div className="bg-gradient-to-r from-violet-100 to-purple-50 py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <Button variant="ghost" onClick={() => navigate("/services")} className="mb-4">
+          <Button variant="ghost" onClick={handleBackNavigation} className="mb-4">
             ← Back to Services
           </Button>
           
@@ -281,7 +295,6 @@ const ServiceDetail = () => {
                 
                 <h3 className="text-xl font-medium mb-3">What's Included</h3>
                 <ul className="list-disc list-inside mb-6 space-y-2 text-gray-600">
-                  {/* <li>Professional makeup application</li> */}
                   <li className="text-base font-semibold">Consultation to understand your preferences</li>
                   <li>Premium quality products</li>
                   <li>Touch-ups for perfect finish</li>
