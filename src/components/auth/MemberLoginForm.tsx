@@ -24,9 +24,10 @@ export default function MemberLoginForm({ onLoginSuccess }: MemberLoginFormProps
     }
   };
 
-  const handleForgotPasswordSuccess = (email: string) => {
-    // Pre-fill the email field after password reset
-    setLoginData(prev => ({ ...prev, email }));
+  const handleForgotPasswordSuccess = (phone: string) => {
+    // Currently we don't have a way to auto-fill by phone number since the form uses email
+    // But we can show a success message
+    toast.info("Password reset successful. Please login with your new password.");
   };
   
   return (

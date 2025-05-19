@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -47,14 +47,15 @@ const resetFormSchema = z.object({
 interface ForgotPasswordProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (email: string) => void;
+  onSuccess: (phone: string) => void;
 }
 
 export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPasswordProps) {
-  const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotStep, setForgotStep] = useState<"email" | "otp" | "reset">("email");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [forgotStep, setForgotStep] = useState<"phone" | "otp" | "reset">("phone");
   const [otp, setOtp] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
+  const [verifiedMemberId, setVerifiedMemberId] = useState<string | null>(null);
 
   const resetForm = useForm<z.infer<typeof resetFormSchema>>({
     resolver: zodResolver(resetFormSchema),
@@ -65,43 +66,49 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
   });
 
   const handleForgotPasswordSubmit = async () => {
-    if (forgotStep === "email") {
-      if (!forgotEmail.trim()) {
-        toast({ title: "Email Required", description: "Please enter your email address", variant: "destructive" });
+    if (forgotStep === "phone") {
+      if (!phoneNumber.trim() || phoneNumber.length !== 10) {
+        toast.error("Please enter a valid 10-digit phone number");
         return;
       }
       
       setResetLoading(true);
       try {
-        // Check if user exists
+        // Check if phone number exists in MemberMST
         const { data, error } = await supabase
-          .from('UserMST')
-          .select('id, Username')
-          .ilike('Username', forgotEmail.trim().toLowerCase())
+          .from('MemberMST')
+          .select('id, MemberPhNo')
+          .eq('MemberPhNo', phoneNumber.trim())
           .maybeSingle();
           
-        if (error || !data) {
-          toast({ title: "Account Not Found", description: "No account found with this email address", variant: "destructive" });
+        if (error) {
+          throw error;
+        }
+        
+        if (!data) {
+          toast.error("No account found with this phone number");
           return;
         }
 
-        // Generate a random 6-digit OTP
-        const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        // Store the member ID for later use when updating password
+        setVerifiedMemberId(data.id.toString());
         
-        // Store OTP temporarily in localStorage (in a real app, this would be sent via email)
-        localStorage.setItem(`otp_${forgotEmail}`, generatedOtp);
-        
-        // In a real application, you would send this OTP via email
-        // For demo purposes, we'll show it in a toast
-        toast({ 
-          title: "OTP Generated", 
-          description: `Your OTP is: ${generatedOtp} (In a real app, this would be sent to your email)` 
+        // Send OTP via Supabase Edge Function
+        const response = await supabase.functions.invoke("send-registration-otp", {
+          body: { phoneNumber }
         });
+
+        if (response.error) {
+          toast.error("Failed to send OTP. Please try again.");
+          console.error("Error sending OTP:", response.error);
+          return;
+        }
         
+        toast.success("OTP sent successfully!");
         setForgotStep("otp");
       } catch (error) {
         console.error("Error in password reset:", error);
-        toast({ title: "Reset Failed", description: "Error processing your request", variant: "destructive" });
+        toast.error("Error processing your request");
       } finally {
         setResetLoading(false);
       }
@@ -109,17 +116,19 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
       setResetLoading(true);
       try {
         // Verify the OTP
-        const storedOtp = localStorage.getItem(`otp_${forgotEmail}`);
+        const response = await supabase.functions.invoke("verify-registration-otp", {
+          body: { phoneNumber, otp }
+        });
         
-        if (otp !== storedOtp) {
-          toast({ title: "Invalid OTP", description: "The OTP you entered is incorrect", variant: "destructive" });
+        if (response.error || !response.data.success) {
+          toast.error(response.error?.message || response.data?.error || "Invalid OTP");
           return;
         }
         
         setForgotStep("reset");
       } catch (error) {
         console.error("Error verifying OTP:", error);
-        toast({ title: "Verification Failed", description: "Error verifying OTP", variant: "destructive" });
+        toast.error("Error verifying OTP");
       } finally {
         setResetLoading(false);
       }
@@ -127,32 +136,37 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
   };
 
   const handlePasswordReset = async (values: z.infer<typeof resetFormSchema>) => {
+    if (!verifiedMemberId) {
+      toast.error("Verification error. Please try again.");
+      return;
+    }
+
     setResetLoading(true);
     try {
-      // Update password in the database
+      // Update password in the database for the verified member
       const { error } = await supabase
-        .from('UserMST')
+        .from('MemberMST')
         .update({ password: values.password })
-        .ilike('Username', forgotEmail);
+        .eq('id', verifiedMemberId);
         
       if (error) {
         throw error;
       }
       
-      // Clear the stored OTP
-      localStorage.removeItem(`otp_${forgotEmail}`);
+      toast.success("Password Reset Successfully", { 
+        description: "Your password has been successfully reset. You can now log in with your new password." 
+      });
       
-      toast({ title: "Password Reset", description: "Your password has been successfully reset. You can now log in with your new password." });
       onClose();
-      setForgotStep("email");
+      setForgotStep("phone");
       setOtp("");
       resetForm.reset();
       
-      // Pass email back to parent for auto-fill
-      onSuccess(forgotEmail);
+      // Pass phone number back to parent for auto-fill
+      onSuccess(phoneNumber);
     } catch (error) {
       console.error("Error resetting password:", error);
-      toast({ title: "Reset Failed", description: "Error updating your password", variant: "destructive" });
+      toast.error("Error updating your password");
     } finally {
       setResetLoading(false);
     }
@@ -160,7 +174,8 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
 
   // Close handler to reset the form state
   const handleClose = () => {
-    setForgotStep("email");
+    setForgotStep("phone");
+    setPhoneNumber("");
     setOtp("");
     resetForm.reset();
     onClose();
@@ -171,32 +186,33 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {forgotStep === "email" ? "Reset Password" : 
+            {forgotStep === "phone" ? "Reset Password" : 
              forgotStep === "otp" ? "Enter OTP" : "Create New Password"}
           </DialogTitle>
           <DialogDescription>
-            {forgotStep === "email" ? "Enter your email to receive a one-time password" : 
-             forgotStep === "otp" ? "Enter the OTP sent to your email" : 
+            {forgotStep === "phone" ? "Enter your phone number to receive a one-time password" : 
+             forgotStep === "otp" ? "Enter the OTP sent to your phone number" : 
              "Create a new password that meets the requirements below"}
           </DialogDescription>
         </DialogHeader>
 
-        {forgotStep === "email" && (
+        {forgotStep === "phone" && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="reset-email">Email</Label>
+              <Label htmlFor="reset-phone">Phone Number</Label>
               <Input 
-                id="reset-email" 
-                type="email" 
-                placeholder="Enter your email address" 
-                value={forgotEmail}
-                onChange={(e) => setForgotEmail(e.target.value)}
+                id="reset-phone" 
+                type="tel" 
+                placeholder="Enter your 10-digit phone number" 
+                value={phoneNumber}
+                maxLength={10}
+                onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
               />
             </div>
             <Button 
               className="w-full" 
               onClick={handleForgotPasswordSubmit}
-              disabled={resetLoading}
+              disabled={resetLoading || phoneNumber.length !== 10}
             >
               {resetLoading ? "Sending..." : "Send OTP"}
             </Button>
