@@ -61,8 +61,11 @@ const queryClient = new QueryClient({
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
+      {/* Fixed position toasters that won't affect layout */}
+      <div className="fixed z-[100] top-0 left-0 right-0 pointer-events-none">
+        <Toaster />
+        <Sonner position="top-center" />
+      </div>
       <BrowserRouter>
         <ScrollToTop />
         <AuthProvider>

@@ -52,7 +52,12 @@ export function Toaster() {
         }
 
         return (
-          <Toast key={id} {...props} className="fixed top-4 left-0 right-0 mx-auto max-w-md z-50">
+          <Toast 
+            key={id} 
+            {...props}
+            className="fixed top-4 left-0 right-0 mx-auto max-w-md z-[100] shadow-lg"
+            style={{ pointerEvents: "auto" }}
+          >
             <div className="grid gap-1">
               {title && <ToastTitle className="text-lg font-bold">{title}</ToastTitle>}
               {description && (

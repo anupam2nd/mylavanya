@@ -40,19 +40,10 @@ const FloatingTrackButton = () => {
     checkUserBookings();
   }, [isAuthenticated, user]);
   
-  // Don't render anything if not authenticated or has no bookings after loading completes
-  if (!isLoading && (!isAuthenticated || !hasBookings)) {
-    return null;
-  }
-  
+  // Always render a container div to prevent layout shifts, regardless of content visibility
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {isLoading ? (
-        // Invisible placeholder with same dimensions as the actual button
-        <div className="h-12 w-12 md:w-[148px] opacity-0">
-          <span className="sr-only">Loading booking tracking...</span>
-        </div>
-      ) : (
+    <div className="fixed bottom-6 right-6 z-50 h-12 w-[148px]">
+      {(!isLoading && isAuthenticated && hasBookings) && (
         <Link 
           to="/track-booking"
           className="bg-primary text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-primary/90 active:bg-primary/80 transition-all flex items-center justify-center"

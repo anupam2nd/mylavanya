@@ -47,35 +47,32 @@ const NavTrackingButton = ({ isMobile, onClick }: NavTrackingButtonProps) => {
     checkUserBookings();
   }, [isAuthenticated, user]);
 
-  // If loading is complete and user has no bookings or is not authenticated, don't render anything
-  if (!isLoading && (!isAuthenticated || !hasBookings)) {
-    return null;
-  }
-
   const handleClick = () => {
     navigate("/track-booking");
     if (onClick) onClick();
   };
 
-  // Show a placeholder during loading to prevent layout shifts
-  if (isLoading) {
-    return (
-      <div className={`w-full ${isMobile ? 'h-10' : 'h-9'} opacity-0`}>
-        <span className="sr-only">Loading booking status...</span>
-      </div>
-    );
-  }
-
+  // Render a button with fixed dimensions regardless of state to prevent layout shifts
   return (
-    <Button
-      variant="outline"
-      size={isMobile ? "default" : "sm"}
-      onClick={handleClick}
-      className="flex items-center gap-1"
+    <div 
+      className={`${isMobile ? 'h-10' : 'h-9'} ${isMobile ? 'w-full' : 'w-[130px]'}`}
     >
-      <Calendar className="h-4 w-4" />
-      <span>Track Booking</span>
-    </Button>
+      {(!isLoading && isAuthenticated && hasBookings) ? (
+        <Button
+          variant="outline"
+          size={isMobile ? "default" : "sm"}
+          onClick={handleClick}
+          className="flex items-center gap-1 w-full h-full"
+        >
+          <Calendar className="h-4 w-4" />
+          <span>Track Booking</span>
+        </Button>
+      ) : (
+        <div className="opacity-0 w-full h-full">
+          <span className="sr-only">No bookings to track</span>
+        </div>
+      )}
+    </div>
   );
 };
 

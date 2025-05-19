@@ -64,10 +64,14 @@ const Navbar = () => {
     closeMenu();
   };
 
+  // Use fixed height for header and spacer to prevent layout shifts
+  const headerHeight = "h-16";
+  const spacerHeight = "h-16";
+
   return <>
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white shadow-md py-2" : "bg-transparent py-4"}`}>
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center">
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerHeight} ${isScrolled ? "bg-white shadow-md" : "bg-transparent"}`}>
+        <div className="container mx-auto px-4 h-full flex items-center">
+          <div className="flex justify-between items-center w-full">
             <Link to="/" className="flex items-center" onClick={closeMenu}>
               <img 
                 src="/lovable-uploads/d54e9c20-bb5a-4b53-8583-572cd5d79e51.png" 
@@ -90,8 +94,8 @@ const Navbar = () => {
                 <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
                   Contact
                 </Link>
-                {/* Reserve space for NavTrackingButton even when not visible */}
-                <div className="min-w-[130px]"> 
+                {/* Fixed width container for NavTrackingButton */}
+                <div className="w-[130px]"> 
                   <NavTrackingButton />
                 </div>
               </nav>
@@ -133,8 +137,8 @@ const Navbar = () => {
               <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
                 Contact
               </Link>
-              {/* Reserve space for mobile NavTrackingButton */}
-              <div className="min-h-[40px]">
+              {/* Fixed height container for mobile NavTrackingButton */}
+              <div className="h-10">
                 <NavTrackingButton isMobile={true} onClick={closeMenu} />
               </div>
               
@@ -181,8 +185,8 @@ const Navbar = () => {
             </nav>
           </div>}
       </header>
-      {/* Use a fixed height spacer instead of dynamic height */}
-      <div className="h-20"></div>
+      {/* Use fixed height spacer to match header */}
+      <div className={spacerHeight}></div>
       
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authModalTab} />
     </>;
