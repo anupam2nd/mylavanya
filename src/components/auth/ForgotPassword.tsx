@@ -144,10 +144,19 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
     setResetLoading(true);
     try {
       // Update password in the database for the verified member
+      // Convert the string ID to a number since MemberMST.id is a bigint/number type
+      const memberId = parseInt(verifiedMemberId);
+      
+      // Check for valid ID conversion
+      if (isNaN(memberId)) {
+        toast.error("Invalid member ID. Please try again.");
+        return;
+      }
+      
       const { error } = await supabase
         .from('MemberMST')
         .update({ password: values.password })
-        .eq('id', verifiedMemberId);
+        .eq('id', memberId);
         
       if (error) {
         throw error;
