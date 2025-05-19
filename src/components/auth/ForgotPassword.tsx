@@ -249,7 +249,7 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
                 render={({ slots }) => (
                   <InputOTPGroup>
                     {slots.map((slot, index) => (
-                      <InputOTPSlot key={index} {...slot} index={index} className="w-12 h-12 text-lg" />
+                      <InputOTPSlot key={index} {...slot} index={index} className="w-12 h-12 text-lg border-2" />
                     ))}
                   </InputOTPGroup>
                 )}
