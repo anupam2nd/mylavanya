@@ -2,14 +2,12 @@
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { RegisterFormValues } from "./RegisterFormSchema";
 
-interface AddressFieldsProps {
-  form: UseFormReturn<RegisterFormValues>;
-}
-
-export default function AddressFields({ form }: AddressFieldsProps) {
+export default function AddressFields() {
+  const form = useFormContext<RegisterFormValues>();
+  
   return (
     <>
       <FormField

@@ -7,15 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { RegisterFormValues } from "./RegisterFormSchema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-interface DateOfBirthFieldProps {
-  form: UseFormReturn<RegisterFormValues>;
-}
-
-export default function DateOfBirthField({ form }: DateOfBirthFieldProps) {
+export default function DateOfBirthField() {
+  const form = useFormContext<RegisterFormValues>();
   const [month, setMonth] = useState<number | undefined>(undefined);
   const [year, setYear] = useState<number | undefined>(undefined);
   const [calendarOpen, setCalendarOpen] = useState(false);

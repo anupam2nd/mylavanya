@@ -1,14 +1,12 @@
 
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { RegisterFormValues } from "./RegisterFormSchema";
 
-interface PasswordFieldsProps {
-  form: UseFormReturn<RegisterFormValues>;
-}
-
-export default function PasswordFields({ form }: PasswordFieldsProps) {
+export default function PasswordFields() {
+  const form = useFormContext<RegisterFormValues>();
+  
   return (
     <>
       <FormField
