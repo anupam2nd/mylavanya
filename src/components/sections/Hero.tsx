@@ -2,6 +2,7 @@ import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
+import HeroSlideshow from "@/components/ui/HeroSlideshow";
 interface HeroProps {
   onBookNow: () => void;
   onLogin: () => void;
@@ -13,7 +14,7 @@ const Hero = ({
   onArtistLogin
 }: HeroProps) => {
   const isMobile = useIsMobile();
-  return <div className="relative bg-gradient-to-b from-secondary/30 to-background overflow-hidden py-0">
+  return <div className="relative bg-gradient-to-b from-secondary/30 to-background overflow-hidden py-16 md:py-24 lg:py-[50px]">
       {/* Background decorative elements */}
       <div className="absolute top-1/4 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/40 rounded-full blur-3xl -z-10"></div>
@@ -36,10 +37,10 @@ const Hero = ({
             
             <h1 className="font-display font-bold tracking-tight">
               <span className="block text-left font-extrabold font-serif text-5xl">A Blend of Beauty &amp; Grace</span>
-              <span className="block text-gradient text-3xl font-semibold font-sans">-at Your Doorstep</span>
+              <span className="block text-gradient font-semibold font-sans mx-0 my-[31px] text-4xl">-at Your Doorstep</span>
             </h1>
             
-            <p className="text-lg text-muted-foreground mt-6 max-w-lg mx-auto lg:mx-0">Professional makeup artists, hair stylists, and beauty services for weddings, events, and special occasions delivered at your DOORSTEP.</p>
+            <p className="text-lg text-muted-foreground mt-6 max-w-lg mx-auto lg:mx-0 my-[16px]">Professional makeup artists, hair stylists, and beauty services for weddings, events, and special occasions delivered at your DOORSTEP.</p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
               <ButtonCustom variant="primary-gradient" size="lg" onClick={onBookNow} className="group">
@@ -56,12 +57,12 @@ const Hero = ({
             </div>
           </div>
           
-          {/* Desktop Hero Image - Only visible on desktop */}
+          {/* Replace static desktop image with slideshow */}
           <div className="hidden lg:block relative">
             <div className="absolute -top-4 -left-4 w-24 h-24 bg-secondary rounded-full"></div>
             <div className="absolute -bottom-10 -right-6 w-36 h-36 bg-accent/30 rounded-full"></div>
             <div className="relative z-10">
-              <img alt="Beauty Services" className="w-full h-auto rounded-2xl shadow-card object-contain" src="/lovable-uploads/265f8066-8eea-43e2-a9a0-754a8b3fdb20.png" />
+              <HeroSlideshow />
             </div>
           </div>
         </div>
