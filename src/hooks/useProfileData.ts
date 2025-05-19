@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ProfileFormData } from "@/types/profile";
+import { ProfileFormData, ChildDetail } from "@/types/profile";
 import { User } from "@/types/auth";
 
 export const useProfileData = (user: User | null) => {
@@ -64,6 +64,21 @@ export const useProfileData = (user: User | null) => {
           }
           
           if (data) {
+            // Parse ChildrenDetails JSON to ensure correct typing
+            let childrenDetails: ChildDetail[] = [];
+            if (data.ChildrenDetails) {
+              try {
+                if (typeof data.ChildrenDetails === 'string') {
+                  childrenDetails = JSON.parse(data.ChildrenDetails);
+                } else if (Array.isArray(data.ChildrenDetails)) {
+                  childrenDetails = data.ChildrenDetails as ChildDetail[];
+                }
+              } catch (e) {
+                console.error("Error parsing ChildrenDetails:", e);
+                childrenDetails = [];
+              }
+            }
+            
             setProfileData({
               email: user?.email || "",
               firstName: data.MemberFirstName || "",
@@ -73,7 +88,7 @@ export const useProfileData = (user: User | null) => {
               spouseName: data.SpouseName || "",
               hasChildren: data.HasChildren || false,
               numberOfChildren: data.NumberOfChildren || 0,
-              childrenDetails: data.ChildrenDetails || []
+              childrenDetails: childrenDetails
             });
             console.log("Member profile data loaded:", data);
           }
@@ -134,3 +149,5 @@ export const useProfileData = (user: User | null) => {
 
   return { profileData, isLoading, error };
 };
+
+export default useProfileData;

@@ -1,4 +1,9 @@
 
+export interface ChildDetail {
+  name: string;
+  age: string;
+}
+
 export interface ProfileFormData {
   email: string;
   firstName: string;
@@ -10,9 +15,4 @@ export interface ProfileFormData {
   hasChildren?: boolean;
   numberOfChildren?: number;
   childrenDetails?: ChildDetail[];
-}
-
-export interface ChildDetail {
-  name: string;
-  age: string;
 }

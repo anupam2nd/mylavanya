@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -32,9 +33,8 @@ const ServiceCard = ({
   isInWishlist = false,
 }: ServiceCardProps) => {
   const { isAuthenticated, user } = useAuth();
-  const { addToWishlist, removeFromWishlist } = useWishlist();
+  const { toggleWishlist, isInWishlist: wishlistStatus, wishlistLoading } = useWishlist(id);
   const [inWishlist, setInWishlist] = useState(isInWishlist);
-  const [isLoading, setIsLoading] = useState(false);
 
   const isMember = user?.role === 'member';
   
@@ -44,23 +44,8 @@ const ServiceCard = ({
       return;
     }
     
-    setIsLoading(true);
-    try {
-      if (inWishlist) {
-        await removeFromWishlist(id);
-        setInWishlist(false);
-        toast.success("Removed from wishlist");
-      } else {
-        await addToWishlist(id);
-        setInWishlist(true);
-        toast.success("Added to wishlist");
-      }
-    } catch (error) {
-      console.error("Wishlist operation failed:", error);
-      toast.error("Failed to update wishlist");
-    } finally {
-      setIsLoading(false);
-    }
+    setInWishlist((prev) => !prev);
+    await toggleWishlist();
   };
 
   // Format description to remove HTML tags
@@ -96,7 +81,7 @@ const ServiceCard = ({
         {isAuthenticated && (
           <button
             onClick={handleWishlistToggle}
-            disabled={isLoading}
+            disabled={wishlistLoading}
             className="absolute top-2 right-2 p-2 bg-white/80 rounded-full hover:bg-white transition-colors"
             aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
           >
