@@ -187,7 +187,10 @@ export type Database = {
       }
       MemberMST: {
         Row: {
+          ChildrenDetails: Json | null
+          HasChildren: boolean | null
           id: number
+          MaritalStatus: boolean | null
           MemberAdress: string | null
           MemberDOB: string | null
           MemberEmailId: string | null
@@ -197,11 +200,16 @@ export type Database = {
           MemberPincode: string | null
           MemberSex: string | null
           MemberStatus: boolean | null
+          NumberOfChildren: number | null
           password: string | null
+          SpouseName: string | null
           uuid: string
         }
         Insert: {
+          ChildrenDetails?: Json | null
+          HasChildren?: boolean | null
           id?: number
+          MaritalStatus?: boolean | null
           MemberAdress?: string | null
           MemberDOB?: string | null
           MemberEmailId?: string | null
@@ -211,11 +219,16 @@ export type Database = {
           MemberPincode?: string | null
           MemberSex?: string | null
           MemberStatus?: boolean | null
+          NumberOfChildren?: number | null
           password?: string | null
+          SpouseName?: string | null
           uuid?: string
         }
         Update: {
+          ChildrenDetails?: Json | null
+          HasChildren?: boolean | null
           id?: number
+          MaritalStatus?: boolean | null
           MemberAdress?: string | null
           MemberDOB?: string | null
           MemberEmailId?: string | null
@@ -225,7 +238,9 @@ export type Database = {
           MemberPincode?: string | null
           MemberSex?: string | null
           MemberStatus?: boolean | null
+          NumberOfChildren?: number | null
           password?: string | null
+          SpouseName?: string | null
           uuid?: string
         }
         Relationships: []

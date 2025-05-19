@@ -52,10 +52,10 @@ export const useProfileData = (user: User | null) => {
           }
         } 
         else if (user.role === 'member') {
-          // Fetch member data from MemberMST table
+          // Fetch member data from MemberMST table with new fields
           const { data, error } = await supabase
             .from('MemberMST')
-            .select('MemberFirstName, MemberLastName, MemberPhNo, MemberEmailId')
+            .select('MemberFirstName, MemberLastName, MemberPhNo, MemberEmailId, MaritalStatus, SpouseName, HasChildren, NumberOfChildren, ChildrenDetails')
             .eq('MemberEmailId', user.email)
             .single();
             
@@ -68,7 +68,12 @@ export const useProfileData = (user: User | null) => {
               email: user?.email || "",
               firstName: data.MemberFirstName || "",
               lastName: data.MemberLastName || "",
-              phone: data.MemberPhNo || ""
+              phone: data.MemberPhNo || "",
+              maritalStatus: data.MaritalStatus || false,
+              spouseName: data.SpouseName || "",
+              hasChildren: data.HasChildren || false,
+              numberOfChildren: data.NumberOfChildren || 0,
+              childrenDetails: data.ChildrenDetails || []
             });
             console.log("Member profile data loaded:", data);
           }
