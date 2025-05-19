@@ -281,7 +281,7 @@ const ServiceDetail = () => {
                 
                 <h3 className="text-xl font-medium mb-3">What's Included</h3>
                 <ul className="list-disc list-inside mb-6 space-y-2 text-gray-600">
-                  <li>Professional makeup application</li>
+                  {/* <li>Professional makeup application</li> */}
                   <li className="text-base font-semibold">Consultation to understand your preferences</li>
                   <li>Premium quality products</li>
                   <li>Touch-ups for perfect finish</li>
