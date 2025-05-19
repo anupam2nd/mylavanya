@@ -1,62 +1,73 @@
 
-import { useState } from "react";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { useFormContext } from "react-hook-form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { UseFormReturn, useWatch } from "react-hook-form";
-import { RegisterFormValues } from "./RegisterFormSchema";
-import { Loader2, CheckCircle } from "lucide-react";
-import { toast } from "sonner";
+import { ButtonCustom } from "@/components/ui/button-custom";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { RegisterFormValues } from "./RegisterFormSchema";
+import { Asterisk } from "lucide-react";
 import OtpVerificationModal from "./OtpVerificationModal";
 
-interface ContactFieldsProps {
-  form: UseFormReturn<RegisterFormValues>;
-}
-
-export default function ContactFields({ form }: ContactFieldsProps) {
-  const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
-  const [showOtpModal, setShowOtpModal] = useState(false);
-
-  // Watch the phone number field to enable/disable the verify button
-  const phoneNumber = useWatch({
-    control: form.control,
-    name: "phoneNumber",
-    defaultValue: ""
-  });
-
-  const handleSendOtp = async () => {
-    // Basic validation
+const ContactFields = () => {
+  const form = useFormContext<RegisterFormValues>();
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  
+  const phoneNumber = form.watch("phoneNumber");
+  const isPhoneVerified = form.watch("isPhoneVerified");
+  
+  const handleSendOTP = async () => {
     if (!phoneNumber || phoneNumber.length !== 10) {
       toast.error("Please enter a valid 10-digit phone number");
       return;
     }
 
-    setIsVerifyingPhone(true);
+    // Check if phone number is already registered
     try {
-      const response = await supabase.functions.invoke("send-registration-otp", {
-        body: { phoneNumber },
-      });
-
-      if (response.error) {
-        toast.error(response.error.message || "Failed to send OTP");
+      setSendingOtp(true);
+      
+      const { data: existingPhone, error: phoneCheckError } = await supabase
+        .from('MemberMST')
+        .select('id')
+        .eq('MemberPhNo', phoneNumber)
+        .limit(1);
+      
+      if (phoneCheckError) {
+        throw phoneCheckError;
+      }
+      
+      if (existingPhone && existingPhone.length > 0) {
+        toast.error("This phone number is already registered");
+        setSendingOtp(false);
         return;
       }
 
-      setShowOtpModal(true);
-      toast.success("OTP sent successfully!");
+      // Send OTP via Supabase Edge Function
+      const response = await supabase.functions.invoke("send-registration-otp", {
+        body: { phoneNumber }
+      });
+
+      if (response.error) {
+        toast.error("Failed to send OTP. Please try again.");
+        console.error("Error sending OTP:", response.error);
+      } else {
+        toast.success("OTP sent successfully!");
+        setOtpModalOpen(true);
+      }
     } catch (error) {
-      console.error("Error sending OTP:", error);
-      toast.error("Failed to send OTP. Please try again.");
+      console.error("Error in OTP process:", error);
+      toast.error("Something went wrong. Please try again.");
     } finally {
-      setIsVerifyingPhone(false);
+      setSendingOtp(false);
     }
   };
 
-  const handleVerificationSuccess = () => {
-    setIsPhoneVerified(true);
-    form.clearErrors("phoneNumber");
+  const handleOtpSuccess = () => {
+    form.setValue("isPhoneVerified", true);
+    setOtpModalOpen(false);
+    toast.success("Phone number verified successfully!");
   };
 
   return (
@@ -66,61 +77,83 @@ export default function ContactFields({ form }: ContactFieldsProps) {
         name="email"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>
-              Email <span className="text-xs text-muted-foreground">(This will be your login ID)</span>
+            <FormLabel className="flex items-center gap-1">
+              Email <Asterisk className="h-3 w-3 text-red-500" />
             </FormLabel>
             <FormControl>
-              <Input type="email" placeholder="Your email address" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="phoneNumber"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Phone Number</FormLabel>
-            <FormControl>
-              <div className="flex items-center">
-                <span className="bg-muted px-3 py-2 text-sm border border-r-0 rounded-l-md">+91</span>
-                <Input 
-                  className="rounded-l-none flex-1" 
-                  placeholder="10 digit number" 
-                  maxLength={10} 
-                  {...field} 
-                  disabled={isPhoneVerified}
-                />
-                <Button 
-                  type="button"
-                  variant={isPhoneVerified ? "ghost" : "secondary"}
-                  className="ml-2"
-                  onClick={handleSendOtp}
-                  disabled={isVerifyingPhone || isPhoneVerified || !phoneNumber || phoneNumber.length !== 10}
-                >
-                  {isVerifyingPhone ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : isPhoneVerified ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  ) : (
-                    "Verify"
-                  )}
-                </Button>
-              </div>
+              <Input placeholder="Enter your email" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      <OtpVerificationModal 
-        open={showOtpModal}
-        onOpenChange={setShowOtpModal}
+      <div className="flex items-end gap-2">
+        <div className="flex-1">
+          <FormField
+            control={form.control}
+            name="phoneNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Phone Number <Asterisk className="h-3 w-3 text-red-500" />
+                </FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Enter your phone number" 
+                    {...field} 
+                    maxLength={10}
+                    onChange={(e) => {
+                      // Reset verification if phone number changes
+                      if (field.value !== e.target.value && form.getValues("isPhoneVerified")) {
+                        form.setValue("isPhoneVerified", false);
+                      }
+                      
+                      // Allow only numbers
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      field.onChange(value);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <ButtonCustom
+          type="button"
+          variant={isPhoneVerified ? "success" : "secondary"}
+          className="mb-[2px] whitespace-nowrap"
+          onClick={handleSendOTP}
+          disabled={sendingOtp || phoneNumber?.length !== 10}
+          isLoading={sendingOtp}
+        >
+          {isPhoneVerified ? "Verified ✓" : "Verify Phone"}
+        </ButtonCustom>
+      </div>
+
+      <FormField
+        control={form.control}
+        name="isPhoneVerified"
+        render={({ field }) => (
+          <FormItem className="hidden">
+            <FormControl>
+              <input type="checkbox" checked={field.value} onChange={field.onChange} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <OtpVerificationModal
+        open={otpModalOpen}
+        onOpenChange={setOtpModalOpen}
         phoneNumber={phoneNumber}
-        onVerificationSuccess={handleVerificationSuccess}
+        onVerificationSuccess={handleOtpSuccess}
       />
     </>
   );
-}
+};
+
+export default ContactFields;

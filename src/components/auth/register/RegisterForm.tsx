@@ -19,7 +19,12 @@ export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormP
   const { form, isLoading, handleRegister } = useRegisterForm({ onSuccess });
   
   const onSubmit = form.handleSubmit((data) => {
-    // OTP verification happens at the field level now
+    // Check if phone is verified before proceeding
+    if (!data.isPhoneVerified) {
+      toast.error("Please verify your phone number to continue");
+      return;
+    }
+    
     handleRegister(data);
   });
   

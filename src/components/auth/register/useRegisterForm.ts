@@ -13,7 +13,6 @@ interface UseRegisterFormProps {
 
 export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
@@ -28,10 +27,17 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       dob: undefined,
       password: "",
       confirmPassword: "",
+      isPhoneVerified: false,
     },
   });
   
   const handleRegister = async (values: RegisterFormValues) => {
+    // Ensure phone is verified
+    if (!values.isPhoneVerified) {
+      toast.error("Please verify your phone number before registering");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -40,22 +46,36 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       
       console.log("Attempting to register:", email);
       
-      // Check if user already exists
-      const { data: existingMembers, error: checkError } = await supabase
+      // Check if user already exists by email
+      const { data: existingMembersByEmail, error: checkEmailError } = await supabase
         .from('MemberMST')
         .select('id')
         .ilike('MemberEmailId', email);
       
-      console.log("Check for existing member:", existingMembers, checkError);
-      
-      if (checkError) {
-        console.error("Error checking existing user:", checkError);
+      if (checkEmailError) {
+        console.error("Error checking existing user by email:", checkEmailError);
         throw new Error('Error checking if user exists');
       }
       
-      if (existingMembers && existingMembers.length > 0) {
-        console.log("Member already exists:", existingMembers);
+      if (existingMembersByEmail && existingMembersByEmail.length > 0) {
+        console.log("Member with this email already exists:", existingMembersByEmail);
         throw new Error('An account with this email already exists');
+      }
+      
+      // Check if phone number is already registered (double check)
+      const { data: existingMembersByPhone, error: checkPhoneError } = await supabase
+        .from('MemberMST')
+        .select('id')
+        .eq('MemberPhNo', values.phoneNumber);
+      
+      if (checkPhoneError) {
+        console.error("Error checking existing user by phone:", checkPhoneError);
+        throw new Error('Error checking if phone number exists');
+      }
+      
+      if (existingMembersByPhone && existingMembersByPhone.length > 0) {
+        console.log("Member with this phone already exists:", existingMembersByPhone);
+        throw new Error('An account with this phone number already exists');
       }
       
       // Format date for DB
@@ -106,7 +126,5 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
     form,
     isLoading,
     handleRegister,
-    isPhoneVerified,
-    setIsPhoneVerified
   };
 }

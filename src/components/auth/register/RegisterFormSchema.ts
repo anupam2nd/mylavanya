@@ -15,6 +15,9 @@ export const registerFormSchema = z.object({
   }),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
+  isPhoneVerified: z.boolean().refine(val => val === true, {
+    message: "Phone number must be verified",
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
