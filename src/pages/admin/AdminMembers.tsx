@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 
 interface MemberItem {
   id: number;
@@ -272,7 +273,7 @@ const AdminMembers = () => {
             <Switch
               checked={member.MemberStatus}
               onCheckedChange={() => handleStatusToggle(member)}
-              size="sm"
+              className={cn("h-[18px] w-[36px]", "data-[state=checked]:bg-green-500")}
             />
             <span className={`text-xs ${member.MemberStatus ? "text-green-600" : "text-red-600"}`}>
               {member.MemberStatus ? "Active" : "Inactive"}
