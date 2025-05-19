@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Table, 
   TableBody, 
@@ -47,6 +48,7 @@ const AdminMembers = () => {
     MemberStatus: true
   });
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   // Fetch members data
   const fetchMembers = async () => {
@@ -260,20 +262,71 @@ const AdminMembers = () => {
     }
   };
   
+  // Render mobile member card
+  const renderMemberCard = (member: MemberItem) => (
+    <div key={member.id} className="bg-card rounded-lg border p-4 mb-4">
+      <div className="flex flex-col gap-2">
+        <div className="flex justify-between items-center">
+          <span className="font-medium text-sm">ID: {member.id}</span>
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={member.MemberStatus}
+              onCheckedChange={() => handleStatusToggle(member)}
+              size="sm"
+            />
+            <span className={`text-xs ${member.MemberStatus ? "text-green-600" : "text-red-600"}`}>
+              {member.MemberStatus ? "Active" : "Inactive"}
+            </span>
+          </div>
+        </div>
+        
+        <h3 className="font-semibold text-base">
+          {member.MemberFirstName} {member.MemberLastName}
+        </h3>
+        
+        <div className="text-sm text-muted-foreground">
+          <p>{member.MemberEmailId}</p>
+          <p>Phone: {member.MemberPhNo || "N/A"}</p>
+        </div>
+        
+        <div className="flex gap-2 mt-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleEditClick(member)}
+            className="flex-1"
+          >
+            <Pencil className="h-4 w-4 mr-1" />
+            Edit
+          </Button>
+          <Button 
+            variant="destructive" 
+            size="sm"
+            onClick={() => setDeletingMember(member)}
+            className="flex-1"
+          >
+            <Trash className="h-4 w-4 mr-1" />
+            Delete
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+  
   return (
     <ProtectedRoute allowedRoles={["superadmin"]}>
       <DashboardLayout title="Member Management">
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Manage Members</h2>
-            <Button onClick={openCreateDialog}>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+            <h2 className="text-xl sm:text-2xl font-bold">Manage Members</h2>
+            <Button onClick={openCreateDialog} size={isMobile ? "sm" : "default"}>
               <Plus className="h-4 w-4 mr-1" />
               Add Member
             </Button>
           </div>
           
           <Card>
-            <CardContent className="p-6">
+            <CardContent className={isMobile ? "p-3" : "p-6"}>
               {loading ? (
                 <div className="flex justify-center items-center h-40">
                   <p>Loading members...</p>
@@ -282,15 +335,21 @@ const AdminMembers = () => {
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">No members found.</p>
                 </div>
+              ) : isMobile ? (
+                // Mobile view with cards
+                <div className="space-y-4">
+                  {members.map(renderMemberCard)}
+                </div>
               ) : (
+                // Desktop view with table
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ID</TableHead>
+                        <TableHead className="w-[60px]">ID</TableHead>
                         <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
+                        <TableHead className="hidden md:table-cell">Email</TableHead>
+                        <TableHead className="hidden sm:table-cell">Phone</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -299,9 +358,16 @@ const AdminMembers = () => {
                       {members.map((member) => (
                         <TableRow key={member.id}>
                           <TableCell>{member.id}</TableCell>
-                          <TableCell>{member.MemberFirstName} {member.MemberLastName}</TableCell>
-                          <TableCell>{member.MemberEmailId}</TableCell>
-                          <TableCell>{member.MemberPhNo}</TableCell>
+                          <TableCell className="font-medium">
+                            <div>
+                              {member.MemberFirstName} {member.MemberLastName}
+                            </div>
+                            <div className="md:hidden text-xs text-muted-foreground truncate max-w-[180px]">
+                              {member.MemberEmailId}
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">{member.MemberEmailId}</TableCell>
+                          <TableCell className="hidden sm:table-cell">{member.MemberPhNo}</TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-2">
                               <Switch
@@ -321,7 +387,7 @@ const AdminMembers = () => {
                                 onClick={() => handleEditClick(member)}
                               >
                                 <Pencil className="h-4 w-4 mr-1" />
-                                Edit
+                                <span className="hidden sm:inline">Edit</span>
                               </Button>
                               <Button 
                                 variant="destructive" 
@@ -329,7 +395,7 @@ const AdminMembers = () => {
                                 onClick={() => setDeletingMember(member)}
                               >
                                 <Trash className="h-4 w-4 mr-1" />
-                                Delete
+                                <span className="hidden sm:inline">Delete</span>
                               </Button>
                             </div>
                           </TableCell>
