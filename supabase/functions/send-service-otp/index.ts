@@ -182,7 +182,7 @@ serve(async (req) => {
     
     // Construct the SMS API URL
     const serviceType = statusType === "start" ? "START" : "COMPLETION";
-    const smsText = `Dear ${booking.name || "User"}
+    const smsText = `Dear User
 OTP for the WMS platform is ${otp} and valid for 10 minutes. Please do not share this OTP.
 Team
 Sampurna (STEP)`;
