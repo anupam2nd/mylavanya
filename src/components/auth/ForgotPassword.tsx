@@ -245,10 +245,11 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
                 maxLength={6} 
                 value={otp} 
                 onChange={setOtp}
+                autoFocus
                 render={({ slots }) => (
                   <InputOTPGroup>
                     {slots.map((slot, index) => (
-                      <InputOTPSlot key={index} {...slot} index={index} />
+                      <InputOTPSlot key={index} {...slot} index={index} className="w-12 h-12 text-lg" />
                     ))}
                   </InputOTPGroup>
                 )}
@@ -261,6 +262,22 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
             >
               {resetLoading ? "Verifying..." : "Verify OTP"}
             </Button>
+            
+            <div className="text-center">
+              <Button 
+                variant="link" 
+                className="p-0 h-auto text-xs"
+                onClick={() => {
+                  if (!resetLoading) {
+                    handleForgotPasswordSubmit();
+                    toast.info("Sending a new OTP code...");
+                  }
+                }}
+                disabled={resetLoading}
+              >
+                Didn't receive code? Resend OTP
+              </Button>
+            </div>
           </div>
         )}
 
