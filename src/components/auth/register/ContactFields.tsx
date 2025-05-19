@@ -123,7 +123,7 @@ const ContactFields = () => {
 
         <ButtonCustom
           type="button"
-          variant={isPhoneVerified ? "success" : "secondary"}
+          variant={isPhoneVerified ? "primary-gradient" : "secondary"}
           className="mb-[2px] whitespace-nowrap"
           onClick={handleSendOTP}
           disabled={sendingOtp || phoneNumber?.length !== 10}

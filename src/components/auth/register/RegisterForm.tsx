@@ -31,11 +31,11 @@ export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormP
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto px-1 py-2">
-        <PersonalInfoFields form={form} />
-        <ContactFields form={form} />
-        <AddressFields form={form} />
-        <DateOfBirthField form={form} />
-        <PasswordFields form={form} />
+        <PersonalInfoFields />
+        <ContactFields />
+        <AddressFields />
+        <DateOfBirthField />
+        <PasswordFields />
         
         <ButtonCustom 
           variant="primary-gradient" 
