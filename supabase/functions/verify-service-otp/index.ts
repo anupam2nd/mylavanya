@@ -82,6 +82,17 @@ serve(async (req) => {
     // Check if OTP is expired
     if (new Date() > new Date(otpRecord.expires_at)) {
       console.log("OTP expired");
+      
+      // Delete expired OTP
+      const { error: deleteError } = await supabase
+        .from("service_otps")
+        .delete()
+        .eq("id", otpRecord.id);
+        
+      if (deleteError) {
+        console.error("Error deleting expired OTP:", deleteError);
+      }
+      
       return new Response(
         JSON.stringify({ error: "OTP expired" }),
         {
@@ -89,17 +100,6 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
-    }
-    
-    // Mark OTP as verified
-    console.log(`Marking OTP with ID ${otpRecord.id} as verified`);
-    const { error: updateError } = await supabase
-      .from("service_otps")
-      .update({ verified: true })
-      .eq("id", otpRecord.id);
-      
-    if (updateError) {
-      console.error("Error updating OTP verification status:", updateError);
     }
     
     // Map statusType to actual status code
@@ -154,6 +154,19 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
+    }
+    
+    // After successful verification, delete the OTP record
+    const { error: deleteError } = await supabase
+      .from("service_otps")
+      .delete()
+      .eq("id", otpRecord.id);
+      
+    if (deleteError) {
+      console.error("Error deleting verified OTP:", deleteError);
+      // Continue even if deletion fails
+    } else {
+      console.log(`Successfully deleted OTP record with ID ${otpRecord.id}`);
     }
     
     return new Response(
