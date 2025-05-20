@@ -62,6 +62,9 @@ const ServiceCard = ({
     ? `${cleanDescription.substring(0, 100)}...` 
     : cleanDescription;
 
+  // Determine if we should show the original price (only show if different from discounted price)
+  const showOriginalPrice = discountedPrice && price !== discountedPrice;
+
   const handleCardClick = () => {
     if (onClick) onClick();
   };
@@ -113,7 +116,7 @@ const ServiceCard = ({
             {formatCurrency(discountedPrice || price)}
           </span>
           
-          {discountedPrice && (
+          {showOriginalPrice && (
             <>
               <span className="ml-2 text-sm text-gray-500 line-through">
                 {formatCurrency(price)}

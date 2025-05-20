@@ -136,6 +136,7 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
                 imageUrl={service.imageUrl || undefined}
                 category={service.Category || undefined}
                 scheme={service.Scheme || undefined}
+                discount={service.Discount || undefined}
                 onClick={() => handleServiceClick(service.prod_id)}
               />
             ))}
