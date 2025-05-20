@@ -68,17 +68,15 @@ export default function ForgotPassword({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle>{getTitle()}</DialogTitle>
-          <DialogClose asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-8 w-8 p-0 rounded-full"
-              onClick={handleClose}
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </Button>
-          </DialogClose>
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-8 w-8 p-0 rounded-full"
+            onClick={handleClose}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </Button>
         </DialogHeader>
         
         <div className="py-4">
@@ -102,15 +100,13 @@ export default function ForgotPassword({
         </div>
         
         <DialogFooter className="sm:justify-start">
-          <DialogClose asChild>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-            >
-              Cancel
-            </Button>
-          </DialogClose>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClose}
+          >
+            Cancel
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
