@@ -33,11 +33,18 @@ export default function OtpVerificationForm({
           maxLength={6} 
           value={otp} 
           onChange={setOtp}
-          autoFocus
+          id="otp-input"
+          autoComplete="one-time-code"
+          autoFocus={true}
           render={({ slots }) => (
             <InputOTPGroup>
               {slots.map((slot, index) => (
-                <InputOTPSlot key={index} {...slot} index={index} className="w-12 h-12 text-lg border-2" />
+                <InputOTPSlot 
+                  key={index} 
+                  {...slot} 
+                  index={index} 
+                  className="w-12 h-12 text-lg border-2 focus:border-pink-500 focus:ring-pink-500 focus-visible:ring-pink-500"
+                />
               ))}
             </InputOTPGroup>
           )}
@@ -54,7 +61,7 @@ export default function OtpVerificationForm({
       <div className="text-center">
         <Button 
           variant="link" 
-          className="p-0 h-auto text-xs"
+          className="p-0 h-auto text-xs text-pink-500 hover:text-pink-600"
           onClick={onResendOtp}
           disabled={isLoading}
         >
