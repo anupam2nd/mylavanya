@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import ForgotPassword from "./ForgotPassword";
-import { useMemberLogin } from "@/hooks/useMemberLogin";
+import { useLogin } from "@/hooks/useLogin";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -13,7 +13,7 @@ export default function LoginForm() {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { isLoading, handleLogin } = useMemberLogin();
+  const { isLoading, handleLogin } = useLogin();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,12 +34,18 @@ export default function LoginForm() {
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="mb-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            This login is for admins, controllers & superadmin only. 
+            Members should use the main sign in button.
+          </p>
+        </div>
         <div className="space-y-2">
           <Label htmlFor="email-login">Email</Label>
           <Input 
             id="email-login" 
             type="email" 
-            placeholder="Your email address" 
+            placeholder="Your admin email address" 
             value={loginData.email}
             onChange={(e) => setLoginData({...loginData, email: e.target.value})}
             required
@@ -82,7 +88,7 @@ export default function LoginForm() {
           type="submit"
           disabled={isLoading}
         >
-          {isLoading ? "Signing in..." : "Sign In"}
+          {isLoading ? "Signing in..." : "Admin Sign In"}
         </ButtonCustom>
       </form>
 

@@ -19,6 +19,7 @@ export interface ServiceCardProps {
   category?: string;
   scheme?: string;
   isInWishlist?: boolean;
+  discount?: number;
   onClick?: () => void;
 }
 
@@ -32,6 +33,7 @@ const ServiceCard = ({
   category,
   scheme,
   isInWishlist = false,
+  discount,
   onClick,
 }: ServiceCardProps) => {
   const { isAuthenticated, user } = useAuth();
@@ -112,9 +114,16 @@ const ServiceCard = ({
           </span>
           
           {discountedPrice && (
-            <span className="ml-2 text-sm text-gray-500 line-through">
-              {formatCurrency(price)}
-            </span>
+            <>
+              <span className="ml-2 text-sm text-gray-500 line-through">
+                {formatCurrency(price)}
+              </span>
+              {discount && discount > 0 && (
+                <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+                  {discount}% OFF
+                </span>
+              )}
+            </>
           )}
         </div>
         
@@ -129,7 +138,7 @@ const ServiceCard = ({
       
       <CardFooter className="p-4 pt-0">
         <Link 
-          to={`/service/${id}`} 
+          to={`/services/${id}`} 
           className="w-full"
         >
           <Button variant="outline" className="w-full">
