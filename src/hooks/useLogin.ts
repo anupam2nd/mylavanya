@@ -19,7 +19,7 @@ export function useLogin() {
     setIsLoading(true);
     
     try {
-      console.log("Attempting login with:", email);
+      console.log("Attempting admin login with:", email);
       // Explicitly convert email to lowercase for consistent matching
       const normalizedEmail = email.trim().toLowerCase();
       
