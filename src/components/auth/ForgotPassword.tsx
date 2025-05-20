@@ -81,7 +81,7 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
         body: { phoneNumber, otp }
       });
       
-      if (response.error || !response.data.success) {
+      if (response.error || !response.data?.success) {
         toast.error(response.error?.message || response.data?.error || "Invalid OTP");
         return;
       }
@@ -157,7 +157,7 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
   const getTitle = () => {
     switch (forgotStep) {
       case "phone": return "Reset Password";
-      case "otp": return "Enter OTP";
+      case "otp": return "Verify Your Phone Number";
       case "reset": return "Create New Password";
       default: return "Reset Password";
     }
@@ -166,7 +166,7 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
   const getDescription = () => {
     switch (forgotStep) {
       case "phone": return "Enter your phone number to receive a one-time password";
-      case "otp": return "Enter the OTP sent to your phone number";
+      case "otp": return `Enter the 6-digit verification code sent to ${phoneNumber}`;
       case "reset": return "Create a new password that meets the requirements below";
       default: return "";
     }
