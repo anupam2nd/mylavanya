@@ -12,23 +12,30 @@ interface OtpVerificationFormProps {
   isLoading: boolean;
   onSubmit: (otp: string) => Promise<void>;
   onResendOtp: () => void;
+  phoneNumber: string;
 }
 
 export default function OtpVerificationForm({ 
   isLoading, 
   onSubmit, 
-  onResendOtp 
+  onResendOtp,
+  phoneNumber
 }: OtpVerificationFormProps) {
   const [otp, setOtp] = useState("");
 
   const handleSubmit = async () => {
-    await onSubmit(otp);
+    if (otp.length === 6) {
+      await onSubmit(otp);
+    }
   };
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col items-center justify-center space-y-2">
-        <Label htmlFor="otp-input">One-Time Password</Label>
+        <p className="text-sm text-muted-foreground text-center mb-2">
+          We've sent a 6-digit OTP to <span className="font-semibold">{phoneNumber}</span>
+        </p>
+        <Label htmlFor="otp-input">Enter One-Time Password</Label>
         <InputOTP 
           maxLength={6} 
           value={otp} 
@@ -36,7 +43,7 @@ export default function OtpVerificationForm({
           id="otp-input"
           autoComplete="one-time-code"
           autoFocus={true}
-          placeholder=""
+          placeholder="------"
           render={({ slots }) => (
             <InputOTPGroup>
               {slots.map((slot, index) => (
@@ -44,7 +51,7 @@ export default function OtpVerificationForm({
                   key={index} 
                   {...slot} 
                   index={index} 
-                  className="w-12 h-12 text-lg border-2 focus:border-pink-500 focus:ring-pink-500 focus-visible:ring-pink-500 cursor-text bg-white"
+                  className="w-12 h-12 text-lg border-2 focus:border-pink-500 focus:ring-pink-500 focus-visible:ring-pink-500"
                 />
               ))}
             </InputOTPGroup>

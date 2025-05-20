@@ -24,12 +24,11 @@ interface ForgotPasswordProps {
 export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPasswordProps) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [forgotStep, setForgotStep] = useState<"phone" | "otp" | "reset">("phone");
-  const [resetLoading, setResetLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [verifiedMemberId, setVerifiedMemberId] = useState<string | null>(null);
 
   const handlePhoneSubmit = async (phone: string) => {
-    setPhoneNumber(phone);
-    setResetLoading(true);
+    setIsLoading(true);
     
     try {
       // Check if phone number exists in MemberMST
@@ -48,7 +47,8 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
         return;
       }
 
-      // Store the member ID for later use when updating password
+      // Store the phone number and member ID for subsequent steps
+      setPhoneNumber(phone);
       setVerifiedMemberId(data.id.toString());
       
       // Send OTP via Supabase Edge Function
@@ -65,15 +65,15 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
       toast.success("OTP sent successfully!");
       setForgotStep("otp");
     } catch (error) {
-      console.error("Error in password reset:", error);
+      console.error("Error in phone verification:", error);
       toast.error("Error processing your request");
     } finally {
-      setResetLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleOtpSubmit = async (otp: string) => {
-    setResetLoading(true);
+    setIsLoading(true);
     
     try {
       // Verify the OTP
@@ -86,12 +86,13 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
         return;
       }
       
+      toast.success("OTP verified successfully!");
       setForgotStep("reset");
     } catch (error) {
       console.error("Error verifying OTP:", error);
       toast.error("Error verifying OTP");
     } finally {
-      setResetLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -101,7 +102,7 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
       return;
     }
 
-    setResetLoading(true);
+    setIsLoading(true);
     try {
       // Update password in the database for the verified member
       // Convert the string ID to a number since MemberMST.id is a bigint/number type
@@ -122,8 +123,8 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
         throw error;
       }
       
-      toast.success("Password Reset Successfully", { 
-        description: "Your password has been successfully reset. You can now log in with your new password." 
+      toast.success("Password reset successfully", { 
+        description: "Your password has been updated. You can now log in with your new password." 
       });
       
       handleClose();
@@ -134,12 +135,12 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
       console.error("Error resetting password:", error);
       toast.error("Error updating your password");
     } finally {
-      setResetLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleResendOtp = () => {
-    if (!resetLoading) {
+    if (!isLoading && phoneNumber) {
       handlePhoneSubmit(phoneNumber);
       toast.info("Sending a new OTP code...");
     }
@@ -181,22 +182,23 @@ export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPas
 
         {forgotStep === "phone" && (
           <PhoneNumberForm 
-            isLoading={resetLoading} 
+            isLoading={isLoading} 
             onSubmit={handlePhoneSubmit} 
           />
         )}
 
         {forgotStep === "otp" && (
           <OtpVerificationForm 
-            isLoading={resetLoading} 
+            isLoading={isLoading} 
             onSubmit={handleOtpSubmit}
             onResendOtp={handleResendOtp}
+            phoneNumber={phoneNumber}
           />
         )}
 
         {forgotStep === "reset" && (
           <PasswordResetForm 
-            isLoading={resetLoading} 
+            isLoading={isLoading} 
             onSubmit={handlePasswordReset} 
           />
         )}

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface PhoneNumberFormProps {
   isLoading: boolean;
@@ -43,14 +42,18 @@ export default function PhoneNumberForm({ isLoading, onSubmit }: PhoneNumberForm
           onChange={handlePhoneNumberChange}
           maxLength={10}
           inputMode="numeric"
+          autoFocus
         />
+        <p className="text-xs text-muted-foreground">
+          Enter the phone number associated with your account
+        </p>
       </div>
       <Button 
         className="w-full bg-pink-500 hover:bg-pink-600" 
         onClick={handleSubmit}
         disabled={isLoading || phoneNumber.length !== 10}
       >
-        {isLoading ? "Sending..." : "Send OTP"}
+        {isLoading ? "Verifying..." : "Send OTP"}
       </Button>
     </div>
   );

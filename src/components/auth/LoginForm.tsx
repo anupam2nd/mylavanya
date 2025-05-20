@@ -5,13 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import ForgotPassword from "./ForgotPassword";
-import { useLogin } from "@/hooks/useLogin";
+import { useMemberLogin } from "@/hooks/useMemberLogin";
 import { toast } from "sonner";
 
 export default function LoginForm() {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
-  const { isLoading, handleLogin } = useLogin();
+  const { isLoading, handleLogin } = useMemberLogin();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +22,7 @@ export default function LoginForm() {
     // Currently we don't have a way to auto-fill by phone number since the form uses email
     // But we can show a success message
     toast.info("Password reset successful. Please login with your new password.");
+    setForgotPasswordOpen(false);
   };
   
   return (
