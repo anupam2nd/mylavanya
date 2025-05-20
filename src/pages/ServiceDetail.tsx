@@ -260,6 +260,11 @@ const ServiceDetail = () => {
         ? service.Price - (service.Price * service.Discount / 100) 
         : service.Price
   ) : 0;
+  
+  // Format price without trailing zeros
+  const formatPrice = (price: number) => {
+    return `₹${price.toFixed(0)}`;
+  };
 
   return <div className="min-h-screen bg-gray-50 pb-16">
       <div className="bg-gradient-to-r from-violet-100 to-purple-50 py-8">
@@ -284,16 +289,18 @@ const ServiceDetail = () => {
             {/* Price display with discount if available */}
             {service.Discount || (service.NetPayable !== null && service.NetPayable !== undefined) ? (
               <div className="flex items-center space-x-2 mt-1">
-                <span className="line-through text-gray-500">₹{service.Price.toFixed(2)}</span>
-                <span className="text-lg font-medium text-primary">₹{finalPrice.toFixed(2)}</span>
-                {service.Discount && (
+                {service.Price !== finalPrice && (
+                  <span className="line-through text-gray-500">{formatPrice(service.Price)}</span>
+                )}
+                <span className="text-lg font-medium text-primary">{formatPrice(finalPrice)}</span>
+                {service.Discount && service.Discount > 0 && (
                   <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded">
                     {service.Discount}% OFF
                   </span>
                 )}
               </div>
             ) : (
-              <p className="text-lg font-medium text-primary mt-1">₹{service.Price.toFixed(2)}</p>
+              <p className="text-lg font-medium text-primary mt-1">{formatPrice(service.Price)}</p>
             )}
           </div>
         </div>
