@@ -36,7 +36,7 @@ export default function LoginForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="mb-4 text-center">
           <p className="text-sm text-muted-foreground">
-            This login is for admins, controllers & artists only. 
+            This login is for admins, controllers & superadmin only. 
             Members should use the main sign in button.
           </p>
         </div>
