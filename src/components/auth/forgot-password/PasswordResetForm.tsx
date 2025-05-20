@@ -1,37 +1,62 @@
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage
-} from "@/components/ui/form";
-import { passwordResetSchema } from "./schemas";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface PasswordResetFormProps {
-  isLoading: boolean;
-  onSubmit: (values: z.infer<typeof passwordResetSchema>) => Promise<void>;
+  phoneNumber: string;
+  onPasswordResetSuccess: () => void;
 }
 
-export default function PasswordResetForm({ isLoading, onSubmit }: PasswordResetFormProps) {
+const formSchema = z.object({
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+export function PasswordResetForm({ phoneNumber, onPasswordResetSuccess }: PasswordResetFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
-  const form = useForm<z.infer<typeof passwordResetSchema>>({
-    resolver: zodResolver(passwordResetSchema),
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       password: "",
-      confirmPassword: ""
-    }
+      confirmPassword: "",
+    },
   });
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      setIsLoading(true);
+      
+      // Update the password in the database for this phone number
+      const { error } = await supabase
+        .from('MemberMST')
+        .update({ password: data.password })
+        .eq('MemberPhNo', phoneNumber);
+      
+      if (error) throw error;
+      
+      toast.success("Password updated successfully");
+      onPasswordResetSuccess();
+    } catch (error: any) {
+      console.error("Error updating password:", error);
+      toast.error("Failed to update password");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -50,23 +75,21 @@ export default function PasswordResetForm({ isLoading, onSubmit }: PasswordReset
           render={({ field }) => (
             <FormItem>
               <FormLabel>New Password</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input 
-                    type={showPassword ? "text" : "password"} 
-                    placeholder="Enter new password" 
-                    {...field} 
-                    className="pr-10"
-                  />
-                  <button 
-                    type="button" 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none" 
-                    onClick={togglePasswordVisibility}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </FormControl>
+              <div className="relative">
+                <Input 
+                  placeholder="Enter your new password" 
+                  type={showPassword ? "text" : "password"}
+                  className="pr-10" 
+                  {...field} 
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -77,46 +100,29 @@ export default function PasswordResetForm({ isLoading, onSubmit }: PasswordReset
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input 
-                    type={showConfirmPassword ? "text" : "password"} 
-                    placeholder="Confirm new password" 
-                    {...field} 
-                    className="pr-10"
-                  />
-                  <button 
-                    type="button" 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none" 
-                    onClick={toggleConfirmPasswordVisibility}
-                  >
-                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </FormControl>
+              <FormLabel>Confirm New Password</FormLabel>
+              <div className="relative">
+                <Input 
+                  placeholder="Confirm your new password" 
+                  type={showConfirmPassword ? "text" : "password"}
+                  className="pr-10" 
+                  {...field} 
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  onClick={toggleConfirmPasswordVisibility}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               <FormMessage />
             </FormItem>
           )}
         />
         
-        <div className="space-y-1 text-sm">
-          <p className="font-medium">Password must:</p>
-          <ul className="list-disc list-inside text-muted-foreground">
-            <li>Be at least 8 characters long</li>
-            <li>Include at least one uppercase letter</li>
-            <li>Include at least one lowercase letter</li>
-            <li>Include at least one number</li>
-            <li>Include at least one special character</li>
-          </ul>
-        </div>
-        
-        <Button 
-          type="submit" 
-          className="w-full bg-pink-500 hover:bg-pink-600"
-          disabled={isLoading}
-        >
-          {isLoading ? "Updating..." : "Reset Password"}
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Updating Password..." : "Reset Password"}
         </Button>
       </form>
     </Form>

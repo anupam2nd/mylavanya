@@ -1,19 +1,18 @@
 
 import { useState } from "react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { z } from "zod";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogClose,
 } from "@/components/ui/dialog";
-import { passwordResetSchema } from "./forgot-password/schemas";
-import PhoneNumberForm from "./forgot-password/PhoneNumberForm";
-import OtpVerificationForm from "./forgot-password/OtpVerificationForm";
-import PasswordResetForm from "./forgot-password/PasswordResetForm";
+import { Button } from "@/components/ui/button";
+import { PhoneNumberForm } from "./forgot-password/PhoneNumberForm";
+import { OtpVerificationForm } from "./forgot-password/OtpVerificationForm";
+import { PasswordResetForm } from "./forgot-password/PasswordResetForm";
+import { X } from "lucide-react";
 
 interface ForgotPasswordProps {
   isOpen: boolean;
@@ -21,187 +20,98 @@ interface ForgotPasswordProps {
   onSuccess: (phone: string) => void;
 }
 
-export default function ForgotPassword({ isOpen, onClose, onSuccess }: ForgotPasswordProps) {
+type Step = "phone" | "otp" | "reset";
+
+export default function ForgotPassword({
+  isOpen,
+  onClose,
+  onSuccess,
+}: ForgotPasswordProps) {
+  const [currentStep, setCurrentStep] = useState<Step>("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [forgotStep, setForgotStep] = useState<"phone" | "otp" | "reset">("phone");
-  const [isLoading, setIsLoading] = useState(false);
-  const [verifiedMemberId, setVerifiedMemberId] = useState<string | null>(null);
 
-  const handlePhoneSubmit = async (phone: string) => {
-    setIsLoading(true);
-    
-    try {
-      // Check if phone number exists in MemberMST
-      const { data, error } = await supabase
-        .from('MemberMST')
-        .select('id, MemberPhNo')
-        .eq('MemberPhNo', phone.trim())
-        .maybeSingle();
-        
-      if (error) {
-        throw error;
-      }
-      
-      if (!data) {
-        toast.error("No account found with this phone number");
-        return;
-      }
-
-      // Store the phone number and member ID for subsequent steps
-      setPhoneNumber(phone);
-      setVerifiedMemberId(data.id.toString());
-      
-      // Send OTP via Supabase Edge Function
-      const response = await supabase.functions.invoke("send-registration-otp", {
-        body: { phoneNumber: phone }
-      });
-
-      if (response.error) {
-        toast.error("Failed to send OTP. Please try again.");
-        console.error("Error sending OTP:", response.error);
-        return;
-      }
-      
-      toast.success("OTP sent successfully!");
-      setForgotStep("otp");
-    } catch (error) {
-      console.error("Error in phone verification:", error);
-      toast.error("Error processing your request");
-    } finally {
-      setIsLoading(false);
-    }
+  const handlePhoneSubmit = (phone: string) => {
+    setPhoneNumber(phone);
+    setCurrentStep("otp");
   };
 
-  const handleOtpSubmit = async (otp: string) => {
-    setIsLoading(true);
-    
-    try {
-      // Verify the OTP
-      const response = await supabase.functions.invoke("verify-registration-otp", {
-        body: { phoneNumber, otp }
-      });
-      
-      if (response.error || !response.data?.success) {
-        toast.error(response.error?.message || response.data?.error || "Invalid OTP");
-        return;
-      }
-      
-      toast.success("OTP verified successfully!");
-      setForgotStep("reset");
-    } catch (error) {
-      console.error("Error verifying OTP:", error);
-      toast.error("Error verifying OTP");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleOtpSuccess = () => {
+    setCurrentStep("reset");
   };
 
-  const handlePasswordReset = async (values: z.infer<typeof passwordResetSchema>) => {
-    if (!verifiedMemberId) {
-      toast.error("Verification error. Please try again.");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // Update password in the database for the verified member
-      // Convert the string ID to a number since MemberMST.id is a bigint/number type
-      const memberId = parseInt(verifiedMemberId);
-      
-      // Check for valid ID conversion
-      if (isNaN(memberId)) {
-        toast.error("Invalid member ID. Please try again.");
-        return;
-      }
-      
-      const { error } = await supabase
-        .from('MemberMST')
-        .update({ password: values.password })
-        .eq('id', memberId);
-        
-      if (error) {
-        throw error;
-      }
-      
-      toast.success("Password reset successfully", { 
-        description: "Your password has been updated. You can now log in with your new password." 
-      });
-      
-      handleClose();
-      
-      // Pass phone number back to parent for auto-fill
-      onSuccess(phoneNumber);
-    } catch (error) {
-      console.error("Error resetting password:", error);
-      toast.error("Error updating your password");
-    } finally {
-      setIsLoading(false);
-    }
+  const handlePasswordResetSuccess = () => {
+    onSuccess(phoneNumber);
+    onClose();
   };
 
-  const handleResendOtp = () => {
-    if (!isLoading && phoneNumber) {
-      handlePhoneSubmit(phoneNumber);
-      toast.info("Sending a new OTP code...");
-    }
-  };
-
-  // Close handler to reset the form state
   const handleClose = () => {
-    setForgotStep("phone");
+    setCurrentStep("phone");
     setPhoneNumber("");
-    setVerifiedMemberId(null);
     onClose();
   };
 
   const getTitle = () => {
-    switch (forgotStep) {
-      case "phone": return "Reset Password";
-      case "otp": return "Verify Your Phone Number";
-      case "reset": return "Create New Password";
-      default: return "Reset Password";
-    }
-  };
-
-  const getDescription = () => {
-    switch (forgotStep) {
-      case "phone": return "Enter your phone number to receive a one-time password";
-      case "otp": return `Enter the 6-digit verification code sent to ${phoneNumber}`;
-      case "reset": return "Create a new password that meets the requirements below";
-      default: return "";
+    switch (currentStep) {
+      case "phone":
+        return "Forgot Password";
+      case "otp":
+        return "Verify OTP";
+      case "reset":
+        return "Reset Password";
+      default:
+        return "Forgot Password";
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle>{getTitle()}</DialogTitle>
-          <DialogDescription>{getDescription()}</DialogDescription>
+          <DialogClose asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-8 w-8 p-0 rounded-full"
+              onClick={handleClose}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </Button>
+          </DialogClose>
         </DialogHeader>
-
-        {forgotStep === "phone" && (
-          <PhoneNumberForm 
-            isLoading={isLoading} 
-            onSubmit={handlePhoneSubmit} 
-          />
-        )}
-
-        {forgotStep === "otp" && (
-          <OtpVerificationForm 
-            isLoading={isLoading} 
-            onSubmit={handleOtpSubmit}
-            onResendOtp={handleResendOtp}
-            phoneNumber={phoneNumber}
-          />
-        )}
-
-        {forgotStep === "reset" && (
-          <PasswordResetForm 
-            isLoading={isLoading} 
-            onSubmit={handlePasswordReset} 
-          />
-        )}
+        
+        <div className="py-4">
+          {currentStep === "phone" && (
+            <PhoneNumberForm onSubmit={handlePhoneSubmit} />
+          )}
+          
+          {currentStep === "otp" && (
+            <OtpVerificationForm
+              phoneNumber={phoneNumber}
+              onVerificationSuccess={handleOtpSuccess}
+            />
+          )}
+          
+          {currentStep === "reset" && (
+            <PasswordResetForm
+              phoneNumber={phoneNumber}
+              onPasswordResetSuccess={handlePasswordResetSuccess}
+            />
+          )}
+        </div>
+        
+        <DialogFooter className="sm:justify-start">
+          <DialogClose asChild>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+            >
+              Cancel
+            </Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

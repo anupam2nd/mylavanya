@@ -1,99 +1,132 @@
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { Loader2 } from "lucide-react";
 
 interface OtpVerificationFormProps {
-  isLoading: boolean;
-  onSubmit: (otp: string) => Promise<void>;
-  onResendOtp: () => void;
   phoneNumber: string;
+  onVerificationSuccess: () => void;
 }
 
-export default function OtpVerificationForm({ 
-  isLoading, 
-  onSubmit, 
-  onResendOtp,
-  phoneNumber
+export function OtpVerificationForm({
+  phoneNumber,
+  onVerificationSuccess,
 }: OtpVerificationFormProps) {
   const [otp, setOtp] = useState("");
-  const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
-  const handleSubmit = async () => {
-    if (otp.length === 6) {
-      await onSubmit(otp);
+  const handleVerify = async () => {
+    if (otp.length !== 6) {
+      toast.error("Please enter a valid 6-digit OTP");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await supabase.functions.invoke("verify-registration-otp", {
+        body: { phoneNumber, otp },
+      });
+
+      if (response.error) {
+        toast.error(response.error.message || "Failed to verify OTP");
+        return;
+      }
+
+      if (response.data.success) {
+        toast.success("Phone number verified successfully!");
+        onVerificationSuccess();
+      } else {
+        toast.error(response.data.error || "Invalid OTP");
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      toast.error("Failed to verify OTP. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleOtpChange = (index: number, value: string) => {
-    // Allow only digits
-    if (value && !/^\d*$/.test(value)) return;
+  const handleResendOtp = async () => {
+    setIsResending(true);
+    try {
+      const response = await supabase.functions.invoke("send-registration-otp", {
+        body: { phoneNumber },
+      });
 
-    // Update the specific position in otpValues array
-    const newOtpValues = [...otpValues];
-    newOtpValues[index] = value;
-    setOtpValues(newOtpValues);
+      if (response.error) {
+        toast.error(response.error.message || "Failed to send OTP");
+        return;
+      }
 
-    // Combine all digits for the complete OTP
-    const updatedOtp = newOtpValues.join("");
-    setOtp(updatedOtp);
-
-    // Auto-focus next input if value is entered
-    if (value && index < 5) {
-      const nextInput = document.getElementById(`otp-input-${index + 1}`);
-      if (nextInput) nextInput.focus();
-    }
-  };
-
-  // Handle backspace to move to previous input
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otpValues[index] && index > 0) {
-      const prevInput = document.getElementById(`otp-input-${index - 1}`);
-      if (prevInput) prevInput.focus();
+      toast.success("OTP sent successfully!");
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      toast.error("Failed to send OTP. Please try again.");
+    } finally {
+      setIsResending(false);
     }
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col items-center justify-center space-y-2">
-        <p className="text-sm text-muted-foreground text-center mb-2">
-          Enter the 6-digit verification code sent to <span className="font-semibold">{phoneNumber}</span>
-        </p>
-        
-        <div className="flex justify-center gap-2 mt-4 w-full">
-          {otpValues.map((digit, index) => (
-            <input
-              key={index}
-              id={`otp-input-${index}`}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={(e) => handleOtpChange(index, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
-              className="w-12 h-12 text-center border-2 rounded-md focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500 text-lg"
-              autoFocus={index === 0}
-              autoComplete={index === 0 ? "one-time-code" : "off"}
-            />
-          ))}
-        </div>
+    <div className="flex flex-col space-y-4">
+      <p className="text-sm text-muted-foreground text-center">
+        Enter the 6-digit verification code sent to your phone number {phoneNumber}
+      </p>
+      
+      <div className="flex justify-center mb-4">
+        <InputOTP
+          maxLength={6}
+          value={otp}
+          onChange={setOtp}
+          disabled={isLoading}
+          className="gap-2"
+        >
+          <InputOTPGroup>
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <InputOTPSlot key={index} index={index} className="w-10 h-12" />
+            ))}
+          </InputOTPGroup>
+        </InputOTP>
       </div>
       
-      <Button 
-        className="w-full bg-pink-500 hover:bg-pink-600" 
-        onClick={handleSubmit}
-        disabled={isLoading || otp.length !== 6}
-      >
-        {isLoading ? "Verifying..." : "Verify Phone Number"}
-      </Button>
-      
-      <div className="text-center">
-        <Button 
-          variant="outline"
-          className="w-full border-gray-200"
-          onClick={onResendOtp}
-          disabled={isLoading}
+      <div className="flex flex-col gap-3">
+        <Button
+          onClick={handleVerify}
+          disabled={isLoading || otp.length !== 6 || isResending}
+          className="w-full"
         >
-          Resend OTP
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Verifying...
+            </>
+          ) : (
+            "Verify OTP"
+          )}
+        </Button>
+        
+        <Button
+          variant="outline"
+          onClick={handleResendOtp}
+          disabled={isLoading || isResending}
+          className="w-full"
+        >
+          {isResending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Resending...
+            </>
+          ) : (
+            "Resend OTP"
+          )}
         </Button>
       </div>
     </div>

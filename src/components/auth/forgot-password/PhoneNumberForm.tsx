@@ -1,60 +1,100 @@
 
 import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface PhoneNumberFormProps {
-  isLoading: boolean;
-  onSubmit: (phoneNumber: string) => Promise<void>;
+  onSubmit: (phoneNumber: string) => void;
 }
 
-export default function PhoneNumberForm({ isLoading, onSubmit }: PhoneNumberFormProps) {
-  const [phoneNumber, setPhoneNumber] = useState("");
+const formSchema = z.object({
+  phoneNumber: z.string().min(10, "Phone number must be at least 10 digits").max(10, "Phone number must be 10 digits"),
+});
 
-  const handleSubmit = async () => {
-    if (!phoneNumber.trim() || phoneNumber.length !== 10) {
-      toast.error("Please enter a valid 10-digit phone number");
-      return;
+export function PhoneNumberForm({ onSubmit }: PhoneNumberFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      phoneNumber: "",
+    },
+  });
+
+  const handleSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      setIsLoading(true);
+
+      // Check if phone number exists in the database
+      const { data: existingUser, error } = await supabase
+        .from('MemberMST')
+        .select('id')
+        .eq('MemberPhNo', data.phoneNumber)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          toast.error("No account found with this phone number");
+          return;
+        }
+        throw error;
+      }
+
+      // Send OTP
+      const response = await supabase.functions.invoke("send-registration-otp", {
+        body: { phoneNumber: data.phoneNumber },
+      });
+
+      if (response.error) {
+        toast.error("Failed to send OTP. Please try again.");
+        console.error("Error sending OTP:", response.error);
+        return;
+      }
+
+      toast.success("OTP sent successfully!");
+      onSubmit(data.phoneNumber);
+    } catch (error) {
+      console.error("Error in phone verification process:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-    
-    await onSubmit(phoneNumber);
-  };
-
-  // Handle phone number input changes with proper digit-only filtering
-  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // Allow only digits and limit to 10 characters
-    const digitsOnly = value.replace(/\D/g, '');
-    setPhoneNumber(digitsOnly.slice(0, 10));
   };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="reset-phone">Phone Number</Label>
-        <Input 
-          id="reset-phone" 
-          type="tel" 
-          placeholder="Enter your 10-digit phone number" 
-          value={phoneNumber}
-          onChange={handlePhoneNumberChange}
-          maxLength={10}
-          inputMode="numeric"
-          autoFocus
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="phoneNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <Input 
+                placeholder="Enter your phone number" 
+                {...field} 
+                maxLength={10}
+                onChange={(e) => {
+                  // Allow only numbers
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  field.onChange(value);
+                }}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        <p className="text-xs text-muted-foreground">
-          Enter the phone number associated with your account
-        </p>
-      </div>
-      <Button 
-        className="w-full bg-pink-500 hover:bg-pink-600" 
-        onClick={handleSubmit}
-        disabled={isLoading || phoneNumber.length !== 10}
-      >
-        {isLoading ? "Verifying..." : "Send OTP"}
-      </Button>
-    </div>
+        
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Verifying..." : "Send OTP"}
+        </Button>
+      </form>
+    </Form>
   );
 }
