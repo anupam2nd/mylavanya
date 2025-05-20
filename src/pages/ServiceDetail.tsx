@@ -23,13 +23,38 @@ const ServiceDetail = () => {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
-  // Ensure we have the correct path
+  // Handle incorrect URL format: "/service/" (singular) should be "/services/" (plural)
   useEffect(() => {
+    // Check if we're on the wrong path format
     if (location.pathname.includes('/service/') && !location.pathname.includes('/services/')) {
-      // Redirect to the correct URL with 'services' (plural)
-      const correctPath = location.pathname.replace('/service/', '/services/');
-      navigate(correctPath, { replace: true });
+      // Get the service ID from the incorrect path
+      const serviceIdFromPath = location.pathname.split('/').pop();
+      
+      // First check if we have a valid ID to work with
+      if (serviceIdFromPath && !isNaN(Number(serviceIdFromPath))) {
+        // Redirect to the correct path with the same ID
+        const correctPath = location.pathname.replace('/service/', '/services/');
+        navigate(correctPath, { replace: true });
+      } else {
+        // If we don't have a valid ID, just go back to services listing
+        navigate('/services', { replace: true });
+      }
     }
+  }, [location.pathname, navigate]);
+
+  // Handle the case when user manually enters /service/ID directly
+  useEffect(() => {
+    const handlePopState = () => {
+      if (location.pathname.includes('/service/') && !location.pathname.includes('/services/')) {
+        navigate('/services', { replace: true });
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, [location.pathname, navigate]);
 
   useEffect(() => {
