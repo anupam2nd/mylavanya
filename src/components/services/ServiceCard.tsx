@@ -65,6 +65,11 @@ const ServiceCard = ({
   // Determine if we should show the original price (only show if different from discounted price)
   const showOriginalPrice = discountedPrice && price !== discountedPrice;
 
+  // Format price without unnecessary trailing zeros
+  const formatPrice = (price: number) => {
+    return `₹${price.toFixed(0)}`;
+  };
+
   const handleCardClick = () => {
     if (onClick) onClick();
   };
@@ -113,13 +118,13 @@ const ServiceCard = ({
         
         <div className="flex items-baseline mb-2">
           <span className="text-lg font-bold text-primary">
-            {formatCurrency(discountedPrice || price)}
+            {formatPrice(discountedPrice || price)}
           </span>
           
           {showOriginalPrice && (
             <>
               <span className="ml-2 text-sm text-gray-500 line-through">
-                {formatCurrency(price)}
+                {formatPrice(price)}
               </span>
               {discount && discount > 0 && (
                 <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
