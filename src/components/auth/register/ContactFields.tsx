@@ -113,6 +113,7 @@ const ContactFields = () => {
                       const value = e.target.value.replace(/[^0-9]/g, '');
                       field.onChange(value);
                     }}
+                    disabled={isPhoneVerified}
                   />
                 </FormControl>
                 <FormMessage />
@@ -126,7 +127,7 @@ const ContactFields = () => {
           variant={isPhoneVerified ? "primary-gradient" : "secondary"}
           className="mb-[2px] whitespace-nowrap"
           onClick={handleSendOTP}
-          disabled={sendingOtp || phoneNumber?.length !== 10}
+          disabled={sendingOtp || phoneNumber?.length !== 10 || isPhoneVerified}
           isLoading={sendingOtp}
         >
           {isPhoneVerified ? "Verified ✓" : "Verify Phone"}
