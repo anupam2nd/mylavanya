@@ -105,14 +105,19 @@ serve(async (req) => {
       );
     }
     
-    // Mark the OTP as verified
-    const { error: updateError } = await supabase
+    // Delete the OTP record immediately after successful verification
+    // This is different from the previous implementation which marked it as verified
+    const { error: deleteError } = await supabase
       .from("service_otps")
-      .update({ verified: true })
+      .delete()
       .eq("id", otpRecord.id);
     
-    if (updateError) {
-      console.error("Error marking OTP as verified:", updateError);
+    if (deleteError) {
+      console.error("Error deleting verified OTP:", deleteError);
+      // Continue with the success response even if deletion fails
+      // The cleanup job will handle it later
+    } else {
+      console.log(`Successfully deleted OTP record with ID ${otpRecord.id}`);
     }
     
     return new Response(
