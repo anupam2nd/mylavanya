@@ -43,7 +43,7 @@ export default function OtpVerificationForm({
                   key={index} 
                   {...slot} 
                   index={index} 
-                  className="w-12 h-12 text-lg border-2 focus:border-pink-500 focus:ring-pink-500 focus-visible:ring-pink-500"
+                  className="w-12 h-12 text-lg border-2 focus:border-pink-500 focus:ring-pink-500 focus-visible:ring-pink-500 cursor-text"
                 />
               ))}
             </InputOTPGroup>
