@@ -85,10 +85,9 @@ const ServiceForm = ({
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving service:', error);
-      toast({
-        title: "Save failed",
-        description: error instanceof Error ? error.message : "There was a problem saving the service",
-        variant: "destructive"
+      // Fix: Using the correct format for toast with sonner
+      toast.error("Save failed", {
+        description: error instanceof Error ? error.message : "There was a problem saving the service"
       });
     }
   };
