@@ -36,7 +36,7 @@ const ImageUploader = ({
             <img 
               src={imagePreview} 
               alt="Service preview" 
-              className="max-h-36 rounded-md border border-gray-200"
+              className="max-h-48 rounded-md border border-gray-200"
             />
             <Button 
               type="button" 
