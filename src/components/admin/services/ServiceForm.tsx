@@ -499,13 +499,24 @@ const ServiceForm = ({
               )}
               
               {!imagePreview && (
-                <Input
-                  id="service-image-visible"
-                  type="file"
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 text-sm"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleImageUpload}
-                />
+                <div className="mt-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-full py-2 h-auto bg-pink-500 hover:bg-pink-600 text-white font-medium"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Choose file
+                  </Button>
+                  <p className="text-sm text-muted-foreground mt-1">No file chosen</p>
+                  <Input
+                    id="service-image-visible"
+                    type="file"
+                    className="hidden"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleImageUpload}
+                  />
+                </div>
               )}
               
               {imageError && (
