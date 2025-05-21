@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Service } from "../ServiceForm";
 import { supabase } from "@/integrations/supabase/client";
@@ -117,16 +116,6 @@ export const useServiceForm = ({
       // Check image resolution
       if (img.width > 800 || img.height > 800) {
         setImageError("Image resolution should not exceed 800x800 pixels");
-        return;
-      }
-      
-      // Check aspect ratio (4:3) with some tolerance
-      const aspectRatio = img.width / img.height;
-      const targetRatio = 4/3;
-      const tolerance = 0.1; // Allow some deviation from exact 4:3
-      
-      if (Math.abs(aspectRatio - targetRatio) > tolerance) {
-        setImageError("Image should have approximately 4:3 aspect ratio");
         return;
       }
       

@@ -56,7 +56,7 @@ const ImageUploader = ({
                 Click to upload an image
               </p>
               <p className="text-xs text-muted-foreground text-center">
-                Max file size: 300KB. Max resolution: 800px (4:3 ratio)<br />
+                Max file size: 300KB. Max resolution: 800px<br />
                 Accepted formats: JPEG, PNG, WebP
               </p>
               <Input
