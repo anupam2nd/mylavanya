@@ -310,7 +310,7 @@ const ServiceDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="h-96 sm:h-[400px] md:h-[500px] bg-gray-200">
+              <div className="h-64 sm:h-80 bg-gray-200">
                 {serviceImage ? (
                   <img alt={service.ProductName} className="w-full h-full object-cover" src={serviceImage} />
                 ) : (

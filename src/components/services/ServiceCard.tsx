@@ -79,7 +79,7 @@ const ServiceCard = ({
       className="h-full flex flex-col overflow-hidden hover:shadow-md transition-shadow"
       onClick={handleCardClick}
     >
-      <div className="relative pt-[66.67%] bg-gray-100 overflow-hidden">
+      <div className="relative pt-[56.25%] bg-gray-100 overflow-hidden">
         {imageUrl ? (
           <img
             src={imageUrl}
