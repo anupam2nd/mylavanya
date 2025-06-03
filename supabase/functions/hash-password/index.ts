@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,8 +29,40 @@ serve(async (req) => {
       )
     }
 
-    // Hash the password with salt rounds of 12
-    const hashedPassword = await bcrypt.hash(password, 12)
+    // Use Web Crypto API for password hashing (more compatible with Deno)
+    const encoder = new TextEncoder()
+    const data = encoder.encode(password)
+    
+    // Generate a random salt
+    const salt = crypto.getRandomValues(new Uint8Array(16))
+    const saltString = Array.from(salt, byte => byte.toString(16).padStart(2, '0')).join('')
+    
+    // Import the password as a key
+    const key = await crypto.subtle.importKey(
+      'raw',
+      data,
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits']
+    )
+    
+    // Derive the hash using PBKDF2
+    const hashBuffer = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      key,
+      256
+    )
+    
+    const hashArray = new Uint8Array(hashBuffer)
+    const hashString = Array.from(hashArray, byte => byte.toString(16).padStart(2, '0')).join('')
+    
+    // Combine salt and hash for storage
+    const hashedPassword = `pbkdf2:100000:${saltString}:${hashString}`
     
     console.log("Password hashed successfully")
     console.log("Hash length:", hashedPassword.length)
