@@ -22,30 +22,51 @@ export function useMemberLogin() {
       console.log("Attempting member login with:", email);
       const normalizedEmail = email.trim().toLowerCase();
       
-      const { data, error } = await supabase
+      // Get member data by email
+      const { data: memberData, error: memberError } = await supabase
         .from('MemberMST')
-        .select('id, MemberFirstName, MemberLastName, MemberEmailId, MemberPhNo, MemberAdress, MemberPincode')
+        .select('id, MemberFirstName, MemberLastName, MemberEmailId, MemberPhNo, MemberAdress, MemberPincode, password')
         .ilike('MemberEmailId', normalizedEmail)
-        .eq('password', password)
         .maybeSingle();
       
-      console.log("Member query result:", data, error);
+      console.log("Member query result:", memberData, memberError);
       
-      if (error) {
-        console.error("Supabase query error:", error);
+      if (memberError) {
+        console.error("Supabase query error:", memberError);
         throw new Error('Error querying member');
       }
       
-      if (!data) {
+      if (!memberData) {
         throw new Error('Invalid credentials');
       }
       
+      // Verify password using the edge function
+      console.log("Verifying password...");
+      const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
+        body: { 
+          password: password,
+          hashedPassword: memberData.password
+        }
+      });
+      
+      if (verifyError) {
+        console.error("Error verifying password:", verifyError);
+        throw new Error('Invalid credentials');
+      }
+      
+      if (!verifyResult?.isValid) {
+        console.log("Password verification failed");
+        throw new Error('Invalid credentials');
+      }
+      
+      console.log("Password verified successfully");
+      
       login({
-        id: data.id.toString(),
-        email: data.MemberEmailId,
+        id: memberData.id.toString(),
+        email: memberData.MemberEmailId,
         role: 'member',
-        firstName: data.MemberFirstName,
-        lastName: data.MemberLastName
+        firstName: memberData.MemberFirstName,
+        lastName: memberData.MemberLastName
       });
       
       toast.success("Login successful. Welcome back!");

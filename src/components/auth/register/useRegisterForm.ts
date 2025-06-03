@@ -78,10 +78,28 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
         throw new Error('An account with this phone number already exists');
       }
       
+      // Hash the password using the edge function
+      console.log("Hashing password...");
+      const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: values.password }
+      });
+      
+      if (hashError) {
+        console.error("Error hashing password:", hashError);
+        throw new Error('Error processing password');
+      }
+      
+      if (!hashResult?.hashedPassword) {
+        console.error("No hashed password returned");
+        throw new Error('Error processing password');
+      }
+      
+      console.log("Password hashed successfully");
+      
       // Format date for DB
       const formattedDate = values.dob ? format(values.dob, 'yyyy-MM-dd') : null;
       
-      // Insert new member
+      // Insert new member with hashed password
       const { data, error: insertError } = await supabase
         .from('MemberMST')
         .insert([
@@ -94,7 +112,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
             MemberPincode: values.pincode,
             MemberSex: values.sex,
             MemberDOB: formattedDate,
-            password: values.password
+            password: hashResult.hashedPassword
           }
         ])
         .select();
