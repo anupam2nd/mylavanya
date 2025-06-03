@@ -40,14 +40,23 @@ export function useMemberLogin() {
         throw new Error('Invalid credentials');
       }
       
+      if (!memberData.password) {
+        console.error("No password found for member");
+        throw new Error('Invalid credentials');
+      }
+      
       // Verify password using the edge function
       console.log("Verifying password...");
+      console.log("Stored hash preview:", memberData.password.substring(0, 10) + "...");
+      
       const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
         body: { 
           password: password,
           hashedPassword: memberData.password
         }
       });
+      
+      console.log("Verify function response:", verifyResult, verifyError);
       
       if (verifyError) {
         console.error("Error verifying password:", verifyError);

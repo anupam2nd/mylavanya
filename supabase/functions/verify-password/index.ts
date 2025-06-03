@@ -19,6 +19,7 @@ serve(async (req) => {
     console.log("Verifying password...")
     console.log("Plain password received:", password ? "Yes" : "No")
     console.log("Hashed password received:", hashedPassword ? "Yes" : "No")
+    console.log("Hash starts with $2b$:", hashedPassword ? hashedPassword.startsWith('$2b$') : "N/A")
     
     if (!password || !hashedPassword) {
       console.error("Missing password or hashedPassword")
@@ -31,10 +32,22 @@ serve(async (req) => {
       )
     }
 
-    // Verify the password against the hash
-    const isValid = await bcrypt.compare(password, hashedPassword)
-    
-    console.log("Password verification result:", isValid)
+    // Use bcrypt.compareSync for better compatibility in Deno
+    let isValid = false
+    try {
+      isValid = await bcrypt.compare(password, hashedPassword)
+      console.log("Password verification result:", isValid)
+    } catch (compareError) {
+      console.error("Bcrypt compare error:", compareError)
+      // Fallback: try with sync version
+      try {
+        isValid = bcrypt.compareSync(password, hashedPassword)
+        console.log("Password verification result (sync):", isValid)
+      } catch (syncError) {
+        console.error("Bcrypt sync compare error:", syncError)
+        throw new Error("Password comparison failed")
+      }
+    }
 
     return new Response(
       JSON.stringify({ isValid }),
