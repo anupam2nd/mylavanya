@@ -25,7 +25,8 @@ const Services = () => {
           .from('PriceMST')
           .select('Category')
           .eq('active', true)
-          .not('Category', 'is', null);
+          .not('Category', 'is', null)
+          .order('prod_id', { ascending: true });
 
         if (error) {
           throw error;
