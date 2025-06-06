@@ -46,8 +46,9 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
         let query = supabase
           .from('PriceMST')
           .select('*')
-          .eq('active', true); // Only fetch active services
-
+          .eq('active', true) // Only fetch active services
+          .order('prod_id', { ascending: true }); // Sort by prod_id in ascending order
+        
         console.log('query', query);
         
         // Apply category filter if provided
