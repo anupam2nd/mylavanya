@@ -67,16 +67,16 @@ const Navbar = () => {
 
             <div className="hidden md:flex items-center space-x-6">
               <nav className="flex items-center space-x-6">
-                <Link to="/" className={`hover:text-primary transition-colors ${isScrolled ? 'text-gray-700' : 'text-white'}`} onClick={closeMenu}>
+                <Link to="/" onClick={closeMenu} className="text-gray-900 transition-all hover:text-gray-950 duration-100 ">
                   Home
                 </Link>
-                <Link to="/services" className={`hover:text-primary transition-colors ${isScrolled ? 'text-gray-700' : 'text-white'}`} onClick={closeMenu}>
+                <Link to="/services" onClick={closeMenu} className="">
                   Services
                 </Link>
-                <Link to="/about" className={`hover:text-primary transition-colors ${isScrolled ? 'text-gray-700' : 'text-white'}`} onClick={closeMenu}>
+                <Link to="/about" onClick={closeMenu} className="">
                   About
                 </Link>
-                <Link to="/contact" className={`hover:text-primary transition-colors ${isScrolled ? 'text-gray-700' : 'text-white'}`} onClick={closeMenu}>
+                <Link to="/contact" onClick={closeMenu} className="">
                   Contact
                 </Link>
                 {/* Fixed width container for NavTrackingButton */}
@@ -87,7 +87,7 @@ const Navbar = () => {
 
               {/* Login buttons */}
               <div className="flex items-center space-x-2">
-                {isAuthenticated ? user?.role === "member" ? <ProfileDropdown /> : <Button onClick={navigateToDashboard}>Dashboard</Button> : <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className={`border-primary/20 transition-colors ${isScrolled ? 'text-foreground' : 'text-white border-white/30'}`}>
+                {isAuthenticated ? user?.role === "member" ? <ProfileDropdown className="text-slate-800 bg-blue-200 hover:bg-blue-100" /> : <Button onClick={navigateToDashboard}>Dashboard</Button> : <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className={`border-primary/20 transition-colors ${isScrolled ? 'text-foreground' : 'text-white border-white/30'}`}>
                     Sign In
                   </ButtonCustom>}
               </div>
