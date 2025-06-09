@@ -62,7 +62,7 @@ const HeroSlideshow = () => {
                   <img 
                     src={image} 
                     alt={`Beauty service slide ${index + 1}`}
-                    className="w-full h-[400px] object-cover transition-all duration-500 hover:scale-105"
+                    className="w-full h-[600px] object-cover transition-all duration-500 hover:scale-105"
                   />
                 </div>
               </div>
