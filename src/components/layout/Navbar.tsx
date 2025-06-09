@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -8,6 +7,7 @@ import AuthModal from "@/components/auth/AuthModal";
 import NavTrackingButton from "@/components/ui/NavTrackingButton";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import ProfileDropdown from "@/components/user/ProfileDropdown";
+import ParticlesBackground from "@/components/ui/ParticlesBackground";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,8 +68,11 @@ const Navbar = () => {
   
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-sm z-50 h-16">
-        <div className="container mx-auto px-4 h-full flex items-center">
+      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-sm z-50 h-16 overflow-hidden">
+        {/* Particles Background */}
+        <ParticlesBackground />
+        
+        <div className="container mx-auto px-4 h-full flex items-center relative z-10">
           <div className="flex justify-between items-center w-full">
             <Link to="/" className="flex items-center" onClick={closeMenu}>
               <img src="/lovable-uploads/d54e9c20-bb5a-4b53-8583-572cd5d79e51.png" alt="Lavanya" className="h-10 md:h-12" />
@@ -111,7 +114,7 @@ const Navbar = () => {
               </div>
             </div>
 
-            <button className="md:hidden z-50" onClick={toggleMenu}>
+            <button className="md:hidden z-50 relative" onClick={toggleMenu}>
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
@@ -119,7 +122,7 @@ const Navbar = () => {
 
         {/* Mobile menu */}
         {isOpen && (
-          <div className="md:hidden bg-white/95 backdrop-blur-md shadow-lg py-4 px-4 absolute top-16 left-0 right-0 z-40 border-t border-gray-200">
+          <div className="md:hidden bg-white/95 backdrop-blur-md shadow-lg py-4 px-4 fixed top-16 left-0 right-0 z-40 border-t border-gray-200">
             <nav className="flex flex-col space-y-4">
               <Link to="/" className="text-gray-700 hover:text-primary transition-colors py-2" onClick={closeMenu}>
                 Home
