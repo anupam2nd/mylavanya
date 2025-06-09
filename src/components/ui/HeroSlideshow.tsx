@@ -14,7 +14,12 @@ const slideImages = [
   "/lovable-uploads/8973a2ef-29e7-40b3-8186-277bd5124e28.png",
   "/lovable-uploads/8709d9d4-99a2-4f3d-b0b2-947283994525.png",
   "/lovable-uploads/f6cafb16-47a5-4d53-952d-f2ce968cb9c5.png",
-  "/lovable-uploads/14cd0ec2-c36f-40d3-a2c8-a09bdf2bf310.png"
+  "/lovable-uploads/14cd0ec2-c36f-40d3-a2c8-a09bdf2bf310.png",
+  "/lovable-uploads/9cc7bd78-7aef-467b-98f7-634d68bafdfd.png",
+  "/lovable-uploads/fa2918ac-9aa8-4130-9d9a-85b1079b859b.png",
+  "/lovable-uploads/cdcd2ad8-ca36-4515-9683-5f73b6726d75.png",
+  "/lovable-uploads/f13f05ac-b021-4198-be25-c5fed2d9be23.png",
+  "/lovable-uploads/9abed376-6e26-4a0d-b5da-d54506ff8e7a.png"
 ];
 
 const HeroSlideshow = () => {
