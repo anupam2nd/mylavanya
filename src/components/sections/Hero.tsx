@@ -1,21 +1,26 @@
+
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
 import HeroSlideshow from "@/components/ui/HeroSlideshow";
 import ParticlesBackground from "@/components/ui/ParticlesBackground";
+
 interface HeroProps {
   onBookNow: () => void;
   onLogin: () => void;
   onArtistLogin: () => void;
 }
+
 const Hero = ({
   onBookNow,
   onLogin,
   onArtistLogin
 }: HeroProps) => {
   const isMobile = useIsMobile();
-  return <div className="relative bg-gradient-to-b from-secondary/30 to-background overflow-hidden py-16 md:py-24 lg:py-[50px] -mt-16 pt-32">
+  
+  return (
+    <div className="relative bg-gradient-to-b from-secondary/30 to-background overflow-hidden pt-24 pb-16 md:pt-32 md:pb-24 lg:pt-40 lg:pb-32">
       {/* Particles Background - extends to cover navbar area */}
       <ParticlesBackground id="hero-particles" />
       
@@ -25,10 +30,16 @@ const Hero = ({
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-[15px]">
         {/* Mobile Banner Image - Only visible on mobile */}
-        {isMobile && <div className="mb-8 -mx-4 sm:-mx-6">
-            <img src="/lovable-uploads/a719d374-9ef0-4cec-9e17-29c49750e86f.png" alt="Lavanya Beauty Services Banner" className="w-full h-auto object-cover" />
+        {isMobile && (
+          <div className="mb-8 -mx-4 sm:-mx-6">
+            <img 
+              src="/lovable-uploads/a719d374-9ef0-4cec-9e17-29c49750e86f.png" 
+              alt="Lavanya Beauty Services Banner" 
+              className="w-full h-auto object-cover" 
+            />
             <Separator className="mt-6" />
-          </div>}
+          </div>
+        )}
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Mobile small image is now removed in favor of the banner */}
@@ -73,6 +84,8 @@ const Hero = ({
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Hero;
