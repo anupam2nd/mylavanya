@@ -21,10 +21,8 @@ const Hero = ({
   
   return (
     <div className="relative bg-gradient-to-b from-secondary/30 to-background overflow-hidden py-16 md:py-24 lg:py-[50px]">
-      {/* Particles Background - positioned with higher z-index */}
-      <div className="absolute inset-0 z-0">
-        <ParticlesBackground />
-      </div>
+      {/* Particles Background */}
+      <ParticlesBackground />
       
       {/* Background decorative elements */}
       <div className="absolute top-1/4 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10"></div>
