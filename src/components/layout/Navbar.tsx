@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -7,6 +8,8 @@ import AuthModal from "@/components/auth/AuthModal";
 import NavTrackingButton from "@/components/ui/NavTrackingButton";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import ProfileDropdown from "@/components/user/ProfileDropdown";
+import ParticlesBackground from "@/components/ui/ParticlesBackground";
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -58,8 +61,11 @@ const Navbar = () => {
   const headerHeight = "h-16";
   const spacerHeight = "h-16";
   return <>
-      <header className="bg-[#fff] py-3">
-        <div className="container mx-auto px-4 h-full flex items-center">
+      <header className="relative bg-[#fff] py-3 overflow-hidden">
+        {/* Particles Background */}
+        <ParticlesBackground />
+        
+        <div className="container mx-auto px-4 h-full flex items-center relative z-10">
           <div className="flex justify-between items-center w-full">
             <Link to="/" className="flex items-center" onClick={closeMenu}>
               <img src="/lovable-uploads/d54e9c20-bb5a-4b53-8583-572cd5d79e51.png" alt="Lavanya" className="h-10 md:h-12" />
@@ -93,14 +99,14 @@ const Navbar = () => {
               </div>
             </div>
 
-            <button className="md:hidden" onClick={toggleMenu}>
+            <button className="md:hidden relative z-10" onClick={toggleMenu}>
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
 
         {/* Mobile menu */}
-        {isOpen && <div className="md:hidden bg-white shadow-lg py-4 px-4 absolute top-full left-0 right-0">
+        {isOpen && <div className="md:hidden bg-white shadow-lg py-4 px-4 absolute top-full left-0 right-0 z-20">
             <nav className="flex flex-col space-y-4">
               <Link to="/" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
                 Home
