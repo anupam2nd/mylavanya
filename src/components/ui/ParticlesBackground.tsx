@@ -7,7 +7,11 @@ declare global {
   }
 }
 
-const ParticlesBackground = () => {
+interface ParticlesBackgroundProps {
+  id?: string;
+}
+
+const ParticlesBackground = ({ id = 'particles-js' }: ParticlesBackgroundProps) => {
   const particlesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -18,7 +22,7 @@ const ParticlesBackground = () => {
     
     script.onload = () => {
       if (window.particlesJS && particlesRef.current) {
-        window.particlesJS('particles-js', {
+        window.particlesJS(id, {
           particles: {
             number: {
               value: 80,
@@ -131,11 +135,11 @@ const ParticlesBackground = () => {
         document.head.removeChild(script);
       }
     };
-  }, []);
+  }, [id]);
 
   return (
     <div 
-      id="particles-js" 
+      id={id}
       ref={particlesRef}
       className="absolute inset-0 z-0"
       style={{ 
