@@ -58,7 +58,7 @@ const Navbar = () => {
   const headerHeight = "h-16";
   const spacerHeight = "h-16";
   return <>
-      <header className="bg-indigo-950 py-3">
+      <header className="bg-[#fff] py-3">
         <div className="container mx-auto px-4 h-full flex items-center">
           <div className="flex justify-between items-center w-full">
             <Link to="/" className="flex items-center" onClick={closeMenu}>
