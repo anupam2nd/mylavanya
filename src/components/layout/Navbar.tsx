@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -7,6 +8,7 @@ import AuthModal from "@/components/auth/AuthModal";
 import NavTrackingButton from "@/components/ui/NavTrackingButton";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import ProfileDropdown from "@/components/user/ProfileDropdown";
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -22,12 +24,15 @@ const Navbar = () => {
 
   // Get user's display name - prioritize firstName if available
   const displayName = user?.firstName ? `${user.firstName}` : user?.email?.split('@')[0] || "My Profile";
+  
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
+  
   const closeMenu = () => {
     setIsOpen(false);
   };
+  
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -35,6 +40,7 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  
   const navigateToDashboard = () => {
     closeMenu();
     if (user?.role === "admin" || user?.role === "superadmin") {
@@ -45,10 +51,12 @@ const Navbar = () => {
       navigate("/user/dashboard");
     }
   };
+  
   const openMemberSignIn = () => {
     setAuthModalTab("member");
     setIsAuthModalOpen(true);
   };
+  
   const handleLogout = () => {
     logout();
     closeMenu();
@@ -57,8 +65,10 @@ const Navbar = () => {
   // Use fixed height for header and spacer to prevent layout shifts
   const headerHeight = "h-16";
   const spacerHeight = "h-16";
-  return <>
-      <header className="bg-indigo-950 py-3">
+  
+  return (
+    <>
+      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-sm z-50 h-16">
         <div className="container mx-auto px-4 h-full flex items-center">
           <div className="flex justify-between items-center w-full">
             <Link to="/" className="flex items-center" onClick={closeMenu}>
@@ -87,31 +97,40 @@ const Navbar = () => {
 
               {/* Login buttons */}
               <div className="flex items-center space-x-2">
-                {isAuthenticated ? user?.role === "member" ? <ProfileDropdown /> : <Button onClick={navigateToDashboard}>Dashboard</Button> : <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className="border-primary/20 text-foreground">
+                {isAuthenticated ? (
+                  user?.role === "member" ? (
+                    <ProfileDropdown />
+                  ) : (
+                    <Button onClick={navigateToDashboard}>Dashboard</Button>
+                  )
+                ) : (
+                  <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className="border-primary/20 text-foreground">
                     Sign In
-                  </ButtonCustom>}
+                  </ButtonCustom>
+                )}
               </div>
             </div>
 
-            <button className="md:hidden" onClick={toggleMenu}>
+            <button className="md:hidden z-50" onClick={toggleMenu}>
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
 
         {/* Mobile menu */}
-        {isOpen && <div className="md:hidden bg-white shadow-lg py-4 px-4 absolute top-full left-0 right-0">
+        {isOpen && (
+          <div className="md:hidden bg-white/95 backdrop-blur-md shadow-lg py-4 px-4 absolute top-16 left-0 right-0 z-40 border-t border-gray-200">
             <nav className="flex flex-col space-y-4">
-              <Link to="/" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
+              <Link to="/" className="text-gray-700 hover:text-primary transition-colors py-2" onClick={closeMenu}>
                 Home
               </Link>
-              <Link to="/services" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
+              <Link to="/services" className="text-gray-700 hover:text-primary transition-colors py-2" onClick={closeMenu}>
                 Services
               </Link>
-              <Link to="/about" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
+              <Link to="/about" className="text-gray-700 hover:text-primary transition-colors py-2" onClick={closeMenu}>
                 About
               </Link>
-              <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
+              <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors py-2" onClick={closeMenu}>
                 Contact
               </Link>
               {/* Fixed height container for mobile NavTrackingButton */}
@@ -121,7 +140,9 @@ const Navbar = () => {
               
               {/* Mobile login buttons */}
               <div className="pt-2 border-t border-gray-200">
-                {isAuthenticated ? user?.role === "member" ? <div className="space-y-2">
+                {isAuthenticated ? (
+                  user?.role === "member" ? (
+                    <div className="space-y-2">
                       <div className="font-medium text-primary">Welcome {displayName}</div>
                       <Link to="/profile" className="block py-2 text-gray-700 hover:text-primary" onClick={closeMenu}>
                         My Profile
@@ -135,25 +156,35 @@ const Navbar = () => {
                       <Button variant="ghost" className="text-red-500 hover:text-red-600 p-0 h-auto" onClick={handleLogout}>
                         Logout
                       </Button>
-                    </div> : <Button onClick={() => {
-              navigateToDashboard();
-              closeMenu();
-            }} className="w-full">
+                    </div>
+                  ) : (
+                    <Button onClick={() => {
+                      navigateToDashboard();
+                      closeMenu();
+                    }} className="w-full">
                       Dashboard
-                    </Button> : <ButtonCustom variant="outline" size="sm" onClick={() => {
-              openMemberSignIn();
-              closeMenu();
-            }} className="border-primary/20 text-foreground w-full">
+                    </Button>
+                  )
+                ) : (
+                  <ButtonCustom variant="outline" size="sm" onClick={() => {
+                    openMemberSignIn();
+                    closeMenu();
+                  }} className="border-primary/20 text-foreground w-full">
                     Sign In
-                  </ButtonCustom>}
+                  </ButtonCustom>
+                )}
               </div>
             </nav>
-          </div>}
+          </div>
+        )}
       </header>
+      
       {/* Use fixed height spacer to match header */}
-      <div className=""></div>
+      <div className="h-16"></div>
       
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authModalTab} />
-    </>;
+    </>
+  );
 };
+
 export default Navbar;
