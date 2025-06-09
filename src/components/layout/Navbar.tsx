@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -8,7 +7,6 @@ import AuthModal from "@/components/auth/AuthModal";
 import NavTrackingButton from "@/components/ui/NavTrackingButton";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import ProfileDropdown from "@/components/user/ProfileDropdown";
-
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -23,18 +21,13 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   // Get user's display name - prioritize firstName if available
-  const displayName = user?.firstName 
-    ? `${user.firstName}` 
-    : user?.email?.split('@')[0] || "My Profile";
-
+  const displayName = user?.firstName ? `${user.firstName}` : user?.email?.split('@')[0] || "My Profile";
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
-
   const closeMenu = () => {
     setIsOpen(false);
   };
-
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -42,7 +35,6 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
   const navigateToDashboard = () => {
     closeMenu();
     if (user?.role === "admin" || user?.role === "superadmin") {
@@ -53,12 +45,10 @@ const Navbar = () => {
       navigate("/user/dashboard");
     }
   };
-
   const openMemberSignIn = () => {
     setAuthModalTab("member");
     setIsAuthModalOpen(true);
   };
-
   const handleLogout = () => {
     logout();
     closeMenu();
@@ -67,17 +57,12 @@ const Navbar = () => {
   // Use fixed height for header and spacer to prevent layout shifts
   const headerHeight = "h-16";
   const spacerHeight = "h-16";
-
   return <>
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerHeight} ${isScrolled ? "bg-white shadow-md" : "bg-transparent"}`}>
+      <header className="bg-indigo-950 py-3">
         <div className="container mx-auto px-4 h-full flex items-center">
           <div className="flex justify-between items-center w-full">
             <Link to="/" className="flex items-center" onClick={closeMenu}>
-              <img 
-                src="/lovable-uploads/d54e9c20-bb5a-4b53-8583-572cd5d79e51.png" 
-                alt="Lavanya" 
-                className="h-10 md:h-12" 
-              />
+              <img src="/lovable-uploads/d54e9c20-bb5a-4b53-8583-572cd5d79e51.png" alt="Lavanya" className="h-10 md:h-12" />
             </Link>
 
             <div className="hidden md:flex items-center space-x-6">
@@ -102,17 +87,9 @@ const Navbar = () => {
 
               {/* Login buttons */}
               <div className="flex items-center space-x-2">
-                {isAuthenticated ? (
-                  user?.role === "member" ? (
-                    <ProfileDropdown />
-                  ) : (
-                    <Button onClick={navigateToDashboard}>Dashboard</Button>
-                  )
-                ) : (
-                  <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className="border-primary/20 text-foreground">
+                {isAuthenticated ? user?.role === "member" ? <ProfileDropdown /> : <Button onClick={navigateToDashboard}>Dashboard</Button> : <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className="border-primary/20 text-foreground">
                     Sign In
-                  </ButtonCustom>
-                )}
+                  </ButtonCustom>}
               </div>
             </div>
 
@@ -144,9 +121,7 @@ const Navbar = () => {
               
               {/* Mobile login buttons */}
               <div className="pt-2 border-t border-gray-200">
-                {isAuthenticated ? (
-                  user?.role === "member" ? (
-                    <div className="space-y-2">
+                {isAuthenticated ? user?.role === "member" ? <div className="space-y-2">
                       <div className="font-medium text-primary">Welcome {displayName}</div>
                       <Link to="/profile" className="block py-2 text-gray-700 hover:text-primary" onClick={closeMenu}>
                         My Profile
@@ -157,39 +132,28 @@ const Navbar = () => {
                       <Link to="/wishlist" className="block py-2 text-gray-700 hover:text-primary" onClick={closeMenu}>
                         Wishlist
                       </Link>
-                      <Button 
-                        variant="ghost" 
-                        className="text-red-500 hover:text-red-600 p-0 h-auto"
-                        onClick={handleLogout}
-                      >
+                      <Button variant="ghost" className="text-red-500 hover:text-red-600 p-0 h-auto" onClick={handleLogout}>
                         Logout
                       </Button>
-                    </div>
-                  ) : (
-                    <Button onClick={() => {
-                      navigateToDashboard();
-                      closeMenu();
-                    }} className="w-full">
+                    </div> : <Button onClick={() => {
+              navigateToDashboard();
+              closeMenu();
+            }} className="w-full">
                       Dashboard
-                    </Button>
-                  )
-                ) : (
-                  <ButtonCustom variant="outline" size="sm" onClick={() => {
-                    openMemberSignIn();
-                    closeMenu();
-                  }} className="border-primary/20 text-foreground w-full">
+                    </Button> : <ButtonCustom variant="outline" size="sm" onClick={() => {
+              openMemberSignIn();
+              closeMenu();
+            }} className="border-primary/20 text-foreground w-full">
                     Sign In
-                  </ButtonCustom>
-                )}
+                  </ButtonCustom>}
               </div>
             </nav>
           </div>}
       </header>
       {/* Use fixed height spacer to match header */}
-      <div className={spacerHeight}></div>
+      <div className=""></div>
       
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authModalTab} />
     </>;
 };
-
 export default Navbar;
