@@ -87,7 +87,7 @@ const Navbar = () => {
 
               {/* Login buttons */}
               <div className="flex items-center space-x-2">
-                {isAuthenticated ? user?.role === "member" ? <ProfileDropdown className="text-slate-800 bg-cyan-400 hover:bg-cyan-300" /> : <Button onClick={navigateToDashboard}>Dashboard</Button> : <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className={`border-primary/20 transition-colors ${isScrolled ? 'text-foreground' : 'text-white border-white/30'}`}>
+                {isAuthenticated ? user?.role === "member" ? <ProfileDropdown className="text-slate-800 bg-cyan-400 hover:bg-cyan-300" /> : <Button onClick={navigateToDashboard}>Dashboard</Button> : <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className={`border-primary/20 transition-colors ${isScrolled ?  'text-foreground text-black bg-cyan-200' : 'text-black bg-cyan-200 border-white/30'}`}>
                     Sign In
                   </ButtonCustom>}
               </div>
