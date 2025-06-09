@@ -11,8 +11,13 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { User, BookOpen, Heart, LogOut } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const ProfileDropdown = () => {
+interface ProfileDropdownProps {
+  className?: string;
+}
+
+const ProfileDropdown = ({ className }: ProfileDropdownProps) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   
@@ -29,7 +34,7 @@ const ProfileDropdown = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="border-primary/20">
+        <Button variant="outline" className={cn("border-primary/20", className)}>
           Welcome {displayName}
         </Button>
       </DropdownMenuTrigger>

@@ -8,7 +8,6 @@ import NavTrackingButton from "@/components/ui/NavTrackingButton";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import ProfileDropdown from "@/components/user/ProfileDropdown";
 import ParticlesBackground from "@/components/ui/ParticlesBackground";
-
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -24,15 +23,12 @@ const Navbar = () => {
 
   // Get user's display name - prioritize firstName if available
   const displayName = user?.firstName ? `${user.firstName}` : user?.email?.split('@')[0] || "My Profile";
-  
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
-  
   const closeMenu = () => {
     setIsOpen(false);
   };
-  
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -40,7 +36,6 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-  
   const navigateToDashboard = () => {
     closeMenu();
     if (user?.role === "admin" || user?.role === "superadmin") {
@@ -51,23 +46,16 @@ const Navbar = () => {
       navigate("/user/dashboard");
     }
   };
-  
   const openMemberSignIn = () => {
     setAuthModalTab("member");
     setIsAuthModalOpen(true);
   };
-  
   const handleLogout = () => {
     logout();
     closeMenu();
   };
-
   return <>
-      <header className={`fixed top-0 left-0 right-0 z-50 py-3 overflow-hidden transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/95 backdrop-blur-md shadow-md' 
-          : 'bg-transparent'
-      }`}>
+      <header className={`fixed top-0 left-0 right-0 z-50 py-3 overflow-hidden transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md' : 'bg-transparent'}`}>
         {/* Particles Background - only show when not scrolled */}
         {!isScrolled && <ParticlesBackground id="navbar-particles" />}
         
@@ -79,24 +67,16 @@ const Navbar = () => {
 
             <div className="hidden md:flex items-center space-x-6">
               <nav className="flex items-center space-x-6">
-                <Link to="/" className={`hover:text-primary transition-colors ${
-                  isScrolled ? 'text-gray-700' : 'text-white'
-                }`} onClick={closeMenu}>
+                <Link to="/" onClick={closeMenu} className="text-gray-900 transition-all hover:text-gray-950 duration-100 ">
                   Home
                 </Link>
-                <Link to="/services" className={`hover:text-primary transition-colors ${
-                  isScrolled ? 'text-gray-700' : 'text-white'
-                }`} onClick={closeMenu}>
+                <Link to="/services" onClick={closeMenu} className="">
                   Services
                 </Link>
-                <Link to="/about" className={`hover:text-primary transition-colors ${
-                  isScrolled ? 'text-gray-700' : 'text-white'
-                }`} onClick={closeMenu}>
+                <Link to="/about" onClick={closeMenu} className="">
                   About
                 </Link>
-                <Link to="/contact" className={`hover:text-primary transition-colors ${
-                  isScrolled ? 'text-gray-700' : 'text-white'
-                }`} onClick={closeMenu}>
+                <Link to="/contact" onClick={closeMenu} className="">
                   Contact
                 </Link>
                 {/* Fixed width container for NavTrackingButton */}
@@ -107,17 +87,13 @@ const Navbar = () => {
 
               {/* Login buttons */}
               <div className="flex items-center space-x-2">
-                {isAuthenticated ? user?.role === "member" ? <ProfileDropdown /> : <Button onClick={navigateToDashboard}>Dashboard</Button> : <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className={`border-primary/20 transition-colors ${
-                    isScrolled ? 'text-foreground' : 'text-white border-white/30'
-                  }`}>
+                {isAuthenticated ? user?.role === "member" ? <ProfileDropdown className="text-slate-800 bg-blue-200 hover:bg-blue-100" /> : <Button onClick={navigateToDashboard}>Dashboard</Button> : <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className={`border-primary/20 transition-colors ${isScrolled ? 'text-foreground' : 'text-white border-white/30'}`}>
                     Sign In
                   </ButtonCustom>}
               </div>
             </div>
 
-            <button className={`md:hidden relative z-10 transition-colors ${
-              isScrolled ? 'text-gray-700' : 'text-white'
-            }`} onClick={toggleMenu}>
+            <button className={`md:hidden relative z-10 transition-colors ${isScrolled ? 'text-gray-700' : 'text-white'}`} onClick={toggleMenu}>
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
