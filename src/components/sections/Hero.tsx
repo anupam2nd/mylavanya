@@ -1,3 +1,4 @@
+
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -19,8 +20,8 @@ const Hero = ({
   const isMobile = useIsMobile();
   
   return (
-    <div className="relative bg-gradient-to-b from-secondary/30 to-background overflow-hidden py-16 md:py-24 lg:py-[50px]">
-      {/* Particles Background */}
+    <div className="relative bg-gradient-to-b from-secondary/30 to-background overflow-hidden py-16 md:py-24 lg:py-[50px] -mt-16 pt-32">
+      {/* Particles Background - extends to cover navbar area */}
       <ParticlesBackground id="hero-particles" />
       
       {/* Background decorative elements */}
