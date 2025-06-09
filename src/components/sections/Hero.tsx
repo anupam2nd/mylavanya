@@ -23,7 +23,7 @@ const Hero = ({
       <div className="absolute top-1/4 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/40 rounded-full blur-3xl -z-10"></div>
       
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-[15px]">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-[29px]">
         {/* Mobile Banner Image - Only visible on mobile */}
         {isMobile && <div className="mb-8 -mx-4 sm:-mx-6">
             <img src="/lovable-uploads/a719d374-9ef0-4cec-9e17-29c49750e86f.png" alt="Lavanya Beauty Services Banner" className="w-full h-auto object-cover" />
