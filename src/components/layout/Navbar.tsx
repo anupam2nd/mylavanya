@@ -24,19 +24,23 @@ const Navbar = () => {
 
   // Get user's display name - prioritize firstName if available
   const displayName = user?.firstName ? `${user.firstName}` : user?.email?.split('@')[0] || "My Profile";
+  
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
+  
   const closeMenu = () => {
     setIsOpen(false);
   };
+  
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      setIsScrolled(window.scrollY > 50);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  
   const navigateToDashboard = () => {
     closeMenu();
     if (user?.role === "admin" || user?.role === "superadmin") {
@@ -47,22 +51,25 @@ const Navbar = () => {
       navigate("/user/dashboard");
     }
   };
+  
   const openMemberSignIn = () => {
     setAuthModalTab("member");
     setIsAuthModalOpen(true);
   };
+  
   const handleLogout = () => {
     logout();
     closeMenu();
   };
 
-  // Use fixed height for header and spacer to prevent layout shifts
-  const headerHeight = "h-16";
-  const spacerHeight = "h-16";
   return <>
-      <header className="relative bg-[#fff] py-3 overflow-hidden">
-        {/* Particles Background */}
-        <ParticlesBackground id="navbar-particles" />
+      <header className={`fixed top-0 left-0 right-0 z-50 py-3 overflow-hidden transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-white/95 backdrop-blur-md shadow-md' 
+          : 'bg-transparent'
+      }`}>
+        {/* Particles Background - only show when not scrolled */}
+        {!isScrolled && <ParticlesBackground id="navbar-particles" />}
         
         <div className="container mx-auto px-4 h-full flex items-center relative z-10">
           <div className="flex justify-between items-center w-full">
@@ -72,16 +79,24 @@ const Navbar = () => {
 
             <div className="hidden md:flex items-center space-x-6">
               <nav className="flex items-center space-x-6">
-                <Link to="/" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
+                <Link to="/" className={`hover:text-primary transition-colors ${
+                  isScrolled ? 'text-gray-700' : 'text-white'
+                }`} onClick={closeMenu}>
                   Home
                 </Link>
-                <Link to="/services" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
+                <Link to="/services" className={`hover:text-primary transition-colors ${
+                  isScrolled ? 'text-gray-700' : 'text-white'
+                }`} onClick={closeMenu}>
                   Services
                 </Link>
-                <Link to="/about" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
+                <Link to="/about" className={`hover:text-primary transition-colors ${
+                  isScrolled ? 'text-gray-700' : 'text-white'
+                }`} onClick={closeMenu}>
                   About
                 </Link>
-                <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors" onClick={closeMenu}>
+                <Link to="/contact" className={`hover:text-primary transition-colors ${
+                  isScrolled ? 'text-gray-700' : 'text-white'
+                }`} onClick={closeMenu}>
                   Contact
                 </Link>
                 {/* Fixed width container for NavTrackingButton */}
@@ -92,13 +107,17 @@ const Navbar = () => {
 
               {/* Login buttons */}
               <div className="flex items-center space-x-2">
-                {isAuthenticated ? user?.role === "member" ? <ProfileDropdown /> : <Button onClick={navigateToDashboard}>Dashboard</Button> : <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className="border-primary/20 text-foreground">
+                {isAuthenticated ? user?.role === "member" ? <ProfileDropdown /> : <Button onClick={navigateToDashboard}>Dashboard</Button> : <ButtonCustom variant="outline" size="sm" onClick={openMemberSignIn} className={`border-primary/20 transition-colors ${
+                    isScrolled ? 'text-foreground' : 'text-white border-white/30'
+                  }`}>
                     Sign In
                   </ButtonCustom>}
               </div>
             </div>
 
-            <button className="md:hidden relative z-10" onClick={toggleMenu}>
+            <button className={`md:hidden relative z-10 transition-colors ${
+              isScrolled ? 'text-gray-700' : 'text-white'
+            }`} onClick={toggleMenu}>
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
@@ -155,8 +174,9 @@ const Navbar = () => {
             </nav>
           </div>}
       </header>
-      {/* Use fixed height spacer to match header */}
-      <div className=""></div>
+      
+      {/* Spacer to prevent content from being hidden behind fixed navbar */}
+      <div className="h-16"></div>
       
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authModalTab} />
     </>;
