@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -63,7 +62,7 @@ const Navbar = () => {
   return <>
       <header className="relative bg-[#fff] py-3 overflow-hidden">
         {/* Particles Background */}
-        <ParticlesBackground />
+        <ParticlesBackground id="navbar-particles" />
         
         <div className="container mx-auto px-4 h-full flex items-center relative z-10">
           <div className="flex justify-between items-center w-full">
