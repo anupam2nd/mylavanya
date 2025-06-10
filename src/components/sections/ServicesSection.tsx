@@ -51,23 +51,25 @@ const ServicesSection = () => {
   const [hoveredService, setHoveredService] = useState<number | null>(null);
 
   return (
-    <div className="py-24 bg-gradient-to-b from-background to-accent/5">
+    <div className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-b from-background to-accent/5">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <p className="text-primary font-medium mb-3">What We Offer</p>
-          <h2 className="text-3xl font-bold text-foreground sm:text-4xl">Services we offer</h2>
-          <div className="w-24 h-1 bg-primary mx-auto mt-6"></div>
-          <p className="mt-6 max-w-2xl mx-auto text-muted-foreground">
+        {/* Header Section */}
+        <div className="text-center mb-8 sm:mb-12 md:mb-16">
+          <p className="text-primary font-medium mb-2 sm:mb-3 text-sm sm:text-base">What We Offer</p>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">Services we offer</h2>
+          <div className="w-16 sm:w-20 md:w-24 h-1 bg-primary mx-auto mt-4 sm:mt-6"></div>
+          <p className="mt-4 sm:mt-6 max-w-2xl mx-auto text-muted-foreground text-sm sm:text-base px-4">
             Professional beauty and wellness services delivered to your doorstep
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        {/* Services Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-7xl mx-auto">
           {services.map((service, index) => (
             <div
               key={service.id}
               className={`relative overflow-hidden rounded-2xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 cursor-pointer group ${
-                index === 2 ? 'lg:col-span-3 lg:max-w-md lg:mx-auto' : ''
+                index === 2 ? 'sm:col-span-2 lg:col-span-1' : ''
               }`}
               onMouseEnter={() => setHoveredService(service.id)}
               onMouseLeave={() => setHoveredService(null)}
@@ -75,7 +77,7 @@ const ServicesSection = () => {
               {/* Background with gradient */}
               <div className={`${service.bgColor} h-full transition-all duration-300 group-hover:opacity-90`}>
                 {/* Image container */}
-                <div className="relative h-64 overflow-hidden">
+                <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden">
                   <img 
                     src={service.image} 
                     alt={service.title}
@@ -86,19 +88,19 @@ const ServicesSection = () => {
                 </div>
                 
                 {/* Content */}
-                <div className="p-6 text-center">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 transition-colors duration-300 group-hover:text-primary">
+                <div className="p-4 sm:p-5 md:p-6 text-center">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4 transition-colors duration-300 group-hover:text-primary leading-tight">
                     {service.title}
                   </h3>
-                  <p className="text-gray-700 leading-relaxed text-sm">
+                  <p className="text-gray-700 leading-relaxed text-xs sm:text-sm md:text-sm line-clamp-4 sm:line-clamp-none">
                     {service.description}
                   </p>
                   
                   {/* Interactive element that appears on hover */}
-                  <div className={`mt-4 transition-all duration-300 ${
+                  <div className={`mt-3 sm:mt-4 transition-all duration-300 ${
                     hoveredService === service.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
                   }`}>
-                    <button className="bg-primary text-white px-6 py-2 rounded-full hover:bg-primary/90 transition-colors duration-200 font-medium">
+                    <button className="bg-primary text-white px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-full hover:bg-primary/90 transition-colors duration-200 font-medium">
                       Learn More
                     </button>
                   </div>
