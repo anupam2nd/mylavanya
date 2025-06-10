@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Hero from "@/components/sections/Hero";
-import HowItWorks from "@/components/sections/HowItWorks";
+import ServicesSection from "@/components/sections/ServicesSection";
 import Testimonials from "@/components/sections/Testimonials";
 import BookingBanner from "@/components/sections/BookingBanner";
 import AuthModal from "@/components/auth/AuthModal";
@@ -28,7 +28,7 @@ const Index = () => {
         onLogin={() => handleLogin("member")}
         onArtistLogin={() => handleLogin("artist")}
       />
-      <HowItWorks />
+      <ServicesSection />
       <BookingBanner onBookNow={() => navigate("/services")} />
       <Testimonials />
       
