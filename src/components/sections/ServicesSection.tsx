@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 
 interface Service {
@@ -14,35 +13,35 @@ const services: Service[] = [
     id: 1,
     title: "Female Salon at Home",
     description: "We provide a range of beauty services at the comfort of your home. From waxing, facials, clean-ups and mani-pedi to body polishing and even hair spa, you name it we have it.",
-    image: "/lovable-uploads/f7512f6c-8681-4e74-b464-4be27f515c71.png",
+    image: "/lovable-uploads/saloon-at-home.png",
     bgColor: "bg-pink-100"
   },
   {
     id: 2,
     title: "Female Spa at Home",
     description: "Whether you want to de-stress yourself or get a pain-relieving body massage we have everything in the bucket for you. With this we also cater the needs of elderly, new moms, kids & period pain.",
-    image: "/lovable-uploads/f7512f6c-8681-4e74-b464-4be27f515c71.png",
+    image: "/lovable-uploads/hair-service.png",
     bgColor: "bg-green-100"
   },
   {
     id: 3,
     title: "Female Hydra & Laser Treatments",
     description: "As our skin matures, it needs more to maintain its health and glow. Our Hydra Facials at Home are perfect for you if you want instant results with a healthy glow while our at home Laser Treatments are great for hair reduction, pigmentation correction, and skin rejuvenation.",
-    image: "/lovable-uploads/f7512f6c-8681-4e74-b464-4be27f515c71.png",
+    image: "/lovable-uploads/makup-service.png",
     bgColor: "bg-purple-100"
   },
   {
     id: 4,
     title: "Bridal Makeup Services",
     description: "Make your special day even more beautiful with our professional bridal makeup services. From engagement to wedding day, we ensure you look stunning for every occasion.",
-    image: "/lovable-uploads/f7512f6c-8681-4e74-b464-4be27f515c71.png",
+    image: "/lovable-uploads/Mehendi-service.png",
     bgColor: "bg-blue-100"
   },
   {
     id: 5,
     title: "Male Grooming Services",
     description: "Complete grooming solutions for men including haircuts, beard styling, facials, and wellness treatments. Professional care delivered to your doorstep.",
-    image: "/lovable-uploads/f7512f6c-8681-4e74-b464-4be27f515c71.png",
+    image: "/lovable-uploads/Nail-service.png",
     bgColor: "bg-yellow-100"
   }
 ];
