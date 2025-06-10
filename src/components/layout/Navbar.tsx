@@ -56,8 +56,6 @@ const Navbar = () => {
   };
   return <>
       <header className={`fixed top-0 left-0 right-0 z-50 py-3 overflow-hidden transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md' : 'bg-transparent'}`}>
-        {/* Particles Background - only show when not scrolled */}
-        {!isScrolled && <ParticlesBackground id="navbar-particles" />}
         
         <div className="container mx-auto px-4 h-full flex items-center relative z-10">
           <div className="flex justify-between items-center w-full">

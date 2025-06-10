@@ -10,11 +10,16 @@ import {
 } from "./carousel";
 
 const slideImages = [
-  "/lovable-uploads/80760050-36af-4279-88e1-c6c18a63dc64.png",
-  "/lovable-uploads/8973a2ef-29e7-40b3-8186-277bd5124e28.png",
-  "/lovable-uploads/8709d9d4-99a2-4f3d-b0b2-947283994525.png",
-  "/lovable-uploads/f6cafb16-47a5-4d53-952d-f2ce968cb9c5.png",
-  "/lovable-uploads/14cd0ec2-c36f-40d3-a2c8-a09bdf2bf310.png"
+  "/lovable-uploads/61675467-d5c8-4b35-88c2-2ad11ccc7296.png",
+  "/lovable-uploads/af122554-9480-4403-ab38-d124a3d8956f.png",
+  "/lovable-uploads/69f38c02-dc33-40a1-9c88-a24b8445712c.png",
+  "/lovable-uploads/aec1f01a-da7c-4d35-bdf2-ef891e20cca2.png",
+  "/lovable-uploads/1ef09f3f-f1fe-4e09-abec-857f95e780db.png",
+  "/lovable-uploads/a72340f7-4bae-4ad0-890c-cd1f3a5df5dc.png",
+  "/lovable-uploads/1187f0cd-cebd-4a82-b452-bd10a533ec8a.png",
+  "/lovable-uploads/5e4422e9-6278-43af-8311-c38f392b88ea.png",
+  "/lovable-uploads/43f7f919-15dd-41f5-b87b-2fcb7214ddcb.png",
+  "/lovable-uploads/fede23ba-d554-4d60-9b58-63d9e73c3d4a.png"
 ];
 
 const HeroSlideshow = () => {
