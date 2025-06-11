@@ -43,8 +43,9 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
     try {
       // Convert email to lowercase for consistency
       const email = values.email.trim().toLowerCase();
+      const phoneNumber = values.phoneNumber.trim();
       
-      console.log("Attempting to register:", email);
+      console.log("Attempting to register:", email, phoneNumber);
       
       // Check if user already exists by email
       const { data: existingMembersByEmail, error: checkEmailError } = await supabase
@@ -62,11 +63,11 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
         throw new Error('An account with this email already exists');
       }
       
-      // Check if phone number is already registered (double check)
+      // Check if phone number is already registered with enhanced uniqueness check
       const { data: existingMembersByPhone, error: checkPhoneError } = await supabase
         .from('MemberMST')
-        .select('id')
-        .eq('MemberPhNo', values.phoneNumber);
+        .select('id, MemberEmailId')
+        .eq('MemberPhNo', phoneNumber);
       
       if (checkPhoneError) {
         console.error("Error checking existing user by phone:", checkPhoneError);
@@ -75,7 +76,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       
       if (existingMembersByPhone && existingMembersByPhone.length > 0) {
         console.log("Member with this phone already exists:", existingMembersByPhone);
-        throw new Error('An account with this phone number already exists');
+        throw new Error(`This phone number is already registered with email: ${existingMembersByPhone[0].MemberEmailId}`);
       }
       
       // Hash the password using the edge function
@@ -99,7 +100,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       // Format date for DB
       const formattedDate = values.dob ? format(values.dob, 'yyyy-MM-dd') : null;
       
-      // Insert new member with hashed password
+      // Insert new member with hashed password and unique phone number
       const { data, error: insertError } = await supabase
         .from('MemberMST')
         .insert([
@@ -107,7 +108,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
             MemberFirstName: values.firstName,
             MemberLastName: values.lastName,
             MemberEmailId: email,
-            MemberPhNo: values.phoneNumber,
+            MemberPhNo: phoneNumber,
             MemberAdress: values.address,
             MemberPincode: values.pincode,
             MemberSex: values.sex,
@@ -121,11 +122,19 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       
       if (insertError) {
         console.error("Error inserting new member:", insertError);
+        // Handle unique constraint violations more gracefully
+        if (insertError.code === '23505') {
+          if (insertError.message.includes('MemberPhNo')) {
+            throw new Error('This phone number is already registered');
+          } else if (insertError.message.includes('MemberEmailId')) {
+            throw new Error('This email address is already registered');
+          }
+        }
         throw insertError;
       }
       
       toast.success("Registration successful", {
-        description: "Your account has been created. You can now log in.",
+        description: "Your account has been created. You can now log in with your email or phone number.",
       });
       
       // Pass credentials back to parent for auto-login

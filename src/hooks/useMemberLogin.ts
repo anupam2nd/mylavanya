@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 
 interface MemberLoginCredentials {
-  email: string;
+  emailOrPhone: string;
   password: string;
 }
 
@@ -15,19 +15,43 @@ export function useMemberLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleLogin = async ({ email, password }: MemberLoginCredentials, shouldNavigate: boolean = true) => {
+  const handleLogin = async ({ emailOrPhone, password }: MemberLoginCredentials, shouldNavigate: boolean = true) => {
     setIsLoading(true);
     
     try {
-      console.log("Attempting member login with:", email);
-      const normalizedEmail = email.trim().toLowerCase();
+      console.log("Attempting member login with:", emailOrPhone);
+      const normalizedInput = emailOrPhone.trim().toLowerCase();
       
-      // Get member data by email
-      const { data: memberData, error: memberError } = await supabase
-        .from('MemberMST')
-        .select('id, MemberFirstName, MemberLastName, MemberEmailId, MemberPhNo, MemberAdress, MemberPincode, password')
-        .ilike('MemberEmailId', normalizedEmail)
-        .maybeSingle();
+      // Determine if input is email or phone number
+      const isEmail = normalizedInput.includes('@');
+      const isPhone = /^\d{10}$/.test(normalizedInput);
+      
+      if (!isEmail && !isPhone) {
+        throw new Error('Please enter a valid email address or 10-digit phone number');
+      }
+      
+      let memberData;
+      let memberError;
+      
+      if (isEmail) {
+        // Search by email
+        const { data, error } = await supabase
+          .from('MemberMST')
+          .select('id, MemberFirstName, MemberLastName, MemberEmailId, MemberPhNo, MemberAdress, MemberPincode, password')
+          .ilike('MemberEmailId', normalizedInput)
+          .maybeSingle();
+        memberData = data;
+        memberError = error;
+      } else {
+        // Search by phone number
+        const { data, error } = await supabase
+          .from('MemberMST')
+          .select('id, MemberFirstName, MemberLastName, MemberEmailId, MemberPhNo, MemberAdress, MemberPincode, password')
+          .eq('MemberPhNo', normalizedInput)
+          .maybeSingle();
+        memberData = data;
+        memberError = error;
+      }
       
       console.log("Member query result:", memberData, memberError);
       
@@ -88,7 +112,7 @@ export function useMemberLogin() {
       return true;
     } catch (error) {
       console.error('Member login error:', error);
-      toast.error("Invalid email or password. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.");
       return false;
     } finally {
       setIsLoading(false);

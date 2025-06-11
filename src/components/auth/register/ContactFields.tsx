@@ -24,13 +24,13 @@ const ContactFields = () => {
       return;
     }
 
-    // Check if phone number is already registered
+    // Check if phone number is already registered with enhanced error messaging
     try {
       setSendingOtp(true);
       
       const { data: existingPhone, error: phoneCheckError } = await supabase
         .from('MemberMST')
-        .select('id')
+        .select('id, MemberEmailId')
         .eq('MemberPhNo', phoneNumber)
         .limit(1);
       
@@ -39,7 +39,7 @@ const ContactFields = () => {
       }
       
       if (existingPhone && existingPhone.length > 0) {
-        toast.error("This phone number is already registered");
+        toast.error(`This phone number is already registered with email: ${existingPhone[0].MemberEmailId}`);
         setSendingOtp(false);
         return;
       }
@@ -67,7 +67,7 @@ const ContactFields = () => {
   const handleOtpSuccess = () => {
     form.setValue("isPhoneVerified", true);
     setOtpModalOpen(false);
-    toast.success("Phone number verified successfully!");
+    toast.success("Phone number verified successfully! This number is now reserved for your account.");
   };
 
   return (
@@ -117,6 +117,11 @@ const ContactFields = () => {
                   />
                 </FormControl>
                 <FormMessage />
+                {isPhoneVerified && (
+                  <p className="text-sm text-green-600 mt-1">
+                    ✓ Phone number verified and reserved for your account
+                  </p>
+                )}
               </FormItem>
             )}
           />

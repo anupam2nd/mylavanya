@@ -14,7 +14,7 @@ interface MemberLoginFormProps {
 }
 
 export default function MemberLoginForm({ onLoginSuccess }: MemberLoginFormProps) {
-  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [loginData, setLoginData] = useState({ emailOrPhone: "", password: "" });
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { isLoading, handleLogin } = useMemberLogin();
@@ -28,8 +28,8 @@ export default function MemberLoginForm({ onLoginSuccess }: MemberLoginFormProps
   };
 
   const handleForgotPasswordSuccess = (phone: string) => {
-    // Currently we don't have a way to auto-fill by phone number since the form uses email
-    // But we can show a success message
+    // Auto-fill the phone number in the login form
+    setLoginData(prev => ({ ...prev, emailOrPhone: phone }));
     toast.info("Password reset successful. Please login with your new password.");
   };
 
@@ -41,13 +41,13 @@ export default function MemberLoginForm({ onLoginSuccess }: MemberLoginFormProps
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email-login">Email</Label>
+          <Label htmlFor="emailOrPhone-login">Email or Phone Number</Label>
           <Input 
-            id="email-login" 
-            type="email" 
-            placeholder="Your email address" 
-            value={loginData.email}
-            onChange={(e) => setLoginData({...loginData, email: e.target.value})}
+            id="emailOrPhone-login" 
+            type="text" 
+            placeholder="Your email or 10-digit phone number" 
+            value={loginData.emailOrPhone}
+            onChange={(e) => setLoginData({...loginData, emailOrPhone: e.target.value})}
             required
           />
         </div>
