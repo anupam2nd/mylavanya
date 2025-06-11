@@ -126,8 +126,8 @@ const Navbar = () => {
         </div>
 
         {/* Mobile menu */}
-        <div className={`md:hidden absolute top-full left-0 right-0 bg-white shadow-lg transition-all duration-300 ease-in-out z-40 ${
-          isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
+        <div className={`md:hidden fixed top-[72px] left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-40 transition-all duration-300 ease-in-out ${
+          isOpen ? 'max-h-screen opacity-100 visible' : 'max-h-0 opacity-0 invisible overflow-hidden'
         }`}>
           <div className="py-4 px-4">
             <nav className="flex flex-col space-y-4">
