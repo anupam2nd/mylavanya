@@ -27,6 +27,7 @@ export interface Service {
   Subservice?: string | null;
   Scheme?: string | null;
   Category?: string | null;
+  SubCategory?: string | null;
   Discount?: number | null;
   NetPayable?: number | null;
   imageUrl?: string | null;
@@ -58,6 +59,8 @@ const ServiceForm = ({
     setScheme,
     category,
     setCategory,
+    subCategory,
+    setSubCategory,
     serviceDescription,
     setServiceDescription,
     servicePrice,
@@ -109,12 +112,14 @@ const ServiceForm = ({
             subService={subService}
             scheme={scheme}
             category={category}
+            subCategory={subCategory}
             serviceDescription={serviceDescription}
             productName={generateProductName()}
             onServiceNameChange={setServiceName}
             onSubServiceChange={setSubService}
             onSchemeChange={setScheme}
             onCategoryChange={setCategory}
+            onSubCategoryChange={setSubCategory}
             onDescriptionChange={setServiceDescription}
           />
           

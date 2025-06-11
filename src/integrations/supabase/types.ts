@@ -295,6 +295,7 @@ export type Database = {
           ProductName: string | null
           Scheme: string | null
           Services: string | null
+          SubCategory: string | null
           Subservice: string | null
           uuid: string
         }
@@ -311,6 +312,7 @@ export type Database = {
           ProductName?: string | null
           Scheme?: string | null
           Services?: string | null
+          SubCategory?: string | null
           Subservice?: string | null
           uuid?: string
         }
@@ -327,6 +329,7 @@ export type Database = {
           ProductName?: string | null
           Scheme?: string | null
           Services?: string | null
+          SubCategory?: string | null
           Subservice?: string | null
           uuid?: string
         }

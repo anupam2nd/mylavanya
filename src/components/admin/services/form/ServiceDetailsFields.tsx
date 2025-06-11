@@ -8,12 +8,14 @@ interface ServiceDetailsFieldsProps {
   subService: string;
   scheme: string;
   category: string;
+  subCategory: string;
   serviceDescription: string;
   productName: string;
   onServiceNameChange: (value: string) => void;
   onSubServiceChange: (value: string) => void;
   onSchemeChange: (value: string) => void;
   onCategoryChange: (value: string) => void;
+  onSubCategoryChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
 }
 
@@ -22,12 +24,14 @@ const ServiceDetailsFields = ({
   subService,
   scheme,
   category,
+  subCategory,
   serviceDescription,
   productName,
   onServiceNameChange,
   onSubServiceChange,
   onSchemeChange,
   onCategoryChange,
+  onSubCategoryChange,
   onDescriptionChange,
 }: ServiceDetailsFieldsProps) => {
   return (
@@ -76,6 +80,18 @@ const ServiceDetailsFields = ({
           id="category"
           value={category}
           onChange={(e) => onCategoryChange(e.target.value)}
+          className="col-span-3"
+        />
+      </div>
+      
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="sub-category" className="text-right">
+          Sub Category
+        </Label>
+        <Input
+          id="sub-category"
+          value={subCategory}
+          onChange={(e) => onSubCategoryChange(e.target.value)}
           className="col-span-3"
         />
       </div>

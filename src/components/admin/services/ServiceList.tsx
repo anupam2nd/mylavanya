@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, Trash2, Search, X, Image } from "lucide-react";
+import { Edit, Trash2, Search, X, Image, Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -53,6 +53,7 @@ const ServiceList = ({
     Subservice: 'Sub Service',
     Scheme: 'Scheme',
     Category: 'Category',
+    SubCategory: 'Sub Category',
     Price: 'Price',
     Discount: 'Discount %',
     NetPayable: 'Net Payable',
@@ -144,6 +145,8 @@ const ServiceList = ({
                 <TableHead>Product Name</TableHead>
                 <TableHead>Sub-service</TableHead>
                 <TableHead>Scheme</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Sub Category</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Discount %</TableHead>
                 <TableHead>Net Payable</TableHead>
@@ -173,6 +176,8 @@ const ServiceList = ({
                   <TableCell className="max-w-xs truncate">{service.ProductName}</TableCell>
                   <TableCell>{service.Subservice}</TableCell>
                   <TableCell>{service.Scheme}</TableCell>
+                  <TableCell>{service.Category}</TableCell>
+                  <TableCell>{service.SubCategory}</TableCell>
                   <TableCell>₹{service.Price}</TableCell>
                   <TableCell>{service.Discount}%</TableCell>
                   <TableCell>₹{service.NetPayable}</TableCell>
@@ -215,8 +220,5 @@ const ServiceList = ({
     </div>
   );
 };
-
-// Fix missing Plus icon import
-import { Plus } from "lucide-react";
 
 export default ServiceList;

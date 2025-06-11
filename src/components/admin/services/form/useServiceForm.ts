@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Service } from "../ServiceForm";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ export const useServiceForm = ({
   const [subService, setSubService] = useState("");
   const [scheme, setScheme] = useState("");
   const [category, setCategory] = useState("");
+  const [subCategory, setSubCategory] = useState("");
   const [serviceDescription, setServiceDescription] = useState("");
   const [servicePrice, setServicePrice] = useState("");
   const [discount, setDiscount] = useState("");
@@ -39,6 +41,7 @@ export const useServiceForm = ({
       setSubService(currentService.Subservice || "");
       setScheme(currentService.Scheme || "");
       setCategory(currentService.Category || "");
+      setSubCategory(currentService.SubCategory || "");
       setServiceDescription(currentService.Description || "");
       setServicePrice(currentService.Price?.toString() || "");
       setDiscount(currentService.Discount?.toString() || "");
@@ -54,6 +57,7 @@ export const useServiceForm = ({
     setSubService("");
     setScheme("");
     setCategory("");
+    setSubCategory("");
     setServiceDescription("");
     setServicePrice("");
     setDiscount("");
@@ -209,6 +213,7 @@ export const useServiceForm = ({
         Subservice: subService || null,
         Scheme: scheme || null,
         Category: category || null,
+        SubCategory: subCategory || null,
         ProductName: productName,
         Description: serviceDescription || null,
         Price: priceValue,
@@ -234,6 +239,8 @@ export const useServiceForm = ({
     setScheme,
     category,
     setCategory,
+    subCategory,
+    setSubCategory,
     serviceDescription,
     setServiceDescription,
     servicePrice,
