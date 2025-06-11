@@ -11,7 +11,7 @@ const BookingBanner = ({
       <div className="absolute inset-0 bg-gradient-to-r from-primary to-rose-400 -z-10"></div>
       
       {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.4)_0%,_transparent_70%)] bg-cyan-950"></div>
+      <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-cyan-950"></div>
       <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-white opacity-10 blur-3xl"></div>
       <div className="absolute bottom-10 right-10 w-60 h-60 rounded-full bg-white opacity-10 blur-3xl"></div>
       
