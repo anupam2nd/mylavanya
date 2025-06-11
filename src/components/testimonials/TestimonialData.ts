@@ -33,7 +33,7 @@ export const testimonials: Testimonial[] = [
     id: 3,
     name: "Priyanka Ghosh",
     role: "Nail Art",
-    content: "Booked for my birthday party. The hairstylist was creative and gave me exactly what I wanted. The team was punctual and professional.",
+    content: "The treatment was amazing. I have seen the difference from the very first minute.",
     rating: 4,
     image: "/images/testimonials/img3.jpg"
   },
@@ -88,7 +88,7 @@ export const testimonials: Testimonial[] = [
   {
     id: 10,
     name: "Risha Mashi",
-    role: "Mehendi",
+    role: "HairSpa",
     content: "Yes, the spa was so relaxing. I felt like I was having a hair treatment",
     rating: 4,
     image: "/images/testimonials/img10.jpg"
