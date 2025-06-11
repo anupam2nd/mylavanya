@@ -126,11 +126,11 @@ const ServicesSection = () => {
               </div>
 
               {/* Decorative border that appears on hover */}
-              <div
+              {/* <div
                 className={`absolute inset-0 border-2 border-primary rounded-2xl transition-opacity duration-300 ${
                   hoveredService === service.id ? "opacity-100" : "opacity-0"
                 }`}
-              ></div>
+              ></div> */}
             </div>
           ))}
         </div>
