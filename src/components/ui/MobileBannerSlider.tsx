@@ -5,8 +5,6 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
   type CarouselApi
 } from "./carousel";
 
@@ -101,10 +99,7 @@ const MobileBannerSlider = () => {
         </CarouselContent>
         
         {bannerImages.length > 1 && (
-          <>
-            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 backdrop-blur-sm hover:bg-white/90" />
-            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 backdrop-blur-sm hover:bg-white/90" />
-            
+          <>  
             {/* Slide indicators */}
             <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2 z-20">
               {bannerImages.map((_, index) => (
