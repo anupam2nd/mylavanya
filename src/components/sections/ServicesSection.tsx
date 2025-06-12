@@ -72,11 +72,11 @@ const ServicesSection = () => {
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 max-w-7xl mx-auto">
           {services.map((service, index) => (
             <div
               key={service.id}
-              className={`relative overflow-hidden rounded-2xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 cursor-pointer group ${
+              className={`relative w-full overflow-hidden rounded-2xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 cursor-pointer group ${
                 index === 2 ? "sm:col-span-2 lg:col-span-1" : ""
               }`}
               onMouseEnter={() => setHoveredService(service.id)}
@@ -84,10 +84,10 @@ const ServicesSection = () => {
             >
               {/* Background with gradient */}
               <div
-                className={` h-full transition-all duration-300 group-hover:opacity-90`}
+                className={`w-full h-full transition-all duration-300 group-hover:opacity-90`}
               >
                 {/* Image container */}
-                <div className="relative h-48 sm:h-96">
+                <div className="relative w-full h-48 ">
                   <img
                     src={service.image}
                     alt={service.title}
@@ -103,12 +103,12 @@ const ServicesSection = () => {
 
                 {/* Content */}
                 <div className="p-4 sm:p-5 md:p-6 text-center">
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4 transition-colors duration-300 group-hover:text-primary leading-tight">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 transition-colors duration-300 group-hover:text-primary leading-tight">
                     {service.title}
                   </h3>
-                  <p className="text-gray-700 leading-relaxed text-xs sm:text-sm md:text-sm line-clamp-4 sm:line-clamp-none">
+                  {/* <p className="text-gray-700 leading-relaxed text-xs sm:text-sm md:text-sm line-clamp-4 sm:line-clamp-none">
                     {service.description}
-                  </p>
+                  </p> */}
 
                   {/* Interactive element that appears on hover */}
                   <div
