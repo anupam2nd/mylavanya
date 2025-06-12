@@ -60,6 +60,27 @@ export type Database = {
         }
         Relationships: []
       }
+      BannerImageMST: {
+        Row: {
+          created_at: string
+          id: number
+          image_url: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          image_url: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          image_url?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
       BookMST: {
         Row: {
           Address: string | null
