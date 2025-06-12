@@ -54,9 +54,9 @@ const AdminBannerImages = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<BannerImage | null>(null);
   
-  const [imageUrl, setImageUrl] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
 
   const bannerHeaders = {
     id: 'ID',
@@ -92,8 +92,8 @@ const AdminBannerImages = () => {
   };
 
   const handleAddNew = () => {
-    setImageUrl("");
     setSelectedFile(null);
+    setPreviewUrl("");
     setOpenDialog(true);
   };
 
@@ -101,43 +101,53 @@ const AdminBannerImages = () => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      setImageUrl(""); // Clear URL input when file is selected
+      // Create preview URL
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     }
   };
 
-  const uploadFile = async (file: File): Promise<string> => {
+  const uploadFileToStorage = async (file: File): Promise<string> => {
     const fileExt = file.name.split('.').pop();
     const fileName = `banner-${Date.now()}.${fileExt}`;
     
-    // For now, we'll create a mock upload URL
-    // In a real implementation, you'd upload to Supabase Storage or another service
-    return `https://example.com/uploads/${fileName}`;
+    const { data, error } = await supabase.storage
+      .from('banner-images')
+      .upload(fileName, file);
+
+    if (error) {
+      console.error('Storage upload error:', error);
+      throw error;
+    }
+
+    // Get the public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('banner-images')
+      .getPublicUrl(fileName);
+
+    return publicUrlData.publicUrl;
   };
 
   const handleSave = async () => {
     try {
       setUploading(true);
       
-      let finalImageUrl = imageUrl;
-      
-      if (selectedFile) {
-        // Upload file and get URL
-        finalImageUrl = await uploadFile(selectedFile);
-      }
-
-      if (!finalImageUrl) {
+      if (!selectedFile) {
         toast({
           title: "Error",
-          description: "Please provide an image URL or select a file to upload",
+          description: "Please select a file to upload",
           variant: "destructive"
         });
         return;
       }
 
+      // Upload file to Supabase storage
+      const imageUrl = await uploadFileToStorage(selectedFile);
+
       const { data, error } = await supabase
         .from('BannerImageMST')
         .insert([{
-          image_url: finalImageUrl,
+          image_url: imageUrl,
           uploaded_by: user?.email || 'Unknown'
         }])
         .select();
@@ -149,16 +159,18 @@ const AdminBannerImages = () => {
       }
       
       toast({
-        title: "Banner image added",
-        description: "New banner image has been successfully added",
+        title: "Banner image uploaded",
+        description: "New banner image has been successfully uploaded and saved",
       });
 
       setOpenDialog(false);
+      setSelectedFile(null);
+      setPreviewUrl("");
     } catch (error) {
-      console.error('Error saving banner image:', error);
+      console.error('Error uploading banner image:', error);
       toast({
-        title: "Save failed",
-        description: "There was a problem saving the banner image",
+        title: "Upload failed",
+        description: "There was a problem uploading the banner image",
         variant: "destructive"
       });
     } finally {
@@ -207,6 +219,15 @@ const AdminBannerImages = () => {
       minute: '2-digit'
     });
   };
+
+  // Clean up preview URL when component unmounts or dialog closes
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
@@ -303,65 +324,36 @@ const AdminBannerImages = () => {
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Add New Banner Image</DialogTitle>
+              <DialogTitle>Upload New Banner Image</DialogTitle>
               <DialogDescription>
-                Upload a new banner image by providing a URL or selecting a file.
+                Select an image file to upload as a banner image.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="image-url">Image URL</Label>
+                <Label htmlFor="file-upload">Select Image File</Label>
                 <Input
-                  id="image-url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  disabled={!!selectedFile}
+                  id="file-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="cursor-pointer"
                 />
-              </div>
-              
-              <div className="text-center text-sm text-muted-foreground">
-                OR
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="file-upload">Upload File</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="file-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    disabled={!!imageUrl}
-                  />
-                  {selectedFile && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => setSelectedFile(null)}
-                    >
-                      Clear
-                    </Button>
-                  )}
-                </div>
                 {selectedFile && (
-                  <p className="text-sm text-muted-foreground">
-                    Selected: {selectedFile.name}
-                  </p>
+                  <div className="text-sm text-muted-foreground">
+                    Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                  </div>
                 )}
               </div>
 
-              {(imageUrl || selectedFile) && (
+              {previewUrl && (
                 <div className="mt-4">
                   <Label>Preview</Label>
-                  <div className="mt-2 border rounded-lg p-2">
+                  <div className="mt-2 border rounded-lg p-2 bg-gray-50">
                     <img 
-                      src={selectedFile ? URL.createObjectURL(selectedFile) : imageUrl} 
-                      alt="Preview" 
-                      className="w-full h-32 object-cover rounded"
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg";
-                      }}
+                      src={previewUrl} 
+                      alt="Upload preview" 
+                      className="w-full h-48 object-cover rounded"
                     />
                   </div>
                 </div>
@@ -369,9 +361,16 @@ const AdminBannerImages = () => {
             </div>
             <DialogFooter>
               <Button 
+                variant="outline" 
+                onClick={() => setOpenDialog(false)}
+                disabled={uploading}
+              >
+                Cancel
+              </Button>
+              <Button 
                 type="submit" 
                 onClick={handleSave}
-                disabled={uploading || (!imageUrl && !selectedFile)}
+                disabled={uploading || !selectedFile}
               >
                 {uploading ? (
                   <>
@@ -379,7 +378,10 @@ const AdminBannerImages = () => {
                     Uploading...
                   </>
                 ) : (
-                  "Add Banner Image"
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Image
+                  </>
                 )}
               </Button>
             </DialogFooter>
