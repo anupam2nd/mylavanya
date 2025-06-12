@@ -123,7 +123,7 @@ const MobileCategoryServices = () => {
                     />
                   </div>
                   <p className="text-xs text-center mt-1 text-muted-foreground group-hover:text-foreground transition-colors duration-200 truncate max-w-16">
-                    {service.ProductName}
+                    {service.Scheme}
                   </p>
                 </button>
               ))}
