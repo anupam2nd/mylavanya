@@ -39,6 +39,7 @@ const AddBannerImageDialog = ({ open, onOpenChange, onImageAdded }: AddBannerIma
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log('File selected:', file.name, file.size, file.type);
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -46,28 +47,39 @@ const AddBannerImageDialog = ({ open, onOpenChange, onImageAdded }: AddBannerIma
   };
 
   const uploadFileToStorage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `banner-${Date.now()}.${fileExt}`;
-    
-    const { data, error } = await supabase.storage
-      .from('banner-images')
-      .upload(fileName, file);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `banner-${Date.now()}.${fileExt}`;
+      
+      console.log('Uploading file to storage:', fileName);
+      
+      const { data, error } = await supabase.storage
+        .from('banner-images')
+        .upload(fileName, file);
 
-    if (error) {
-      console.error('Storage upload error:', error);
+      if (error) {
+        console.error('Storage upload error:', error);
+        throw new Error(`Storage upload failed: ${error.message}`);
+      }
+
+      console.log('Upload successful:', data);
+
+      const { data: publicUrlData } = supabase.storage
+        .from('banner-images')
+        .getPublicUrl(fileName);
+
+      console.log('Public URL generated:', publicUrlData.publicUrl);
+      return publicUrlData.publicUrl;
+    } catch (error) {
+      console.error('Error in uploadFileToStorage:', error);
       throw error;
     }
-
-    const { data: publicUrlData } = supabase.storage
-      .from('banner-images')
-      .getPublicUrl(fileName);
-
-    return publicUrlData.publicUrl;
   };
 
   const handleSave = async () => {
     try {
       setUploading(true);
+      console.log('Starting upload process...');
       
       if (!selectedFile) {
         toast({
@@ -78,17 +90,34 @@ const AddBannerImageDialog = ({ open, onOpenChange, onImageAdded }: AddBannerIma
         return;
       }
 
+      if (!user?.email) {
+        toast({
+          title: "Error",
+          description: "User email not found. Please login again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Current user email:', user.email);
+
       const imageUrl = await uploadFileToStorage(selectedFile);
+      console.log('File uploaded, now saving to database...');
 
       const { data, error } = await supabase
         .from('BannerImageMST')
         .insert([{
           image_url: imageUrl,
-          uploaded_by: user?.email || 'Unknown'
+          uploaded_by: user.email
         }])
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database insert error:', error);
+        throw new Error(`Database insert failed: ${error.message}`);
+      }
+      
+      console.log('Database insert successful:', data);
       
       if (data && data.length > 0) {
         onImageAdded(data[0]);
@@ -106,7 +135,7 @@ const AddBannerImageDialog = ({ open, onOpenChange, onImageAdded }: AddBannerIma
       console.error('Error uploading banner image:', error);
       toast({
         title: "Upload failed",
-        description: "There was a problem uploading the banner image",
+        description: error instanceof Error ? error.message : "There was a problem uploading the banner image",
         variant: "destructive"
       });
     } finally {
