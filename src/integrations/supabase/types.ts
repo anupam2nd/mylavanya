@@ -65,18 +65,21 @@ export type Database = {
           created_at: string
           id: number
           image_url: string
+          status: boolean
           uploaded_by: string
         }
         Insert: {
           created_at?: string
           id?: number
           image_url: string
+          status?: boolean
           uploaded_by: string
         }
         Update: {
           created_at?: string
           id?: number
           image_url?: string
+          status?: boolean
           uploaded_by?: string
         }
         Relationships: []
