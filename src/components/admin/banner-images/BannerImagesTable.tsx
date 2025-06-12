@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Trash2, ExternalLink } from "lucide-react";
+import { Trash2, ExternalLink, Edit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,11 +24,12 @@ interface BannerImage {
 interface BannerImagesTableProps {
   bannerImages: BannerImage[];
   onDelete: (image: BannerImage) => void;
+  onEdit: (image: BannerImage) => void;
   onStatusUpdate: (imageId: number, newStatus: boolean) => void;
   loading: boolean;
 }
 
-const BannerImagesTable = ({ bannerImages, onDelete, onStatusUpdate, loading }: BannerImagesTableProps) => {
+const BannerImagesTable = ({ bannerImages, onDelete, onEdit, onStatusUpdate, loading }: BannerImagesTableProps) => {
   const { toast } = useToast();
 
   const formatDate = (dateString: string) => {
@@ -145,13 +146,22 @@ const BannerImagesTable = ({ bannerImages, onDelete, onStatusUpdate, loading }: 
                 </div>
               </TableCell>
               <TableCell className="text-right">
-                <Button 
-                  variant="destructive" 
-                  size="sm" 
-                  onClick={() => onDelete(image)}
-                >
-                  <Trash2 className="h-4 w-4 mr-1" /> Delete
-                </Button>
+                <div className="flex gap-2 justify-end">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => onEdit(image)}
+                  >
+                    <Edit className="h-4 w-4 mr-1" /> Edit
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={() => onDelete(image)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" /> Delete
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}

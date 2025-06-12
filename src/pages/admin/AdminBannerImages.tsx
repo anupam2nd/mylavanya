@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BannerImagesHeader from "@/components/admin/banner-images/BannerImagesHeader";
 import BannerImagesTable from "@/components/admin/banner-images/BannerImagesTable";
 import AddBannerImageDialog from "@/components/admin/banner-images/AddBannerImageDialog";
+import EditBannerImageDialog from "@/components/admin/banner-images/EditBannerImageDialog";
 import DeleteBannerImageDialog from "@/components/admin/banner-images/DeleteBannerImageDialog";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,7 +23,9 @@ const AdminBannerImages = () => {
   const [bannerImages, setBannerImages] = useState<BannerImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [openAddDialog, setOpenAddDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [imageToEdit, setImageToEdit] = useState<BannerImage | null>(null);
   const [imageToDelete, setImageToDelete] = useState<BannerImage | null>(null);
 
   useEffect(() => {
@@ -60,6 +62,17 @@ const AdminBannerImages = () => {
     setBannerImages([newImage, ...bannerImages]);
   };
 
+  const handleEdit = (image: BannerImage) => {
+    setImageToEdit(image);
+    setOpenEditDialog(true);
+  };
+
+  const handleImageUpdated = (updatedImage: BannerImage) => {
+    setBannerImages(bannerImages.map(img => 
+      img.id === updatedImage.id ? updatedImage : img
+    ));
+  };
+
   const handleDelete = (image: BannerImage) => {
     setImageToDelete(image);
     setOpenDeleteDialog(true);
@@ -91,6 +104,7 @@ const AdminBannerImages = () => {
             <BannerImagesTable
               bannerImages={bannerImages}
               onDelete={handleDelete}
+              onEdit={handleEdit}
               onStatusUpdate={handleStatusUpdate}
               loading={loading}
             />
@@ -101,6 +115,13 @@ const AdminBannerImages = () => {
           open={openAddDialog}
           onOpenChange={setOpenAddDialog}
           onImageAdded={handleImageAdded}
+        />
+
+        <EditBannerImageDialog
+          open={openEditDialog}
+          onOpenChange={setOpenEditDialog}
+          imageToEdit={imageToEdit}
+          onImageUpdated={handleImageUpdated}
         />
 
         <DeleteBannerImageDialog
