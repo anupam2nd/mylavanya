@@ -15,6 +15,7 @@ interface BannerImage {
   image_url: string;
   uploaded_by: string;
   created_at: string;
+  status: boolean;
 }
 
 const AdminBannerImages = () => {
@@ -68,6 +69,12 @@ const AdminBannerImages = () => {
     setBannerImages(bannerImages.filter(img => img.id !== imageId));
   };
 
+  const handleStatusUpdate = (imageId: number, newStatus: boolean) => {
+    setBannerImages(bannerImages.map(img => 
+      img.id === imageId ? { ...img, status: newStatus } : img
+    ));
+  };
+
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
       <DashboardLayout title="Banner Images Management">
@@ -84,6 +91,7 @@ const AdminBannerImages = () => {
             <BannerImagesTable
               bannerImages={bannerImages}
               onDelete={handleDelete}
+              onStatusUpdate={handleStatusUpdate}
               loading={loading}
             />
           </CardContent>

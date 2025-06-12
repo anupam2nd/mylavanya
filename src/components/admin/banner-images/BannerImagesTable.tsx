@@ -8,22 +8,29 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Trash2, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface BannerImage {
   id: number;
   image_url: string;
   uploaded_by: string;
   created_at: string;
+  status: boolean;
 }
 
 interface BannerImagesTableProps {
   bannerImages: BannerImage[];
   onDelete: (image: BannerImage) => void;
+  onStatusUpdate: (imageId: number, newStatus: boolean) => void;
   loading: boolean;
 }
 
-const BannerImagesTable = ({ bannerImages, onDelete, loading }: BannerImagesTableProps) => {
+const BannerImagesTable = ({ bannerImages, onDelete, onStatusUpdate, loading }: BannerImagesTableProps) => {
+  const { toast } = useToast();
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -32,6 +39,41 @@ const BannerImagesTable = ({ bannerImages, onDelete, loading }: BannerImagesTabl
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleStatusToggle = async (imageId: number, currentStatus: boolean) => {
+    try {
+      const newStatus = !currentStatus;
+      
+      const { error } = await supabase
+        .from('BannerImageMST')
+        .update({ status: newStatus })
+        .eq('id', imageId);
+
+      if (error) {
+        console.error('Error updating banner image status:', error);
+        toast({
+          title: "Failed to update status",
+          description: "There was a problem updating the banner image status",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      onStatusUpdate(imageId, newStatus);
+      
+      toast({
+        title: "Status updated",
+        description: `Banner image ${newStatus ? 'activated' : 'deactivated'} successfully`,
+      });
+    } catch (error) {
+      console.error('Error updating banner image status:', error);
+      toast({
+        title: "Failed to update status",
+        description: "There was a problem updating the banner image status",
+        variant: "destructive"
+      });
+    }
   };
 
   if (loading) {
@@ -56,6 +98,7 @@ const BannerImagesTable = ({ bannerImages, onDelete, loading }: BannerImagesTabl
             <TableHead>Image URL</TableHead>
             <TableHead>Uploaded By</TableHead>
             <TableHead>Upload Date</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -90,6 +133,17 @@ const BannerImagesTable = ({ bannerImages, onDelete, loading }: BannerImagesTabl
               </TableCell>
               <TableCell>{image.uploaded_by}</TableCell>
               <TableCell>{formatDate(image.created_at)}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={image.status}
+                    onCheckedChange={() => handleStatusToggle(image.id, image.status)}
+                  />
+                  <span className={`text-sm ${image.status ? 'text-green-600' : 'text-red-600'}`}>
+                    {image.status ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              </TableCell>
               <TableCell className="text-right">
                 <Button 
                   variant="destructive" 
