@@ -10,6 +10,7 @@ interface Service {
   Category: string;
   imageUrl: string;
   Price: number;
+  Scheme : string;
 }
 
 interface CategoryGroup {
@@ -27,7 +28,7 @@ const MobileCategoryServices = () => {
       try {
         const { data, error } = await supabase
           .from('PriceMST')
-          .select('prod_id, ProductName, Category, imageUrl, Price')
+          .select('prod_id, ProductName, Category, imageUrl, Price, Scheme')
           .eq('active', true)
           .not('imageUrl', 'is', null)
           .not('Category', 'is', null)
@@ -110,7 +111,7 @@ const MobileCategoryServices = () => {
                   onClick={() => handleServiceClick(group.category)}
                   className="flex-shrink-0 group"
                 >
-                  <div className="h-10 w-auto min-w-16 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-primary/50 transition-all duration-200 shadow-sm hover:shadow-md">
+                  <div className="h-20 w-auto min-w-16 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-primary/50 transition-all duration-200 shadow-sm hover:shadow-md">
                     <img
                       src={service.imageUrl}
                       alt={service.ProductName}
