@@ -32,7 +32,8 @@ export const getNextProdId = async (): Promise<number> => {
 export const filterServices = (
   services: Service[],
   searchQuery: string,
-  activeFilter: string
+  activeFilter: string,
+  categoryFilter?: string
 ): Service[] => {
   let result = [...services];
   
@@ -49,6 +50,10 @@ export const filterServices = (
   if (activeFilter !== "all") {
     const isActive = activeFilter === "active";
     result = result.filter(service => service.active === isActive);
+  }
+
+  if (categoryFilter && categoryFilter !== "all") {
+    result = result.filter(service => service.Category === categoryFilter);
   }
   
   return result;

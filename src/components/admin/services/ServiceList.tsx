@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, Trash2, Search, X, Image, Plus } from "lucide-react";
+import { Edit, Trash2, Search, X, Image, Plus, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -27,10 +27,15 @@ interface ServiceListProps {
   filteredServices: Service[];
   loading: boolean;
   isSuperAdmin: boolean;
+  categories: string[];
+  sortOrder: 'asc' | 'desc';
+  categoryFilter: string;
   onEdit: (service: Service) => void;
   onDelete: (service: Service) => void;
   onToggleStatus: (service: Service) => void;
   onAddNew: () => void;
+  onSortChange: (sortOrder: 'asc' | 'desc') => void;
+  onCategoryFilterChange: (category: string) => void;
 }
 
 const ServiceList = ({
@@ -38,10 +43,15 @@ const ServiceList = ({
   filteredServices,
   loading,
   isSuperAdmin,
+  categories,
+  sortOrder,
+  categoryFilter,
   onEdit,
   onDelete,
   onToggleStatus,
   onAddNew,
+  onSortChange,
+  onCategoryFilterChange,
 }: ServiceListProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("all");
@@ -73,6 +83,17 @@ const ServiceList = ({
   const clearFilters = () => {
     setSearchQuery("");
     setActiveFilter("all");
+    onCategoryFilterChange("all");
+  };
+
+  const toggleSortOrder = () => {
+    onSortChange(sortOrder === 'asc' ? 'desc' : 'asc');
+  };
+
+  const getSortIcon = () => {
+    if (sortOrder === 'asc') return <ArrowUp className="h-4 w-4" />;
+    if (sortOrder === 'desc') return <ArrowDown className="h-4 w-4" />;
+    return <ArrowUpDown className="h-4 w-4" />;
   };
 
   return (
@@ -92,7 +113,7 @@ const ServiceList = ({
         </div>
       </div>
       
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -102,6 +123,7 @@ const ServiceList = ({
             className="pl-8"
           />
         </div>
+        
         <Select
           value={activeFilter}
           onValueChange={handleFilterChange}
@@ -115,6 +137,33 @@ const ServiceList = ({
             <SelectItem value="inactive">Inactive Services</SelectItem>
           </SelectContent>
         </Select>
+
+        <Select
+          value={categoryFilter}
+          onValueChange={onCategoryFilterChange}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Filter by category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Button
+          variant="outline"
+          onClick={toggleSortOrder}
+          className="flex items-center justify-center"
+        >
+          {getSortIcon()}
+          <span className="ml-2">Sort by Date</span>
+        </Button>
+
         <Button 
           variant="outline" 
           onClick={clearFilters}
@@ -126,7 +175,8 @@ const ServiceList = ({
       </div>
 
       <div className="mb-4 text-sm text-muted-foreground">
-        Showing {filteredServices.length} of {services.length} services
+        Showing {filteredServices.length} of {services.length} services 
+        {sortOrder === 'desc' ? ' (Newest first)' : ' (Oldest first)'}
       </div>
 
       {loading ? (

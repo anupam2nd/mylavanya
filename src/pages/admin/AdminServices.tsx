@@ -33,20 +33,40 @@ const AdminServices = () => {
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const [serviceToDeactivate, setServiceToDeactivate] = useState<Service | null>(null);
   
-  // Search and filter states
+  // Search, filter and sort states
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [categories, setCategories] = useState<string[]>([]);
   
   const isSuperAdmin = user?.role === 'superadmin';
 
   useEffect(() => {
     fetchServices();
-  }, []);
+    fetchCategories();
+  }, [sortOrder]);
 
   useEffect(() => {
-    const result = filterServices(services, searchQuery, activeFilter);
+    const result = filterServices(services, searchQuery, activeFilter, categoryFilter);
     setFilteredServices(result);
-  }, [services, searchQuery, activeFilter]);
+  }, [services, searchQuery, activeFilter, categoryFilter]);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('PriceMST')
+        .select('Category')
+        .not('Category', 'is', null);
+
+      if (error) throw error;
+      
+      const uniqueCategories = [...new Set(data.map(item => item.Category))].filter(Boolean);
+      setCategories(uniqueCategories);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   const fetchServices = async () => {
     try {
@@ -54,7 +74,7 @@ const AdminServices = () => {
       const { data, error } = await supabase
         .from('PriceMST')
         .select('*')
-        .order('Services', { ascending: true });
+        .order('created_at', { ascending: sortOrder === 'asc' });
 
       if (error) throw error;
       setServices(data || []);
@@ -69,6 +89,14 @@ const AdminServices = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSortChange = (newSortOrder: 'asc' | 'desc') => {
+    setSortOrder(newSortOrder);
+  };
+
+  const handleCategoryFilterChange = (category: string) => {
+    setCategoryFilter(category);
   };
 
   const handleAddNew = () => {
@@ -240,10 +268,15 @@ const AdminServices = () => {
               filteredServices={filteredServices}
               loading={loading}
               isSuperAdmin={isSuperAdmin}
+              categories={categories}
+              sortOrder={sortOrder}
+              categoryFilter={categoryFilter}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onToggleStatus={handleToggleStatus}
               onAddNew={handleAddNew}
+              onSortChange={handleSortChange}
+              onCategoryFilterChange={handleCategoryFilterChange}
             />
           </CardContent>
         </Card>
