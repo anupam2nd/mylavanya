@@ -8,7 +8,8 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 
 interface ServiceListProps {
   featured?: boolean;
-  categoryFilter?: string;
+  searchTerm?: string;
+  selectedCategory?: string;
 }
 
 // Define a service type that matches the actual database schema
@@ -28,7 +29,11 @@ interface Service {
   Scheme?: string | null;  // Add Scheme property as optional
 }
 
-const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => {
+const ServiceList = ({ 
+  featured = false, 
+  searchTerm = "", 
+  selectedCategory = "all" 
+}: ServiceListProps) => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +45,7 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
       setError(null);
       
       try {
-        console.log("Fetching active services with filter:", categoryFilter);
+        console.log("Fetching active services with category filter:", selectedCategory);
         
         // Create a query to the PriceMST table and filter for active services only
         let query = supabase
@@ -52,8 +57,8 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
         console.log('query', query);
         
         // Apply category filter if provided
-        if (categoryFilter && categoryFilter !== 'all') {
-          query = query.eq('Category', categoryFilter);
+        if (selectedCategory && selectedCategory !== 'all') {
+          query = query.eq('Category', selectedCategory);
         }
         
         // Limit results if featured is true
@@ -88,7 +93,20 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
     };
     
     fetchServices();
-  }, [featured, categoryFilter]);
+  }, [featured, selectedCategory]);
+  
+  // Filter services based on search term
+  const filteredServices = services.filter(service => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      service.ProductName?.toLowerCase().includes(searchLower) ||
+      service.Services?.toLowerCase().includes(searchLower) ||
+      service.Category?.toLowerCase().includes(searchLower) ||
+      service.Description?.toLowerCase().includes(searchLower)
+    );
+  });
   
   const handleServiceClick = (serviceId: number) => {
     console.log("Navigating to service detail:", serviceId);
@@ -124,9 +142,9 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
           <div className="flex justify-center items-center py-16">
             <Loader className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : services.length > 0 ? (
+        ) : filteredServices.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {services.map((service) => (
+            {filteredServices.map((service) => (
               <ServiceCard 
                 key={service.prod_id}
                 id={service.prod_id}
@@ -151,7 +169,7 @@ const ServiceList = ({ featured = false, categoryFilter }: ServiceListProps) => 
           </div>
         )}
         
-        {featured && services.length > 0 && (
+        {featured && filteredServices.length > 0 && (
           <div className="mt-12 text-center">
             <ButtonCustom
               variant="primary-gradient"
