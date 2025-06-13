@@ -5,7 +5,8 @@ import MainLayout from "@/components/layout/MainLayout";
 import ServiceList from "@/components/services/ServiceList";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, X } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 
 const Services = () => {
@@ -46,6 +47,12 @@ const Services = () => {
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
     setSelectedSubCategory("all"); // Reset sub-category when category changes
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm("");
+    setSelectedCategory("all");
+    setSelectedSubCategory("all");
   };
 
   return (
@@ -105,6 +112,15 @@ const Services = () => {
               ))}
             </SelectContent>
           </Select>
+
+          <Button 
+            variant="outline" 
+            onClick={clearAllFilters}
+            className="flex items-center gap-2 whitespace-nowrap"
+          >
+            <X className="h-4 w-4" />
+            Clear Filters
+          </Button>
         </div>
 
         {/* Show category filter info for mobile users */}
