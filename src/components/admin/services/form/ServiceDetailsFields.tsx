@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCategories } from "@/hooks/useCategories";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 interface ServiceDetailsFieldsProps {
   serviceName: string;
@@ -45,18 +45,17 @@ const ServiceDetailsFields = ({
 }: ServiceDetailsFieldsProps) => {
   const { categories, subCategories, loading, fetchSubCategories } = useCategories();
 
+  // Get the selected category object
+  const selectedCategory = useMemo(() => {
+    return categories.find(cat => cat.category_name === category);
+  }, [categories, category]);
+
   // Fetch sub-categories when category changes
   useEffect(() => {
-    if (category) {
-      const selectedCategory = categories.find(cat => cat.category_name === category);
-      if (selectedCategory) {
-        fetchSubCategories(selectedCategory.category_id);
-      }
-    } else {
-      // Reset sub-categories if no category is selected
-      fetchSubCategories();
+    if (selectedCategory) {
+      fetchSubCategories(selectedCategory.category_id);
     }
-  }, [category, categories, fetchSubCategories]);
+  }, [selectedCategory?.category_id, fetchSubCategories]);
 
   const handleCategoryChange = (value: string) => {
     onCategoryChange(value);
@@ -65,14 +64,10 @@ const ServiceDetailsFields = ({
   };
 
   // Get filtered sub-categories based on selected category
-  const getFilteredSubCategories = () => {
-    if (!category) return [];
-    
-    const selectedCategory = categories.find(cat => cat.category_name === category);
+  const filteredSubCategories = useMemo(() => {
     if (!selectedCategory) return [];
-    
     return subCategories.filter(subCat => subCat.category_id === selectedCategory.category_id);
-  };
+  }, [subCategories, selectedCategory]);
 
   return (
     <>
@@ -137,7 +132,7 @@ const ServiceDetailsFields = ({
         <Select 
           value={subCategory} 
           onValueChange={onSubCategoryChange}
-          disabled={!category || loading}
+          disabled={!category}
         >
           <SelectTrigger className="col-span-3">
             <SelectValue placeholder={
@@ -149,7 +144,7 @@ const ServiceDetailsFields = ({
             } />
           </SelectTrigger>
           <SelectContent>
-            {getFilteredSubCategories().map((subCat) => (
+            {filteredSubCategories.map((subCat) => (
               <SelectItem key={subCat.sub_category_id} value={subCat.sub_category_name}>
                 {subCat.sub_category_name}
               </SelectItem>

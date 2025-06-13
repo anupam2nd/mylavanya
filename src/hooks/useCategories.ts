@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Category {
@@ -21,7 +21,7 @@ export const useCategories = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -37,9 +37,9 @@ export const useCategories = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchSubCategories = async (categoryId?: number) => {
+  const fetchSubCategories = useCallback(async (categoryId?: number) => {
     try {
       setLoading(true);
       let query = supabase
@@ -61,11 +61,11 @@ export const useCategories = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   return {
     categories,
