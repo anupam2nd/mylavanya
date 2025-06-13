@@ -11,6 +11,7 @@ interface ServiceListProps {
   searchTerm?: string;
   selectedCategory?: string;
   selectedSubCategory?: string;
+  sortBy?: string;
 }
 
 // Define a service type that matches the actual database schema
@@ -35,7 +36,8 @@ const ServiceList = ({
   featured = false, 
   searchTerm = "", 
   selectedCategory = "all",
-  selectedSubCategory = "all"
+  selectedSubCategory = "all",
+  sortBy = "default"
 }: ServiceListProps) => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,20 +100,33 @@ const ServiceList = ({
     fetchServices();
   }, [featured, selectedCategory, selectedSubCategory]);
   
-  // Filter services based on search term
-  const filteredServices = services.filter(service => {
-    if (!searchTerm) return true;
-    
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      service.ProductName?.toLowerCase().includes(searchLower) ||
-      service.Services?.toLowerCase().includes(searchLower) ||
-      service.Category?.toLowerCase().includes(searchLower) ||
-      service.SubCategory?.toLowerCase().includes(searchLower) ||
-      service.Description?.toLowerCase().includes(searchLower) ||
-      service.Scheme?.toLowerCase().includes(searchLower)
-    );
-  });
+  // Filter and sort services based on search term and sort option
+  const processedServices = services
+    .filter(service => {
+      if (!searchTerm) return true;
+      
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        service.ProductName?.toLowerCase().includes(searchLower) ||
+        service.Services?.toLowerCase().includes(searchLower) ||
+        service.Category?.toLowerCase().includes(searchLower) ||
+        service.SubCategory?.toLowerCase().includes(searchLower) ||
+        service.Description?.toLowerCase().includes(searchLower) ||
+        service.Scheme?.toLowerCase().includes(searchLower)
+      );
+    })
+    .sort((a, b) => {
+      if (sortBy === "price_low_to_high") {
+        const priceA = a.NetPayable || a.Price || 0;
+        const priceB = b.NetPayable || b.Price || 0;
+        return priceA - priceB;
+      } else if (sortBy === "price_high_to_low") {
+        const priceA = a.NetPayable || a.Price || 0;
+        const priceB = b.NetPayable || b.Price || 0;
+        return priceB - priceA;
+      }
+      return 0; // Default order (as fetched from database)
+    });
   
   const handleServiceClick = (serviceId: number) => {
     console.log("Navigating to service detail:", serviceId);
@@ -147,9 +162,9 @@ const ServiceList = ({
           <div className="flex justify-center items-center py-16">
             <Loader className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : filteredServices.length > 0 ? (
+        ) : processedServices.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredServices.map((service) => (
+            {processedServices.map((service) => (
               <ServiceCard 
                 key={service.prod_id}
                 id={service.prod_id}
@@ -182,7 +197,7 @@ const ServiceList = ({
           </div>
         )}
         
-        {featured && filteredServices.length > 0 && (
+        {featured && processedServices.length > 0 && (
           <div className="mt-12 text-center">
             <ButtonCustom
               variant="primary-gradient"

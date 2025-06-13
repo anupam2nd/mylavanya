@@ -16,6 +16,7 @@ const Services = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl || "all");
   const [selectedSubCategory, setSelectedSubCategory] = useState("all");
+  const [sortBy, setSortBy] = useState("default");
   
   const { categories, subCategories, fetchSubCategories } = useCategories();
 
@@ -53,6 +54,7 @@ const Services = () => {
     setSearchTerm("");
     setSelectedCategory("all");
     setSelectedSubCategory("all");
+    setSortBy("default");
   };
 
   return (
@@ -113,6 +115,17 @@ const Services = () => {
             </SelectContent>
           </Select>
 
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder="Sort by price" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Default</SelectItem>
+              <SelectItem value="price_low_to_high">Price: Low to High</SelectItem>
+              <SelectItem value="price_high_to_low">Price: High to Low</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button 
             variant="outline" 
             onClick={clearAllFilters}
@@ -136,6 +149,7 @@ const Services = () => {
           searchTerm={searchTerm} 
           selectedCategory={selectedCategory}
           selectedSubCategory={selectedSubCategory}
+          sortBy={sortBy}
         />
       </div>
     </MainLayout>
