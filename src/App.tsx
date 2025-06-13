@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { useEffect } from "react";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import DashboardLayout from "./components/dashboard/DashboardLayout";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Services from "./pages/Services";
@@ -96,7 +98,7 @@ const App = () => (
               path="/admin/categories" 
               element={
                 <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
-                  <DashboardLayout>
+                  <DashboardLayout title="Categories Management">
                     <AdminCategories />
                   </DashboardLayout>
                 </ProtectedRoute>
