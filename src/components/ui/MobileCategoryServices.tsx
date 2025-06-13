@@ -10,7 +10,9 @@ interface Service {
   Category: string;
   imageUrl: string;
   Price: number;
-  Scheme : string;
+  Scheme: string;
+  Discount: number | null;
+  NetPayable: number | null;
 }
 
 interface CategoryGroup {
@@ -28,7 +30,7 @@ const MobileCategoryServices = () => {
       try {
         const { data, error } = await supabase
           .from('PriceMST')
-          .select('prod_id, ProductName, Category, imageUrl, Price, Scheme')
+          .select('prod_id, ProductName, Category, imageUrl, Price, Scheme, Discount, NetPayable')
           .eq('active', true)
           .not('imageUrl', 'is', null)
           .not('Category', 'is', null)
@@ -70,6 +72,10 @@ const MobileCategoryServices = () => {
     navigate(`/services?category=${encodeURIComponent(category)}`);
   };
 
+  const formatPrice = (price: number) => {
+    return `₹${price.toFixed(0)}`;
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -78,7 +84,11 @@ const MobileCategoryServices = () => {
             <div className="h-6 bg-gray-200 animate-pulse rounded w-32" />
             <div className="flex space-x-3">
               {[1, 2, 3, 4].map((j) => (
-                <div key={j} className="h-10 w-16 bg-gray-200 animate-pulse rounded" />
+                <div key={j} className="space-y-2">
+                  <div className="h-20 w-24 bg-gray-200 animate-pulse rounded" />
+                  <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
+                  <div className="h-3 w-12 bg-gray-200 animate-pulse rounded" />
+                </div>
               ))}
             </div>
           </div>
@@ -111,20 +121,50 @@ const MobileCategoryServices = () => {
                   onClick={() => handleServiceClick(group.category)}
                   className="flex-shrink-0 group"
                 >
-                  <div className="h-20 w-auto min-w-16 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-primary/50 transition-all duration-200 shadow-sm hover:shadow-md">
-                    <img
-                      src={service.imageUrl}
-                      alt={service.ProductName}
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/placeholder.svg';
-                      }}
-                    />
+                  <div className="w-24 space-y-2">
+                    <div className="h-20 w-full rounded-lg overflow-hidden border-2 border-transparent group-hover:border-primary/50 transition-all duration-200 shadow-sm hover:shadow-md">
+                      <img
+                        src={service.imageUrl}
+                        alt={service.ProductName}
+                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder.svg';
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Service name */}
+                    <p className="text-xs text-center text-muted-foreground group-hover:text-foreground transition-colors duration-200 truncate">
+                      {service.Scheme}
+                    </p>
+                    
+                    {/* Pricing information */}
+                    <div className="text-center space-y-1">
+                      <div className="flex items-center justify-center space-x-1">
+                        {service.NetPayable && service.NetPayable !== service.Price ? (
+                          <>
+                            <span className="text-xs font-semibold text-primary">
+                              {formatPrice(service.NetPayable)}
+                            </span>
+                            <span className="text-xs text-gray-500 line-through">
+                              {formatPrice(service.Price)}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-xs font-semibold text-primary">
+                            {formatPrice(service.Price)}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {service.Discount && service.Discount > 0 && (
+                        <div className="text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded">
+                          {service.Discount}% OFF
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-xs text-center mt-1 text-muted-foreground group-hover:text-foreground transition-colors duration-200 truncate max-w-16">
-                    {service.Scheme}
-                  </p>
                 </button>
               ))}
             </div>
