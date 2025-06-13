@@ -6,7 +6,7 @@ import ServiceList from "@/components/services/ServiceList";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useCategories } from "@/hooks/useCategories";
 
 const Services = () => {
   const [searchParams] = useSearchParams();
@@ -14,31 +14,27 @@ const Services = () => {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl || "all");
-  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedSubCategory, setSelectedSubCategory] = useState("all");
+  
+  const { categories, subCategories, fetchSubCategories } = useCategories();
 
+  // Get filtered sub-categories based on selected category
+  const filteredSubCategories = selectedCategory && selectedCategory !== "all" 
+    ? subCategories.filter(subCat => {
+        const categoryObj = categories.find(cat => cat.category_name === selectedCategory);
+        return categoryObj && subCat.category_id === categoryObj.category_id;
+      })
+    : [];
+
+  // Fetch sub-categories when category changes
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('PriceMST')
-          .select('Category')
-          .eq('active', true)
-          .not('Category', 'is', null);
-
-        if (error) {
-          console.error('Error fetching categories:', error);
-          return;
-        }
-
-        const uniqueCategories = [...new Set(data.map(item => item.Category))].filter(Boolean);
-        setCategories(uniqueCategories);
-      } catch (error) {
-        console.error('Error:', error);
+    if (selectedCategory && selectedCategory !== "all") {
+      const categoryObj = categories.find(cat => cat.category_name === selectedCategory);
+      if (categoryObj) {
+        fetchSubCategories(categoryObj.category_id);
       }
-    };
-
-    fetchCategories();
-  }, []);
+    }
+  }, [selectedCategory, categories, fetchSubCategories]);
 
   // Update selected category when URL parameter changes
   useEffect(() => {
@@ -46,6 +42,11 @@ const Services = () => {
       setSelectedCategory(categoryFromUrl);
     }
   }, [categoryFromUrl]);
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+    setSelectedSubCategory("all"); // Reset sub-category when category changes
+  };
 
   return (
     <MainLayout>
@@ -69,15 +70,37 @@ const Services = () => {
             />
           </div>
           
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <Select value={selectedCategory} onValueChange={handleCategoryChange}>
             <SelectTrigger className="w-full md:w-48">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
               {categories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
+                <SelectItem key={category.category_id} value={category.category_name}>
+                  {category.category_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select 
+            value={selectedSubCategory} 
+            onValueChange={setSelectedSubCategory}
+            disabled={selectedCategory === "all"}
+          >
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder={
+                selectedCategory === "all" 
+                  ? "Select category first" 
+                  : "Select sub-category"
+              } />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sub-Categories</SelectItem>
+              {filteredSubCategories.map((subCategory) => (
+                <SelectItem key={subCategory.sub_category_id} value={subCategory.sub_category_name}>
+                  {subCategory.sub_category_name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -96,6 +119,7 @@ const Services = () => {
         <ServiceList 
           searchTerm={searchTerm} 
           selectedCategory={selectedCategory}
+          selectedSubCategory={selectedSubCategory}
         />
       </div>
     </MainLayout>

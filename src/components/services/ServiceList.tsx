@@ -10,6 +10,7 @@ interface ServiceListProps {
   featured?: boolean;
   searchTerm?: string;
   selectedCategory?: string;
+  selectedSubCategory?: string;
 }
 
 // Define a service type that matches the actual database schema
@@ -25,14 +26,16 @@ interface Service {
   Subservice: string | null;
   NetPayable: number | null;
   Category: string | null;
+  SubCategory: string | null;
   imageUrl: string | null;
-  Scheme?: string | null;  // Add Scheme property as optional
+  Scheme?: string | null;
 }
 
 const ServiceList = ({ 
   featured = false, 
   searchTerm = "", 
-  selectedCategory = "all" 
+  selectedCategory = "all",
+  selectedSubCategory = "all"
 }: ServiceListProps) => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +48,7 @@ const ServiceList = ({
       setError(null);
       
       try {
-        console.log("Fetching active services with category filter:", selectedCategory);
+        console.log("Fetching active services with filters:", { selectedCategory, selectedSubCategory });
         
         // Create a query to the PriceMST table and filter for active services only
         let query = supabase
@@ -54,11 +57,14 @@ const ServiceList = ({
           .eq('active', true) // Only fetch active services
           .order('prod_id', { ascending: true }); // Sort by prod_id in ascending order
         
-        console.log('query', query);
-        
         // Apply category filter if provided
         if (selectedCategory && selectedCategory !== 'all') {
           query = query.eq('Category', selectedCategory);
+        }
+
+        // Apply sub-category filter if provided
+        if (selectedSubCategory && selectedSubCategory !== 'all') {
+          query = query.eq('SubCategory', selectedSubCategory);
         }
         
         // Limit results if featured is true
@@ -73,15 +79,12 @@ const ServiceList = ({
           throw error;
         }
         
-        // Add detailed logging to debug the issue
-        console.log("Active services fetched raw data:", data);
+        console.log("Services fetched:", data?.length || 0);
         
         if (!data || data.length === 0) {
-          console.log("No active services found for the selected category. Check your Supabase data.");
-          // Instead of setting an error, we'll just set services to an empty array
+          console.log("No active services found for the selected filters.");
           setServices([]);
         } else {
-          console.log("Services data structure example:", data[0]);
           setServices(data);
         }
       } catch (error) {
@@ -93,7 +96,7 @@ const ServiceList = ({
     };
     
     fetchServices();
-  }, [featured, selectedCategory]);
+  }, [featured, selectedCategory, selectedSubCategory]);
   
   // Filter services based on search term
   const filteredServices = services.filter(service => {
@@ -104,7 +107,9 @@ const ServiceList = ({
       service.ProductName?.toLowerCase().includes(searchLower) ||
       service.Services?.toLowerCase().includes(searchLower) ||
       service.Category?.toLowerCase().includes(searchLower) ||
-      service.Description?.toLowerCase().includes(searchLower)
+      service.SubCategory?.toLowerCase().includes(searchLower) ||
+      service.Description?.toLowerCase().includes(searchLower) ||
+      service.Scheme?.toLowerCase().includes(searchLower)
     );
   });
   
@@ -162,9 +167,17 @@ const ServiceList = ({
           </div>
         ) : (
           <div className="text-center py-12 bg-gray-50 rounded-lg shadow-sm">
-            <p className="text-lg text-gray-600">No active services available for this category</p>
+            <p className="text-lg text-gray-600">
+              {searchTerm 
+                ? `No services found for "${searchTerm}"` 
+                : "No active services available for the selected filters"
+              }
+            </p>
             <p className="text-sm text-gray-500 mt-2">
-              Try selecting a different category or check if there are active services in the PriceMST table.
+              {searchTerm 
+                ? "Try adjusting your search terms or filters"
+                : "Try selecting different category or sub-category filters"
+              }
             </p>
           </div>
         )}
