@@ -1,5 +1,5 @@
 
-import { LayoutDashboard, Users, Calendar, Settings, Wrench, UserCheck, Heart, HelpCircle, Palette, LogOut, Image } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, Settings, Wrench, UserCheck, Heart, HelpCircle, Palette, LogOut, Image, FolderTree } from "lucide-react";
 import NavLink from "./NavLink";
 import { Button } from "@/components/ui/button";
 
@@ -27,6 +27,13 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, logout }: AdminNavProps
       <NavLink to="/admin/services" icon={Settings}>
         Services
       </NavLink>
+
+      {/* Categories - Only for Admin and SuperAdmin */}
+      {(isAdmin || isSuperAdmin) && (
+        <NavLink to="/admin/categories" icon={FolderTree}>
+          Categories
+        </NavLink>
+      )}
 
       {/* Status Management - Only for SuperAdmin */}
       {isSuperAdmin && (

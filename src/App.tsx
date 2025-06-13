@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -35,6 +34,7 @@ import ArtistActivity from "./pages/controller/ArtistActivity";
 import AdminArtistActivity from "./pages/admin/AdminArtistActivity";
 import AdminFaqs from "./pages/admin/AdminFaqs";
 import AdminMembers from "./pages/admin/AdminMembers";
+import AdminCategories from "@/pages/admin/AdminCategories";
 
 // Log to confirm App is being loaded
 console.log("App component rendering");
@@ -92,6 +92,16 @@ const App = () => (
             <Route path="/admin/wishlist" element={<WishlistController />} />
             <Route path="/admin/faqs" element={<AdminFaqs />} />
             <Route path="/admin/members" element={<AdminMembers />} />
+            <Route 
+              path="/admin/categories" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
+                  <DashboardLayout>
+                    <AdminCategories />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/admin/artist-activity" element={<AdminArtistActivity />} />
             
             {/* Controller Routes */}
