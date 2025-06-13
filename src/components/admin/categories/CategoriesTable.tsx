@@ -16,13 +16,18 @@ interface Category {
   updated_at: string;
 }
 
+interface CategoryWithCount extends Category {
+  subCategoryCount: number;
+}
+
 interface CategoriesTableProps {
   categories: Category[];
+  subCategoryCounts: CategoryWithCount[];
   loading: boolean;
   onRefresh: () => void;
 }
 
-const CategoriesTable = ({ categories, loading, onRefresh }: CategoriesTableProps) => {
+const CategoriesTable = ({ categories, subCategoryCounts, loading, onRefresh }: CategoriesTableProps) => {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
 
@@ -51,59 +56,64 @@ const CategoriesTable = ({ categories, loading, onRefresh }: CategoriesTableProp
           <TableRow>
             <TableHead>Category Name</TableHead>
             <TableHead>Description</TableHead>
+            <TableHead>Sub-Categories</TableHead>
             <TableHead>Created</TableHead>
-            <TableHead>Updated</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {categories.map((category) => (
-            <TableRow key={category.category_id}>
-              <TableCell className="font-medium">
-                {category.category_name}
-              </TableCell>
-              <TableCell>
-                {category.description ? (
-                  <span className="text-sm text-muted-foreground">
-                    {category.description.length > 50 
-                      ? `${category.description.substring(0, 50)}...` 
-                      : category.description
-                    }
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground italic">No description</span>
-                )}
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline">
-                  {formatDistanceToNow(new Date(category.created_at), { addSuffix: true })}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline">
-                  {formatDistanceToNow(new Date(category.updated_at), { addSuffix: true })}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditingCategory(category)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setDeletingCategory(category)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+          {categories.map((category) => {
+            const categoryWithCount = subCategoryCounts.find(c => c.category_id === category.category_id);
+            const subCategoryCount = categoryWithCount?.subCategoryCount || 0;
+            
+            return (
+              <TableRow key={category.category_id}>
+                <TableCell className="font-medium">
+                  {category.category_name}
+                </TableCell>
+                <TableCell>
+                  {category.description ? (
+                    <span className="text-sm text-muted-foreground">
+                      {category.description.length > 50 
+                        ? `${category.description.substring(0, 50)}...` 
+                        : category.description
+                      }
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground italic">No description</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={subCategoryCount > 0 ? "default" : "secondary"}>
+                    {subCategoryCount} sub-categories
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">
+                    {formatDistanceToNow(new Date(category.created_at), { addSuffix: true })}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingCategory(category)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDeletingCategory(category)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
 

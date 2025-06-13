@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import CategoriesTable from "@/components/admin/categories/CategoriesTable";
 import SubCategoriesTable from "@/components/admin/categories/SubCategoriesTable";
@@ -35,6 +36,7 @@ interface SubCategory {
 const AdminCategories = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"categories" | "subcategories">("categories");
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [showAddSubCategoryDialog, setShowAddSubCategoryDialog] = useState(false);
   const { toast } = useToast();
@@ -75,16 +77,27 @@ const AdminCategories = () => {
     (category.description && category.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const filteredSubCategories = subCategories.filter(subCategory =>
-    subCategory.sub_category_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (subCategory.description && subCategory.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (subCategory.categories?.category_name.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredSubCategories = subCategories.filter(subCategory => {
+    const matchesSearch = subCategory.sub_category_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (subCategory.description && subCategory.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (subCategory.categories?.category_name.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesCategory = selectedCategoryFilter === "all" || 
+      subCategory.category_id.toString() === selectedCategoryFilter;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   const handleRefresh = () => {
     refetchCategories();
     refetchSubCategories();
   };
+
+  // Get sub-category counts by parent category
+  const subCategoryCounts = categories.map(category => ({
+    ...category,
+    subCategoryCount: subCategories.filter(sub => sub.category_id === category.category_id).length
+  }));
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -119,17 +132,36 @@ const AdminCategories = () => {
         </button>
       </div>
 
-      {/* Search and Add Button */}
+      {/* Search and Filters */}
       <div className="flex justify-between items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder={`Search ${activeTab}...`}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+        <div className="flex gap-4 flex-1">
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder={`Search ${activeTab}...`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          {activeTab === "subcategories" && (
+            <Select value={selectedCategoryFilter} onValueChange={setSelectedCategoryFilter}>
+              <SelectTrigger className="w-[250px]">
+                <SelectValue placeholder="Filter by parent category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {subCategoryCounts.map((category) => (
+                  <SelectItem key={category.category_id} value={category.category_id.toString()}>
+                    {category.category_name} ({category.subCategoryCount})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
+        
         <Button
           onClick={() => {
             if (activeTab === "categories") {
@@ -150,6 +182,11 @@ const AdminCategories = () => {
         <CardHeader>
           <CardTitle>
             {activeTab === "categories" ? "Categories" : "Sub-Categories"}
+            {activeTab === "subcategories" && selectedCategoryFilter !== "all" && (
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                ({filteredSubCategories.length} items)
+              </span>
+            )}
           </CardTitle>
           <CardDescription>
             {activeTab === "categories" 
@@ -162,6 +199,7 @@ const AdminCategories = () => {
           {activeTab === "categories" ? (
             <CategoriesTable
               categories={filteredCategories}
+              subCategoryCounts={subCategoryCounts}
               loading={categoriesLoading}
               onRefresh={handleRefresh}
             />
