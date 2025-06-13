@@ -64,10 +64,12 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, logout }: AdminNavProps
             </NavLink>
           )}
 
-          {/* Members */}
-          <NavLink to="/admin/members" icon={Users}>
-            Members
-          </NavLink>
+          {/* Members - Only for SuperAdmin (removed for Admin) */}
+          {isSuperAdmin && (
+            <NavLink to="/admin/members" icon={Users}>
+              Members
+            </NavLink>
+          )}
         </>
       )}
 
@@ -79,10 +81,12 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, logout }: AdminNavProps
       {/* FAQs and Artist Activity - Only for non-controller users */}
       {!isController && (
         <>
-          {/* FAQs */}
-          <NavLink to="/admin/faqs" icon={HelpCircle}>
-            FAQs
-          </NavLink>
+          {/* FAQs - Only for SuperAdmin (removed for Admin) */}
+          {isSuperAdmin && (
+            <NavLink to="/admin/faqs" icon={HelpCircle}>
+              FAQs
+            </NavLink>
+          )}
 
           {/* Artist Activity */}
           <NavLink to="/admin/artist-activity" icon={Palette}>
