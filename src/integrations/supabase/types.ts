@@ -185,6 +185,30 @@ export type Database = {
           },
         ]
       }
+      categories: {
+        Row: {
+          category_id: number
+          category_name: string
+          created_at: string | null
+          description: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category_id?: number
+          category_name: string
+          created_at?: string | null
+          description?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: number
+          category_name?: string
+          created_at?: string | null
+          description?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       FaqMST: {
         Row: {
           active: boolean | null
@@ -418,6 +442,41 @@ export type Database = {
           status_name?: string
         }
         Relationships: []
+      }
+      sub_categories: {
+        Row: {
+          category_id: number
+          created_at: string | null
+          description: string | null
+          sub_category_id: number
+          sub_category_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category_id: number
+          created_at?: string | null
+          description?: string | null
+          sub_category_id?: number
+          sub_category_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: number
+          created_at?: string | null
+          description?: string | null
+          sub_category_id?: number
+          sub_category_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_parent_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["category_id"]
+          },
+        ]
       }
       UserMST: {
         Row: {
