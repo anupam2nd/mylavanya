@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Service } from "./ServiceForm";
 import { 
@@ -250,8 +251,7 @@ const ServiceList = ({
                     <div className="flex items-center space-x-2">
                       <Switch 
                         checked={service.active} 
-                        onCheckedChange={(e) => {
-                          e.stopPropagation();
+                        onCheckedChange={(checked) => {
                           onToggleStatus(service);
                         }}
                         onClick={(e) => e.stopPropagation()}
@@ -303,3 +303,4 @@ const ServiceList = ({
 };
 
 export default ServiceList;
+

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { 
@@ -31,6 +30,7 @@ export interface Service {
   Discount?: number | null;
   NetPayable?: number | null;
   imageUrl?: string | null;
+  created_at?: string;
 }
 
 interface ServiceFormProps {
