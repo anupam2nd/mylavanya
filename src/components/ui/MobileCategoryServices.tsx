@@ -121,7 +121,7 @@ const MobileCategoryServices = () => {
                   onClick={() => handleServiceClick(group.category)}
                   className="flex-shrink-0 group"
                 >
-                  <div className="w-24 space-y-2">
+                  <div className="w-32 space-y-2">
                     <div className="h-20 w-full rounded-lg overflow-hidden border-2 border-transparent group-hover:border-primary/50 transition-all duration-200 shadow-sm hover:shadow-md">
                       <img
                         src={service.imageUrl}
