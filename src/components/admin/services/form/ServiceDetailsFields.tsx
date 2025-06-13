@@ -121,7 +121,6 @@ const ServiceDetailsFields = ({
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Select Category</SelectItem>
             {categories.map((cat) => (
               <SelectItem key={cat.category_id} value={cat.category_name}>
                 {cat.category_name}
@@ -150,7 +149,6 @@ const ServiceDetailsFields = ({
             } />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Select Sub Category</SelectItem>
             {getFilteredSubCategories().map((subCat) => (
               <SelectItem key={subCat.sub_category_id} value={subCat.sub_category_name}>
                 {subCat.sub_category_name}
