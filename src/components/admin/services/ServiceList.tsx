@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Service } from "./ServiceForm";
 import { 
@@ -21,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ExportButton } from "@/components/ui/export-button";
+import ServiceDetailsModal from "./ServiceDetailsModal";
 
 interface ServiceListProps {
   services: Service[];
@@ -55,6 +55,8 @@ const ServiceList = ({
 }: ServiceListProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   
   const serviceHeaders = {
     prod_id: 'ID',
@@ -94,6 +96,11 @@ const ServiceList = ({
     if (sortOrder === 'asc') return <ArrowUp className="h-4 w-4" />;
     if (sortOrder === 'desc') return <ArrowDown className="h-4 w-4" />;
     return <ArrowUpDown className="h-4 w-4" />;
+  };
+
+  const handleRowClick = (service: Service) => {
+    setSelectedService(service);
+    setShowDetailsModal(true);
   };
 
   return (
@@ -190,6 +197,7 @@ const ServiceList = ({
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>ID</TableHead>
                 <TableHead>Image</TableHead>
                 <TableHead>Service</TableHead>
                 <TableHead>Product Name</TableHead>
@@ -206,7 +214,14 @@ const ServiceList = ({
             </TableHeader>
             <TableBody>
               {filteredServices.map((service) => (
-                <TableRow key={service.prod_id}>
+                <TableRow 
+                  key={service.prod_id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleRowClick(service)}
+                >
+                  <TableCell className="font-medium text-primary">
+                    #{service.prod_id}
+                  </TableCell>
                   <TableCell>
                     {service.imageUrl ? (
                       <div className="w-10 h-10 relative rounded overflow-hidden">
@@ -235,7 +250,11 @@ const ServiceList = ({
                     <div className="flex items-center space-x-2">
                       <Switch 
                         checked={service.active} 
-                        onCheckedChange={() => onToggleStatus(service)}
+                        onCheckedChange={(e) => {
+                          e.stopPropagation();
+                          onToggleStatus(service);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
                       />
                       <span className={service.active ? "text-green-600" : "text-red-600"}>
                         {service.active ? 'Active' : 'Inactive'}
@@ -246,7 +265,10 @@ const ServiceList = ({
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => onEdit(service)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(service);
+                      }}
                     >
                       <Edit className="h-4 w-4 mr-1" /> Edit
                     </Button>
@@ -255,7 +277,10 @@ const ServiceList = ({
                       <Button 
                         variant="destructive" 
                         size="sm" 
-                        onClick={() => onDelete(service)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(service);
+                        }}
                       >
                         <Trash2 className="h-4 w-4 mr-1" /> Delete
                       </Button>
@@ -267,6 +292,12 @@ const ServiceList = ({
           </Table>
         </div>
       )}
+
+      <ServiceDetailsModal
+        service={selectedService}
+        open={showDetailsModal}
+        onOpenChange={setShowDetailsModal}
+      />
     </div>
   );
 };
