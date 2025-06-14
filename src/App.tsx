@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,6 +29,7 @@ import UserBookings from "./pages/user/UserBookings";
 import Profile from "./pages/user/Profile";
 import Settings from "./pages/user/Settings";
 import ArtistDashboard from "./pages/artist/ArtistDashboard";
+import ArtistBookings from "./pages/artist/ArtistBookings";
 import Wishlist from "./pages/user/Wishlist";
 import WishlistController from "./pages/admin/WishlistController";
 import ControllerDashboard from "./pages/controller/ControllerDashboard";
@@ -119,6 +121,7 @@ const App = () => (
             
             {/* Artist Routes */}
             <Route path="/artist/dashboard" element={<ArtistDashboard />} />
+            <Route path="/artist/bookings" element={<ArtistBookings />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

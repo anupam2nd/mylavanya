@@ -45,7 +45,8 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
           <AdminNav 
             isAdmin={isAdmin} 
             isSuperAdmin={isSuperAdmin} 
-            isController={isController} 
+            isController={isController}
+            isArtist={isArtist}
             logout={logout} 
           />
         )}

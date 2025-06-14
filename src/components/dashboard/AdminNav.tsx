@@ -7,10 +7,40 @@ interface AdminNavProps {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   isController: boolean;
+  isArtist: boolean;
   logout: () => void;
 }
 
-const AdminNav = ({ isAdmin, isSuperAdmin, isController, logout }: AdminNavProps) => {
+const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: AdminNavProps) => {
+  // If user is an artist, only show Dashboard, Bookings, and Logout
+  if (isArtist) {
+    return (
+      <nav className="mt-8 space-y-2">
+        {/* Dashboard for Artist */}
+        <NavLink to="/artist/dashboard" icon={LayoutDashboard}>
+          Dashboard
+        </NavLink>
+
+        {/* Bookings for Artist */}
+        <NavLink to="/artist/bookings" icon={Calendar}>
+          Bookings
+        </NavLink>
+
+        {/* Logout for Artist */}
+        <div className="pt-4 border-t border-gray-200">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            onClick={logout}
+          >
+            <LogOut className="mr-3 h-4 w-4" />
+            Logout
+          </Button>
+        </div>
+      </nav>
+    );
+  }
+
   return (
     <nav className="mt-8 space-y-2">
       {/* Dashboard - Available for all roles */}
@@ -73,7 +103,7 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, logout }: AdminNavProps
         </>
       )}
 
-      {/* Wishlist Controller - Available for all roles */}
+      {/* Wishlist Controller - Available for all roles except artists */}
       <NavLink to="/admin/wishlist" icon={Heart}>
         Wishlist
       </NavLink>
