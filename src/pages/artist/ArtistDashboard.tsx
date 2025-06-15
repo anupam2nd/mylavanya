@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,6 +110,7 @@ const ArtistDashboard = () => {
         return;
       }
       
+      // Only fetch bookings that are assigned to this artist (excluding pending and cancelled)
       const { data, error } = await supabase
         .from('BookMST')
         .select('*')
@@ -262,7 +264,7 @@ const ArtistDashboard = () => {
               </div>
             ) : bookings.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                You don't have any active bookings assigned to you yet.
+                You don't have any assigned bookings yet.
               </div>
             ) : (
               <div className="space-y-6">

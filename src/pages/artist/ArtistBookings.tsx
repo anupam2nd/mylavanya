@@ -48,8 +48,14 @@ const ArtistBookings = () => {
     setSortBy("date_desc");
   };
 
+  // Filter out pending bookings - only show assigned bookings
+  const assignedBookings = bookings.filter(booking => {
+    const status = booking.Status?.toLowerCase() || "";
+    return !["pending", "cancelled", "p", "c"].includes(status);
+  });
+
   // Filter bookings by status
-  const filteredBookings = bookings.filter(booking => {
+  const filteredBookings = assignedBookings.filter(booking => {
     if (statusFilter === "all") return true;
     return booking.Status?.toLowerCase() === statusFilter.toLowerCase();
   });
@@ -175,8 +181,8 @@ const ArtistBookings = () => {
             ) : Object.keys(groupedBookings).length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 {statusFilter !== "all" 
-                  ? `No bookings found with status "${statusFilter}"`
-                  : "You don't have any active bookings assigned to you yet."
+                  ? `No assigned bookings found with status "${statusFilter}"`
+                  : "You don't have any assigned bookings yet."
                 }
               </div>
             ) : (
