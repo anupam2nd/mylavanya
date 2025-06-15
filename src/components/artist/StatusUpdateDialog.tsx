@@ -10,21 +10,18 @@ import { Loader2 } from "lucide-react";
 interface StatusUpdateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  bookingId: number;
-  bookingNo: string;
-  statusType: StatusUpdateType;
+  booking: any;
   onStatusUpdated: () => void;
 }
 
 const StatusUpdateDialog = ({
   open,
   onOpenChange,
-  bookingId,
-  bookingNo,
-  statusType,
+  booking,
   onStatusUpdated,
 }: StatusUpdateDialogProps) => {
   const [otp, setOtp] = useState("");
+  const [statusType, setStatusType] = useState<StatusUpdateType>("start");
   const {
     loading,
     otpSent,
@@ -42,8 +39,9 @@ const StatusUpdateDialog = ({
     onOpenChange(false);
   };
 
-  const handleInitiateOtp = async () => {
-    const success = await initiateOtpFlow(bookingId, statusType);
+  const handleInitiateOtp = async (type: StatusUpdateType) => {
+    setStatusType(type);
+    const success = await initiateOtpFlow(booking.id, type);
     if (!success) {
       handleClose();
     }
@@ -85,7 +83,7 @@ const StatusUpdateDialog = ({
         <DialogHeader>
           <DialogTitle>{getStatusTitle()}</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            {getStatusDescription()} Booking #{bookingNo}
+            {getStatusDescription()} Booking #{booking.Booking_NO}
           </p>
         </DialogHeader>
 
@@ -104,7 +102,7 @@ const StatusUpdateDialog = ({
               <Button variant="outline" onClick={handleClose} disabled={loading}>
                 Cancel
               </Button>
-              <Button onClick={handleInitiateOtp} disabled={loading}>
+              <Button onClick={() => handleInitiateOtp(statusType)} disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
