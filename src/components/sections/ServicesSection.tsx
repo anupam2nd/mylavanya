@@ -1,4 +1,6 @@
+
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Service {
   id: number;
@@ -59,6 +61,11 @@ const services: Service[] = [
 
 const ServicesSection = () => {
   const [hoveredService, setHoveredService] = useState<number | null>(null);
+  const navigate = useNavigate();
+
+  const handleViewMore = (category: string) => {
+    navigate(`/services?category=${encodeURIComponent(category)}`);
+  };
 
   return (
     <div className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-b from-background to-accent/5">
@@ -124,7 +131,10 @@ const ServicesSection = () => {
                         : "opacity-0 translate-y-2"
                     }`}
                   >
-                    <button className="bg-primary text-white px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-full hover:bg-primary/90 transition-colors duration-200 font-medium">
+                    <button 
+                      className="bg-primary text-white px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-full hover:bg-primary/90 transition-colors duration-200 font-medium"
+                      onClick={() => handleViewMore(service.category)}
+                    >
                       View More
                     </button>
                   </div>
