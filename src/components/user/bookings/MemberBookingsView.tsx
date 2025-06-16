@@ -55,61 +55,70 @@ const MemberBookingsView = ({ bookings, loading }: MemberBookingsViewProps) => {
   };
 
   return (
-    <Card className="shadow-sm hover:shadow transition-shadow">
-      <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0 bg-card border-b">
-        <CardTitle>My Bookings</CardTitle>
-        <div className="flex items-center space-x-2">
-          <BookingFilters
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            clearFilters={clearFilters}
-            statusOptions={formattedStatusOptions}
-            showDateFilter={showDateFilter}
-            setShowDateFilter={setShowDateFilter}
-            filterDateType={filterDateType}
-            setFilterDateType={setFilterDateType}
-            sortDirection={sortDirection}
-            setSortDirection={setSortDirection}
-            sortField={sortField}
-            setSortField={setSortField}
-          />
-          <ExportButton
-            data={filteredBookings}
-            filename="my_bookings"
-            headers={bookingHeaders}
-            buttonText="Export"
-          />
+    <Card className="shadow-sm hover:shadow transition-shadow w-full">
+      <CardHeader className="px-3 py-4 sm:px-6 sm:py-6 border-b bg-card">
+        <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center">
+          <CardTitle className="text-lg sm:text-xl">My Bookings</CardTitle>
+          <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-2">
+            <div className="w-full sm:w-auto">
+              <BookingFilters
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                clearFilters={clearFilters}
+                statusOptions={formattedStatusOptions}
+                showDateFilter={showDateFilter}
+                setShowDateFilter={setShowDateFilter}
+                filterDateType={filterDateType}
+                setFilterDateType={setFilterDateType}
+                sortDirection={sortDirection}
+                setSortDirection={setSortDirection}
+                sortField={sortField}
+                setSortField={setSortField}
+              />
+            </div>
+            <ExportButton
+              data={filteredBookings}
+              filename="my_bookings"
+              headers={bookingHeaders}
+              buttonText="Export"
+              className="w-full sm:w-auto text-xs sm:text-sm"
+            />
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="p-4 sm:p-6">
+      <CardContent className="p-3 sm:p-6">
         {loading ? (
           <div className="p-8 flex justify-center items-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+            <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 border-b-2 border-primary"></div>
           </div>
         ) : bookings.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-muted-foreground">No bookings found in the system.</p>
+            <p className="text-muted-foreground text-sm sm:text-base">No bookings found in the system.</p>
           </div>
         ) : (
           <>
-            <div className="mb-4 text-sm text-muted-foreground">
-              Showing {filteredBookings.length} of {bookings.length} bookings
-              {sortField && (
-                <span className="ml-2">
-                  sorted by {sortField === "creation_date" ? "creation date" : "booking date"} ({sortDirection === "desc" ? "newest first" : "oldest first"})
-                </span>
-              )}
+            <div className="mb-4 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <span>Showing {filteredBookings.length} of {bookings.length} bookings</span>
+                {sortField && (
+                  <span className="text-xs">
+                    sorted by {sortField === "creation_date" ? "creation date" : "booking date"} ({sortDirection === "desc" ? "newest first" : "oldest first"})
+                  </span>
+                )}
+              </div>
             </div>
-            <BookingsList 
-              filteredBookings={filteredBookings} 
-              clearFilters={clearFilters}
-            />
+            <div className="overflow-hidden">
+              <BookingsList 
+                filteredBookings={filteredBookings} 
+                clearFilters={clearFilters}
+              />
+            </div>
           </>
         )}
       </CardContent>

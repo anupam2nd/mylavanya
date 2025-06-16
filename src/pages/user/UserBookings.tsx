@@ -1,4 +1,3 @@
-
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
@@ -31,7 +30,6 @@ const UserBookings = () => {
             .single();
             
           if (error) {
-            console.error("Error fetching user data:", error);
             // Fall back to auth context data
             setUserData({
               Username: user.email,
@@ -40,7 +38,6 @@ const UserBookings = () => {
               role: user.role
             });
           } else if (data) {
-            console.log("Found user data in UserMST:", data);
             setUserData(data);
           }
         } catch (err) {
@@ -64,22 +61,24 @@ const UserBookings = () => {
   return (
     <ProtectedRoute>
       <DashboardLayout title="Booking Management">
-        {isMember ? (
-          <MemberBookingsView 
-            bookings={bookings} 
-            loading={loading} 
-          />
-        ) : (
-          <AdminBookingsView 
-            bookings={bookings} 
-            loading={loading} 
-            onEditClick={handleEditClick} 
-            onAddNewJob={handleAddNewJob}
-            isArtist={isArtist}
-          />
-        )}
+        <div className="p-2 sm:p-4 md:p-6">
+          {isMember ? (
+            <MemberBookingsView 
+              bookings={bookings} 
+              loading={loading} 
+            />
+          ) : (
+            <AdminBookingsView 
+              bookings={bookings} 
+              loading={loading} 
+              onEditClick={handleEditClick} 
+              onAddNewJob={handleAddNewJob}
+              isArtist={isArtist}
+            />
+          )}
 
-        {!isMember && !isArtist && dialogs}
+          {!isMember && !isArtist && dialogs}
+        </div>
       </DashboardLayout>
     </ProtectedRoute>
   );
