@@ -33,6 +33,7 @@ const BookingStatusActions = ({ booking, onStatusUpdated }: BookingStatusActions
           variant: "default" as const
         };
       case "service started":
+      case "service_started":
         return {
           label: "Complete Service",
           action: "otp",
