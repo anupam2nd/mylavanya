@@ -107,41 +107,65 @@ serve(async (req) => {
     let statusCode;
     
     try {
-      // For complete status, we need to find the "Completed" status in statusmst
-      // Let's search by status_name instead of status_code for complete
-      let statusQuery;
+      // First, let's get all active statuses to debug what's available
+      const { data: allStatuses, error: allStatusError } = await supabase
+        .from("statusmst")
+        .select("status_name, status_code")
+        .eq("active", true);
       
-      if (statusType === "complete") {
-        // Search for "Completed" in status_name
-        statusQuery = supabase
-          .from("statusmst")
-          .select("status_name, status_code")
-          .eq("status_name", "Completed")
-          .eq("active", true)
-          .single();
-      } else if (statusType === "start") {
-        // Search for "Service Started" in status_name
-        statusQuery = supabase
-          .from("statusmst")
-          .select("status_name, status_code")
-          .eq("status_name", "Service Started")
-          .eq("active", true)
-          .single();
-      } else {
-        // Fallback to searching by status_code
-        statusQuery = supabase
-          .from("statusmst")
-          .select("status_name, status_code")
-          .eq("status_code", statusType)
-          .eq("active", true)
-          .single();
+      console.log("Available statuses in statusmst:", allStatuses);
+      
+      if (allStatusError) {
+        console.error("Error fetching all statuses:", allStatusError);
       }
       
-      const { data: statusData, error: statusError } = await statusQuery;
+      // Now try to find the correct status based on statusType
+      let statusQuery;
+      let targetStatusName = "";
       
-      if (statusError || !statusData) {
-        console.error("Error fetching status from statusmst:", statusError);
-        // Fallback to hardcoded values if statusmst lookup fails
+      if (statusType === "complete") {
+        // Try different variations of "Completed" status
+        const completedVariations = ["Completed", "completed", "Complete", "complete", "Done", "done"];
+        
+        for (const variation of completedVariations) {
+          const { data: statusData, error: statusError } = await supabase
+            .from("statusmst")
+            .select("status_name, status_code")
+            .eq("status_name", variation)
+            .eq("active", true)
+            .maybeSingle();
+          
+          if (statusData && !statusError) {
+            statusName = statusData.status_name;
+            statusCode = statusData.status_code;
+            console.log(`Found matching status: ${variation} -> ${statusName} (${statusCode})`);
+            break;
+          }
+        }
+      } else if (statusType === "start") {
+        // Try different variations of "Service Started" status
+        const startedVariations = ["Service Started", "service_started", "Started", "started", "In Progress", "in_progress"];
+        
+        for (const variation of startedVariations) {
+          const { data: statusData, error: statusError } = await supabase
+            .from("statusmst")
+            .select("status_name, status_code")
+            .eq("status_name", variation)
+            .eq("active", true)
+            .maybeSingle();
+          
+          if (statusData && !statusError) {
+            statusName = statusData.status_name;
+            statusCode = statusData.status_code;
+            console.log(`Found matching status: ${variation} -> ${statusName} (${statusCode})`);
+            break;
+          }
+        }
+      }
+      
+      // If no match found, use fallback values
+      if (!statusName) {
+        console.log("No matching status found in statusmst, using hardcoded values");
         switch (statusType) {
           case "start":
             statusName = "Service Started";
@@ -155,12 +179,9 @@ serve(async (req) => {
             statusName = statusType.charAt(0).toUpperCase() + statusType.slice(1);
             statusCode = statusType;
         }
-      } else {
-        statusName = statusData.status_name;
-        statusCode = statusData.status_code;
       }
       
-      console.log(`Found status mapping: ${statusType} -> ${statusName} (${statusCode})`);
+      console.log(`Final status mapping: ${statusType} -> ${statusName} (${statusCode})`);
     } catch (statusFetchError) {
       console.error("Exception when fetching status:", statusFetchError);
       // Fallback to hardcoded values
