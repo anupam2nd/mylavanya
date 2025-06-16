@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ServiceList from "@/components/services/ServiceList";
 import { Input } from "@/components/ui/input";
@@ -10,13 +10,14 @@ import { Search, X } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 
 const Services = () => {
-  const [searchParams] = useSearchParams();
-  const categoryFromUrl = searchParams.get('category');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl || "all");
-  const [selectedSubCategory, setSelectedSubCategory] = useState("all");
-  const [sortBy, setSortBy] = useState("default");
+  // Initialize state from URL parameters
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || "all");
+  const [selectedSubCategory, setSelectedSubCategory] = useState(searchParams.get('subCategory') || "all");
+  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || "default");
   
   const { categories, subCategories, fetchSubCategories } = useCategories();
 
@@ -38,12 +39,19 @@ const Services = () => {
     }
   }, [selectedCategory, categories, fetchSubCategories]);
 
-  // Update selected category when URL parameter changes
+  // Update URL parameters when filters change
   useEffect(() => {
-    if (categoryFromUrl) {
-      setSelectedCategory(categoryFromUrl);
-    }
-  }, [categoryFromUrl]);
+    const params = new URLSearchParams();
+    
+    if (searchTerm) params.set('search', searchTerm);
+    if (selectedCategory !== "all") params.set('category', selectedCategory);
+    if (selectedSubCategory !== "all") params.set('subCategory', selectedSubCategory);
+    if (sortBy !== "default") params.set('sortBy', sortBy);
+    
+    // Update URL without triggering navigation
+    const newUrl = params.toString() ? `?${params.toString()}` : '/services';
+    window.history.replaceState({}, '', newUrl);
+  }, [searchTerm, selectedCategory, selectedSubCategory, sortBy]);
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
@@ -55,6 +63,8 @@ const Services = () => {
     setSelectedCategory("all");
     setSelectedSubCategory("all");
     setSortBy("default");
+    // Clear URL parameters
+    setSearchParams({});
   };
 
   return (
@@ -136,11 +146,15 @@ const Services = () => {
           </Button>
         </div>
 
-        {/* Show category filter info for mobile users */}
-        {categoryFromUrl && (
+        {/* Show active filters info */}
+        {(searchTerm || selectedCategory !== "all" || selectedSubCategory !== "all" || sortBy !== "default") && (
           <div className="mb-4 p-3 bg-primary/10 rounded-lg">
             <p className="text-sm text-primary font-medium">
-              Showing services for: {categoryFromUrl}
+              Filters applied: 
+              {searchTerm && ` Search: "${searchTerm}"`}
+              {selectedCategory !== "all" && ` | Category: ${selectedCategory}`}
+              {selectedSubCategory !== "all" && ` | Sub-category: ${selectedSubCategory}`}
+              {sortBy !== "default" && ` | Sort: ${sortBy.replace('_', ' ')}`}
             </p>
           </div>
         )}
