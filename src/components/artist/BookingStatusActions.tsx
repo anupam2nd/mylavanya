@@ -40,6 +40,7 @@ const BookingStatusActions = ({ booking, onStatusUpdated }: BookingStatusActions
           variant: "default" as const
         };
       case "completed":
+      case "complete":
       case "done":
         return null; // No action button for completed services
       default:
