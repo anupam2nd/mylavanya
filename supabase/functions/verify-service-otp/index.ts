@@ -42,8 +42,6 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
     
     // Get OTP record
-    console.log(`Verifying OTP for booking ${bookingId}, status ${statusType}`);
-    
     // First ensure the service_otps table exists
     try {
       const { error: createTableError } = await supabase.rpc(
@@ -51,11 +49,9 @@ serve(async (req) => {
       );
       
       if (createTableError) {
-        console.error("Error ensuring service_otps table exists:", createTableError);
         // Continue anyway, as the table might already exist
       }
     } catch (tableError) {
-      console.error("Exception when checking/creating table:", tableError);
       // Continue with the rest of the code
     }
     
@@ -69,7 +65,6 @@ serve(async (req) => {
       .single();
     
     if (otpError || !otpRecord) {
-      console.error("Error retrieving OTP record:", otpError);
       return new Response(
         JSON.stringify({ error: "Invalid OTP" }),
         {
@@ -81,8 +76,6 @@ serve(async (req) => {
     
     // Check if OTP is expired
     if (new Date() > new Date(otpRecord.expires_at)) {
-      console.log("OTP expired");
-      
       // Delete expired OTP
       const { error: deleteError } = await supabase
         .from("service_otps")
@@ -90,7 +83,7 @@ serve(async (req) => {
         .eq("id", otpRecord.id);
         
       if (deleteError) {
-        console.error("Error deleting expired OTP:", deleteError);
+        // Continue with error response
       }
       
       return new Response(
@@ -107,8 +100,6 @@ serve(async (req) => {
     let statusCode;
     
     try {
-      console.log(`Looking up status for statusType: ${statusType}`);
-      
       // Map statusType to the correct status_code in statusmst table
       let targetStatusCode;
       switch (statusType) {
@@ -122,8 +113,6 @@ serve(async (req) => {
           targetStatusCode = statusType;
       }
       
-      console.log(`Mapped statusType "${statusType}" to statusCode "${targetStatusCode}"`);
-      
       // Query statusmst by status_code to get the status_name
       const { data: statusData, error: statusError } = await supabase
         .from("statusmst")
@@ -133,15 +122,13 @@ serve(async (req) => {
         .maybeSingle();
       
       if (statusError) {
-        console.error("Error fetching status from statusmst:", statusError);
+        // Handle error silently
       }
       
       if (statusData) {
         statusName = statusData.status_name;
         statusCode = statusData.status_code;
-        console.log(`Found status in statusmst: ${statusCode} -> ${statusName}`);
       } else {
-        console.log("No matching status found in statusmst, using fallback values");
         // Fallback to hardcoded values
         switch (statusType) {
           case "start":
@@ -158,9 +145,7 @@ serve(async (req) => {
         }
       }
       
-      console.log(`Final status mapping: ${statusType} -> ${statusName} (${statusCode})`);
     } catch (statusFetchError) {
-      console.error("Exception when fetching status:", statusFetchError);
       // Fallback to hardcoded values
       switch (statusType) {
         case "start":
@@ -196,14 +181,12 @@ serve(async (req) => {
       }
     }
     
-    console.log(`Updating booking ${bookingId} status to ${statusName}`);
     const { error: updateError2 } = await supabase
       .from("BookMST")
       .update(updates)
       .eq("id", bookingId);
     
     if (updateError2) {
-      console.error("Error updating booking status:", updateError2);
       return new Response(
         JSON.stringify({ error: "Failed to update booking status", details: updateError2.message }),
         {
@@ -220,10 +203,7 @@ serve(async (req) => {
       .eq("id", otpRecord.id);
       
     if (deleteError) {
-      console.error("Error deleting verified OTP:", deleteError);
       // Continue even if deletion fails
-    } else {
-      console.log(`Successfully deleted OTP record with ID ${otpRecord.id}`);
     }
     
     return new Response(
@@ -238,7 +218,6 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Error processing OTP verification:", error);
     return new Response(
       JSON.stringify({ error: "Internal server error", details: error.message }),
       {

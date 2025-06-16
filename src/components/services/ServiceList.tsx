@@ -50,8 +50,6 @@ const ServiceList = ({
       setError(null);
       
       try {
-        console.log("Fetching active services with filters:", { selectedCategory, selectedSubCategory });
-        
         // Create a query to the PriceMST table and filter for active services only
         let query = supabase
           .from('PriceMST')
@@ -77,20 +75,15 @@ const ServiceList = ({
         const { data, error } = await query;
         
         if (error) {
-          console.error("Supabase error:", error);
           throw error;
         }
         
-        console.log("Services fetched:", data?.length || 0);
-        
         if (!data || data.length === 0) {
-          console.log("No active services found for the selected filters.");
           setServices([]);
         } else {
           setServices(data);
         }
       } catch (error) {
-        console.error("Error fetching services:", error);
         setError("Failed to load services. Please try again later.");
       } finally {
         setLoading(false);
@@ -129,7 +122,6 @@ const ServiceList = ({
     });
   
   const handleServiceClick = (serviceId: number) => {
-    console.log("Navigating to service detail:", serviceId);
     navigate(`/services/${serviceId}`);
   };
   
