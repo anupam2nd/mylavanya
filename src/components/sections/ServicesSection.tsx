@@ -6,6 +6,7 @@ interface Service {
   description: string;
   image: string;
   bgColor: string;
+  category : string;
 }
 
 const services: Service[] = [
@@ -16,6 +17,7 @@ const services: Service[] = [
       "From stylish haircuts to spa, color, and therapy – our professionals deliver salon-quality hair services at home for both men and women.",
     image: "images/we-offer/Hair.jpeg",
     bgColor: "bg-pink-100",
+    category: "Hair Services",
   },
   {
     id: 2,
@@ -24,6 +26,7 @@ const services: Service[] = [
       "Get Party, Bridal, or everyday makeup done by experts in your own space. For all occasions. Choose services from various range in just one click.",
     image: "images/we-offer/Makeup.jpeg",
     bgColor: "bg-green-100",
+    category : "Makeup"
   },
   {
     id: 3,
@@ -32,6 +35,7 @@ const services: Service[] = [
       "Beautiful and artistic mehendi designs applied at home for weddings, festivals, or just self-love.",
     image: "images/we-offer/Mehendi.jpeg",
     bgColor: "bg-purple-100",
+    category : "Mehendi"
   },
   {
     id: 4,
@@ -40,6 +44,7 @@ const services: Service[] = [
       "Trendy and elegant nail art, extensions, and care services at home. Perfect for those who love well-groomed hands",
     image: "images/we-offer/Nail.jpeg",
     bgColor: "bg-blue-100",
+    category : "Nail Care"
   },
   {
     id: 5,
@@ -48,6 +53,7 @@ const services: Service[] = [
       "Premium salon services for men and women, right at your doorstep. Enjoy comfort, hygiene, and expert care at home.",
     image: "images/we-offer/Salon.jpeg",
     bgColor: "bg-yellow-100",
+    category : "Salon Services"
   },
 ];
 
