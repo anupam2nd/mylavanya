@@ -137,11 +137,11 @@ const ServiceCard = ({
         
         <p className="text-gray-600 text-sm line-clamp-3">{truncatedDescription}</p>
         
-        {scheme && !isMember && (
+        /* {scheme && !isMember && (
           <div className="mt-2 text-xs bg-yellow-50 text-yellow-800 p-2 rounded">
             <span className="font-medium">Special offer:</span> {scheme}
           </div>
-        )}
+        )} */
       </CardContent>
       
       <CardFooter className="p-4 pt-0">
