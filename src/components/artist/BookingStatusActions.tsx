@@ -103,6 +103,7 @@ const BookingStatusActions = ({ booking, onStatusUpdated }: BookingStatusActions
           onOpenChange={setIsStatusDialogOpen}
           booking={booking}
           onStatusUpdated={onStatusUpdated}
+          statusType={currentStatusType}
         />
       )}
     </>

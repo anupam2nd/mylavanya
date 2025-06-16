@@ -12,6 +12,7 @@ interface StatusUpdateDialogProps {
   onOpenChange: (open: boolean) => void;
   booking: any;
   onStatusUpdated: () => void;
+  statusType: "start" | "complete";
 }
 
 const StatusUpdateDialog = ({
@@ -19,9 +20,9 @@ const StatusUpdateDialog = ({
   onOpenChange,
   booking,
   onStatusUpdated,
+  statusType,
 }: StatusUpdateDialogProps) => {
   const [otp, setOtp] = useState("");
-  const [statusType, setStatusType] = useState<StatusUpdateType>("start");
   const {
     loading,
     otpSent,
@@ -39,9 +40,8 @@ const StatusUpdateDialog = ({
     onOpenChange(false);
   };
 
-  const handleInitiateOtp = async (type: StatusUpdateType) => {
-    setStatusType(type);
-    const success = await initiateOtpFlow(booking.id, type);
+  const handleInitiateOtp = async () => {
+    const success = await initiateOtpFlow(booking.id, statusType);
     if (!success) {
       handleClose();
     }
@@ -113,7 +113,7 @@ const StatusUpdateDialog = ({
               <Button variant="outline" onClick={handleClose} disabled={loading}>
                 Cancel
               </Button>
-              <Button onClick={() => handleInitiateOtp(statusType)} disabled={loading}>
+              <Button onClick={handleInitiateOtp} disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
