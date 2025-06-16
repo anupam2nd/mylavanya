@@ -1,4 +1,3 @@
-
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserBookings } from "@/hooks/useUserBookings";
@@ -6,10 +5,11 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useState } from "react";
 import AddServiceDialog from "@/components/artist/AddServiceDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Filter, SortAsc, SortDesc } from "lucide-react";
+import { Plus, Filter, SortAsc, SortDesc, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
 import ArtistBookingsList from "@/components/artist/ArtistBookingsList";
+import { Badge } from "@/components/ui/badge";
 
 const ArtistBookings = () => {
   const { bookings, loading, setBookings } = useUserBookings();
@@ -86,114 +86,159 @@ const ArtistBookings = () => {
     return acc;
   }, {});
 
+  const activeFiltersCount = [
+    statusFilter !== "all",
+    sortBy !== "date_desc"
+  ].filter(Boolean).length;
+
   return (
     <ProtectedRoute allowedRoles={["artist"]}>
       <DashboardLayout title="My Bookings">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold">Assigned Bookings</h2>
-          <p className="text-muted-foreground">
-            Manage your assigned bookings and update their status
-          </p>
-        </div>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="px-1 sm:px-0">
+            <h2 className="text-xl sm:text-2xl font-bold">Assigned Bookings</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Manage your assigned bookings and update their status
+            </p>
+          </div>
 
-        {/* Filters and Sorting */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              Filters & Sorting
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-              <div className="w-full sm:w-48">
-                <label className="text-sm font-medium mb-2 block">Status Filter</label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    {formattedStatusOptions.map((status) => (
-                      <SelectItem key={status.value} value={status.status_name}>
-                        {status.label}
+          {/* Mobile-First Filters */}
+          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Filter className="h-4 w-4 text-blue-600" />
+                <span>Filters & Sorting</span>
+                {activeFiltersCount > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {activeFiltersCount}
+                  </Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Mobile: Stack filters vertically */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-medium text-gray-700">Status Filter</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="h-9 sm:h-10">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      {formattedStatusOptions.map((status) => (
+                        <SelectItem key={status.value} value={status.status_name}>
+                          {status.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-medium text-gray-700">Sort By</label>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="h-9 sm:h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="date_desc">
+                        <div className="flex items-center gap-2">
+                          <SortDesc className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="text-xs sm:text-sm">Newest First</span>
+                        </div>
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                      <SelectItem value="date_asc">
+                        <div className="flex items-center gap-2">
+                          <SortAsc className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="text-xs sm:text-sm">Oldest First</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="price_desc">
+                        <div className="flex items-center gap-2">
+                          <SortDesc className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="text-xs sm:text-sm">Price: High to Low</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="price_asc">
+                        <div className="flex items-center gap-2">
+                          <SortAsc className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="text-xs sm:text-sm">Price: Low to High</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="w-full sm:w-48">
-                <label className="text-sm font-medium mb-2 block">Sort By</label>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="date_desc">
-                      <div className="flex items-center gap-2">
-                        <SortDesc className="h-4 w-4" />
-                        Date (Newest First)
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="date_asc">
-                      <div className="flex items-center gap-2">
-                        <SortAsc className="h-4 w-4" />
-                        Date (Oldest First)
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="price_desc">
-                      <div className="flex items-center gap-2">
-                        <SortDesc className="h-4 w-4" />
-                        Price (High to Low)
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="price_asc">
-                      <div className="flex items-center gap-2">
-                        <SortAsc className="h-4 w-4" />
-                        Price (Low to High)
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="sm:col-span-2 lg:col-span-2 flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={clearFilters}
+                    className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm"
+                    disabled={activeFiltersCount === 0}
+                  >
+                    <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    Clear Filters
+                  </Button>
+                </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <Button
-                variant="outline"
-                onClick={clearFilters}
-                className="w-full sm:w-auto"
-              >
-                Clear Filters
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Assigned Bookings ({Object.keys(groupedBookings).length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          {/* Bookings List */}
+          <Card>
+            <CardHeader className="pb-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <CardTitle className="text-lg sm:text-xl">
+                  Your Assigned Bookings 
+                  <span className="text-sm sm:text-base font-normal text-muted-foreground ml-2">
+                    ({Object.keys(groupedBookings).length})
+                  </span>
+                </CardTitle>
+                {Object.keys(groupedBookings).length > 0 && (
+                  <div className="text-xs sm:text-sm text-muted-foreground">
+                    {statusFilter !== "all" ? `Filtered by: ${statusFilter}` : "All bookings"}
+                  </div>
+                )}
               </div>
-            ) : Object.keys(groupedBookings).length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                {statusFilter !== "all" 
-                  ? `No assigned bookings found with status "${statusFilter}"`
-                  : "You don't have any assigned bookings yet."
-                }
-              </div>
-            ) : (
-              <ArtistBookingsList 
-                groupedBookings={groupedBookings}
-                onAddNewService={handleAddNewService}
-                onRefreshBookings={refreshBookings}
-              />
-            )}
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="p-3 sm:p-6">
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : Object.keys(groupedBookings).length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-4xl sm:text-6xl mb-4">
+                    {statusFilter !== "all" ? "🔍" : "📋"}
+                  </div>
+                  <p className="text-sm sm:text-base mb-2">
+                    {statusFilter !== "all" 
+                      ? `No assigned bookings found with status "${statusFilter}"`
+                      : "You don't have any assigned bookings yet."
+                    }
+                  </p>
+                  {statusFilter !== "all" && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={clearFilters}
+                      className="mt-2"
+                    >
+                      Clear Filters
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <ArtistBookingsList 
+                  groupedBookings={groupedBookings}
+                  onAddNewService={handleAddNewService}
+                  onRefreshBookings={refreshBookings}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Add Service Dialog */}
         {selectedBooking && (
