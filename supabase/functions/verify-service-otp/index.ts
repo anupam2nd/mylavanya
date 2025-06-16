@@ -102,22 +102,68 @@ serve(async (req) => {
       );
     }
     
-    // Map statusType to actual status code
-    let statusCode;
+    // Get the correct status_name from statusmst table based on statusType
     let statusName;
+    let statusCode;
     
-    switch (statusType) {
-      case "start":
-        statusCode = "service_started";
-        statusName = "Service Started";
-        break;
-      case "complete":
-        statusCode = "done";
-        statusName = "Completed";
-        break;
-      default:
-        statusCode = statusType;
-        statusName = statusType.charAt(0).toUpperCase() + statusType.slice(1);
+    try {
+      let targetStatusCode;
+      
+      switch (statusType) {
+        case "start":
+          targetStatusCode = "service_started";
+          break;
+        case "complete":
+          targetStatusCode = "done";
+          break;
+        default:
+          targetStatusCode = statusType;
+      }
+      
+      // Fetch the status_name from statusmst table
+      const { data: statusData, error: statusError } = await supabase
+        .from("statusmst")
+        .select("status_name, status_code")
+        .eq("status_code", targetStatusCode)
+        .eq("active", true)
+        .single();
+      
+      if (statusError || !statusData) {
+        console.error("Error fetching status from statusmst:", statusError);
+        // Fallback to hardcoded values if statusmst lookup fails
+        switch (statusType) {
+          case "start":
+            statusName = "Service Started";
+            statusCode = "service_started";
+            break;
+          case "complete":
+            statusName = "Completed";
+            statusCode = "done";
+            break;
+          default:
+            statusName = statusType.charAt(0).toUpperCase() + statusType.slice(1);
+            statusCode = statusType;
+        }
+      } else {
+        statusName = statusData.status_name;
+        statusCode = statusData.status_code;
+      }
+    } catch (statusFetchError) {
+      console.error("Exception when fetching status:", statusFetchError);
+      // Fallback to hardcoded values
+      switch (statusType) {
+        case "start":
+          statusName = "Service Started";
+          statusCode = "service_started";
+          break;
+        case "complete":
+          statusName = "Completed";
+          statusCode = "done";
+          break;
+        default:
+          statusName = statusType.charAt(0).toUpperCase() + statusType.slice(1);
+          statusCode = statusType;
+      }
     }
     
     // Update booking status
