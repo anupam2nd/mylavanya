@@ -52,7 +52,10 @@ const AdminBookings = () => {
     setSortDirection,
     sortField,
     setSortField,
-    clearFilters
+    clearFilters,
+    artistFilter,
+    setArtistFilter,
+    artistOptions
   } = useBookingFilters(bookings);
 
   useEffect(() => {
@@ -202,6 +205,9 @@ const AdminBookings = () => {
                 setSortDirection={setSortDirection}
                 sortField={sortField}
                 setSortField={setSortField}
+                artistFilter={artistFilter}
+                setArtistFilter={setArtistFilter}
+                artistOptions={artistOptions}
               />
             </div>
           </CardHeader>
@@ -211,6 +217,11 @@ const AdminBookings = () => {
               {sortField && (
                 <span className="ml-2">
                   sorted by {sortField === "creation_date" ? "creation date" : "booking date"} ({sortDirection === "desc" ? "newest first" : "oldest first"})
+                </span>
+              )}
+              {artistFilter !== "all" && (
+                <span className="ml-2">
+                  • Filtered by artist
                 </span>
               )}
             </div>

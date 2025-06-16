@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,7 +62,10 @@ const ControllerBookings = () => {
     setSortDirection,
     sortField,
     setSortField,
-    clearFilters
+    clearFilters,
+    artistFilter,
+    setArtistFilter,
+    artistOptions
   } = useBookingFilters(bookings);
 
   useEffect(() => {
@@ -214,6 +216,9 @@ const ControllerBookings = () => {
                 setSortDirection={setSortDirection}
                 sortField={sortField}
                 setSortField={setSortField}
+                artistFilter={artistFilter}
+                setArtistFilter={setArtistFilter}
+                artistOptions={artistOptions}
               />
             </div>
           </CardHeader>
@@ -223,6 +228,11 @@ const ControllerBookings = () => {
               {sortField && (
                 <span className="ml-2 block sm:inline">
                   sorted by {sortField === "creation_date" ? "creation date" : "booking date"} ({sortDirection === "desc" ? "newest first" : "oldest first"})
+                </span>
+              )}
+              {artistFilter !== "all" && (
+                <span className="ml-2">
+                  • Filtered by artist
                 </span>
               )}
             </div>

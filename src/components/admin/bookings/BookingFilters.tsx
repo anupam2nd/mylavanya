@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { DateRange } from "react-day-picker";
-import { FilterX, Search, Calendar as CalendarIcon, ArrowDownUp } from "lucide-react";
+import { FilterX, Search, Calendar as CalendarIcon, ArrowDownUp, User } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -43,6 +43,9 @@ interface BookingFiltersProps {
   setSortDirection: (direction: SortDirection) => void;
   sortField: SortField;
   setSortField: (field: SortField) => void;
+  artistFilter?: string;
+  setArtistFilter?: (value: string) => void;
+  artistOptions?: Array<{ value: string; label: string; empCode: string }>;
 }
 
 const BookingFilters: React.FC<BookingFiltersProps> = ({
@@ -64,6 +67,9 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
   setSortDirection,
   sortField,
   setSortField,
+  artistFilter = "all",
+  setArtistFilter,
+  artistOptions = []
 }) => {
   const [date, setDate] = useState<DateRange | undefined>(
     startDate && endDate ? {
@@ -120,6 +126,31 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
           ))}
         </SelectContent>
       </Select>
+
+      {setArtistFilter && (
+        <Select 
+          value={artistFilter} 
+          onValueChange={(value) => {
+            console.log("Selected artist filter:", value);
+            setArtistFilter(value);
+          }}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Artist" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Artists</SelectItem>
+            {artistOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                <div className="flex flex-col">
+                  <span>{option.label}</span>
+                  <span className="text-xs text-muted-foreground">{option.empCode}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
       <Popover>
         <PopoverTrigger asChild>
@@ -192,7 +223,7 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {(startDate || endDate || statusFilter !== "all" || searchQuery) && (
+      {(startDate || endDate || statusFilter !== "all" || searchQuery || (artistFilter && artistFilter !== "all")) && (
         <Button 
           variant="ghost" 
           size="sm" 
