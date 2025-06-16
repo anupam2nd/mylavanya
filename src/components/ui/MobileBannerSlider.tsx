@@ -7,6 +7,7 @@ import {
   CarouselItem,
   type CarouselApi
 } from "./carousel";
+import { AspectRatio } from "./aspect-ratio";
 
 interface BannerImage {
   id: number;
@@ -88,11 +89,13 @@ const MobileBannerSlider = () => {
           {bannerImages.map((image) => (
             <CarouselItem key={image.id}>
               <div className="w-full">
-                <img 
-                  src={image.image_url} 
-                  alt="Banner"
-                  className="w-full h-48 object-cover rounded-lg"
-                />
+                <AspectRatio ratio={16 / 9} className="bg-muted rounded-lg overflow-hidden">
+                  <img 
+                    src={image.image_url} 
+                    alt="Banner"
+                    className="w-full h-full object-cover"
+                  />
+                </AspectRatio>
               </div>
             </CarouselItem>
           ))}
