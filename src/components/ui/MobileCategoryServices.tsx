@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,8 +67,8 @@ const MobileCategoryServices = () => {
     fetchServices();
   }, []);
 
-  const handleServiceClick = (category: string) => {
-    navigate(`/services?category=${encodeURIComponent(category)}`);
+  const handleServiceClick = (serviceId: number) => {
+    navigate(`/services/${serviceId}`);
   };
 
   const formatPrice = (price: number) => {
@@ -118,7 +117,7 @@ const MobileCategoryServices = () => {
               {group.services.map((service) => (
                 <button
                   key={service.prod_id}
-                  onClick={() => handleServiceClick(group.category)}
+                  onClick={() => handleServiceClick(service.prod_id)}
                   className="flex-shrink-0 group"
                 >
                   <div className="w-32 space-y-2">
