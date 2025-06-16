@@ -12,6 +12,7 @@ interface BookingStatusActionsProps {
 
 const BookingStatusActions = ({ booking, onStatusUpdated }: BookingStatusActionsProps) => {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [currentStatusType, setCurrentStatusType] = useState<"start" | "complete">("start");
   const { updateStatusDirect, loading, bookingInProgress } = useArtistStatusUpdate();
 
   const currentStatus = booking.Status?.toLowerCase() || "";
@@ -30,6 +31,7 @@ const BookingStatusActions = ({ booking, onStatusUpdated }: BookingStatusActions
         return {
           label: "Start Service",
           action: "otp",
+          statusType: "start" as const,
           variant: "default" as const
         };
       case "service started":
@@ -37,6 +39,7 @@ const BookingStatusActions = ({ booking, onStatusUpdated }: BookingStatusActions
         return {
           label: "Complete Service",
           action: "otp",
+          statusType: "complete" as const,
           variant: "default" as const
         };
       case "completed":
@@ -59,7 +62,8 @@ const BookingStatusActions = ({ booking, onStatusUpdated }: BookingStatusActions
     }
   };
 
-  const handleOtpStatusUpdate = () => {
+  const handleOtpStatusUpdate = (statusType: "start" | "complete") => {
+    setCurrentStatusType(statusType);
     setIsStatusDialogOpen(true);
   };
 
@@ -76,7 +80,10 @@ const BookingStatusActions = ({ booking, onStatusUpdated }: BookingStatusActions
       <Button
         variant={statusAction.variant}
         size="sm"
-        onClick={statusAction.action === "direct" ? handleDirectStatusUpdate : handleOtpStatusUpdate}
+        onClick={statusAction.action === "direct" 
+          ? handleDirectStatusUpdate 
+          : () => handleOtpStatusUpdate(statusAction.statusType!)
+        }
         disabled={isCurrentBookingLoading}
         className="text-xs h-7"
       >

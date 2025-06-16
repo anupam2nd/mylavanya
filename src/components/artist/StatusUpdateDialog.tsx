@@ -77,6 +77,17 @@ const StatusUpdateDialog = ({
     }
   };
 
+  const getTargetStatusText = () => {
+    switch (statusType) {
+      case "start":
+        return "Started";
+      case "complete":
+        return "Completed";
+      default:
+        return statusType;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -91,7 +102,7 @@ const StatusUpdateDialog = ({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <p>
-                To update the status to <strong>{statusType === "start" ? "Started" : "Completed"}</strong>,
+                To update the status to <strong>{getTargetStatusText()}</strong>,
                 you need to verify with an OTP that will be sent to the customer.
               </p>
               <p className="text-sm text-muted-foreground">
