@@ -107,26 +107,37 @@ serve(async (req) => {
     let statusCode;
     
     try {
-      let targetStatusCode;
+      // For complete status, we need to find the "Completed" status in statusmst
+      // Let's search by status_name instead of status_code for complete
+      let statusQuery;
       
-      switch (statusType) {
-        case "start":
-          targetStatusCode = "service_started";
-          break;
-        case "complete":
-          targetStatusCode = "done";
-          break;
-        default:
-          targetStatusCode = statusType;
+      if (statusType === "complete") {
+        // Search for "Completed" in status_name
+        statusQuery = supabase
+          .from("statusmst")
+          .select("status_name, status_code")
+          .eq("status_name", "Completed")
+          .eq("active", true)
+          .single();
+      } else if (statusType === "start") {
+        // Search for "Service Started" in status_name
+        statusQuery = supabase
+          .from("statusmst")
+          .select("status_name, status_code")
+          .eq("status_name", "Service Started")
+          .eq("active", true)
+          .single();
+      } else {
+        // Fallback to searching by status_code
+        statusQuery = supabase
+          .from("statusmst")
+          .select("status_name, status_code")
+          .eq("status_code", statusType)
+          .eq("active", true)
+          .single();
       }
       
-      // Fetch the status_name from statusmst table
-      const { data: statusData, error: statusError } = await supabase
-        .from("statusmst")
-        .select("status_name, status_code")
-        .eq("status_code", targetStatusCode)
-        .eq("active", true)
-        .single();
+      const { data: statusData, error: statusError } = await statusQuery;
       
       if (statusError || !statusData) {
         console.error("Error fetching status from statusmst:", statusError);
@@ -138,7 +149,7 @@ serve(async (req) => {
             break;
           case "complete":
             statusName = "Completed";
-            statusCode = "done";
+            statusCode = "completed";
             break;
           default:
             statusName = statusType.charAt(0).toUpperCase() + statusType.slice(1);
@@ -148,6 +159,8 @@ serve(async (req) => {
         statusName = statusData.status_name;
         statusCode = statusData.status_code;
       }
+      
+      console.log(`Found status mapping: ${statusType} -> ${statusName} (${statusCode})`);
     } catch (statusFetchError) {
       console.error("Exception when fetching status:", statusFetchError);
       // Fallback to hardcoded values
@@ -158,7 +171,7 @@ serve(async (req) => {
           break;
         case "complete":
           statusName = "Completed";
-          statusCode = "done";
+          statusCode = "completed";
           break;
         default:
           statusName = statusType.charAt(0).toUpperCase() + statusType.slice(1);
