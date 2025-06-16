@@ -107,73 +107,50 @@ serve(async (req) => {
     let statusCode;
     
     try {
-      // First, let's get all active statuses to debug what's available
-      const { data: allStatuses, error: allStatusError } = await supabase
+      console.log(`Looking up status for statusType: ${statusType}`);
+      
+      // Map statusType to the correct status_code in statusmst table
+      let targetStatusCode;
+      switch (statusType) {
+        case "start":
+          targetStatusCode = "start";
+          break;
+        case "complete":
+          targetStatusCode = "complete";
+          break;
+        default:
+          targetStatusCode = statusType;
+      }
+      
+      console.log(`Mapped statusType "${statusType}" to statusCode "${targetStatusCode}"`);
+      
+      // Query statusmst by status_code to get the status_name
+      const { data: statusData, error: statusError } = await supabase
         .from("statusmst")
         .select("status_name, status_code")
-        .eq("active", true);
+        .eq("status_code", targetStatusCode)
+        .eq("active", true)
+        .maybeSingle();
       
-      console.log("Available statuses in statusmst:", allStatuses);
-      
-      if (allStatusError) {
-        console.error("Error fetching all statuses:", allStatusError);
+      if (statusError) {
+        console.error("Error fetching status from statusmst:", statusError);
       }
       
-      // Now try to find the correct status based on statusType
-      let statusQuery;
-      let targetStatusName = "";
-      
-      if (statusType === "complete") {
-        // Try different variations of "Completed" status
-        const completedVariations = ["Completed", "completed", "Complete", "complete", "Done", "done"];
-        
-        for (const variation of completedVariations) {
-          const { data: statusData, error: statusError } = await supabase
-            .from("statusmst")
-            .select("status_name, status_code")
-            .eq("status_name", variation)
-            .eq("active", true)
-            .maybeSingle();
-          
-          if (statusData && !statusError) {
-            statusName = statusData.status_name;
-            statusCode = statusData.status_code;
-            console.log(`Found matching status: ${variation} -> ${statusName} (${statusCode})`);
-            break;
-          }
-        }
-      } else if (statusType === "start") {
-        // Try different variations of "Service Started" status
-        const startedVariations = ["Service Started", "service_started", "Started", "started", "In Progress", "in_progress"];
-        
-        for (const variation of startedVariations) {
-          const { data: statusData, error: statusError } = await supabase
-            .from("statusmst")
-            .select("status_name, status_code")
-            .eq("status_name", variation)
-            .eq("active", true)
-            .maybeSingle();
-          
-          if (statusData && !statusError) {
-            statusName = statusData.status_name;
-            statusCode = statusData.status_code;
-            console.log(`Found matching status: ${variation} -> ${statusName} (${statusCode})`);
-            break;
-          }
-        }
-      }
-      
-      // If no match found, use fallback values
-      if (!statusName) {
-        console.log("No matching status found in statusmst, using hardcoded values");
+      if (statusData) {
+        statusName = statusData.status_name;
+        statusCode = statusData.status_code;
+        console.log(`Found status in statusmst: ${statusCode} -> ${statusName}`);
+      } else {
+        console.log("No matching status found in statusmst, using fallback values");
+        // Fallback to hardcoded values
         switch (statusType) {
           case "start":
             statusName = "Service Started";
-            statusCode = "service_started";
+            statusCode = "start";
             break;
           case "complete":
             statusName = "Completed";
-            statusCode = "completed";
+            statusCode = "complete";
             break;
           default:
             statusName = statusType.charAt(0).toUpperCase() + statusType.slice(1);
@@ -188,11 +165,11 @@ serve(async (req) => {
       switch (statusType) {
         case "start":
           statusName = "Service Started";
-          statusCode = "service_started";
+          statusCode = "start";
           break;
         case "complete":
           statusName = "Completed";
-          statusCode = "completed";
+          statusCode = "complete";
           break;
         default:
           statusName = statusType.charAt(0).toUpperCase() + statusType.slice(1);
