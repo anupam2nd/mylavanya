@@ -1,6 +1,7 @@
 
-import { Menu } from "lucide-react";
+import { Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface HeaderBarProps {
   title: string;
@@ -11,29 +12,32 @@ interface HeaderBarProps {
 
 const HeaderBar = ({ title, userEmail, userRole, onOpenSidebar }: HeaderBarProps) => {
   return (
-    <header className="bg-white shadow-sm z-10">
-      <div className="px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="mr-4 lg:hidden"
-            onClick={onOpenSidebar}
-          >
-            <Menu size={20} />
-          </Button>
-          <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
-        </div>
-        <div className="flex items-center">
-          {userEmail && (
-            <span className="text-sm font-medium text-gray-900 mr-2">
-              {userEmail}
-            </span>
-          )}
-          {userRole && (
-            <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+    <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+      <div className="flex items-center space-x-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="lg:hidden"
+          onClick={onOpenSidebar}
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
+          {title}
+        </h1>
+      </div>
+
+      <div className="flex items-center space-x-2 sm:space-x-3">
+        <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <User className="h-4 w-4" />
+          <span className="hidden sm:inline truncate max-w-[120px] sm:max-w-[200px]">
+            {userEmail}
+          </span>
+          {/* Only show role badge for non-member roles */}
+          {userRole && userRole !== 'member' && (
+            <Badge variant="secondary" className="text-xs">
               {userRole}
-            </span>
+            </Badge>
           )}
         </div>
       </div>
