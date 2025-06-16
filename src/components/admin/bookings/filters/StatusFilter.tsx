@@ -20,6 +20,16 @@ export const StatusFilter: React.FC<StatusFilterProps> = ({
 }) => {
   console.log("Status options available for filter:", statusOptions);
 
+  // Add "Completed" option if it's not already in the statusOptions
+  const allStatusOptions = [
+    ...statusOptions,
+    // Only add "Completed" if it doesn't already exist
+    ...(statusOptions.some(option => option.label.toLowerCase() === 'completed') 
+        ? [] 
+        : [{ value: 'completed', label: 'Completed' }]
+    )
+  ];
+
   return (
     <Select 
       value={statusFilter} 
@@ -33,7 +43,7 @@ export const StatusFilter: React.FC<StatusFilterProps> = ({
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">All statuses</SelectItem>
-        {statusOptions.map((option) => (
+        {allStatusOptions.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}
           </SelectItem>
