@@ -45,7 +45,7 @@ interface BookingFiltersProps {
   setSortField: (field: SortField) => void;
   artistFilter?: string;
   setArtistFilter?: (artist: string) => void;
-  artistOptions?: Array<{ value: string; label: string }>;
+  artistOptions?: Array<{ value: string; label: string; empCode: string }>;
   getArtistName?: (id: number) => string;
 }
 
@@ -140,7 +140,6 @@ const BookingFilters = ({
                       artistFilter={artistFilter || "all"}
                       setArtistFilter={setArtistFilter}
                       artistOptions={artistOptions}
-                      getArtistName={getArtistName}
                     />
                   )}
 
@@ -161,7 +160,6 @@ const BookingFilters = ({
                         endDate={endDate}
                         setEndDate={setEndDate}
                         showDateFilter={showDateFilter}
-                        setShowDateFilter={setShowDateFilter}
                         filterDateType={filterDateType}
                         setFilterDateType={setFilterDateType}
                       />
@@ -175,7 +173,14 @@ const BookingFilters = ({
                     setSortField={setSortField}
                   />
 
-                  <ClearFiltersButton clearFilters={clearFilters} />
+                  <ClearFiltersButton
+                    startDate={startDate}
+                    endDate={endDate}
+                    statusFilter={statusFilter}
+                    searchQuery={searchQuery}
+                    artistFilter={artistFilter || "all"}
+                    clearFilters={clearFilters}
+                  />
                 </div>
               </SheetContent>
             </Sheet>
@@ -194,7 +199,6 @@ const BookingFilters = ({
                 artistFilter={artistFilter || "all"}
                 setArtistFilter={setArtistFilter}
                 artistOptions={artistOptions}
-                getArtistName={getArtistName}
               />
             )}
 
@@ -204,7 +208,6 @@ const BookingFilters = ({
               endDate={endDate}
               setEndDate={setEndDate}
               showDateFilter={showDateFilter}
-              setShowDateFilter={setShowDateFilter}
               filterDateType={filterDateType}
               setFilterDateType={setFilterDateType}
             />
@@ -216,7 +219,14 @@ const BookingFilters = ({
               setSortField={setSortField}
             />
 
-            <ClearFiltersButton clearFilters={clearFilters} />
+            <ClearFiltersButton
+              startDate={startDate}
+              endDate={endDate}
+              statusFilter={statusFilter}
+              searchQuery={searchQuery}
+              artistFilter={artistFilter || "all"}
+              clearFilters={clearFilters}
+            />
           </div>
         </div>
       </div>

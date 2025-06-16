@@ -10,7 +10,7 @@ import {
 interface ArtistFilterProps {
   artistFilter: string;
   setArtistFilter: (value: string) => void;
-  artistOptions: Array<{ value: string; label: string; empCode: string }>;
+  artistOptions: Array<{ value: string; label: string; empCode?: string }>;
 }
 
 export const ArtistFilter: React.FC<ArtistFilterProps> = ({
@@ -22,7 +22,6 @@ export const ArtistFilter: React.FC<ArtistFilterProps> = ({
     <Select 
       value={artistFilter} 
       onValueChange={(value) => {
-        console.log("Selected artist filter:", value);
         setArtistFilter(value);
       }}
     >
@@ -35,7 +34,9 @@ export const ArtistFilter: React.FC<ArtistFilterProps> = ({
           <SelectItem key={option.value} value={option.value}>
             <div className="flex flex-col">
               <span>{option.label}</span>
-              <span className="text-xs text-muted-foreground">{option.empCode}</span>
+              {option.empCode && (
+                <span className="text-xs text-muted-foreground">{option.empCode}</span>
+              )}
             </div>
           </SelectItem>
         ))}
