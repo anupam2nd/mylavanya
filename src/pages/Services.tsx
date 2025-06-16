@@ -48,10 +48,9 @@ const Services = () => {
     if (selectedSubCategory !== "all") params.set('subCategory', selectedSubCategory);
     if (sortBy !== "default") params.set('sortBy', sortBy);
     
-    // Update URL without triggering navigation
-    const newUrl = params.toString() ? `?${params.toString()}` : '/services';
-    window.history.replaceState({}, '', newUrl);
-  }, [searchTerm, selectedCategory, selectedSubCategory, sortBy]);
+    // Update URL with search params
+    setSearchParams(params);
+  }, [searchTerm, selectedCategory, selectedSubCategory, sortBy, setSearchParams]);
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
