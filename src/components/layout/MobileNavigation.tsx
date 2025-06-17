@@ -27,7 +27,7 @@ const MobileNavigation = ({
 
   return (
     <div className={`md:hidden fixed left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200 z-[55] transition-all duration-300 ease-in-out ${
-      isOpen ? 'top-[76px] opacity-100 visible' : 'top-[-400px] opacity-0 invisible'
+      isOpen ? 'top-[64px] opacity-100 visible' : 'top-[-400px] opacity-0 invisible'
     }`}>
       <div className="py-6 px-4">
         <nav className="flex flex-col space-y-4">

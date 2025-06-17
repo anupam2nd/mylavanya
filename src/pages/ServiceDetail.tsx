@@ -215,31 +215,46 @@ const ServiceDetail = () => {
   };
 
   const handleBackNavigation = () => {
-    // Get the referrer URL to extract search parameters
+    // Check if user came from home page by checking referrer or state
     const referrer = document.referrer;
-    const currentURL = window.location.href;
+    const isFromHomePage = referrer.includes(window.location.origin) && !referrer.includes('/services');
     
-    // Check if the user came from the services page
-    if (referrer && referrer.includes('/services')) {
-      try {
-        const referrerURL = new URL(referrer);
-        const searchParams = referrerURL.search;
-        
-        // Navigate back with preserved search parameters
-        navigate(`/services${searchParams}`);
-      } catch (error) {
-        // If there's an error parsing the referrer URL, just go to services
-        navigate("/services");
-      }
+    // For mobile users coming from home page's MobileCategoryServices
+    if (isFromHomePage || location.state?.fromHome) {
+      navigate("/");
     } else {
-      // Check if there are any search parameters in the current session storage
-      const savedFilters = sessionStorage.getItem('servicesFilters');
-      if (savedFilters) {
-        navigate(`/services?${savedFilters}`);
+      // Get the referrer URL to extract search parameters
+      if (referrer && referrer.includes('/services')) {
+        try {
+          const referrerURL = new URL(referrer);
+          const searchParams = referrerURL.search;
+          
+          // Navigate back with preserved search parameters
+          navigate(`/services${searchParams}`);
+        } catch (error) {
+          // If there's an error parsing the referrer URL, just go to services
+          navigate("/services");
+        }
       } else {
-        navigate("/services");
+        // Check if there are any search parameters in the current session storage
+        const savedFilters = sessionStorage.getItem('servicesFilters');
+        if (savedFilters) {
+          navigate(`/services?${savedFilters}`);
+        } else {
+          navigate("/services");
+        }
       }
     }
+  };
+
+  const getBackButtonText = () => {
+    const referrer = document.referrer;
+    const isFromHomePage = referrer.includes(window.location.origin) && !referrer.includes('/services');
+    
+    if (isFromHomePage || location.state?.fromHome) {
+      return "← Back to Home";
+    }
+    return "← Back to Services";
   };
 
   if (loading) {
@@ -253,7 +268,7 @@ const ServiceDetail = () => {
         <h2 className="text-2xl font-medium mb-4">Error Loading Service</h2>
         <p className="text-gray-600 mb-6">{error}</p>
         <Button onClick={handleBackNavigation}>
-          Back to Services
+          {getBackButtonText()}
         </Button>
       </div>;
   }
@@ -263,7 +278,7 @@ const ServiceDetail = () => {
         <h2 className="text-2xl font-medium mb-4">Service not found</h2>
         <p className="text-gray-600 mb-6">The service you are looking for does not exist.</p>
         <Button onClick={handleBackNavigation}>
-          Back to Services
+          {getBackButtonText()}
         </Button>
       </div>;
   }
@@ -294,7 +309,7 @@ const ServiceDetail = () => {
       <div className="bg-gradient-to-r from-violet-100 to-purple-50 py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <Button variant="ghost" onClick={handleBackNavigation} className="mb-4">
-            ← Back to Services
+            {getBackButtonText()}
           </Button>
           
           <div className="flex flex-col space-y-2">

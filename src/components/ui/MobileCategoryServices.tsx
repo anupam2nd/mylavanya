@@ -68,7 +68,8 @@ const MobileCategoryServices = () => {
   }, []);
 
   const handleServiceClick = (serviceId: number) => {
-    navigate(`/services/${serviceId}`);
+    // Pass state to indicate this navigation is from home page
+    navigate(`/services/${serviceId}`, { state: { fromHome: true } });
   };
 
   const formatPrice = (price: number) => {
