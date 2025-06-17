@@ -1,6 +1,4 @@
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import PersonalInfoFields from "./PersonalInfoFields";
@@ -11,7 +9,6 @@ import PasswordFields from "./PasswordFields";
 import { useRegisterForm } from "./useRegisterForm";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { registerFormSchema, type RegisterFormValues } from "./RegisterFormSchema";
 
 interface RegisterFormProps {
   onSuccess: (email: string, password: string) => void;
@@ -19,24 +16,7 @@ interface RegisterFormProps {
 }
 
 export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
-  const { isSubmitting, handleSubmit } = useRegisterForm({ onSuccess });
-  
-  const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerFormSchema),
-    defaultValues: {
-      email: "",
-      firstName: "",
-      lastName: "",
-      phoneNumber: "",
-      password: "",
-      confirmPassword: "",
-      address: "",
-      pincode: "",
-      sex: "Male",
-      dob: undefined,
-      isPhoneVerified: false,
-    },
-  });
+  const { form, isLoading, handleRegister } = useRegisterForm({ onSuccess });
   
   const onSubmit = form.handleSubmit((data) => {
     // Check if phone is verified before proceeding
@@ -45,21 +25,7 @@ export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormP
       return;
     }
     
-    // Transform data to match the expected interface for the hook
-    const transformedData = {
-      email: data.email,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      phone: data.phoneNumber,
-      password: data.password,
-      userType: "member",
-      address: data.address,
-      pincode: data.pincode,
-      sex: data.sex,
-      dob: data.dob,
-    };
-    
-    handleSubmit(transformedData);
+    handleRegister(data);
   });
   
   return (
@@ -75,9 +41,9 @@ export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormP
           variant="primary-gradient" 
           className="w-full"
           type="submit"
-          disabled={isSubmitting}
+          disabled={isLoading}
         >
-          {isSubmitting ? "Creating Account..." : "Create Account"}
+          {isLoading ? "Creating Account..." : "Create Account"}
         </ButtonCustom>
         
         <div className="mt-4 text-center">

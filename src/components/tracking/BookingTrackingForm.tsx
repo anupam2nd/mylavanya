@@ -1,98 +1,121 @@
 
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import BookingDetails from "./BookingDetails";
+import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Booking } from "@/hooks/useBookings";
+import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { TrackingFormTabs } from "./TrackingFormTabs";
+import { PhoneFormValues } from "./PhoneTrackingForm";
+import { ReferenceFormValues } from "./ReferenceTrackingForm";
+import { transformBookingDetails, BookingDetails as BookingDetailsType } from "@/utils/bookingTracking";
 
-const formSchema = z.object({
-  identifier: z.string().min(1, {
-    message: "Booking number or phone number is required",
-  }),
-});
+export function BookingTrackingForm() {
+  const [bookingDetails, setBookingDetails] = useState<BookingDetailsType | null>(null);
+  const [hasBookings, setHasBookings] = useState<boolean | null>(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-type FormValues = z.infer<typeof formSchema>;
-
-interface BookingTrackingFormProps {
-  onBookingFound: (bookings: Booking[]) => void;
-}
-
-const BookingTrackingForm = ({ onBookingFound }: BookingTrackingFormProps) => {
-  const [loading, setLoading] = useState(false);
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      identifier: "",
-    },
-  });
-
-  const onSubmit = async (values: FormValues) => {
-    try {
-      setLoading(true);
+  // Check if user has bookings
+  useEffect(() => {
+    const checkUserBookings = async () => {
+      if (!user?.email) return;
       
-      const { data: bookingsData, error } = await supabase
-        .from('BookMST')
-        .select('*')
-        .or(`Booking_NO.eq.${values.identifier},Phone_no.eq.${values.identifier}`)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      if (!bookingsData || bookingsData.length === 0) {
-        toast("No bookings found with this booking number or phone number.");
-        return;
+      try {
+        const { data, error } = await supabase
+          .from("BookMST")
+          .select("id")
+          .eq("email", user.email)
+          .limit(1);
+          
+        if (!error) {
+          setHasBookings(data && data.length > 0);
+          
+          // If user has no bookings, show a message and redirect
+          if (data && data.length === 0) {
+            toast({
+              title: "No Bookings Found",
+              description: "You haven't made any bookings yet.",
+              variant: "destructive",
+            });
+            navigate("/");
+          }
+        }
+      } catch (error) {
+        console.error("Error checking bookings:", error);
       }
-
-      // Transform data to ensure Booking_NO is a string
-      const transformedBookings = bookingsData.map(booking => ({
-        ...booking,
-        Booking_NO: booking.Booking_NO?.toString() || ''
-      }));
-
-      onBookingFound(transformedBookings);
-      toast(`Found ${transformedBookings.length} booking(s)`);
-    } catch (error) {
-      toast("Error searching for bookings. Please try again.");
-    } finally {
-      setLoading(false);
+    };
+    
+    if (user) {
+      checkUserBookings();
     }
-  };
+  }, [user, navigate]);
+
+  function onPhoneSubmit(values: PhoneFormValues) {
+    // In a real implementation, you would fetch booking data based on the phone number
+    console.log(values);
+    setBookingDetails({
+      bookingId: "123456",
+      status: "In progress",
+      service: "Premium Facial",
+      date: "2023-04-15",
+      time: "14:30",
+      customerName: "Jane Doe",
+      customerPhone: values.phoneNumber,
+    });
+  }
+
+  function onReferenceSubmit(values: ReferenceFormValues) {
+    // In a real implementation, you would fetch booking data based on the reference
+    console.log(values);
+    setBookingDetails({
+      bookingId: values.bookingRef,
+      status: "Confirmed",
+      service: "Deep Cleansing Facial",
+      date: "2023-04-20",
+      time: "10:15",
+      customerName: "John Smith",
+      customerPhone: "9876543210",
+    });
+  }
+
+  // If we're still checking if the user has bookings, don't render yet
+  if (hasBookings === null && user) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="identifier"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Booking Number / Phone Number</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter booking number or phone number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={loading}>
-          {loading ? "Searching..." : "Track Booking"}
-        </Button>
-      </form>
-    </Form>
-  );
-};
+    <div className="mx-auto max-w-md space-y-6 p-4">
+      <div className="space-y-2 text-center">
+        <h2 className="text-2xl font-bold">Track Your Booking</h2>
+        <p className="text-muted-foreground">
+          Enter your phone number or booking reference to track your appointment
+          status.
+        </p>
+      </div>
 
-export default BookingTrackingForm;
+      {user && user.role === 'member' && (
+        <div className="flex justify-center mb-4">
+          <Button asChild className="w-full">
+            <Link to="/user/bookings">
+              View All My Bookings
+            </Link>
+          </Button>
+        </div>
+      )}
+
+      <TrackingFormTabs 
+        onPhoneSubmit={onPhoneSubmit}
+        onReferenceSubmit={onReferenceSubmit}
+      />
+
+      {bookingDetails && <BookingDetails bookingDetails={transformBookingDetails(bookingDetails)} />}
+    </div>
+  );
+}

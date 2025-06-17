@@ -1,69 +1,111 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-interface ArtistDetail {
-  ArtistId: number;
-  ArtistFirstName: string | null;
-  ArtistLastName: string | null;
-  ArtistEmpCode: string | null;
-  ArtistPhno: number | null;
-  emailid: string | null;
+export interface ArtistDetails {
+  ArtistFirstName?: string;
+  ArtistLastName?: string;
+  ArtistPhno?: number;
+  emailid?: string;
+  ArtistEmpCode?: string;
 }
 
-export const useArtistDetails = (artistIds?: number[]) => {
-  const [artistDetails, setArtistDetails] = useState<Record<number, ArtistDetail>>({});
+export const useArtistDetails = (artistIds: (number | undefined)[]) => {
+  const [artistDetails, setArtistDetails] = useState<Record<number, ArtistDetails>>({});
+  const [loading, setLoading] = useState(false);
+  const previousArtistIdsRef = useRef<string>('');
 
-  const fetchArtistDetails = async (ids: number[]) => {
-    if (ids.length === 0) {
-      return;
-    }
-
-    // Remove duplicates and filter out invalid IDs
-    const uniqueArtistIds = [...new Set(ids)].filter(id => !isNaN(id) && id > 0);
-    
-    if (uniqueArtistIds.length === 0) {
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('ArtistMST')
-        .select('ArtistId, ArtistFirstName, ArtistLastName, ArtistEmpCode, ArtistPhno, emailid')
-        .in('ArtistId', uniqueArtistIds);
-
-      if (error) throw error;
-
-      if (data) {
-        const artistMap = data.reduce((acc, artist) => {
-          acc[artist.ArtistId] = artist;
-          return acc;
-        }, {} as Record<number, ArtistDetail>);
-        
-        setArtistDetails(prev => ({ ...prev, ...artistMap }));
-      }
-    } catch (error) {
-      // Error handled silently
-    }
-  };
-
-  const getArtistName = (artistId: number) => {
-    const artist = artistDetails[artistId];
-    if (!artist) return 'Unknown Artist';
-    return `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || 'Unknown Artist';
-  };
-
-  const getArtistPhone = (artistId: number) => {
-    const artist = artistDetails[artistId];
-    return artist?.ArtistPhno?.toString() || 'N/A';
-  };
-
-  // Auto-fetch when artistIds are provided
   useEffect(() => {
-    if (artistIds && artistIds.length > 0) {
-      fetchArtistDetails(artistIds);
-    }
+    const fetchArtistDetails = async () => {
+      try {
+        // Filter out undefined or null IDs
+        const filteredIds = artistIds.filter((id): id is number => 
+          id !== undefined && id !== null && !isNaN(Number(id)));
+        
+        // If there are no valid IDs, return early
+        if (filteredIds.length === 0) {
+          console.log("No valid artist IDs to fetch");
+          return;
+        }
+        
+        // Use Set to ensure we only have unique IDs
+        const uniqueArtistIds = [...new Set(filteredIds)];
+        
+        // Stringify the array for comparison
+        const currentArtistIdsString = JSON.stringify(uniqueArtistIds.sort());
+        
+        // Check if the artist IDs have changed
+        if (previousArtistIdsRef.current === currentArtistIdsString) {
+          console.log("Artist IDs haven't changed, skipping fetch");
+          return;
+        }
+        
+        previousArtistIdsRef.current = currentArtistIdsString;
+        
+        console.log("Fetching artist details for IDs:", uniqueArtistIds);
+        
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('ArtistMST')
+          .select('ArtistId, ArtistFirstName, ArtistLastName, ArtistPhno, emailid, ArtistEmpCode')
+          .in('ArtistId', uniqueArtistIds);
+
+        if (error) {
+          console.error('Error fetching artist details:', error);
+          return;
+        }
+
+        console.log("Artist details fetched:", data);
+        
+        const artistMap: Record<number, ArtistDetails> = {};
+        data?.forEach(artist => {
+          if (artist.ArtistId) {
+            artistMap[artist.ArtistId] = {
+              ArtistFirstName: artist.ArtistFirstName,
+              ArtistLastName: artist.ArtistLastName,
+              ArtistPhno: artist.ArtistPhno,
+              emailid: artist.emailid,
+              ArtistEmpCode: artist.ArtistEmpCode
+            };
+          }
+        });
+
+        setArtistDetails(artistMap);
+      } catch (error) {
+        console.error('Error in artist details fetch:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArtistDetails();
   }, [artistIds]);
 
-  return { artistDetails, fetchArtistDetails, getArtistName, getArtistPhone };
+  const getArtistName = (artistId?: number) => {
+    // Make sure artistId is a number
+    const numericArtistId = artistId ? Number(artistId) : undefined;
+    
+    if (!numericArtistId || !artistDetails[numericArtistId]) {
+      // Check if there's a booking status that indicates an artist was assigned even if no ID
+      return 'Not assigned';
+    }
+    
+    const artist = artistDetails[numericArtistId];
+    return `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || 'Not available';
+  };
+
+  const getArtistPhone = (artistId?: number): string => {
+    // Make sure artistId is a number
+    const numericArtistId = artistId ? Number(artistId) : undefined;
+    
+    if (!numericArtistId || !artistDetails[numericArtistId]) return '';
+    return artistDetails[numericArtistId].ArtistPhno ? artistDetails[numericArtistId].ArtistPhno!.toString() : '';
+  };
+
+  return {
+    artistDetails,
+    loading,
+    getArtistName,
+    getArtistPhone
+  };
 };

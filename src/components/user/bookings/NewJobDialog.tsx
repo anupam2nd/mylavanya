@@ -14,7 +14,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Popover,
@@ -159,6 +158,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
       const productDetail = productOptions.find(p => p.ProductName === product);
       if (productDetail) {
         setSelectedProductDetails(productDetail);
+        console.log("Selected product details:", productDetail);
       }
     } else {
       setSelectedProductDetails(null);
@@ -316,6 +316,7 @@ const NewJobDialog = ({ open, onOpenChange, booking, onSuccess, currentUser }: N
         .single();
 
       if (insertError) {
+        console.error('Insert error details:', insertError);
         throw insertError;
       }
 

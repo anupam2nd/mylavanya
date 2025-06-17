@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +32,7 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const refreshSession = async () => {
     try {
       const { data } = await supabase.auth.getSession();
+      console.log("Session refresh check:", data.session ? "Active session" : "No active session");
       
       // If there's no session but we have a stored user, retrieve it
       if (!data.session && !user) {
@@ -39,13 +41,15 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           try {
             const parsedUser = JSON.parse(storedUser);
             setUser(parsedUser);
+            console.log("User retrieved from localStorage:", parsedUser);
           } catch (error) {
+            console.error('Error parsing stored user:', error);
             localStorage.removeItem('user');
           }
         }
       }
     } catch (error) {
-      // Error handled silently
+      console.error("Session refresh error:", error);
     }
   };
 
@@ -56,11 +60,12 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
+        console.log("User loaded from localStorage:", parsedUser);
         
         // Initialize Supabase auth with the stored user
         supabase.auth.getSession().then(({ data }) => {
           if (!data.session) {
-            // console.log("No active Supabase session, but user exists in localStorage");
+            console.log("No active Supabase session, but user exists in localStorage");
           }
         });
       } catch (error) {
@@ -72,7 +77,7 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // console.log("Auth state changed:", event, session?.user?.id);
+      console.log("Auth state changed:", event, session?.user?.id);
     });
 
     return () => {
@@ -81,28 +86,30 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   }, []);
 
   const login = (userData: User) => {
+    console.log("Logging in user:", userData);
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
+    
+    // Also set up a Supabase session for the user if it's not set
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        console.log("Setting up Supabase session from login");
+        // We can't actually create a session without the proper auth flow,
+        // but we ensure the user is stored in localStorage
+      }
+    });
   };
 
-  const logout = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      localStorage.removeItem('user');
-      
-      const currentPath = window.location.pathname;
-      const protectedPaths = ['/dashboard', '/user/', '/artist/', '/admin/'];
-      const isProtectedPath = protectedPaths.some(path => currentPath.includes(path));
-      
-      if (isProtectedPath) {
-        navigate('/');
-      }
-      
-      toast.success("Logged out successfully");
-    } catch (error) {
-      toast.error("Error logging out");
-    }
+  const logout = () => {
+    console.log("Logging out user");
+    setUser(null);
+    localStorage.removeItem('user');
+    
+    // Also sign out from Supabase if there's an active session
+    supabase.auth.signOut().then(() => {
+      console.log("Supabase signout complete");
+      navigate('/');
+    });
   };
 
   const contextValue = {

@@ -1,65 +1,80 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
-interface User {
-  id: string;
+interface LoginCredentials {
   email: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
+  password: string;
 }
 
-export const useArtistLogin = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function useArtistLogin() {
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleArtistLogin = async (email: string, password: string) => {
-    setLoading(true);
-    setError(null);
-
+  const handleLogin = async ({ email, password }: LoginCredentials) => {
+    setIsLoading(true);
+    
     try {
-      // Fetch artist data by email instead of employee code
-      const { data: artistData, error: artistError } = await supabase
+      console.log("Attempting artist login with:", email);
+      // Explicitly convert email to lowercase for consistent matching
+      const normalizedEmail = email.trim().toLowerCase();
+      
+      // Fix the query to properly handle types
+      const { data, error } = await supabase
         .from('ArtistMST')
-        .select('*')
-        .eq('emailid', email)
-        .eq('Active', true)
-        .single();
-
-      if (artistError || !artistData) {
-        setError('Invalid email or account is not active');
-        return false;
+        .select('ArtistId, emailid, ArtistFirstName, ArtistLastName')
+        .eq('emailid', normalizedEmail)
+        .eq('password', password)
+        .maybeSingle();
+      
+      console.log("Artist query result:", data, error);
+      
+      if (error) {
+        console.error("Supabase query error:", error);
+        throw new Error('Error querying artist');
       }
-
-      if (!artistData.password) {
-        setError('Password not set for this account. Please contact administrator.');
-        return false;
+      
+      if (!data) {
+        throw new Error('Invalid credentials');
       }
-
-      // Compare plain text password directly (no hashing for artists)
-      if (artistData.password !== password) {
-        setError('Invalid password');
-        return false;
-      }
-
-      // Create user object for artist
-      const artistUser = {
-        id: artistData.ArtistId.toString(),
-        email: artistData.emailid || `artist${artistData.ArtistId}@company.com`,
+      
+      // Login using the context function with artist role
+      login({
+        id: data.ArtistId.toString(),
+        email: data.emailid,
         role: 'artist',
-        firstName: artistData.ArtistFirstName || '',
-        lastName: artistData.ArtistLastName || ''
-      };
+        firstName: data.ArtistFirstName,
+        lastName: data.ArtistLastName
+      });
+      
+      toast({
+        title: "Login successful",
+        description: `Welcome back! You are now logged in as an artist.`,
+      });
+      
+      // Redirect to artist dashboard
+      navigate('/artist/dashboard');
 
-      return artistUser;
+      return true;
     } catch (error) {
-      setError('Login failed. Please try again.');
+      console.error('Artist login error:', error);
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: "Invalid email or password. Please try again.",
+      });
       return false;
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  return { handleArtistLogin, loading, error };
-};
+  return {
+    isLoading,
+    handleLogin,
+  };
+}
