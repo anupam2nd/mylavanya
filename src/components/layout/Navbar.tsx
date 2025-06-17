@@ -116,7 +116,7 @@ const Navbar = () => {
 
             {/* Mobile Menu Button */}
             <button 
-              className={`md:hidden relative z-50 transition-colors ${isScrolled ? 'text-gray-700' : 'text-gray-700'}`} 
+              className={`md:hidden relative z-[60] transition-colors ${isScrolled ? 'text-gray-700' : 'text-gray-700'}`} 
               onClick={toggleMenu}
               aria-label="Toggle menu"
             >
@@ -126,10 +126,11 @@ const Navbar = () => {
         </div>
 
         {/* Mobile menu */}
-        <div className={`md:hidden fixed top-[72px] left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-40 transition-all duration-300 ease-in-out ${
-          isOpen ? 'max-h-screen opacity-100 visible' : 'max-h-0 opacity-0 invisible overflow-hidden'
+        <div className={`md:hidden fixed inset-x-0 top-0 bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200 z-[55] transition-all duration-300 ease-in-out ${
+          isOpen ? 'translate-y-0 opacity-100 visible' : '-translate-y-full opacity-0 invisible'
         }`}>
-          <div className="py-4 px-4">
+          {/* Add padding top to account for the header */}
+          <div className="pt-20 pb-6 px-4">
             <nav className="flex flex-col space-y-4">
               <Link 
                 to="/" 
