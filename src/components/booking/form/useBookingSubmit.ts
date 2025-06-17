@@ -1,94 +1,74 @@
-
 import { useState } from "react";
-import { BookingFormValues } from "./FormSchema";
-import { toast } from "@/components/ui/use-toast";
-import { useStatusOptions } from "@/hooks/useStatusOptions";
-import { generateBookingReference } from "@/utils/booking/referenceGenerator";
-import { getNextAvailableId } from "@/utils/booking/idGenerator";
-import { createBookingEntries } from "@/utils/booking/bookingCreator";
+import { format } from 'date-fns';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { BookingFormData } from "@/components/booking/BookingForm";
 
 export const useBookingSubmit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [bookingReference, setBookingReference] = useState<string | null>(null);
-  const { formattedStatusOptions, statusOptions } = useStatusOptions();
+  const [error, setError] = useState<string | null>(null);
+  const onSuccess = () => {};
 
-  const submitBooking = async (data: BookingFormValues) => {
+  const handleSubmit = async (formData: BookingFormData) => {
+    if (!formData.address || formData.address.trim().length < 10) {
+      toast.error("Please provide a detailed address (minimum 10 characters)");
+      return;
+    }
+
+    if (!formData.pincode || !/^\d{6}$/.test(formData.pincode)) {
+      toast.error("Please enter a valid 6-digit PIN code");
+      return;
+    }
+
     setIsSubmitting(true);
-    
-    try {
-      // Generate booking reference using current date instead of booking date
-      const bookingRef = await generateBookingReference();
-      setBookingReference(bookingRef);
-      
-      console.log("Submitting booking with address details:", {
-        services: data.selectedServices,
-        bookingRef,
-        date: data.selectedDate,
-        time: data.selectedTime,
-        phone: data.phone,
-        email: data.email,
-        address: data.address,
-        pincode: data.pincode,
-        name: data.name
-      });
-      
-      // Get the next available ID for new bookings
-      const nextId = await getNextAvailableId();
-      
-      // Get status name (default to "Pending")
-      const statusName = getStatusName("pending");
-      
-      const result = await createBookingEntries(data, bookingRef, nextId, statusName);
-      
-      if (!result.success) {
-        throw new Error(result.error || "Failed to create bookings");
-      }
+    setError(null);
 
-      // Calculate total price including quantities
-      const totalPrice = data.selectedServices.reduce((sum, service) => 
-        sum + (service.price * (service.quantity || 1)), 0);
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
       
-      // Create a toast without the payment note
-      toast({
-        title: "Booking Successful!",
-        description: `Your appointment has been scheduled.\nYour booking reference number is: ${bookingRef}\nTotal amount: ₹${totalPrice.toFixed(2)}`,
-        duration: 15000,
-      });
+      const bookingData = {
+        name: formData.name,
+        Phone_no: parseInt(formData.phone, 10),
+        email: formData.email || user.email,
+        Address: formData.address,
+        Pincode: parseInt(formData.pincode, 10),
+        Booking_date: format(formData.date, 'yyyy-MM-dd'),
+        booking_time: formData.time,
+        Purpose: formData.purpose || 'Service booking',
+        ServiceName: formData.serviceName,
+        SubService: formData.subservice || '',
+        ProductName: formData.productName || formData.serviceName,
+        Product: formData.serviceId,
+        price: formData.servicePrice,
+        Qty: formData.quantity || 1,
+        Status: 'Booking Confirmed',
+        StatusUpdated: new Date().toISOString(),
+        created_at: new Date()
+      };
+
+      const { data, error } = await supabase
+        .from('BookMST')
+        .insert([bookingData])
+        .select();
+
+      if (error) throw error;
+
+      toast.success("Booking submitted successfully!");
       
-      return { success: true, bookingRef };
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
-      console.error("Error submitting booking:", error);
-      toast({
-        title: "Booking Failed",
-        description: "There was an error processing your booking. Please try again.",
-        variant: "destructive",
-      });
-      return { success: false, bookingRef: null };
+      setError(error instanceof Error ? error.message : 'Booking submission failed');
+      toast.error("Failed to submit booking. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
-  
-  // Get the status name for use in bookings
-  const getStatusName = (statusCode: string = "pending"): string => {
-    // Default to "Pending" status name if no match or no options available
-    if (!statusOptions || statusOptions.length === 0) {
-      console.log("No status options available, using default 'Pending'");
-      return "Pending";
-    }
-    
-    // Find the matching status option
-    const statusOption = statusOptions.find(
-      option => option.status_code.toLowerCase() === statusCode.toLowerCase()
-    );
-    
-    // Return the status name or default to "Pending"
-    return statusOption ? statusOption.status_name : "Pending";
-  };
 
   return {
     isSubmitting,
-    submitBooking,
-    bookingReference
+    error,
+    handleSubmit
   };
 };

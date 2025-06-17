@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Booking } from "@/hooks/useBookings";
 import EditBookingDialog from "./EditBookingDialog";
@@ -18,8 +17,6 @@ const BookingDialogs = ({ bookings, setBookings, currentUser }: BookingDialogsPr
   const [selectedBookingForNewJob, setSelectedBookingForNewJob] = useState<Booking | null>(null);
   const { toast } = useToast();
   const { statusOptions } = useStatusOptions();
-
-  console.log("BookingDialogs - Current user:", currentUser);
 
   const {
     editBooking,
@@ -67,7 +64,6 @@ const BookingDialogs = ({ bookings, setBookings, currentUser }: BookingDialogsPr
               currentUser
             };
             
-            console.log("EditBookingDialog - Saving with current user:", currentUser);
             await handleSaveChanges(formValues);
           }}
           statusOptions={statusOptions}
