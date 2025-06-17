@@ -112,7 +112,7 @@ const MobileCategoryServices = () => {
       {categoryGroups.map((group) => (
         <div key={group.category} className="space-y-3">
           <h3 className="text-lg font-semibold text-foreground capitalize">
-            {group.category} Services
+            {group.category}
           </h3>
           
           <ScrollArea className="w-full whitespace-nowrap">
