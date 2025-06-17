@@ -53,12 +53,6 @@ const UserDashboard = () => {
           return;
         }
         
-        if (data?.length > 0) {
-          // Log only count for security
-        } else {
-          // Silent handling
-        }
-        
         // Transform data to ensure Booking_NO is a string
         const transformedData: Booking[] = (data || []).map(booking => ({
           ...booking,
@@ -220,16 +214,28 @@ const UserDashboard = () => {
         <ChartFilters
           startDate={startDate}
           endDate={endDate}
-          onStartDateChange={setStartDate}
-          onEndDateChange={setEndDate}
-          onApplyFilters={applyFilters}
-          onResetFilters={resetFilters}
-          filtersApplied={filtersApplied}
+          setStartDate={setStartDate}
+          setEndDate={setEndDate}
+          applyFilters={applyFilters}
+          resetFilters={resetFilters}
         />
 
         <div className="grid gap-6 md:grid-cols-2">
-          <BookingStatusPieChart bookings={filteredBookings} />
-          <RevenuePieChart bookings={filteredBookings} />
+          <BookingStatusPieChart 
+            bookings={filteredBookings}
+            loading={loading}
+            startDate={appliedStartDate}
+            endDate={appliedEndDate}
+            title="Booking Status Distribution"
+            description="Overview of booking statuses for the selected period"
+            filterField="Booking_date"
+          />
+          <RevenuePieChart 
+            bookings={filteredBookings}
+            loading={loading}
+            title="Revenue by Service"
+            description="Revenue distribution across different services"
+          />
         </div>
       </div>
     </DashboardLayout>
