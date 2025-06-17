@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ArtistDetail {
@@ -11,16 +11,16 @@ interface ArtistDetail {
   emailid: string | null;
 }
 
-export const useArtistDetails = () => {
+export const useArtistDetails = (artistIds?: number[]) => {
   const [artistDetails, setArtistDetails] = useState<Record<number, ArtistDetail>>({});
 
-  const fetchArtistDetails = async (artistIds: number[]) => {
-    if (artistIds.length === 0) {
+  const fetchArtistDetails = async (ids: number[]) => {
+    if (ids.length === 0) {
       return;
     }
 
     // Remove duplicates and filter out invalid IDs
-    const uniqueArtistIds = [...new Set(artistIds)].filter(id => !isNaN(id) && id > 0);
+    const uniqueArtistIds = [...new Set(ids)].filter(id => !isNaN(id) && id > 0);
     
     if (uniqueArtistIds.length === 0) {
       return;
@@ -40,7 +40,7 @@ export const useArtistDetails = () => {
           return acc;
         }, {} as Record<number, ArtistDetail>);
         
-        setArtistDetails(artistMap);
+        setArtistDetails(prev => ({ ...prev, ...artistMap }));
       }
     } catch (error) {
       // Error handled silently
@@ -57,6 +57,13 @@ export const useArtistDetails = () => {
     const artist = artistDetails[artistId];
     return artist?.ArtistPhno?.toString() || 'N/A';
   };
+
+  // Auto-fetch when artistIds are provided
+  useEffect(() => {
+    if (artistIds && artistIds.length > 0) {
+      fetchArtistDetails(artistIds);
+    }
+  }, [artistIds]);
 
   return { artistDetails, fetchArtistDetails, getArtistName, getArtistPhone };
 };

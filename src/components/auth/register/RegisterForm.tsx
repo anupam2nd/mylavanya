@@ -11,7 +11,7 @@ import PasswordFields from "./PasswordFields";
 import { useRegisterForm } from "./useRegisterForm";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { RegisterFormSchema, type RegisterFormValues } from "./RegisterFormSchema";
+import { registerFormSchema, type RegisterFormValues } from "./RegisterFormSchema";
 
 interface RegisterFormProps {
   onSuccess: (email: string, password: string) => void;
@@ -22,18 +22,18 @@ export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormP
   const { isSubmitting, handleSubmit } = useRegisterForm();
   
   const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(RegisterFormSchema),
+    resolver: zodResolver(registerFormSchema),
     defaultValues: {
       email: "",
       firstName: "",
       lastName: "",
-      phone: "",
+      phoneNumber: "",
       password: "",
       confirmPassword: "",
-      userType: "member",
       address: "",
       pincode: "",
-      dateOfBirth: undefined,
+      sex: "Male",
+      dob: undefined,
       isPhoneVerified: false,
     },
   });
@@ -45,7 +45,14 @@ export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormP
       return;
     }
     
-    handleSubmit(data).then(() => {
+    // Transform data to match the expected RegisterFormValues interface for the hook
+    const transformedData = {
+      ...data,
+      phone: data.phoneNumber, // Map phoneNumber to phone for the hook
+      userType: "member", // Default user type
+    };
+    
+    handleSubmit(transformedData).then(() => {
       onSuccess(data.email, data.password);
     });
   });

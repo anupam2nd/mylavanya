@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Booking } from "@/hooks/useBookings";
 import { useArtistDetails } from "@/hooks/useArtistDetails";
@@ -26,7 +26,14 @@ const BookingsList = ({ filteredBookings, clearFilters }: BookingsListProps) => 
     .filter(id => id !== undefined && id !== null);
     
   // Use the hook to get artist details
-  const { getArtistName, getArtistPhone } = useArtistDetails(artistIds);
+  const { getArtistName, getArtistPhone, fetchArtistDetails } = useArtistDetails();
+  
+  // Fetch artist details when artistIds change
+  useEffect(() => {
+    if (artistIds.length > 0) {
+      fetchArtistDetails(artistIds);
+    }
+  }, [artistIds, fetchArtistDetails]);
   
   const handleViewDetails = (booking: Booking) => {
     setSelectedBooking(booking);
