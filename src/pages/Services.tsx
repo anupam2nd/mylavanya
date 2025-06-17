@@ -29,6 +29,9 @@ const Services = () => {
       })
     : [];
 
+  // Check if any filters are applied
+  const hasActiveFilters = searchTerm || selectedCategory !== "all" || selectedSubCategory !== "all" || sortBy !== "default";
+
   // Fetch sub-categories when category changes
   useEffect(() => {
     if (selectedCategory && selectedCategory !== "all") {
@@ -139,18 +142,20 @@ const Services = () => {
             </SelectContent>
           </Select>
 
-          <Button 
-            variant="outline" 
-            onClick={clearAllFilters}
-            className="flex items-center gap-2 whitespace-nowrap"
-          >
-            <X className="h-4 w-4" />
-            Clear Filters
-          </Button>
+          {hasActiveFilters && (
+            <Button 
+              variant="outline" 
+              onClick={clearAllFilters}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <X className="h-4 w-4" />
+              Clear Filters
+            </Button>
+          )}
         </div>
 
         {/* Show active filters info */}
-        {(searchTerm || selectedCategory !== "all" || selectedSubCategory !== "all" || sortBy !== "default") && (
+        {hasActiveFilters && (
           <div className="mb-4 p-3 bg-primary/10 rounded-lg">
             <p className="text-sm text-primary font-medium">
               Filters applied: 
