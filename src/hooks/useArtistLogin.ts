@@ -37,20 +37,8 @@ export const useArtistLogin = () => {
         return false;
       }
 
-      // Verify password using Supabase Edge Function
-      const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-password', {
-        body: {
-          password: password,
-          hashedPassword: artistData.password
-        }
-      });
-
-      if (verifyError) {
-        setError('Authentication service error. Please try again.');
-        return false;
-      }
-
-      if (!verifyData?.isValid) {
+      // Compare plain text password directly (no hashing for artists)
+      if (artistData.password !== password) {
         setError('Invalid password');
         return false;
       }
