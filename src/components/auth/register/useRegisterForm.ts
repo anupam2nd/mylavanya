@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface RegisterFormValues {
@@ -15,7 +16,6 @@ interface RegisterFormValues {
 export const useRegisterForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
 
   const handleSubmit = async (values: RegisterFormValues) => {
     setIsSubmitting(true);
@@ -45,7 +45,7 @@ export const useRegisterForm = () => {
             Username: values.email,
             FirstName: values.firstName,
             LastName: values.lastName,
-            Password: hashedPassword,
+            password: hashedPassword,
             Phone_no: parseInt(values.phone, 10),
             role: values.userType,
             CreatedDate: new Date().toISOString(),
@@ -58,7 +58,7 @@ export const useRegisterForm = () => {
         throw insertError;
       }
 
-      toast.success("Registration successful!");
+      toast("Registration successful!");
       onSuccess();
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Registration failed');
@@ -68,7 +68,7 @@ export const useRegisterForm = () => {
   };
 
   const onSuccess = () => {
-    // Handle successful registration, e.g., redirect or show a success message
+    // Handle successful registration
   };
 
   return {

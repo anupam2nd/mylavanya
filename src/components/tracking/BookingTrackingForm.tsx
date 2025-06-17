@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -24,8 +25,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const BookingTrackingForm = () => {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+interface BookingTrackingFormProps {
+  onBookingFound: (bookings: Booking[]) => void;
+}
+
+const BookingTrackingForm = ({ onBookingFound }: BookingTrackingFormProps) => {
   const [loading, setLoading] = useState(false);
 
   const form = useForm<FormValues>({
@@ -48,7 +52,7 @@ const BookingTrackingForm = () => {
       if (error) throw error;
 
       if (!bookingsData || bookingsData.length === 0) {
-        toast.error("No bookings found with this booking number or phone number.");
+        toast("No bookings found with this booking number or phone number.");
         return;
       }
 
@@ -58,10 +62,10 @@ const BookingTrackingForm = () => {
         Booking_NO: booking.Booking_NO?.toString() || ''
       }));
 
-      setBookings(transformedBookings);
-      toast.success(`Found ${transformedBookings.length} booking(s)`);
+      onBookingFound(transformedBookings);
+      toast(`Found ${transformedBookings.length} booking(s)`);
     } catch (error) {
-      toast.error("Error searching for bookings. Please try again.");
+      toast("Error searching for bookings. Please try again.");
     } finally {
       setLoading(false);
     }

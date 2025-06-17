@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -31,7 +32,7 @@ export const useArtistLogin = () => {
         return false;
       }
 
-      if (!artistData.Password) {
+      if (!artistData.password) {
         setError('Password not set for this account. Please contact administrator.');
         return false;
       }
@@ -40,7 +41,7 @@ export const useArtistLogin = () => {
       const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-password', {
         body: {
           password: password,
-          hashedPassword: artistData.Password
+          hashedPassword: artistData.password
         }
       });
 
@@ -57,7 +58,7 @@ export const useArtistLogin = () => {
       // Create user object for artist
       const artistUser = {
         id: artistData.ArtistId.toString(),
-        email: artistData.Email || `artist${artistData.ArtistId}@company.com`,
+        email: artistData.emailid || `artist${artistData.ArtistId}@company.com`,
         role: 'artist',
         firstName: artistData.ArtistFirstName || '',
         lastName: artistData.ArtistLastName || ''

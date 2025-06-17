@@ -10,11 +10,11 @@ import { Eye, EyeOff } from "lucide-react";
 export default function ArtistLoginForm() {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const { isLoading, handleLogin } = useArtistLogin();
+  const { loading, handleArtistLogin } = useArtistLogin();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handleLogin(loginData);
+    await handleArtistLogin(loginData.email, loginData.password);
   };
 
   const togglePasswordVisibility = () => {
@@ -59,9 +59,9 @@ export default function ArtistLoginForm() {
         variant="primary-gradient" 
         className="w-full"
         type="submit"
-        disabled={isLoading}
+        disabled={loading}
       >
-        {isLoading ? "Signing in..." : "Artist Sign In"}
+        {loading ? "Signing in..." : "Artist Sign In"}
       </ButtonCustom>
     </form>
   );

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -6,8 +7,8 @@ interface ArtistDetail {
   ArtistFirstName: string | null;
   ArtistLastName: string | null;
   ArtistEmpCode: string | null;
-  Phone_no: number | null;
-  Email: string | null;
+  ArtistPhno: number | null;
+  emailid: string | null;
 }
 
 export const useArtistDetails = () => {
@@ -28,7 +29,7 @@ export const useArtistDetails = () => {
     try {
       const { data, error } = await supabase
         .from('ArtistMST')
-        .select('ArtistId, ArtistFirstName, ArtistLastName, ArtistEmpCode, Phone_no, Email')
+        .select('ArtistId, ArtistFirstName, ArtistLastName, ArtistEmpCode, ArtistPhno, emailid')
         .in('ArtistId', uniqueArtistIds);
 
       if (error) throw error;
@@ -46,5 +47,16 @@ export const useArtistDetails = () => {
     }
   };
 
-  return { artistDetails, fetchArtistDetails };
+  const getArtistName = (artistId: number) => {
+    const artist = artistDetails[artistId];
+    if (!artist) return 'Unknown Artist';
+    return `${artist.ArtistFirstName || ''} ${artist.ArtistLastName || ''}`.trim() || 'Unknown Artist';
+  };
+
+  const getArtistPhone = (artistId: number) => {
+    const artist = artistDetails[artistId];
+    return artist?.ArtistPhno?.toString() || 'N/A';
+  };
+
+  return { artistDetails, fetchArtistDetails, getArtistName, getArtistPhone };
 };

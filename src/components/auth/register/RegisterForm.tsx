@@ -1,4 +1,6 @@
 
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import PersonalInfoFields from "./PersonalInfoFields";
@@ -9,6 +11,7 @@ import PasswordFields from "./PasswordFields";
 import { useRegisterForm } from "./useRegisterForm";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { RegisterFormSchema, type RegisterFormValues } from "./RegisterFormSchema";
 
 interface RegisterFormProps {
   onSuccess: (email: string, password: string) => void;
@@ -16,7 +19,24 @@ interface RegisterFormProps {
 }
 
 export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
-  const { form, isLoading, handleRegister } = useRegisterForm({ onSuccess });
+  const { isSubmitting, handleSubmit } = useRegisterForm();
+  
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(RegisterFormSchema),
+    defaultValues: {
+      email: "",
+      firstName: "",
+      lastName: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+      userType: "member",
+      address: "",
+      pincode: "",
+      dateOfBirth: undefined,
+      isPhoneVerified: false,
+    },
+  });
   
   const onSubmit = form.handleSubmit((data) => {
     // Check if phone is verified before proceeding
@@ -25,7 +45,9 @@ export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormP
       return;
     }
     
-    handleRegister(data);
+    handleSubmit(data).then(() => {
+      onSuccess(data.email, data.password);
+    });
   });
   
   return (
@@ -41,9 +63,9 @@ export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormP
           variant="primary-gradient" 
           className="w-full"
           type="submit"
-          disabled={isLoading}
+          disabled={isSubmitting}
         >
-          {isLoading ? "Creating Account..." : "Create Account"}
+          {isSubmitting ? "Creating Account..." : "Create Account"}
         </ButtonCustom>
         
         <div className="mt-4 text-center">

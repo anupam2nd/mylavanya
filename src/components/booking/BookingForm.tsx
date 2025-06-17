@@ -13,9 +13,9 @@ import FormActions from "./form/FormActions";
 import ServiceSelectionField from "./form/ServiceSelectionField";
 import { useBookingSubmit } from "./form/useBookingSubmit";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, FileText, ArrowRight, CalendarCheck } from "lucide-react";
+import { CheckCircle2, FileText, CalendarCheck } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPrice, onCancel, onSuccess }: BookingFormProps) => {
   const [bookingCompleted, setBookingCompleted] = useState(false);
