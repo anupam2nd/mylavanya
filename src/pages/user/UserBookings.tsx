@@ -1,3 +1,4 @@
+
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
@@ -12,8 +13,6 @@ const UserBookings = () => {
   const { user } = useAuth();
   const { bookings, setBookings, loading, currentUser } = useUserBookings();
   const [userData, setUserData] = useState<{ Username?: string, FirstName?: string, LastName?: string, role?: string } | null>(null);
-  
-  console.log("UserBookings - Current bookings:", bookings);
   
   // Determine user roles
   const isMember = user?.role === 'member';
@@ -41,7 +40,7 @@ const UserBookings = () => {
             setUserData(data);
           }
         } catch (err) {
-          console.error("Error in fetchUserData:", err);
+          // Error handled silently
         }
       }
     };
@@ -51,7 +50,6 @@ const UserBookings = () => {
 
   // Use userData (from UserMST) if available, otherwise fall back to currentUser
   const effectiveUserData = userData || currentUser;
-  console.log("Effective user data for BookingDialogs:", effectiveUserData);
 
   // Only used for non-member, non-artist roles
   const { dialogs, handleEditClick, handleAddNewJob } = !isMember && !isArtist ? 

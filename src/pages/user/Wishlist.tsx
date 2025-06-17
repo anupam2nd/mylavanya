@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +35,6 @@ const Wishlist = () => {
 
       try {
         setLoading(true);
-        console.log("Fetching wishlist for user:", user.id);
         
         // Instead of using the RPC function, query the wishlist table directly
         // and join with the PriceMST table to get service details
@@ -57,11 +55,8 @@ const Wishlist = () => {
           .eq('user_id', parseInt(user.id));
 
         if (error) {
-          console.error("Supabase error:", error);
           throw error;
         }
-        
-        console.log("Wishlist data received:", data);
         
         // Transform the data to match the WishlistItem interface
         const formattedItems: WishlistItem[] = data?.map(item => ({
@@ -77,7 +72,6 @@ const Wishlist = () => {
         
         setWishlistItems(formattedItems);
       } catch (error) {
-        console.error("Error fetching wishlist:", error);
         toast({
           title: "Error",
           description: "Failed to load your wishlist. Please try again.",
@@ -112,7 +106,6 @@ const Wishlist = () => {
         description: "Item removed from your wishlist",
       });
     } catch (error) {
-      console.error("Error removing from wishlist:", error);
       toast({
         title: "Error",
         description: "Failed to remove item from wishlist",

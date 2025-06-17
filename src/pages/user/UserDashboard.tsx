@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +27,6 @@ const UserDashboard = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       if (!user) {
-        console.log("No user found in context, skipping fetch");
         return;
       }
       
@@ -36,14 +34,11 @@ const UserDashboard = () => {
       setError(null);
       
       try {
-        console.log(`Attempting to fetch bookings for user: ${user.email}, role: ${user.role}, id: ${user.id}`);
-        
         let query = supabase.from('BookMST').select('*');
         
         if (user.role === 'artist') {
           const artistId = parseInt(user.id, 10);
           if (!isNaN(artistId)) {
-            console.log("Filtering dashboard bookings by ArtistId:", artistId);
             query = query.eq('ArtistId', artistId);
           }
         } else {
@@ -53,18 +48,15 @@ const UserDashboard = () => {
         const { data, error } = await query;
         
         if (error) {
-          console.error('Error fetching bookings:', error);
           setError("Failed to load bookings data");
           toast.error("Failed to load bookings data");
           return;
         }
         
-        console.log(`User bookings found: ${data?.length || 0}`);
-        
         if (data?.length > 0) {
-          console.log("Sample booking:", JSON.stringify(data[0]));
+          // Log only count for security
         } else {
-          console.log("No bookings found for the current user");
+          // Silent handling
         }
         
         // Transform data to ensure Booking_NO is a string
@@ -75,7 +67,6 @@ const UserDashboard = () => {
         
         setBookings(transformedData);
       } catch (error) {
-        console.error('Unexpected error in fetch:', error);
         setError("An unexpected error occurred");
         toast.error("An unexpected error occurred while fetching data");
       } finally {
@@ -110,124 +101,136 @@ const UserDashboard = () => {
     
     const thirtyDaysAgo = subDays(new Date(), 30);
     return bookings.filter(booking => {
-      if (!booking.Booking_date) return false;
-      const date = parseISO(booking.Booking_date);
-      return date >= thirtyDaysAgo;
+      try {
+        const bookingDate = parseISO(booking.Booking_date);
+        return bookingDate >= thirtyDaysAgo;
+      } catch {
+        return false;
+      }
     }).length;
   }, [bookings]);
-
-  const totalRevenue = useMemo(() => {
+  
+  const pendingBookings = useMemo(() => {
     if (!bookings || bookings.length === 0) return 0;
     
-    return bookings.reduce((sum, booking) => {
-      if (booking.Status === "done" || booking.Status === "confirmed" || booking.Status === "beautician_assigned") {
-        return sum + (booking.price || 0);
-      }
-      return sum;
-    }, 0);
+    return bookings.filter(booking => 
+      booking.Status === 'pending' || 
+      booking.Status === 'Booking Confirmed'
+    ).length;
+  }, [bookings]);
+
+  const completedBookings = useMemo(() => {
+    if (!bookings || bookings.length === 0) return 0;
+    
+    return bookings.filter(booking => 
+      booking.Status === 'done' || 
+      booking.Status === 'Completed'
+    ).length;
   }, [bookings]);
 
   const filteredBookings = useMemo(() => {
     if (!bookings || bookings.length === 0) return [];
     
-    if (!appliedStartDate || !appliedEndDate) return bookings;
-    
     return bookings.filter(booking => {
-      if (!booking.Booking_date) return false;
-      const date = parseISO(booking.Booking_date);
-      return date >= appliedStartDate && date <= appliedEndDate;
+      try {
+        const bookingDate = parseISO(booking.Booking_date);
+        
+        if (appliedStartDate && bookingDate < appliedStartDate) return false;
+        if (appliedEndDate && bookingDate > appliedEndDate) return false;
+        
+        return true;
+      } catch {
+        return false;
+      }
     });
   }, [bookings, appliedStartDate, appliedEndDate]);
 
-  console.log("Dashboard calculation results:", { 
-    totalBookings: bookings.length, 
-    recentBookings,
-    totalRevenue,
-    isLoading: loading,
-    error
-  });
+  if (loading) {
+    return (
+      <DashboardLayout title={user?.role === 'artist' ? 'Artist Dashboard' : 'User Dashboard'}>
+        <div className="flex justify-center items-center min-h-[200px]">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+          <span className="ml-3 text-gray-500">Loading dashboard data...</span>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout title={user?.role === 'artist' ? 'Artist Dashboard' : 'User Dashboard'}>
+        <div className="text-center py-8">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+          >
+            Retry
+          </button>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <DashboardLayout title="Dashboard">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : bookings.length}</div>
-            <p className="text-xs text-muted-foreground">
-              All time booking records
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent Bookings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {loading ? '...' : recentBookings}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Last 30 days
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {loading ? '...' : (
-                <>
-                  INR {totalRevenue.toLocaleString()}
-                </>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              From completed services
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {error && (
-        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-700">
-          <p>{error}</p>
-          <p className="text-sm mt-2">Please try refreshing the page or contact support if the problem persists.</p>
+    <DashboardLayout title={user?.role === 'artist' ? 'Artist Dashboard' : 'User Dashboard'}>
+      <div className="space-y-6">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{bookings.length}</div>
+              <p className="text-sm text-muted-foreground">All time</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Recent Bookings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{recentBookings}</div>
+              <p className="text-sm text-muted-foreground">Last 30 days</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{pendingBookings}</div>
+              <p className="text-sm text-muted-foreground">Awaiting confirmation</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Completed</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{completedBookings}</div>
+              <p className="text-sm text-muted-foreground">Successfully finished</p>
+            </CardContent>
+          </Card>
         </div>
-      )}
 
-      <div className="mb-4 mt-6">
         <ChartFilters
           startDate={startDate}
-          setStartDate={setStartDate}
           endDate={endDate}
-          setEndDate={setEndDate}
-          applyFilters={applyFilters}
-          resetFilters={resetFilters}
-        />
-      </div>
-
-      <div className="grid gap-8 grid-cols-1 md:grid-cols-2">
-        <RevenuePieChart 
-          bookings={filteredBookings} 
-          loading={loading}
-          title="Revenue by Service"
-          description="Distribution of revenue by service type"
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          onApplyFilters={applyFilters}
+          onResetFilters={resetFilters}
+          filtersApplied={filtersApplied}
         />
 
-        <BookingStatusPieChart 
-          bookings={bookings} 
-          loading={loading} 
-          startDate={appliedStartDate}
-          endDate={appliedEndDate}
-          title="Status by Booking Date"
-          description="Distribution based on when services are scheduled"
-          filterField="Booking_date"
-        />
+        <div className="grid gap-6 md:grid-cols-2">
+          <BookingStatusPieChart bookings={filteredBookings} />
+          <RevenuePieChart bookings={filteredBookings} />
+        </div>
       </div>
     </DashboardLayout>
   );

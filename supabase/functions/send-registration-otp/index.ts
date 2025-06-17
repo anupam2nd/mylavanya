@@ -57,20 +57,16 @@ serve(async (req) => {
     }
     
     // First check if the service_otps table exists, if not create it
-    try {
-      console.log("Ensuring service_otps table exists by calling create_service_otps_table function");
-      
+    try {      
       const { error: createTableError } = await supabase.rpc(
         'create_service_otps_table'
       );
       
       if (createTableError) {
-        console.error("Error calling create_service_otps_table function:", createTableError);
-      } else {
-        console.log("Table check/creation completed successfully");
+        // Continue anyway
       }
     } catch (tableError) {
-      console.error("Exception when checking/creating table:", tableError);
+      // Continue with the rest of the code
     }
     
     // Store OTP in database with expiry (10 minutes)
@@ -78,7 +74,6 @@ serve(async (req) => {
     const expiresAt = new Date(now.getTime() + 10 * 60 * 1000); // 10 minutes from now
     
     // Check if there's already an OTP for this phone number
-    console.log(`Checking for existing OTP for phone number ${formattedPhoneNumber}`);
     let existingOtp = null;
     try {
       const { data: existingOtps, error: selectError } = await supabase
@@ -88,20 +83,16 @@ serve(async (req) => {
         .eq("status_type", "registration");
       
       if (selectError) {
-        console.error("Error checking existing OTP:", selectError);
+        // Handle error silently
       } else if (existingOtps && existingOtps.length > 0) {
         existingOtp = existingOtps[0];
-        console.log("Found existing OTP record:", existingOtp.id);
-      } else {
-        console.log("No existing OTP found, will insert new record");
       }
     } catch (selectError) {
-      console.error("Exception when checking existing OTP:", selectError);
+      // Handle error silently
     }
     
     if (existingOtp) {
       // Update existing OTP
-      console.log(`Updating existing OTP record: ${existingOtp.id}`);
       const { error: updateError } = await supabase
         .from("service_otps")
         .update({
@@ -112,7 +103,6 @@ serve(async (req) => {
         .eq("id", existingOtp.id);
         
       if (updateError) {
-        console.error("Error updating OTP:", updateError);
         return new Response(
           JSON.stringify({ error: "Failed to update OTP", details: updateError.message }),
           {
@@ -121,10 +111,8 @@ serve(async (req) => {
           }
         );
       }
-      console.log("Successfully updated existing OTP record");
     } else {
       // Create new OTP
-      console.log("Creating new OTP record");
       const { error: insertError } = await supabase
         .from("service_otps")
         .insert({
@@ -137,7 +125,6 @@ serve(async (req) => {
         });
         
       if (insertError) {
-        console.error("Error creating OTP:", insertError);
         return new Response(
           JSON.stringify({ error: "Failed to create OTP", details: insertError.message }),
           {
@@ -146,7 +133,6 @@ serve(async (req) => {
           }
         );
       }
-      console.log("Successfully created new OTP record");
     }
     
     // Construct the SMS text
@@ -163,16 +149,11 @@ Sampurna (STEP)`;
     smsUrl.searchParams.append("text", smsText);
     
     // Send SMS with OTP
-    console.log(`Sending SMS to ${formattedPhoneNumber}`);
-    console.log(`SMS API URL parameters: user_name=${smsApiUsername}, mobile=${formattedPhoneNumber}, sender_id=${smsApiSenderId}`);
-    
     try {
       const smsResponse = await fetch(smsUrl.toString());
       const smsResponseText = await smsResponse.text();
-      console.log(`SMS API Response: ${smsResponseText}`);
       
       if (!smsResponse.ok) {
-        console.error(`SMS API error: ${smsResponseText}`);
         return new Response(
           JSON.stringify({ error: "Failed to send SMS", apiResponse: smsResponseText }),
           {
@@ -182,7 +163,6 @@ Sampurna (STEP)`;
         );
       }
     } catch (smsError) {
-      console.error("Error sending SMS:", smsError);
       return new Response(
         JSON.stringify({ error: "Failed to send SMS", details: smsError.message }),
         {
@@ -204,7 +184,6 @@ Sampurna (STEP)`;
       }
     );
   } catch (error) {
-    console.error("Error processing OTP request:", error);
     return new Response(
       JSON.stringify({ error: "Internal server error", details: error.message }),
       {

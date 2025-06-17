@@ -89,7 +89,6 @@ serve(async (req) => {
     
     // First check if the service_otps table exists, if not create it
     try {
-      // Use .execute() instead of just calling the function to avoid errors with return value
       const { error: createTableError } = await supabase.rpc(
         'create_service_otps_table'
       );

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,11 +33,10 @@ const MobileCategoryServices = () => {
           .eq('active', true)
           .not('imageUrl', 'is', null)
           .not('Category', 'is', null)
-          .in('Category', ['Makeup', 'Nail Care', 'Salon Services']) // Replace 'Mehendi' with 'Salon Services'
+          .in('Category', ['Makeup', 'Nail Care', 'Salon Services'])
           .order('Category', { ascending: true });
 
         if (error) {
-          console.error('Error fetching services:', error);
           return;
         }
 
@@ -60,7 +58,7 @@ const MobileCategoryServices = () => {
 
         setCategoryGroups(groupedArray);
       } catch (error) {
-        console.error('Error:', error);
+        // Error handled silently
       } finally {
         setLoading(false);
       }

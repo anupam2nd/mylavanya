@@ -47,8 +47,6 @@ serve(async (req) => {
       formattedPhoneNumber = "91" + formattedPhoneNumber;
     }
     
-    console.log(`Verifying OTP for phone number ${formattedPhoneNumber}`);
-    
     // First ensure the service_otps table exists
     try {
       const { error: createTableError } = await supabase.rpc(
@@ -56,10 +54,10 @@ serve(async (req) => {
       );
       
       if (createTableError) {
-        console.error("Error ensuring service_otps table exists:", createTableError);
+        // Continue anyway
       }
     } catch (tableError) {
-      console.error("Exception when checking/creating table:", tableError);
+      // Continue with the rest of the code
     }
     
     const { data: otpRecord, error: otpError } = await supabase
@@ -72,7 +70,6 @@ serve(async (req) => {
       .single();
     
     if (otpError || !otpRecord) {
-      console.error("Error retrieving OTP record or OTP not found:", otpError);
       return new Response(
         JSON.stringify({ error: "Invalid OTP" }),
         {
@@ -84,8 +81,6 @@ serve(async (req) => {
     
     // Check if OTP is expired
     if (new Date() > new Date(otpRecord.expires_at)) {
-      console.log("OTP expired");
-      
       // Delete expired OTP
       const { error: deleteError } = await supabase
         .from("service_otps")
@@ -93,7 +88,7 @@ serve(async (req) => {
         .eq("id", otpRecord.id);
         
       if (deleteError) {
-        console.error("Error deleting expired OTP:", deleteError);
+        // Continue with error response
       }
       
       return new Response(
@@ -106,18 +101,13 @@ serve(async (req) => {
     }
     
     // Delete the OTP record immediately after successful verification
-    // This is different from the previous implementation which marked it as verified
     const { error: deleteError } = await supabase
       .from("service_otps")
       .delete()
       .eq("id", otpRecord.id);
     
     if (deleteError) {
-      console.error("Error deleting verified OTP:", deleteError);
       // Continue with the success response even if deletion fails
-      // The cleanup job will handle it later
-    } else {
-      console.log(`Successfully deleted OTP record with ID ${otpRecord.id}`);
     }
     
     return new Response(
@@ -131,7 +121,6 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Error processing OTP verification:", error);
     return new Response(
       JSON.stringify({ error: "Internal server error", details: error.message }),
       {

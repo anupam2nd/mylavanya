@@ -55,7 +55,7 @@ const UserDashboard = () => {
         ).length;
         setPendingBookings(pendingCount);
       } catch (error) {
-        console.error('Error fetching bookings:', error);
+        // Error handled silently
       } finally {
         setIsLoading(false);
       }

@@ -15,13 +15,7 @@ serve(async (req) => {
   try {
     const { password, hashedPassword } = await req.json()
     
-    console.log("Verifying password...")
-    console.log("Plain password received:", password ? "Yes" : "No")
-    console.log("Hashed password received:", hashedPassword ? "Yes" : "No")
-    console.log("Hash format:", hashedPassword ? hashedPassword.substring(0, 20) + "..." : "N/A")
-    
     if (!password || !hashedPassword) {
-      console.error("Missing password or hashedPassword")
       return new Response(
         JSON.stringify({ error: 'Password and hashedPassword are required' }),
         { 
@@ -34,7 +28,6 @@ serve(async (req) => {
     // Parse the stored hash
     const hashParts = hashedPassword.split(':')
     if (hashParts.length !== 4 || hashParts[0] !== 'pbkdf2') {
-      console.error("Invalid hash format")
       return new Response(
         JSON.stringify({ error: 'Invalid hash format', isValid: false }),
         { 
@@ -81,8 +74,6 @@ serve(async (req) => {
     
     // Compare the hashes
     const isValid = computedHashString === storedHashString
-    
-    console.log("Password verification result:", isValid)
 
     return new Response(
       JSON.stringify({ isValid }),
@@ -91,7 +82,6 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error in verify-password function:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error', isValid: false }),
       { 

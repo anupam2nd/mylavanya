@@ -62,7 +62,6 @@ const ServiceDetail = () => {
       try {
         setLoading(true);
         setError(null);
-        console.log("Fetching service with ID:", serviceId);
 
         if (!serviceId) {
           throw new Error("Service ID is required");
@@ -77,13 +76,10 @@ const ServiceDetail = () => {
           error
         } = await supabase.from('PriceMST').select('*').eq('prod_id', serviceIdNumber).eq('active', true).single();
         if (error) {
-          console.error("Supabase error:", error);
           throw error;
         }
-        console.log("Service data:", data);
         setService(data);
       } catch (error) {
-        console.error("Error fetching service details:", error);
         setError("Could not load service details or the service may be inactive");
         toast({
           title: "Error",
@@ -119,7 +115,7 @@ const ServiceDetail = () => {
         if (error) throw error;
         setIsInWishlist(!!data);
       } catch (error) {
-        console.error("Error checking wishlist status:", error);
+        // Error handled silently
       }
     };
     
@@ -203,7 +199,6 @@ const ServiceDetail = () => {
         });
       }
     } catch (error) {
-      console.error("Error updating wishlist:", error);
       toast({
         title: "Error",
         description: "There was a problem updating your wishlist",

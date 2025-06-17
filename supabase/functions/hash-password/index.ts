@@ -15,11 +15,7 @@ serve(async (req) => {
   try {
     const { password } = await req.json()
     
-    console.log("Hashing password...")
-    console.log("Password received:", password ? "Yes" : "No")
-    
     if (!password) {
-      console.error("Missing password")
       return new Response(
         JSON.stringify({ error: 'Password is required' }),
         { 
@@ -63,9 +59,6 @@ serve(async (req) => {
     
     // Combine salt and hash for storage
     const hashedPassword = `pbkdf2:100000:${saltString}:${hashString}`
-    
-    console.log("Password hashed successfully")
-    console.log("Hash length:", hashedPassword.length)
 
     return new Response(
       JSON.stringify({ hashedPassword }),
@@ -74,7 +67,6 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error in hash-password function:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { 
