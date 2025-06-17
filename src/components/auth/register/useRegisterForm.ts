@@ -2,14 +2,14 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { RegisterFormValues } from "./RegisterFormSchema";
 
-interface RegisterFormValues {
+interface RegisterFormSubmitValues {
   email: string;
   firstName: string;
   lastName: string;
   phone: string;
   password: string;
-  confirmPassword?: string;
   userType: string;
 }
 
@@ -17,7 +17,7 @@ export const useRegisterForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (values: RegisterFormValues) => {
+  const handleSubmit = async (values: RegisterFormSubmitValues) => {
     setIsSubmitting(true);
     setError(null);
 

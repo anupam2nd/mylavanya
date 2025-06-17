@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
@@ -45,11 +44,14 @@ export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormP
       return;
     }
     
-    // Transform data to match the expected RegisterFormValues interface for the hook
+    // Transform data to match the expected interface for the hook
     const transformedData = {
-      ...data,
-      phone: data.phoneNumber, // Map phoneNumber to phone for the hook
-      userType: "member", // Default user type
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phoneNumber,
+      password: data.password,
+      userType: "member",
     };
     
     handleSubmit(transformedData).then(() => {
