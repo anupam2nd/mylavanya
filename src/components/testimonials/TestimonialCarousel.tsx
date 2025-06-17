@@ -48,7 +48,7 @@ const TestimonialCarousel: React.FC<TestimonialCarouselProps> = ({
       if (document.visibilityState === "visible") {
         emblaApi.scrollNext();
       }
-    }, 5000); // Slide every 5 seconds
+    }, 6000); // Slide every 6 seconds for better readability
     
     return () => {
       clearInterval(intervalId);
@@ -80,20 +80,20 @@ const TestimonialCarousel: React.FC<TestimonialCarouselProps> = ({
         </div>
       </div>
 
-      {/* Navigation buttons with improved styling */}
+      {/* Enhanced navigation buttons */}
       <button 
         onClick={scrollPrev}
-        className="absolute left-0 sm:-left-16 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200/50 flex items-center justify-center z-10 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 group"
+        className="absolute left-0 sm:-left-16 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full glass-card border border-white/40 flex items-center justify-center z-10 shadow-xl hover:shadow-2xl transition-all duration-300 group backdrop-blur-xl"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="h-5 w-5 text-gray-600 group-hover:text-primary transition-colors" />
+        <ChevronLeft className="h-6 w-6 text-gray-700 group-hover:text-primary transition-colors" />
       </button>
       <button 
         onClick={scrollNext}
-        className="absolute right-0 sm:-right-16 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200/50 flex items-center justify-center z-10 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 group"
+        className="absolute right-0 sm:-right-16 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full glass-card border border-white/40 flex items-center justify-center z-10 shadow-xl hover:shadow-2xl transition-all duration-300 group backdrop-blur-xl"
         aria-label="Next slide"
       >
-        <ChevronRight className="h-5 w-5 text-gray-600 group-hover:text-primary transition-colors" />
+        <ChevronRight className="h-6 w-6 text-gray-700 group-hover:text-primary transition-colors" />
       </button>
 
       {/* Enhanced testimonial indicators */}
@@ -101,10 +101,10 @@ const TestimonialCarousel: React.FC<TestimonialCarouselProps> = ({
         {testimonials.map((_, index) => (
           <button
             key={index}
-            className={`h-3 w-3 rounded-full transition-all duration-300 ${
+            className={`h-3 w-3 rounded-full transition-all duration-500 ${
               activeIndex === index 
-                ? "bg-gradient-to-r from-primary to-purple-600 scale-125 shadow-lg" 
-                : "bg-gray-300 hover:bg-gray-400"
+                ? "bg-gradient-to-r from-primary to-purple-600 scale-125 shadow-lg w-8" 
+                : "bg-white/60 backdrop-blur-sm border border-white/40 hover:bg-white/80 hover:scale-110"
             }`}
             onClick={() => {
               emblaApi?.scrollTo(index);

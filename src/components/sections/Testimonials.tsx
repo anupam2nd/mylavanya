@@ -42,7 +42,7 @@ const Testimonials = () => {
   };
 
   return (
-    <div className="py-24 bg-gradient-to-br from-violet-50 via-purple-50 to-pink-50 relative overflow-hidden">
+    <section className="py-16 md:py-24 bg-gradient-to-br from-violet-50 via-purple-50 to-pink-50 relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary/20 to-purple-300/20 rounded-full blur-3xl"></div>
@@ -51,19 +51,15 @@ const Testimonials = () => {
       </div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary to-purple-600 rounded-full mb-6">
-            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z" />
-            </svg>
-          </div>
-          
-          <p className="text-primary font-semibold text-lg mb-3 tracking-wide">CLIENT TESTIMONIALS</p>
-          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-6">
-            What Our Clients Say
+        {/* Updated header to match other sections */}
+        <div className="text-center mb-16 animate-slide-up">
+          <span className="inline-block px-4 py-2 bg-primary/10 text-primary font-semibold text-sm uppercase tracking-wider rounded-full mb-4">
+            Client Testimonials
+          </span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+            What Our <span className="text-gradient">Clients Say</span>
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-primary to-purple-600 mx-auto mb-6"></div>
-          <p className="mt-6 max-w-3xl mx-auto text-lg text-muted-foreground leading-relaxed">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Discover the experiences of our valued clients who have trusted us with their beauty journey. 
             Their stories inspire us to deliver excellence every day.
           </p>
@@ -77,7 +73,7 @@ const Testimonials = () => {
           onImageChange={handleImageChange}
         />
       </div>
-    </div>
+    </section>
   );
 };
 
