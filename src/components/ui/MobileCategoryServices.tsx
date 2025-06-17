@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,7 @@ const MobileCategoryServices = () => {
           .eq('active', true)
           .not('imageUrl', 'is', null)
           .not('Category', 'is', null)
+          .in('Category', ['Makeup', 'Nail Care', 'Salon Services']) // Replace 'Mehendi' with 'Salon Services'
           .order('Category', { ascending: true });
 
         if (error) {
