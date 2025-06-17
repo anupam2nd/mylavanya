@@ -125,12 +125,11 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile menu */}
-        <div className={`md:hidden fixed inset-x-0 top-0 bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200 z-[55] transition-all duration-300 ease-in-out ${
-          isOpen ? 'translate-y-0 opacity-100 visible' : '-translate-y-full opacity-0 invisible'
+        {/* Mobile menu - positioned right below the header */}
+        <div className={`md:hidden fixed left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200 z-[55] transition-all duration-300 ease-in-out ${
+          isOpen ? 'top-[76px] opacity-100 visible' : 'top-[-400px] opacity-0 invisible'
         }`}>
-          {/* Add padding top to account for the header */}
-          <div className="pt-20 pb-6 px-4">
+          <div className="py-6 px-4">
             <nav className="flex flex-col space-y-4">
               <Link 
                 to="/" 
