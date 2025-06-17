@@ -50,6 +50,9 @@ const Services = () => {
     
     // Update URL with search params
     setSearchParams(params);
+    
+    // Save current filters to session storage for back navigation
+    sessionStorage.setItem('servicesFilters', params.toString());
   }, [searchTerm, selectedCategory, selectedSubCategory, sortBy, setSearchParams]);
 
   const handleCategoryChange = (value: string) => {
@@ -62,8 +65,9 @@ const Services = () => {
     setSelectedCategory("all");
     setSelectedSubCategory("all");
     setSortBy("default");
-    // Clear URL parameters
+    // Clear URL parameters and session storage
     setSearchParams({});
+    sessionStorage.removeItem('servicesFilters');
   };
 
   return (

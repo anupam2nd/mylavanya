@@ -215,7 +215,31 @@ const ServiceDetail = () => {
   };
 
   const handleBackNavigation = () => {
-    navigate("/services");
+    // Get the referrer URL to extract search parameters
+    const referrer = document.referrer;
+    const currentURL = window.location.href;
+    
+    // Check if the user came from the services page
+    if (referrer && referrer.includes('/services')) {
+      try {
+        const referrerURL = new URL(referrer);
+        const searchParams = referrerURL.search;
+        
+        // Navigate back with preserved search parameters
+        navigate(`/services${searchParams}`);
+      } catch (error) {
+        // If there's an error parsing the referrer URL, just go to services
+        navigate("/services");
+      }
+    } else {
+      // Check if there are any search parameters in the current session storage
+      const savedFilters = sessionStorage.getItem('servicesFilters');
+      if (savedFilters) {
+        navigate(`/services?${savedFilters}`);
+      } else {
+        navigate("/services");
+      }
+    }
   };
 
   if (loading) {
