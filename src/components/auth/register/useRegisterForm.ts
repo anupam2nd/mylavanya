@@ -30,20 +30,16 @@ export const useRegisterForm = ({ onSuccess }: UseRegisterFormProps) => {
     setError(null);
 
     try {
-      // Hash the password before sending to backend
-      const response = await fetch('/api/hash-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password: values.password }),
+      // Hash the password using Supabase Edge Function
+      const response = await supabase.functions.invoke('hash-password', {
+        body: { password: values.password },
       });
 
-      if (!response.ok) {
+      if (response.error) {
         throw new Error('Failed to hash password');
       }
 
-      const { hashedPassword } = await response.json();
+      const { hashedPassword } = response.data;
 
       // Store user data in MemberMST table
       const { data, error: insertError } = await supabase
