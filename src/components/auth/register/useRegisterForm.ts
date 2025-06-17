@@ -11,9 +11,17 @@ interface RegisterFormSubmitValues {
   phone: string;
   password: string;
   userType: string;
+  address: string;
+  pincode: string;
+  sex: string;
+  dob: Date;
 }
 
-export const useRegisterForm = () => {
+interface UseRegisterFormProps {
+  onSuccess: (email: string, password: string) => void;
+}
+
+export const useRegisterForm = ({ onSuccess }: UseRegisterFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,38 +45,41 @@ export const useRegisterForm = () => {
 
       const { hashedPassword } = await response.json();
 
-      // Store user data
+      // Store user data in MemberMST table
       const { data, error: insertError } = await supabase
-        .from('UserMST')
+        .from('MemberMST')
         .insert([
           {
-            Username: values.email,
-            FirstName: values.firstName,
-            LastName: values.lastName,
+            MemberEmailId: values.email,
+            MemberFirstName: values.firstName,
+            MemberLastName: values.lastName,
             password: hashedPassword,
-            Phone_no: parseInt(values.phone, 10),
-            role: values.userType,
-            CreatedDate: new Date().toISOString(),
-            Active: true
+            MemberPhNo: values.phone,
+            MemberAdress: values.address,
+            MemberPincode: values.pincode,
+            MemberSex: values.sex,
+            MemberDOB: values.dob.toISOString().split('T')[0], // Format date as YYYY-MM-DD
+            MemberStatus: true
           }
         ])
         .select();
 
       if (insertError) {
-        throw insertError;
+        console.error('Database insertion error:', insertError);
+        throw new Error(insertError.message || 'Failed to create account');
       }
 
-      toast("Registration successful!");
-      onSuccess();
+      console.log('Registration successful:', data);
+      toast.success("Registration successful!");
+      onSuccess(values.email, values.password);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Registration failed');
+      console.error('Registration error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const onSuccess = () => {
-    // Handle successful registration
   };
 
   return {

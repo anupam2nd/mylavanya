@@ -1,3 +1,4 @@
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
@@ -18,7 +19,7 @@ interface RegisterFormProps {
 }
 
 export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
-  const { isSubmitting, handleSubmit } = useRegisterForm();
+  const { isSubmitting, handleSubmit } = useRegisterForm({ onSuccess });
   
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
@@ -52,11 +53,13 @@ export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormP
       phone: data.phoneNumber,
       password: data.password,
       userType: "member",
+      address: data.address,
+      pincode: data.pincode,
+      sex: data.sex,
+      dob: data.dob,
     };
     
-    handleSubmit(transformedData).then(() => {
-      onSuccess(data.email, data.password);
-    });
+    handleSubmit(transformedData);
   });
   
   return (
