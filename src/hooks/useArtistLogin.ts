@@ -14,21 +14,21 @@ export const useArtistLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleArtistLogin = async (empCode: string, password: string) => {
+  const handleArtistLogin = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
 
     try {
-      // Fetch artist data
+      // Fetch artist data by email instead of employee code
       const { data: artistData, error: artistError } = await supabase
         .from('ArtistMST')
         .select('*')
-        .eq('ArtistEmpCode', empCode)
+        .eq('emailid', email)
         .eq('Active', true)
         .single();
 
       if (artistError || !artistData) {
-        setError('Invalid employee code or account is not active');
+        setError('Invalid email or account is not active');
         return false;
       }
 
