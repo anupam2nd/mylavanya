@@ -116,6 +116,19 @@
   ::-webkit-scrollbar-thumb {
     @apply bg-primary/50 rounded-full hover:bg-primary transition-colors;
   }
+
+  /* Custom scrollbar for chatbot */
+  .custom-scrollbar::-webkit-scrollbar {
+    @apply w-1;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-white/10;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/30 rounded-full hover:bg-white/50 transition-colors;
+  }
 }
 
 @layer components {

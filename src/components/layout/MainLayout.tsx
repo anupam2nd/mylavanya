@@ -2,6 +2,7 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import FloatingTrackButton from "../ui/FloatingTrackButton";
+import ChatBot from "../chatbot/ChatBot";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
@@ -46,6 +47,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         {children}
       </main>
       <FloatingTrackButton />
+      <ChatBot />
       <Footer />
     </div>
   );
