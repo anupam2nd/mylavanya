@@ -1,7 +1,6 @@
 
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import FloatingTrackButton from "../ui/FloatingTrackButton";
 import ChatBot from "../chatbot/ChatBot";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -46,7 +45,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       <main className="flex-grow w-full max-w-full">
         {children}
       </main>
-      <FloatingTrackButton />
       <ChatBot />
       <Footer />
     </div>

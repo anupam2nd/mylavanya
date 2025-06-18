@@ -2,7 +2,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import NavTrackingButton from "@/components/ui/NavTrackingButton";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import ProfileDropdown from "@/components/user/ProfileDropdown";
 
@@ -42,10 +41,6 @@ const DesktopNavigation = ({
             <Link to="/contact" onClick={closeMenu} className={`transition-all hover:text-gray-950 duration-100 ${isScrolled ? 'text-gray-900' : 'text-gray-900'}`}>
               Contact
             </Link>
-            {/* Fixed width container for NavTrackingButton */}
-            <div className="w-[130px]"> 
-              <NavTrackingButton />
-            </div>
           </nav>
 
           {/* Login buttons */}

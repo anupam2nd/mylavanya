@@ -2,7 +2,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import NavTrackingButton from "@/components/ui/NavTrackingButton";
 import { ButtonCustom } from "@/components/ui/button-custom";
 
 interface MobileNavigationProps {
@@ -60,11 +59,6 @@ const MobileNavigation = ({
             Contact
           </Link>
           
-          {/* Mobile NavTrackingButton */}
-          <div className="py-2 border-b border-gray-100">
-            <NavTrackingButton isMobile={true} onClick={closeMenu} />
-          </div>
-          
           {/* Mobile login section */}
           <div className="pt-4">
             {isAuthenticated ? (
@@ -93,6 +87,13 @@ const MobileNavigation = ({
                     onClick={closeMenu}
                   >
                     Wishlist
+                  </Link>
+                  <Link 
+                    to="/track-booking" 
+                    className="block py-2 text-gray-700 hover:text-primary transition-colors" 
+                    onClick={closeMenu}
+                  >
+                    Track Booking
                   </Link>
                   <Button 
                     variant="ghost" 
