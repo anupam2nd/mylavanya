@@ -24,7 +24,7 @@ export default function MessageList({ messages, isLoading }: MessageListProps) {
     <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
       {messages.length === 0 && (
         <div className="flex flex-col items-center justify-center h-full text-center">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 max-w-sm">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 max-w-sm border border-white/10">
             <h3 className="text-white text-lg font-semibold mb-2">Welcome to AI Chat!</h3>
             <p className="text-white/70 text-sm">
               Ask me anything and I'll be happy to help you. How can I assist you today?

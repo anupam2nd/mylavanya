@@ -26,21 +26,26 @@ export default function ChatInput({ onSendMessage, disabled = false }: ChatInput
     }
   };
 
+  const buttonStyle = {
+    background: `linear-gradient(135deg, #080c2a 0%, #0f1635 50%, #1a2040 100%)`
+  };
+
   return (
-    <div className="flex items-center space-x-2 p-4 bg-white/10 backdrop-blur-sm border-t border-white/20">
+    <div className="flex items-center space-x-2 p-4 bg-white/5 backdrop-blur-sm border-t border-white/10">
       <Input
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onKeyPress={handleKeyPress}
         placeholder={disabled ? "AI is responding..." : "Type your message..."}
         disabled={disabled}
-        className="flex-1 bg-white/20 border-white/30 text-white placeholder:text-white/50 focus-visible:ring-white/30"
+        className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus-visible:ring-white/30 focus-visible:border-white/40"
       />
       <Button
         onClick={handleSend}
         disabled={!message.trim() || disabled}
         size="icon"
-        className="bg-gradient-to-r from-primary to-rose-400 hover:from-primary/90 hover:to-rose-400/90 border-none shadow-lg"
+        className="border-none shadow-lg hover:scale-105 transition-transform"
+        style={buttonStyle}
       >
         <Send className="w-4 h-4" />
       </Button>

@@ -24,14 +24,21 @@ export default function ChatWindow({
   onClearMessages,
   onClearError
 }: ChatWindowProps) {
+  const gradientStyle = {
+    background: `linear-gradient(135deg, #080c2a 0%, #0f1635 25%, #1a2040 50%, #243055 75%, #2e3a5f 100%)`
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-md h-[600px] bg-gradient-to-br from-primary/90 via-rose-400/80 to-purple-500/90 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 flex flex-col animate-scale-in">
+      <div 
+        className="w-full max-w-md h-[600px] backdrop-blur-md rounded-2xl shadow-2xl border border-white/10 flex flex-col animate-scale-in"
+        style={gradientStyle}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/20">
+        <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold">AI</span>
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center border border-white/20">
+              <span className="text-white font-semibold text-sm">AI</span>
             </div>
             <div>
               <h2 className="text-white font-semibold">AI Assistant</h2>
