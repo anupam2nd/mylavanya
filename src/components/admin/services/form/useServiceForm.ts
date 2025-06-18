@@ -47,6 +47,8 @@ export const useServiceForm = ({
       setDiscount(currentService.Discount?.toString() || "");
       setNetPayable(currentService.NetPayable?.toString() || "");
       setImagePreview(currentService.imageUrl || null);
+      // Clear image file when editing existing service
+      setImageFile(null);
     } else {
       resetForm();
     }
@@ -172,8 +174,10 @@ export const useServiceForm = ({
         }
       }
 
-      // Upload image if provided
+      // Upload image if provided - Fixed image bug
       let imageUrl = currentService?.imageUrl || null;
+      
+      // Only upload new image if there's a new file selected
       if (imageFile) {
         try {
           // Force fetch auth session to ensure token freshness
@@ -202,6 +206,10 @@ export const useServiceForm = ({
           console.error('Upload error:', uploadError);
           throw new Error("Image upload failed");
         }
+      }
+      // If no new image file but user removed the preview, clear the image
+      else if (!imagePreview && currentService?.imageUrl) {
+        imageUrl = null;
       }
 
       const discountValue = parseFloat(discount) || 0;

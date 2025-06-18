@@ -20,8 +20,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       if (user.role === 'superadmin' || user.role === 'admin' || user.role === 'artist' || user.role === 'controller') {
         let redirectPath = '/user/dashboard';
         
+        // Fixed superadmin redirect
         if (user.role === 'superadmin') {
-          redirectPath = '/admin/status';
+          redirectPath = '/admin/dashboard';
         } else if (user.role === 'admin') {
           redirectPath = '/admin/dashboard';
         } else if (user.role === 'controller') {
