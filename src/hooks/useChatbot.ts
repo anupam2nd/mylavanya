@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import { ChatMessage, ChatbotState } from '@/types/chatbot';
 import { toast } from 'sonner';
 
-const API_ENDPOINT = 'https://n8n.stepzbasic.xyz/webhook/2160b930-e5dc-4178-9b84-33913812fc29';
+const API_ENDPOINT = 'https://n8n.stepzbasic.xyz/webhook/70a3b0d0-28aa-4787-9087-33d299b5c049';
 
 export function useChatbot() {
   const [state, setState] = useState<ChatbotState>({
