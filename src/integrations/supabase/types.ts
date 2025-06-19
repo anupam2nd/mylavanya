@@ -420,6 +420,7 @@ export type Database = {
         Row: {
           artist_id: string | null
           created_at: string
+          product_id: number | null
           service_complete_time: string | null
           service_id: string | null
           service_start_time: string | null
@@ -431,6 +432,7 @@ export type Database = {
         Insert: {
           artist_id?: string | null
           created_at?: string
+          product_id?: number | null
           service_complete_time?: string | null
           service_id?: string | null
           service_start_time?: string | null
@@ -442,6 +444,7 @@ export type Database = {
         Update: {
           artist_id?: string | null
           created_at?: string
+          product_id?: number | null
           service_complete_time?: string | null
           service_id?: string | null
           service_start_time?: string | null
@@ -457,6 +460,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "ArtistMST"
             referencedColumns: ["emailid"]
+          },
+          {
+            foreignKeyName: "fk_service_sessions_product_id"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "PriceMST"
+            referencedColumns: ["prod_id"]
           },
           {
             foreignKeyName: "fk_service_sessions_service_id"
