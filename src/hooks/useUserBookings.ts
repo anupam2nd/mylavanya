@@ -60,6 +60,11 @@ export const useUserBookings = () => {
           console.log("Filtering bookings by member email:", user.email);
           query = query.eq('email', user.email);
         }
+        // For admin, superadmin, and controller roles, show all bookings (no filter)
+        else if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller') {
+          console.log("Admin/Controller user - showing all bookings");
+          // No filter - show all bookings
+        }
         
         query = query.order('Booking_date', { ascending: false });
         

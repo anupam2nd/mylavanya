@@ -17,6 +17,8 @@ const UserBookings = () => {
   // Determine user roles
   const isMember = user?.role === 'member';
   const isArtist = user?.role === 'artist';
+  const isController = user?.role === 'controller';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -51,8 +53,8 @@ const UserBookings = () => {
   // Use userData (from UserMST) if available, otherwise fall back to currentUser
   const effectiveUserData = userData || currentUser;
 
-  // Only used for non-member, non-artist roles
-  const { dialogs, handleEditClick, handleAddNewJob } = !isMember && !isArtist ? 
+  // Only used for admin-level roles (admin, superadmin, controller)
+  const { dialogs, handleEditClick, handleAddNewJob } = (isAdmin || isController) && !isMember && !isArtist ? 
     BookingDialogs({ bookings, setBookings, currentUser: effectiveUserData }) : 
     { dialogs: null, handleEditClick: () => {}, handleAddNewJob: () => {} };
 
@@ -75,7 +77,7 @@ const UserBookings = () => {
             />
           )}
 
-          {!isMember && !isArtist && dialogs}
+          {(isAdmin || isController) && !isMember && !isArtist && dialogs}
         </div>
       </DashboardLayout>
     </ProtectedRoute>
