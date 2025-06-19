@@ -416,6 +416,57 @@ export type Database = {
         }
         Relationships: []
       }
+      service_sessions: {
+        Row: {
+          artist_id: string | null
+          created_at: string
+          service_complete_time: string | null
+          service_id: string | null
+          service_start_time: string | null
+          session_id: string
+          status: string | null
+          total_service_duration: unknown | null
+          updated_at: string
+        }
+        Insert: {
+          artist_id?: string | null
+          created_at?: string
+          service_complete_time?: string | null
+          service_id?: string | null
+          service_start_time?: string | null
+          session_id?: string
+          status?: string | null
+          total_service_duration?: unknown | null
+          updated_at?: string
+        }
+        Update: {
+          artist_id?: string | null
+          created_at?: string
+          service_complete_time?: string | null
+          service_id?: string | null
+          service_start_time?: string | null
+          session_id?: string
+          status?: string | null
+          total_service_duration?: unknown | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_service_sessions_artist_id"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "ArtistMST"
+            referencedColumns: ["emailid"]
+          },
+          {
+            foreignKeyName: "fk_service_sessions_service_id"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "BookMST"
+            referencedColumns: ["uuid"]
+          },
+        ]
+      }
       statusmst: {
         Row: {
           active: boolean
