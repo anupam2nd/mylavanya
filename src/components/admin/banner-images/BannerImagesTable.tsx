@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -31,6 +32,7 @@ interface BannerImagesTableProps {
 
 const BannerImagesTable = ({ bannerImages, onDelete, onEdit, onStatusUpdate, loading }: BannerImagesTableProps) => {
   const { toast } = useToast();
+  const [imageSizes, setImageSizes] = useState<Record<number, string>>({});
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -41,6 +43,49 @@ const BannerImagesTable = ({ bannerImages, onDelete, onEdit, onStatusUpdate, loa
       minute: '2-digit'
     });
   };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const fetchImageSize = async (imageId: number, imageUrl: string) => {
+    try {
+      const response = await fetch(imageUrl, { method: 'HEAD' });
+      const contentLength = response.headers.get('content-length');
+      
+      if (contentLength) {
+        const sizeInBytes = parseInt(contentLength, 10);
+        setImageSizes(prev => ({
+          ...prev,
+          [imageId]: formatFileSize(sizeInBytes)
+        }));
+      } else {
+        setImageSizes(prev => ({
+          ...prev,
+          [imageId]: 'Unknown'
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching image size:', error);
+      setImageSizes(prev => ({
+        ...prev,
+        [imageId]: 'Error'
+      }));
+    }
+  };
+
+  useEffect(() => {
+    // Fetch image sizes for all banner images
+    bannerImages.forEach(image => {
+      if (!imageSizes[image.id]) {
+        fetchImageSize(image.id, image.image_url);
+      }
+    });
+  }, [bannerImages]);
 
   const handleStatusToggle = async (imageId: number, currentStatus: boolean) => {
     try {
@@ -97,6 +142,7 @@ const BannerImagesTable = ({ bannerImages, onDelete, onEdit, onStatusUpdate, loa
             <TableHead>ID</TableHead>
             <TableHead>Preview</TableHead>
             <TableHead>Image URL</TableHead>
+            <TableHead>Image Size</TableHead>
             <TableHead>Uploaded By</TableHead>
             <TableHead>Upload Date</TableHead>
             <TableHead>Status</TableHead>
@@ -131,6 +177,11 @@ const BannerImagesTable = ({ bannerImages, onDelete, onEdit, onStatusUpdate, loa
                     <ExternalLink className="h-4 w-4" />
                   </a>
                 </div>
+              </TableCell>
+              <TableCell>
+                <span className="text-sm">
+                  {imageSizes[image.id] || 'Loading...'}
+                </span>
               </TableCell>
               <TableCell>{image.uploaded_by}</TableCell>
               <TableCell>{formatDate(image.created_at)}</TableCell>
