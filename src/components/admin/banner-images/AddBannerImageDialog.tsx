@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -31,11 +30,21 @@ const AddBannerImageDialog = ({ open, onOpenChange, onImageAdded }: AddBannerIma
   const [previewUrl, setPreviewUrl] = useState<string>("");
   
   const { uploading, handleUpload } = useBannerImageUpload(onImageAdded);
+  const MAX_FILE_SIZE = 150 * 1024; // 150KB in bytes
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       console.log('File selected:', file.name, file.size, file.type);
+      
+      // Check file size before setting
+      if (file.size > MAX_FILE_SIZE) {
+        console.log('File too large:', file.size, 'bytes');
+        setSelectedFile(null);
+        setPreviewUrl("");
+        return;
+      }
+      
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -43,6 +52,11 @@ const AddBannerImageDialog = ({ open, onOpenChange, onImageAdded }: AddBannerIma
   };
 
   const handleSave = async () => {
+    // Additional check before upload
+    if (selectedFile && selectedFile.size > MAX_FILE_SIZE) {
+      return;
+    }
+    
     const success = await handleUpload(selectedFile);
     if (success) {
       onOpenChange(false);
@@ -65,13 +79,15 @@ const AddBannerImageDialog = ({ open, onOpenChange, onImageAdded }: AddBannerIma
     };
   }, [previewUrl]);
 
+  const isFileTooLarge = selectedFile && selectedFile.size > MAX_FILE_SIZE;
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Upload New Banner Image</DialogTitle>
           <DialogDescription>
-            Select an image file to upload as a banner image.
+            Select an image file to upload as a banner image. Maximum file size: 150KB.
           </DialogDescription>
         </DialogHeader>
         
@@ -92,7 +108,7 @@ const AddBannerImageDialog = ({ open, onOpenChange, onImageAdded }: AddBannerIma
           <Button 
             type="submit" 
             onClick={handleSave}
-            disabled={uploading || !selectedFile}
+            disabled={uploading || !selectedFile || isFileTooLarge}
           >
             {uploading ? (
               <>

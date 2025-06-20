@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -33,11 +32,21 @@ const EditBannerImageDialog = ({ open, onOpenChange, imageToEdit, onImageUpdated
   const [previewUrl, setPreviewUrl] = useState<string>("");
   
   const { updating, handleUpdate } = useBannerImageEdit(onImageUpdated);
+  const MAX_FILE_SIZE = 150 * 1024; // 150KB in bytes
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       console.log('File selected for edit:', file.name, file.size, file.type);
+      
+      // Check file size before setting
+      if (file.size > MAX_FILE_SIZE) {
+        console.log('File too large:', file.size, 'bytes');
+        setSelectedFile(null);
+        setPreviewUrl("");
+        return;
+      }
+      
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -46,6 +55,11 @@ const EditBannerImageDialog = ({ open, onOpenChange, imageToEdit, onImageUpdated
 
   const handleSave = async () => {
     if (!imageToEdit) return;
+    
+    // Additional check before upload
+    if (selectedFile && selectedFile.size > MAX_FILE_SIZE) {
+      return;
+    }
     
     const success = await handleUpdate(imageToEdit.id, selectedFile);
     if (success) {
@@ -76,13 +90,15 @@ const EditBannerImageDialog = ({ open, onOpenChange, imageToEdit, onImageUpdated
     }
   }, [open, imageToEdit]);
 
+  const isFileTooLarge = selectedFile && selectedFile.size > MAX_FILE_SIZE;
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Edit Banner Image</DialogTitle>
           <DialogDescription>
-            Select a new image file to replace the existing banner image.
+            Select a new image file to replace the existing banner image. Maximum file size: 150KB.
           </DialogDescription>
         </DialogHeader>
         
@@ -103,7 +119,7 @@ const EditBannerImageDialog = ({ open, onOpenChange, imageToEdit, onImageUpdated
           <Button 
             type="submit" 
             onClick={handleSave}
-            disabled={updating || !selectedFile}
+            disabled={updating || !selectedFile || isFileTooLarge}
           >
             {updating ? (
               <>
