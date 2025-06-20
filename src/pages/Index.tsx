@@ -7,6 +7,7 @@ import Testimonials from "@/components/sections/Testimonials";
 import BookingBanner from "@/components/sections/BookingBanner";
 import AuthModal from "@/components/auth/AuthModal";
 import MainLayout from "@/components/layout/MainLayout";
+import BannerSlider from "@/components/ui/BannerSlider";
 
 const Index = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -28,6 +29,14 @@ const Index = () => {
         onLogin={() => handleLogin("member")}
         onArtistLogin={() => handleLogin("artist")}
       />
+      
+      {/* Banner Slider - Only visible on lg screens and above */}
+      <div className="hidden lg:block bg-gradient-to-b from-secondary/10 to-background py-8">
+        <div className="container mx-auto px-4">
+          <BannerSlider />
+        </div>
+      </div>
+      
       <ServicesSection />
       <BookingBanner onBookNow={() => navigate("/services")} />
       <Testimonials />
