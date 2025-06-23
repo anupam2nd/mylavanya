@@ -79,7 +79,6 @@ const AdminUsers = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("");
-  const [password, setPassword] = useState("");
   const [phoneNo, setPhoneNo] = useState("");
   
   const roleOptions = [
@@ -162,7 +161,6 @@ const AdminUsers = () => {
     setFirstName("");
     setLastName("");
     setRole("admin");
-    setPassword("");
     setPhoneNo("");
     setOpenDialog(true);
   };
@@ -174,7 +172,6 @@ const AdminUsers = () => {
     setFirstName(user.FirstName || "");
     setLastName(user.LastName || "");
     setRole(user.role || "admin");
-    setPassword(""); // Don't populate password for existing users
     setPhoneNo(user.PhoneNo ? user.PhoneNo.toString() : "");
     setOpenDialog(true);
   };
@@ -265,10 +262,6 @@ const AdminUsers = () => {
         throw new Error("Phone number is required");
       }
 
-      if (isNewUser && !password) {
-        throw new Error("Password is required for new users");
-      }
-
       const userData: any = {
         email_id: email,
         FirstName: firstName || null,
@@ -277,10 +270,6 @@ const AdminUsers = () => {
         active: true,
         PhoneNo: phoneNo ? parseInt(phoneNo) : null
       };
-
-      if (password) {
-        userData.password = password;
-      }
 
       if (isNewUser) {
         const { data, error } = await supabase
@@ -529,6 +518,7 @@ const AdminUsers = () => {
                   onChange={(e) => setPhoneNo(e.target.value)}
                   className="col-span-3"
                   placeholder="Enter phone number"
+                  required
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -550,19 +540,6 @@ const AdminUsers = () => {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="password" className="text-right">
-                  {isNewUser ? "Password" : "New Password"}
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="col-span-3"
-                  placeholder={isNewUser ? "Required" : "Leave blank to keep current"}
-                />
               </div>
             </div>
             <DialogFooter>

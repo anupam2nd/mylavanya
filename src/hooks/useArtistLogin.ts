@@ -24,7 +24,7 @@ export function useArtistLogin() {
       
       const { data, error } = await supabase
         .from('ArtistMST')
-        .select('ArtistId, emailid, ArtistFirstName, ArtistLastName, password')
+        .select('ArtistId, emailid, ArtistFirstName, ArtistLastName, password, Active')
         .eq('emailid', normalizedEmail)
         .maybeSingle();
       
@@ -37,6 +37,11 @@ export function useArtistLogin() {
       
       if (!data) {
         throw new Error('Artist not found');
+      }
+      
+      // Check if artist is active
+      if (data.Active === false) {
+        throw new Error('Your account has been deactivated. Please contact support.');
       }
       
       if (!data.password) {

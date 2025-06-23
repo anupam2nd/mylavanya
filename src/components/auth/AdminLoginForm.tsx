@@ -1,26 +1,27 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
-import { useArtistLogin } from "@/hooks/useArtistLogin";
+import { useLogin } from "@/hooks/useLogin";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArtistPasswordSetup } from "./ArtistPasswordSetup";
+import { AdminPasswordSetup } from "./AdminPasswordSetup";
 
 type LoginStep = "credentials" | "password" | "setup";
 
-export default function ArtistLoginForm() {
+export default function AdminLoginForm() {
   const [currentStep, setCurrentStep] = useState<LoginStep>("credentials");
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [artistData, setArtistData] = useState<any>(null);
+  const [userData, setUserData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { handleLogin } = useArtistLogin();
+  const { handleLogin } = useLogin();
 
-  const checkArtistExistence = async () => {
+  const checkUserExistence = async () => {
     if (!emailOrPhone.trim()) {
       toast.error("Please enter email or phone number");
       return;
@@ -33,66 +34,41 @@ export default function ArtistLoginForm() {
       // Check if it's email or phone
       const isEmail = normalizedInput.includes('@');
       
-      let query = supabase.from('ArtistMST').select('*');
+      let query = supabase.from('UserMST').select('*');
       
       if (isEmail) {
-        query = query.eq('emailid', normalizedInput);
+        query = query.ilike('email_id', normalizedInput);
       } else {
-        // For phone number, check both with and without country code
-        const phoneQuery = supabase
-          .from('ArtistMST')
-          .select('*')
-          .or(`ArtistPhno.eq.${normalizedInput},ArtistPhno.eq.91${normalizedInput}`);
-        
-        const { data, error } = await phoneQuery.maybeSingle();
-        
-        if (error) {
-          console.error("Error checking artist:", error);
-          toast.error("Error checking artist details");
-          return;
-        }
-
-        if (!data) {
-          toast.error("No artist found with this phone number");
-          return;
-        }
-
-        // Check if artist is active
-        if (data.Active === false) {
-          toast.error("Your account has been deactivated. Please contact support.");
-          return;
-        }
-
-        setArtistData(data);
-        
-        if (data.password) {
-          setCurrentStep("password");
-        } else {
-          setCurrentStep("setup");
-        }
-        return;
+        // For phone number
+        query = query.eq('PhoneNo', parseInt(normalizedInput));
       }
       
       const { data, error } = await query.maybeSingle();
       
       if (error) {
-        console.error("Error checking artist:", error);
-        toast.error("Error checking artist details");
+        console.error("Error checking user:", error);
+        toast.error("Error checking user details");
         return;
       }
 
       if (!data) {
-        toast.error("No artist found with this email");
+        toast.error(isEmail ? "No user found with this email" : "No user found with this phone number");
         return;
       }
 
-      // Check if artist is active
-      if (data.Active === false) {
+      // Check if user is active
+      if (data.active === false) {
         toast.error("Your account has been deactivated. Please contact support.");
         return;
       }
 
-      setArtistData(data);
+      // Check if user role is admin or controller
+      if (!['admin', 'controller', 'superadmin'].includes(data.role)) {
+        toast.error("Access denied. This login is for admin and controller users only.");
+        return;
+      }
+
+      setUserData(data);
       
       if (data.password) {
         setCurrentStep("password");
@@ -118,7 +94,7 @@ export default function ArtistLoginForm() {
     setIsLoading(true);
     try {
       const success = await handleLogin({
-        email: artistData.emailid,
+        email: userData.email_id,
         password: password
       });
       
@@ -138,7 +114,7 @@ export default function ArtistLoginForm() {
     setCurrentStep("credentials");
     setEmailOrPhone("");
     setPassword("");
-    setArtistData(null);
+    setUserData(null);
   };
 
   const togglePasswordVisibility = () => {
@@ -149,13 +125,13 @@ export default function ArtistLoginForm() {
     setCurrentStep("credentials");
     setEmailOrPhone("");
     setPassword("");
-    setArtistData(null);
+    setUserData(null);
   };
 
   if (currentStep === "setup") {
     return (
-      <ArtistPasswordSetup 
-        artistData={artistData}
+      <AdminPasswordSetup 
+        userData={userData}
         onComplete={handlePasswordSetupComplete}
         onBack={resetForm}
       />
@@ -165,10 +141,16 @@ export default function ArtistLoginForm() {
   if (currentStep === "password") {
     return (
       <form onSubmit={handlePasswordLogin} className="space-y-4">
+        <div className="mb-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            This login is for admins, controllers & superadmin only. 
+            Members should use the main sign in button.
+          </p>
+        </div>
         <div className="space-y-2">
-          <Label>Artist Email</Label>
+          <Label>Email</Label>
           <Input 
-            value={artistData?.emailid || emailOrPhone}
+            value={userData?.email_id || emailOrPhone}
             disabled
             className="bg-gray-50"
           />
@@ -209,7 +191,7 @@ export default function ArtistLoginForm() {
             type="submit"
             disabled={isLoading}
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? "Signing in..." : "Admin Sign In"}
           </ButtonCustom>
         </div>
       </form>
@@ -218,6 +200,12 @@ export default function ArtistLoginForm() {
 
   return (
     <div className="space-y-4">
+      <div className="mb-4 text-center">
+        <p className="text-sm text-muted-foreground">
+          This login is for admins, controllers & superadmin only. 
+          Members should use the main sign in button.
+        </p>
+      </div>
       <div className="space-y-2">
         <Label htmlFor="email-phone">Email or Phone Number</Label>
         <Input 
@@ -233,7 +221,7 @@ export default function ArtistLoginForm() {
         variant="primary-gradient" 
         className="w-full"
         type="button"
-        onClick={checkArtistExistence}
+        onClick={checkUserExistence}
         disabled={isLoading}
       >
         {isLoading ? "Checking..." : "Continue"}
