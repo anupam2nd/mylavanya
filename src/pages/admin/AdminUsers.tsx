@@ -52,6 +52,7 @@ interface User {
   LastName: string | null;
   role: string | null;
   active?: boolean;
+  PhoneNo?: number | null;
 }
 
 const AdminUsers = () => {
@@ -79,6 +80,7 @@ const AdminUsers = () => {
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("");
   const [password, setPassword] = useState("");
+  const [phoneNo, setPhoneNo] = useState("");
   
   const roleOptions = [
     { value: "admin", label: "Admin" },
@@ -91,6 +93,7 @@ const AdminUsers = () => {
     FirstName: 'First Name',
     LastName: 'Last Name',
     role: 'Role',
+    PhoneNo: 'Phone Number',
     active: 'Status'
   };
 
@@ -160,6 +163,7 @@ const AdminUsers = () => {
     setLastName("");
     setRole("admin");
     setPassword("");
+    setPhoneNo("");
     setOpenDialog(true);
   };
 
@@ -171,6 +175,7 @@ const AdminUsers = () => {
     setLastName(user.LastName || "");
     setRole(user.role || "admin");
     setPassword(""); // Don't populate password for existing users
+    setPhoneNo(user.PhoneNo ? user.PhoneNo.toString() : "");
     setOpenDialog(true);
   };
 
@@ -256,6 +261,10 @@ const AdminUsers = () => {
         throw new Error("Email is required");
       }
 
+      if (!phoneNo) {
+        throw new Error("Phone number is required");
+      }
+
       if (isNewUser && !password) {
         throw new Error("Password is required for new users");
       }
@@ -265,7 +274,8 @@ const AdminUsers = () => {
         FirstName: firstName || null,
         LastName: lastName || null,
         role: role || "admin",
-        active: true
+        active: true,
+        PhoneNo: phoneNo ? parseInt(phoneNo) : null
       };
 
       if (password) {
@@ -404,6 +414,7 @@ const AdminUsers = () => {
                       <TableHead>First Name</TableHead>
                       <TableHead>Last Name</TableHead>
                       <TableHead>Role</TableHead>
+                      <TableHead>Phone Number</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -422,6 +433,7 @@ const AdminUsers = () => {
                             {user.role || 'user'}
                           </span>
                         </TableCell>
+                        <TableCell>{user.PhoneNo}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Switch 
@@ -504,6 +516,19 @@ const AdminUsers = () => {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone-no" className="text-right">
+                  Phone Number
+                </Label>
+                <Input
+                  id="phone-no"
+                  type="tel"
+                  value={phoneNo}
+                  onChange={(e) => setPhoneNo(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Enter phone number"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
