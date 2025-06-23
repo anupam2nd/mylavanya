@@ -92,18 +92,21 @@ export const useProfileForm = (
       ? JSON.stringify(formData.childrenDetails) 
       : null;
     
-    // Use raw SQL to avoid TypeScript complexity
-    const { error } = await supabase.rpc('update_member_profile', {
-      member_email: userEmail,
-      first_name: formData.firstName,
-      last_name: formData.lastName,
-      phone: formData.phone,
-      marital_status: formData.maritalStatus,
-      spouse_name: formData.spouseName,
-      has_children: formData.hasChildren,
-      number_of_children: formData.numberOfChildren,
-      children_details: childrenDetailsString
-    });
+    // Direct table update with explicit type casting to avoid TypeScript complexity
+    // @ts-ignore - Suppressing TypeScript "Type instantiation is excessively deep" error
+    const { error } = await supabase
+      .from('MemberMST')
+      .update({
+        MemberFirstName: formData.firstName,
+        MemberLastName: formData.lastName,
+        MemberPhNo: formData.phone,
+        MaritalStatus: formData.maritalStatus,
+        SpouseName: formData.spouseName,
+        HasChildren: formData.hasChildren,
+        NumberOfChildren: formData.numberOfChildren,
+        ChildrenDetails: childrenDetailsString
+      } as any)
+      .eq('MemberEmailId', userEmail);
     
     return { error };
   };
@@ -136,18 +139,20 @@ export const useProfileForm = (
         if (error) throw error;
       }
       else {
+        // @ts-ignore - Suppressing TypeScript "Type instantiation is excessively deep" error
         const { error } = await supabase
           .from('UserMST')
           .update({
             FirstName: formData.firstName,
             LastName: formData.lastName,
             PhoneNo: formData.phone ? Number(formData.phone) : null
-          })
+          } as any)
           .eq('Username', userEmail);
           
         if (error) {
           console.error("Error updating by Username:", error);
           
+          // @ts-ignore - Suppressing TypeScript "Type instantiation is excessively deep" error
           const { error: idError } = await supabase
             .from('UserMST')
             .update({
@@ -155,7 +160,7 @@ export const useProfileForm = (
               LastName: formData.lastName,
               PhoneNo: formData.phone ? Number(formData.phone) : null,
               Username: userEmail
-            })
+            } as any)
             .eq('id', Number(userId));
             
           if (idError) throw idError;
