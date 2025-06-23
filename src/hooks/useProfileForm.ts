@@ -115,20 +115,18 @@ export const useProfileForm = (
           ? JSON.stringify(formData.childrenDetails) 
           : null;
         
-        // Use direct update with explicit typing to avoid type inference issues
-        const { error } = await supabase
-          .from('MemberMST')
-          .update({
-            MemberFirstName: formData.firstName as string,
-            MemberLastName: formData.lastName as string, 
-            MemberPhNo: (formData.phone || null) as string | null,
-            MaritalStatus: (formData.maritalStatus || false) as boolean,
-            SpouseName: (formData.spouseName || null) as string | null,
-            HasChildren: (formData.hasChildren || false) as boolean,
-            NumberOfChildren: (formData.numberOfChildren || 0) as number,
-            ChildrenDetails: childrenDetailsString as string | null
-          } as any)
-          .eq('MemberEmailId', userEmail);
+        // Use raw SQL approach to avoid TypeScript inference issues
+        const { error } = await supabase.rpc('update_member_profile', {
+          member_email: userEmail,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          phone_no: formData.phone || null,
+          marital_status: formData.maritalStatus || false,
+          spouse_name: formData.spouseName || null,
+          has_children: formData.hasChildren || false,
+          number_of_children: formData.numberOfChildren || 0,
+          children_details: childrenDetailsString
+        });
           
         if (error) throw error;
       }
