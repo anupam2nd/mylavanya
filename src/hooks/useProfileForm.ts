@@ -115,7 +115,7 @@ export const useProfileForm = (
           ? JSON.stringify(formData.childrenDetails) 
           : null;
         
-        // Build update object dynamically and cast to avoid type issues
+        // Build update object dynamically
         const memberUpdate: any = {};
         
         if (formData.firstName !== undefined) memberUpdate.MemberFirstName = formData.firstName;
@@ -127,10 +127,11 @@ export const useProfileForm = (
         if (formData.numberOfChildren !== undefined) memberUpdate.NumberOfChildren = formData.numberOfChildren;
         if (childrenDetailsString !== undefined) memberUpdate.ChildrenDetails = childrenDetailsString;
         
-        const { error } = await (supabase
-          .from('MemberMST')
-          .update(memberUpdate)
-          .eq('MemberEmailId', userEmail) as any);
+        // Break down the operation to avoid type inference issues
+        const memberTable = supabase.from('MemberMST');
+        const updateQuery = memberTable.update(memberUpdate);
+        const finalQuery = updateQuery.eq('MemberEmailId', userEmail);
+        const { error } = await finalQuery;
           
         if (error) throw error;
       }
