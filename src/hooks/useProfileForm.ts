@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ProfileFormData } from "@/types/profile";
+import { ProfileFormData, ChildDetail, JsonCompatible } from "@/types/profile";
 
 export const useProfileForm = (
   initialData: ProfileFormData,
@@ -54,8 +54,7 @@ export const useProfileForm = (
       
       setFormData(prev => {
         // Adjust children details array size
-        const currentChildren = prev.childrenDetails || [];
-        let updatedChildrenDetails = [...currentChildren];
+        let updatedChildrenDetails = [...(prev.childrenDetails || [])];
         
         // If increasing, add empty slots
         while (updatedChildrenDetails.length < boundedValue) {
@@ -78,8 +77,7 @@ export const useProfileForm = (
 
   const handleChildDetailChange = (index: number, field: 'name' | 'age', value: string) => {
     setFormData(prev => {
-      const currentChildren = prev.childrenDetails || [];
-      const updatedChildren = [...currentChildren];
+      const updatedChildren = [...(prev.childrenDetails || [])];
       updatedChildren[index] = { 
         ...updatedChildren[index], 
         [field]: value 
@@ -112,11 +110,6 @@ export const useProfileForm = (
         }
       } 
       else if (userRole === 'member') {
-        // Prepare children details for database storage
-        const childrenDetailsJson = formData.childrenDetails ? 
-          JSON.stringify(formData.childrenDetails) : 
-          JSON.stringify([]);
-
         // Update member data in MemberMST with new fields
         const { error } = await supabase
           .from('MemberMST')
@@ -128,7 +121,8 @@ export const useProfileForm = (
             SpouseName: formData.spouseName || null,
             HasChildren: formData.hasChildren || false,
             NumberOfChildren: formData.numberOfChildren || 0,
-            ChildrenDetails: childrenDetailsJson
+            // Convert ChildrenDetails to JSON compatible format
+            ChildrenDetails: formData.childrenDetails as JsonCompatible<ChildDetail[]>
           })
           .eq('MemberEmailId', userEmail);
           

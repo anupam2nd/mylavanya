@@ -1,13 +1,13 @@
-
 import { useState } from "react";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Phone, MapPin } from "lucide-react";
-
 export default function Contact() {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -15,15 +15,16 @@ export default function Contact() {
     message: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value
+    } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -43,7 +44,6 @@ export default function Contact() {
       setIsSubmitting(false);
     }, 1000);
   };
-
   return <>
       <Navbar />
       <main className="pt-24 pb-16">
@@ -70,14 +70,10 @@ export default function Contact() {
                     </div>
                     
                     <div className="flex items-start">
-                      <a href="tel:+919230967221" className="text-primary mr-4 mt-1 hover:scale-110 transition-transform">
-                        <Phone size={22} />
-                      </a>
+                      <Phone size={22} className="text-primary mr-4 mt-1" />
                       <div>
                         <h3 className="font-medium">Phone Number</h3>
-                        <a href="tel:+919230967221" className="text-muted-foreground hover:text-primary transition-colors">
-                          +91 9230967221
-                        </a>
+                        <p className="text-muted-foreground">+91 9230967221</p>
                       </div>
                     </div>
                     

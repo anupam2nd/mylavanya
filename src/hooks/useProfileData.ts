@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ProfileFormData, ChildDetail } from "@/types/profile";
+import { ProfileFormData, ChildDetail, JsonCompatible } from "@/types/profile";
 import { User } from "@/types/auth";
 
 export const useProfileData = (user: User | null) => {
