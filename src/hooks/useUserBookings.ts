@@ -10,7 +10,7 @@ export const useUserBookings = () => {
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<{ Username?: string, FirstName?: string, LastName?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ email_id?: string, FirstName?: string, LastName?: string } | null>(null);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -23,7 +23,7 @@ export const useUserBookings = () => {
           if (!isNaN(userId)) {
             const { data, error } = await supabase
               .from('UserMST')
-              .select('Username, FirstName, LastName')
+              .select('email_id, FirstName, LastName')
               .eq('id', userId)
               .single();
               

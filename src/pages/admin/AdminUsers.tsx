@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -47,7 +48,7 @@ import { Switch } from "@/components/ui/switch";
 
 interface User {
   id: number;
-  Username: string | null;
+  email_id: string | null;
   FirstName: string | null;
   LastName: string | null;
   role: string | null;
@@ -88,7 +89,7 @@ const AdminUsers = () => {
 
   const userHeaders = {
     id: 'ID',
-    Username: 'Username',
+    email_id: 'Email',
     FirstName: 'First Name',
     LastName: 'Last Name',
     role: 'Role',
@@ -102,7 +103,7 @@ const AdminUsers = () => {
         const { data, error } = await supabase
           .from('UserMST')
           .select('*')
-          .order('Username', { ascending: true });
+          .order('email_id', { ascending: true });
 
         if (error) throw error;
         setUsers(data || []);
@@ -129,7 +130,7 @@ const AdminUsers = () => {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         user => 
-          (user.Username && user.Username.toLowerCase().includes(query)) ||
+          (user.email_id && user.email_id.toLowerCase().includes(query)) ||
           (user.FirstName && user.FirstName.toLowerCase().includes(query)) ||
           (user.LastName && user.LastName.toLowerCase().includes(query))
       );
@@ -167,7 +168,7 @@ const AdminUsers = () => {
   const handleEdit = (user: User) => {
     setIsNewUser(false);
     setCurrentUser(user);
-    setEmail(user.Username || "");
+    setEmail(user.email_id || "");
     setFirstName(user.FirstName || "");
     setLastName(user.LastName || "");
     setRole(user.role || "admin");
@@ -232,7 +233,7 @@ const AdminUsers = () => {
       
       toast({
         title: newActiveState ? "User activated" : "User deactivated",
-        description: `User "${userToDeactivate.Username}" has been ${newActiveState ? "activated" : "deactivated"}`,
+        description: `User "${userToDeactivate.email_id}" has been ${newActiveState ? "activated" : "deactivated"}`,
       });
       
       setOpenDeactivateDialog(false);
@@ -262,7 +263,7 @@ const AdminUsers = () => {
       }
 
       const userData: any = {
-        Username: email,
+        email_id: email,
         FirstName: firstName || null,
         LastName: lastName || null,
         role: role || "admin",
@@ -401,7 +402,7 @@ const AdminUsers = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Username</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>First Name</TableHead>
                       <TableHead>Last Name</TableHead>
                       <TableHead>Role</TableHead>
@@ -412,7 +413,7 @@ const AdminUsers = () => {
                   <TableBody>
                     {filteredUsers.map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.Username}</TableCell>
+                        <TableCell className="font-medium">{user.email_id}</TableCell>
                         <TableCell>{user.FirstName}</TableCell>
                         <TableCell>{user.LastName}</TableCell>
                         <TableCell>

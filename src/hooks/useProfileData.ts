@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileFormData, ChildDetail, JsonCompatible } from "@/types/profile";
@@ -99,17 +100,17 @@ export const useProfileData = (user: User | null) => {
         else {
           const { data, error } = await supabase
             .from('UserMST')
-            .select('FirstName, LastName, Username, PhoneNo')
-            .eq('Username', user.email)
+            .select('FirstName, LastName, email_id, PhoneNo')
+            .eq('email_id', user.email)
             .single();
             
           if (error) {
-            console.error("Error fetching user profile by Username:", error);
+            console.error("Error fetching user profile by email_id:", error);
             
-            // Fallback to searching by ID if Username search fails
+            // Fallback to searching by ID if email_id search fails
             const { data: idData, error: idError } = await supabase
               .from('UserMST')
-              .select('FirstName, LastName, Username, PhoneNo')
+              .select('FirstName, LastName, email_id, PhoneNo')
               .eq('id', Number(user.id))
               .single();
               
@@ -136,7 +137,7 @@ export const useProfileData = (user: User | null) => {
               lastName: data.LastName || "",
               phone: data.PhoneNo?.toString() || ""
             });
-            console.log("User profile data loaded via Username:", data);
+            console.log("User profile data loaded via email_id:", data);
           }
         }
       } catch (err) {
