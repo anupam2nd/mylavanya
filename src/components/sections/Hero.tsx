@@ -36,7 +36,7 @@ const Hero = ({
     );
   }
 
-  // Desktop version (existing code)
+  // Desktop version
   return (
     <div className="relative bg-gradient-to-b from-secondary/30 to-background overflow-hidden py-16 md:py-24 lg:py-[50px] -mt-16 pt-32">
       {/* Particles Background - extends to cover navbar area */}
