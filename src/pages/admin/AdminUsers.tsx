@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -83,8 +82,7 @@ const AdminUsers = () => {
   
   const roleOptions = [
     { value: "admin", label: "Admin" },
-    { value: "controller", label: "Controller" },
-    { value: "artist", label: "Artist" }
+    { value: "controller", label: "Controller" }
   ];
 
   const userHeaders = {
