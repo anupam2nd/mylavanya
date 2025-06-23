@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ProfileFormData, ChildDetail, JsonCompatible } from "@/types/profile";
+import { ProfileFormData, ChildDetail } from "@/types/profile";
 
 export const useProfileForm = (
   initialData: ProfileFormData,
@@ -110,6 +110,9 @@ export const useProfileForm = (
         }
       } 
       else if (userRole === 'member') {
+        // Convert childrenDetails to a simple JSON string to avoid type complexity
+        const childrenDetailsJson = formData.childrenDetails ? JSON.stringify(formData.childrenDetails) : null;
+        
         // Update member data in MemberMST with new fields
         const { error } = await supabase
           .from('MemberMST')
@@ -121,8 +124,8 @@ export const useProfileForm = (
             SpouseName: formData.spouseName || null,
             HasChildren: formData.hasChildren || false,
             NumberOfChildren: formData.numberOfChildren || 0,
-            // Convert ChildrenDetails to JSON compatible format
-            ChildrenDetails: formData.childrenDetails as JsonCompatible<ChildDetail[]>
+            // Store as JSON string to avoid complex type issues
+            ChildrenDetails: childrenDetailsJson as any
           })
           .eq('MemberEmailId', userEmail);
           
