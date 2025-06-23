@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ProfileFormData, ChildDetail, JsonCompatible } from "@/types/profile";
+import { ProfileFormData, ChildDetail } from "@/types/profile";
 
 export const useProfileForm = (
   initialData: ProfileFormData,
@@ -121,8 +121,8 @@ export const useProfileForm = (
             SpouseName: formData.spouseName || null,
             HasChildren: formData.hasChildren || false,
             NumberOfChildren: formData.numberOfChildren || 0,
-            // Convert ChildrenDetails to JSON compatible format
-            ChildrenDetails: formData.childrenDetails as JsonCompatible<ChildDetail[]>
+            // Simplified type casting - let Supabase handle the JSON conversion
+            ChildrenDetails: formData.childrenDetails || []
           })
           .eq('MemberEmailId', userEmail);
           
