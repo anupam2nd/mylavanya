@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -52,7 +53,6 @@ interface User {
   LastName: string | null;
   role: string | null;
   active?: boolean;
-  source?: 'UserMST' | 'ArtistMST';
 }
 
 const AdminUsers = () => {
@@ -100,47 +100,14 @@ const AdminUsers = () => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        
-        // Fetch from UserMST (admins and controllers)
-        const { data: userMSTData, error: userMSTError } = await supabase
+        const { data, error } = await supabase
           .from('UserMST')
           .select('*')
           .order('email_id', { ascending: true });
 
-        if (userMSTError) throw userMSTError;
-
-        // Fetch from ArtistMST (artists)
-        const { data: artistMSTData, error: artistMSTError } = await supabase
-          .from('ArtistMST')
-          .select('ArtistId as id, emailid as email_id, ArtistFirstName as FirstName, ArtistLastName as LastName, Active as active')
-          .order('emailid', { ascending: true });
-
-        if (artistMSTError) throw artistMSTError;
-
-        // Combine data from both tables with proper null handling
-        const combinedUsers: User[] = [
-          ...(userMSTData || []).map(user => ({ 
-            id: user.id,
-            email_id: user.email_id,
-            FirstName: user.FirstName,
-            LastName: user.LastName,
-            role: user.role,
-            active: user.active,
-            source: 'UserMST' as const 
-          })),
-          ...(artistMSTData || []).map(artist => ({ 
-            id: artist.id,
-            email_id: artist.email_id,
-            FirstName: artist.FirstName,
-            LastName: artist.LastName,
-            role: 'artist' as const,
-            active: artist.active,
-            source: 'ArtistMST' as const 
-          }))
-        ];
-
-        setUsers(combinedUsers);
-        setFilteredUsers(combinedUsers);
+        if (error) throw error;
+        setUsers(data || []);
+        setFilteredUsers(data || []);
       } catch (error) {
         console.error('Error fetching users:', error);
         toast({
@@ -223,17 +190,14 @@ const AdminUsers = () => {
     if (!userToDelete) return;
 
     try {
-      const tableName = userToDelete.source === 'ArtistMST' ? 'ArtistMST' : 'UserMST';
-      const idColumn = userToDelete.source === 'ArtistMST' ? 'ArtistId' : 'id';
-
       const { error } = await supabase
-        .from(tableName)
+        .from('UserMST')
         .delete()
-        .eq(idColumn, userToDelete.id);
+        .eq('id', userToDelete.id);
 
       if (error) throw error;
 
-      setUsers(users.filter(u => u.id !== userToDelete.id || u.source !== userToDelete.source));
+      setUsers(users.filter(u => u.id !== userToDelete.id));
       toast({
         title: "User deleted",
         description: "The user has been successfully removed",
@@ -254,23 +218,16 @@ const AdminUsers = () => {
 
     try {
       const newActiveState = !userToDeactivate.active;
-      const tableName = userToDeactivate.source === 'ArtistMST' ? 'ArtistMST' : 'UserMST';
-      const idColumn = userToDeactivate.source === 'ArtistMST' ? 'ArtistId' : 'id';
-      const activeColumn = userToDeactivate.source === 'ArtistMST' ? 'Active' : 'active';
-
       const { error } = await supabase
-        .from(tableName)
-        .update({ [activeColumn]: newActiveState })
-        .eq(idColumn, userToDeactivate.id);
+        .from('UserMST')
+        .update({ active: newActiveState })
+        .eq('id', userToDeactivate.id);
 
       if (error) throw error;
 
       setUsers(users.map(user => 
-        user.id === userToDeactivate.id && user.source === userToDeactivate.source
-          ? { 
-              ...user, 
-              active: newActiveState 
-            } 
+        user.id === userToDeactivate.id 
+          ? { ...user, active: newActiveState } 
           : user
       ));
       
@@ -305,67 +262,28 @@ const AdminUsers = () => {
         throw new Error("Password is required for new users");
       }
 
+      const userData: any = {
+        email_id: email,
+        FirstName: firstName || null,
+        LastName: lastName || null,
+        role: role || "admin",
+        active: true
+      };
+
+      if (password) {
+        userData.password = password;
+      }
+
       if (isNewUser) {
-        // Create new user based on role
-        if (role === 'artist') {
-          // Store in ArtistMST table
-          const artistData = {
-            emailid: email,
-            ArtistFirstName: firstName || null,
-            ArtistLastName: lastName || null,
-            password: password,
-            Active: true
-          };
+        const { data, error } = await supabase
+          .from('UserMST')
+          .insert([userData])
+          .select();
 
-          const { data, error } = await supabase
-            .from('ArtistMST')
-            .insert([artistData])
-            .select('ArtistId as id, emailid as email_id, ArtistFirstName as FirstName, ArtistLastName as LastName, Active as active');
-
-          if (error) throw error;
-          
-          if (data && data.length > 0) {
-            const newUser: User = { 
-              id: data[0].id,
-              email_id: data[0].email_id,
-              FirstName: data[0].FirstName,
-              LastName: data[0].LastName,
-              role: 'artist', 
-              active: data[0].active,
-              source: 'ArtistMST' 
-            };
-            setUsers([...users, newUser]);
-          }
-        } else {
-          // Store in UserMST table (admin/controller)
-          const userData = {
-            email_id: email,
-            FirstName: firstName || null,
-            LastName: lastName || null,
-            role: role || "admin",
-            password: password,
-            active: true
-          };
-
-          const { data, error } = await supabase
-            .from('UserMST')
-            .insert([userData])
-            .select();
-
-          if (error) throw error;
-          
-          if (data && data.length > 0) {
-            const newUser: User = { 
-              id: data[0].id,
-              email_id: data[0].email_id,
-              FirstName: data[0].FirstName,
-              LastName: data[0].LastName,
-              role: data[0].role,
-              active: data[0].active,
-              source: 'UserMST' 
-            };
-            setUsers([...users, newUser]);
-          }
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          setUsers([...users, data[0]]);
         }
         
         toast({
@@ -373,50 +291,16 @@ const AdminUsers = () => {
           description: "New user has been successfully added",
         });
       } else if (currentUser) {
-        // Update existing user
-        const tableName = currentUser.source === 'ArtistMST' ? 'ArtistMST' : 'UserMST';
-        const idColumn = currentUser.source === 'ArtistMST' ? 'ArtistId' : 'id';
-        
-        let updateData: Record<string, any> = {};
-        
-        if (currentUser.source === 'ArtistMST') {
-          updateData = {
-            emailid: email,
-            ArtistFirstName: firstName || null,
-            ArtistLastName: lastName || null
-          };
-          if (password) {
-            updateData.password = password;
-          }
-        } else {
-          updateData = {
-            email_id: email,
-            FirstName: firstName || null,
-            LastName: lastName || null,
-            role: role || "admin"
-          };
-          if (password) {
-            updateData.password = password;
-          }
-        }
-
         const { error } = await supabase
-          .from(tableName)
-          .update(updateData)
-          .eq(idColumn, currentUser.id);
+          .from('UserMST')
+          .update(userData)
+          .eq('id', currentUser.id);
 
         if (error) throw error;
 
-        // Update local state
         setUsers(users.map(user => 
-          user.id === currentUser.id && user.source === currentUser.source
-            ? { 
-                ...user, 
-                email_id: email,
-                FirstName: firstName || null,
-                LastName: lastName || null,
-                role: currentUser.source === 'ArtistMST' ? 'artist' : (role || "admin")
-              } 
+          user.id === currentUser.id 
+            ? { ...user, ...userData } 
             : user
         ));
         
@@ -523,13 +407,12 @@ const AdminUsers = () => {
                       <TableHead>Last Name</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Source</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((user, index) => (
-                      <TableRow key={`${user.source}-${user.id}-${index}`}>
+                    {filteredUsers.map((user) => (
+                      <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.email_id}</TableCell>
                         <TableCell>{user.FirstName}</TableCell>
                         <TableCell>{user.LastName}</TableCell>
@@ -537,7 +420,6 @@ const AdminUsers = () => {
                           <span className={`px-3 py-1 text-xs font-medium rounded-full 
                             ${user.role === 'superadmin' ? 'bg-purple-100 text-purple-800' : 
                               user.role === 'admin' ? 'bg-blue-100 text-blue-800' : 
-                              user.role === 'artist' ? 'bg-orange-100 text-orange-800' :
                               'bg-green-100 text-green-800'}`}>
                             {user.role || 'user'}
                           </span>
@@ -552,13 +434,6 @@ const AdminUsers = () => {
                               {user.active ? 'Active' : 'Inactive'}
                             </span>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 text-xs rounded ${
-                            user.source === 'ArtistMST' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'
-                          }`}>
-                            {user.source}
-                          </span>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button 
