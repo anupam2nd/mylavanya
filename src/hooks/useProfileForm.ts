@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -85,6 +86,28 @@ export const useProfileForm = (
     });
   };
 
+  const updateMemberProfile = async () => {
+    // Convert children details to JSON string for database storage
+    const childrenDetailsString = formData.childrenDetails && formData.childrenDetails.length > 0 
+      ? JSON.stringify(formData.childrenDetails) 
+      : null;
+    
+    // Use raw SQL to avoid TypeScript complexity
+    const { error } = await supabase.rpc('update_member_profile', {
+      member_email: userEmail,
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      phone: formData.phone,
+      marital_status: formData.maritalStatus,
+      spouse_name: formData.spouseName,
+      has_children: formData.hasChildren,
+      number_of_children: formData.numberOfChildren,
+      children_details: childrenDetailsString
+    });
+    
+    return { error };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userEmail) return;
@@ -109,30 +132,7 @@ export const useProfileForm = (
         }
       } 
       else if (userRole === 'member') {
-        // Convert children details to JSON string for database storage
-        const childrenDetailsString = formData.childrenDetails && formData.childrenDetails.length > 0 
-          ? JSON.stringify(formData.childrenDetails) 
-          : null;
-        
-        // Build update object dynamically
-        const memberUpdate: any = {};
-        
-        if (formData.firstName !== undefined) memberUpdate.MemberFirstName = formData.firstName;
-        if (formData.lastName !== undefined) memberUpdate.MemberLastName = formData.lastName;
-        if (formData.phone !== undefined) memberUpdate.MemberPhNo = formData.phone;
-        if (formData.maritalStatus !== undefined) memberUpdate.MaritalStatus = formData.maritalStatus;
-        if (formData.spouseName !== undefined) memberUpdate.SpouseName = formData.spouseName;
-        if (formData.hasChildren !== undefined) memberUpdate.HasChildren = formData.hasChildren;
-        if (formData.numberOfChildren !== undefined) memberUpdate.NumberOfChildren = formData.numberOfChildren;
-        if (childrenDetailsString !== undefined) memberUpdate.ChildrenDetails = childrenDetailsString;
-        
-        // TypeScript ignore to bypass overly complex type inference
-        // @ts-ignore
-        const { error } = await supabase
-          .from('MemberMST')
-          .update(memberUpdate)
-          .eq('MemberEmailId', userEmail);
-          
+        const { error } = await updateMemberProfile();
         if (error) throw error;
       }
       else {
