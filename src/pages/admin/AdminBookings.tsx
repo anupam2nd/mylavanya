@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +23,7 @@ const AdminBookings = () => {
   const { user: authUser } = useAuth();
   const { bookings, setBookings, loading } = useBookings();
   const { statusOptions, formattedStatusOptions } = useStatusOptions();
-  const [currentUser, setCurrentUser] = useState<{ Username?: string, FirstName?: string, LastName?: string, role?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ email_id?: string, FirstName?: string, LastName?: string, role?: string } | null>(null);
   const [showNewJobDialog, setShowNewJobDialog] = useState(false);
   const [selectedBookingForNewJob, setSelectedBookingForNewJob] = useState<Booking | null>(null);
   
@@ -65,8 +66,8 @@ const AdminBookings = () => {
           // First try to fetch by email from auth context
           const { data, error } = await supabase
             .from('UserMST')
-            .select('Username, FirstName, LastName, role')
-            .eq('Username', authUser.email)
+            .select('email_id, FirstName, LastName, role')
+            .eq('email_id', authUser.email)
             .single();
             
           if (!error && data) {
@@ -84,7 +85,7 @@ const AdminBookings = () => {
             if (!isNaN(userId)) {
               const { data: userData, error: userError } = await supabase
                 .from('UserMST')
-                .select('Username, FirstName, LastName, role')
+                .select('email_id, FirstName, LastName, role')
                 .eq('id', userId)
                 .single();
                 
@@ -95,7 +96,7 @@ const AdminBookings = () => {
                 console.error("Error fetching user data by ID:", userError);
                 if (authUser) {
                   setCurrentUser({
-                    Username: authUser.email || '',
+                    email_id: authUser.email || '',
                     FirstName: '',
                     LastName: '',
                     role: authUser.role
@@ -107,7 +108,7 @@ const AdminBookings = () => {
             console.warn("No active session found");
             if (authUser) {
               setCurrentUser({
-                Username: authUser.email || '',
+                email_id: authUser.email || '',
                 FirstName: '',
                 LastName: '',
                 role: authUser.role

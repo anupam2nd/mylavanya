@@ -33,8 +33,8 @@ export const useArtistStatusUpdate = () => {
       // Get user details from UserMST (if available)
       const { data: userData } = await supabase
         .from("UserMST")
-        .select("Username, FirstName, LastName, role")
-        .eq("Username", user.email)
+        .select("email_id, FirstName, LastName, role")
+        .eq("email_id", user.email)
         .maybeSingle();
 
       // Prepare update data
@@ -43,7 +43,7 @@ export const useArtistStatusUpdate = () => {
         Status: "On The Way",
         StatusUpdated: now.toISOString(),
         AssignedBY: (userData?.role || user?.role || "artist"),
-        AssignedByUser: userData?.Username || user?.email
+        AssignedByUser: userData?.email_id || user?.email
       };
 
       const { error } = await supabase
@@ -139,12 +139,12 @@ export const useArtistStatusUpdate = () => {
       // Get user details from UserMST (if available)
       const { data: userData } = await supabase
         .from("UserMST")
-        .select("Username, FirstName, LastName, role")
-        .eq("Username", user?.email)
+        .select("email_id, FirstName, LastName, role")
+        .eq("email_id", user?.email)
         .maybeSingle();
 
       const currentUser = {
-        Username: userData?.Username || user?.email,
+        email_id: userData?.email_id || user?.email,
         FirstName: userData?.FirstName || "",
         LastName: userData?.LastName || "",
         role: userData?.role || user?.role || "artist"

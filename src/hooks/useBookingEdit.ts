@@ -113,50 +113,50 @@ export const useBookingEdit = (bookings: Booking[], setBookings: React.Dispatch<
             console.log("Setting AssignedBY to user role:", updates.AssignedBY);
           }
           
-          // First verify if Username exists in UserMST to avoid foreign key constraint violation
-          if (values.currentUser.Username) {
-            // Verify the Username exists in the UserMST table
+          // First verify if email_id exists in UserMST to avoid foreign key constraint violation
+          if (values.currentUser.email_id) {
+            // Verify the email_id exists in the UserMST table
             const { data: userData, error: userError } = await supabase
               .from('UserMST')
-              .select('Username')
-              .eq('Username', values.currentUser.Username)
+              .select('email_id')
+              .eq('email_id', values.currentUser.email_id)
               .single();
               
             if (!userError && userData) {
-              // Username exists in UserMST, safe to use as AssignedByUser
-              updates.AssignedByUser = values.currentUser.Username;
-              console.log("Setting AssignedByUser to Username (verified in UserMST):", values.currentUser.Username);
+              // email_id exists in UserMST, safe to use as AssignedByUser
+              updates.AssignedByUser = values.currentUser.email_id;
+              console.log("Setting AssignedByUser to email_id (verified in UserMST):", values.currentUser.email_id);
             } else {
-              console.warn("Username not found in UserMST, cannot set AssignedByUser");
+              console.warn("email_id not found in UserMST, cannot set AssignedByUser");
               // Do not set AssignedByUser to avoid foreign key constraint violation
             }
           } else if (values.currentUser.email) {
-            // Verify the email exists in the UserMST table as Username
+            // Verify the email exists in the UserMST table as email_id
             const { data: userData, error: userError } = await supabase
               .from('UserMST')
-              .select('Username')
-              .eq('Username', values.currentUser.email)
+              .select('email_id')
+              .eq('email_id', values.currentUser.email)
               .single();
               
             if (!userError && userData) {
               updates.AssignedByUser = values.currentUser.email;
               console.log("Setting AssignedByUser to email (verified in UserMST):", values.currentUser.email);
             } else {
-              console.warn("Email not found in UserMST as Username, cannot set AssignedByUser");
+              console.warn("Email not found in UserMST as email_id, cannot set AssignedByUser");
               // Do not set AssignedByUser to avoid foreign key constraint violation
             }
           } else {
-            console.warn("No Username or email available in currentUser, cannot set AssignedByUser");
+            console.warn("No email_id or email available in currentUser, cannot set AssignedByUser");
           }
           
           // If AssignedBY is still not set, use fallback
           if (!updates.AssignedBY) {
-            // If no role is available, fall back to name or username
+            // If no role is available, fall back to name or email_id
             if (values.currentUser.FirstName || values.currentUser.LastName) {
               const fullName = `${values.currentUser.FirstName || ''} ${values.currentUser.LastName || ''}`.trim();
               updates.AssignedBY = fullName || 'unknown';
-            } else if (values.currentUser.Username) {
-              updates.AssignedBY = values.currentUser.Username;
+            } else if (values.currentUser.email_id) {
+              updates.AssignedBY = values.currentUser.email_id;
             } else {
               updates.AssignedBY = 'unknown';
             }
