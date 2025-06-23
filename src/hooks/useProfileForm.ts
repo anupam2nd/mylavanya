@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -127,11 +126,12 @@ export const useProfileForm = (
         if (formData.numberOfChildren !== undefined) memberUpdate.NumberOfChildren = formData.numberOfChildren;
         if (childrenDetailsString !== undefined) memberUpdate.ChildrenDetails = childrenDetailsString;
         
-        // Break down the operation to avoid type inference issues
-        const memberTable = supabase.from('MemberMST');
-        const updateQuery = memberTable.update(memberUpdate);
-        const finalQuery = updateQuery.eq('MemberEmailId', userEmail);
-        const { error } = await finalQuery;
+        // TypeScript ignore to bypass overly complex type inference
+        // @ts-ignore
+        const { error } = await supabase
+          .from('MemberMST')
+          .update(memberUpdate)
+          .eq('MemberEmailId', userEmail);
           
         if (error) throw error;
       }
