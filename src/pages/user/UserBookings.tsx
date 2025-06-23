@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 const UserBookings = () => {
   const { user } = useAuth();
   const { bookings, setBookings, loading, currentUser } = useUserBookings();
-  const [userData, setUserData] = useState<{ email_id?: string, FirstName?: string, LastName?: string, role?: string } | null>(null);
+  const [userData, setUserData] = useState<{ Username?: string, FirstName?: string, LastName?: string, role?: string } | null>(null);
   
   // Determine user roles
   const isMember = user?.role === 'member';
@@ -26,14 +26,14 @@ const UserBookings = () => {
         try {
           const { data, error } = await supabase
             .from('UserMST')
-            .select('email_id, FirstName, LastName, role')
-            .eq('email_id', user.email)
+            .select('Username, FirstName, LastName, role')
+            .eq('Username', user.email)
             .single();
             
           if (error) {
             // Fall back to auth context data
             setUserData({
-              email_id: user.email,
+              Username: user.email,
               FirstName: '',
               LastName: '',
               role: user.role

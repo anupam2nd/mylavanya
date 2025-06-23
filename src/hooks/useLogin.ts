@@ -25,8 +25,8 @@ export function useLogin() {
       
       const { data, error } = await supabase
         .from('UserMST')
-        .select('id, email_id, role, FirstName, LastName')
-        .ilike('email_id', normalizedEmail)
+        .select('id, Username, role, FirstName, LastName')
+        .ilike('Username', normalizedEmail)
         .eq('password', password)
         .maybeSingle();
       
@@ -59,7 +59,7 @@ export function useLogin() {
       // Login using the context function
       login({
         id: data.id.toString(),
-        email: data.email_id,
+        email: data.Username,
         role: data.role,
         firstName: data.FirstName,
         lastName: data.LastName

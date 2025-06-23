@@ -542,35 +542,35 @@ export type Database = {
       UserMST: {
         Row: {
           active: boolean
-          email_id: string | null
           FirstName: string | null
           id: number
           LastName: string | null
           password: string | null
           PhoneNo: number | null
           role: string | null
+          Username: string | null
           uuid: string
         }
         Insert: {
           active?: boolean
-          email_id?: string | null
           FirstName?: string | null
           id?: number
           LastName?: string | null
           password?: string | null
           PhoneNo?: number | null
           role?: string | null
+          Username?: string | null
           uuid?: string
         }
         Update: {
           active?: boolean
-          email_id?: string | null
           FirstName?: string | null
           id?: number
           LastName?: string | null
           password?: string | null
           PhoneNo?: number | null
           role?: string | null
+          Username?: string | null
           uuid?: string
         }
         Relationships: []
