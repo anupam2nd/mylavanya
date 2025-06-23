@@ -109,8 +109,8 @@ export const useProfileForm = (
         }
       } 
       else if (userRole === 'member') {
-        // Convert to plain object for database storage
-        const childrenData = formData.childrenDetails || [];
+        // Convert children details to JSON for database storage
+        const childrenDetailsJson = formData.childrenDetails ? JSON.stringify(formData.childrenDetails) : null;
         
         const { error } = await supabase
           .from('MemberMST')
@@ -122,7 +122,7 @@ export const useProfileForm = (
             SpouseName: formData.spouseName || null,
             HasChildren: formData.hasChildren || false,
             NumberOfChildren: formData.numberOfChildren || 0,
-            ChildrenDetails: childrenData
+            ChildrenDetails: childrenDetailsJson
           })
           .eq('MemberEmailId', userEmail);
           
