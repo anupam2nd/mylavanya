@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -109,21 +110,26 @@ export const useProfileForm = (
         }
       } 
       else if (userRole === 'member') {
-        // Convert children details to JSON for database storage
-        const childrenDetailsJson = formData.childrenDetails ? JSON.stringify(formData.childrenDetails) : null;
+        // Convert children details to JSON string for database storage
+        const childrenDetailsString: string | null = formData.childrenDetails && formData.childrenDetails.length > 0 
+          ? JSON.stringify(formData.childrenDetails) 
+          : null;
+        
+        // Create explicit update object to avoid type inference issues
+        const updateData = {
+          MemberFirstName: formData.firstName,
+          MemberLastName: formData.lastName, 
+          MemberPhNo: formData.phone || null,
+          MaritalStatus: formData.maritalStatus || false,
+          SpouseName: formData.spouseName || null,
+          HasChildren: formData.hasChildren || false,
+          NumberOfChildren: formData.numberOfChildren || 0,
+          ChildrenDetails: childrenDetailsString
+        };
         
         const { error } = await supabase
           .from('MemberMST')
-          .update({
-            MemberFirstName: formData.firstName,
-            MemberLastName: formData.lastName, 
-            MemberPhNo: formData.phone || null,
-            MaritalStatus: formData.maritalStatus || false,
-            SpouseName: formData.spouseName || null,
-            HasChildren: formData.hasChildren || false,
-            NumberOfChildren: formData.numberOfChildren || 0,
-            ChildrenDetails: childrenDetailsJson
-          })
+          .update(updateData)
           .eq('MemberEmailId', userEmail);
           
         if (error) throw error;
