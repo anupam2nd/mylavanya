@@ -54,7 +54,8 @@ export const useProfileForm = (
       
       setFormData(prev => {
         // Adjust children details array size
-        let updatedChildrenDetails = [...(prev.childrenDetails || [])];
+        const currentChildren = prev.childrenDetails || [];
+        let updatedChildrenDetails = [...currentChildren];
         
         // If increasing, add empty slots
         while (updatedChildrenDetails.length < boundedValue) {
@@ -77,7 +78,8 @@ export const useProfileForm = (
 
   const handleChildDetailChange = (index: number, field: 'name' | 'age', value: string) => {
     setFormData(prev => {
-      const updatedChildren = [...(prev.childrenDetails || [])];
+      const currentChildren = prev.childrenDetails || [];
+      const updatedChildren = [...currentChildren];
       updatedChildren[index] = { 
         ...updatedChildren[index], 
         [field]: value 
@@ -111,7 +113,7 @@ export const useProfileForm = (
       } 
       else if (userRole === 'member') {
         // Prepare children details for database storage
-        const childrenDetailsForDB = formData.childrenDetails ? 
+        const childrenDetailsJson = formData.childrenDetails ? 
           JSON.stringify(formData.childrenDetails) : 
           JSON.stringify([]);
 
@@ -126,7 +128,7 @@ export const useProfileForm = (
             SpouseName: formData.spouseName || null,
             HasChildren: formData.hasChildren || false,
             NumberOfChildren: formData.numberOfChildren || 0,
-            ChildrenDetails: childrenDetailsForDB
+            ChildrenDetails: childrenDetailsJson
           })
           .eq('MemberEmailId', userEmail);
           
