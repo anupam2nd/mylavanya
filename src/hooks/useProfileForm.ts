@@ -115,8 +115,8 @@ export const useProfileForm = (
           ? JSON.stringify(formData.childrenDetails) 
           : null;
         
-        // Use separate updates to avoid complex type inference
-        const memberUpdate: Record<string, any> = {};
+        // Build update object dynamically and cast to avoid type issues
+        const memberUpdate: any = {};
         
         if (formData.firstName !== undefined) memberUpdate.MemberFirstName = formData.firstName;
         if (formData.lastName !== undefined) memberUpdate.MemberLastName = formData.lastName;
@@ -127,10 +127,10 @@ export const useProfileForm = (
         if (formData.numberOfChildren !== undefined) memberUpdate.NumberOfChildren = formData.numberOfChildren;
         if (childrenDetailsString !== undefined) memberUpdate.ChildrenDetails = childrenDetailsString;
         
-        const { error } = await supabase
+        const { error } = await (supabase
           .from('MemberMST')
           .update(memberUpdate)
-          .eq('MemberEmailId', userEmail);
+          .eq('MemberEmailId', userEmail) as any);
           
         if (error) throw error;
       }
