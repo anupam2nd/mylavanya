@@ -121,8 +121,8 @@ export const useProfileForm = (
             SpouseName: formData.spouseName || null,
             HasChildren: formData.hasChildren || false,
             NumberOfChildren: formData.numberOfChildren || 0,
-            // Simplified type casting - let Supabase handle the JSON conversion
-            ChildrenDetails: formData.childrenDetails || []
+            // Cast as any to satisfy Supabase Json type requirements
+            ChildrenDetails: (formData.childrenDetails || []) as any
           })
           .eq('MemberEmailId', userEmail);
           
