@@ -81,9 +81,9 @@ const AdminUsers = () => {
   const [password, setPassword] = useState("");
   
   const roleOptions = [
-    { value: "user", label: "User" },
     { value: "admin", label: "Admin" },
-    { value: "superadmin", label: "Super Admin" }
+    { value: "controller", label: "Controller" },
+    { value: "artist", label: "Artist" }
   ];
 
   const userHeaders = {
@@ -159,7 +159,7 @@ const AdminUsers = () => {
     setUsername("");
     setFirstName("");
     setLastName("");
-    setRole("user");
+    setRole("admin");
     setPassword("");
     setOpenDialog(true);
   };
@@ -170,7 +170,7 @@ const AdminUsers = () => {
     setUsername(user.Username || "");
     setFirstName(user.FirstName || "");
     setLastName(user.LastName || "");
-    setRole(user.role || "user");
+    setRole(user.role || "admin");
     setPassword(""); // Don't populate password for existing users
     setOpenDialog(true);
   };
@@ -265,7 +265,7 @@ const AdminUsers = () => {
         Username: username,
         FirstName: firstName || null,
         LastName: lastName || null,
-        role: role || "user",
+        role: role || "admin",
         active: true
       };
 
@@ -593,4 +593,3 @@ const AdminUsers = () => {
 };
 
 export default AdminUsers;
-
