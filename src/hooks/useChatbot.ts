@@ -49,9 +49,24 @@ export function useChatbot() {
 
       const data = await response.json();
       
+      // Check if response is empty, null, or contains no meaningful data
+      const responseText = data.response || '';
+      const isEmptyResponse = !responseText || 
+                              responseText.trim() === '' || 
+                              responseText.toLowerCase().includes('no data') ||
+                              responseText.toLowerCase().includes('not found') ||
+                              responseText.toLowerCase().includes('unable to find');
+      
+      let aiResponseContent;
+      if (isEmptyResponse) {
+        aiResponseContent = "I'm unable to process your request at the moment. For immediate assistance, please contact us at +91 9230967221. Our team will be happy to help you with your query.";
+      } else {
+        aiResponseContent = responseText;
+      }
+      
       const aiMessage: ChatMessage = {
         id: generateId(),
-        content: data.response || 'Sorry, I could not process your request.',
+        content: aiResponseContent,
         sender: 'ai',
         timestamp: new Date(),
       };
@@ -64,13 +79,22 @@ export function useChatbot() {
 
     } catch (error) {
       console.error('Chatbot API error:', error);
+      
+      const fallbackMessage: ChatMessage = {
+        id: generateId(),
+        content: "I'm unable to process your request at the moment. For immediate assistance, please contact us at +91 9230967221. Our team will be happy to help you with your query.",
+        sender: 'ai',
+        timestamp: new Date(),
+      };
+
       setState(prev => ({
         ...prev,
+        messages: [...prev.messages, fallbackMessage],
         isLoading: false,
-        error: 'Failed to get response from AI. Please try again.',
+        error: null, // Clear error since we're showing a fallback message
       }));
       
-      toast.error('Failed to send message. Please try again.');
+      toast.error('Connection issue. Please try again or contact support.');
     }
   }, []);
 
