@@ -110,7 +110,7 @@ export default function Footer() {
                 <span className="text-base font-medium">DN 30  SEC V SALT LAKE CITY KOLKATA 700091</span>
               </li>
               <li>
-                <a href="tel:+1234567890" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
+                <a href="tel:+919230967221" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
                   <Phone size={18} className="mr-3 text-primary" />
                   <span>+91 9230967221</span>
                 </a>
