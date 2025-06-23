@@ -111,25 +111,23 @@ export const useProfileForm = (
       } 
       else if (userRole === 'member') {
         // Convert children details to JSON string for database storage
-        const childrenDetailsString: string | null = formData.childrenDetails && formData.childrenDetails.length > 0 
+        const childrenDetailsString = formData.childrenDetails && formData.childrenDetails.length > 0 
           ? JSON.stringify(formData.childrenDetails) 
           : null;
         
-        // Create explicit update object to avoid type inference issues
-        const updateData = {
-          MemberFirstName: formData.firstName,
-          MemberLastName: formData.lastName, 
-          MemberPhNo: formData.phone || null,
-          MaritalStatus: formData.maritalStatus || false,
-          SpouseName: formData.spouseName || null,
-          HasChildren: formData.hasChildren || false,
-          NumberOfChildren: formData.numberOfChildren || 0,
-          ChildrenDetails: childrenDetailsString
-        };
-        
+        // Use direct update with explicit typing to avoid type inference issues
         const { error } = await supabase
           .from('MemberMST')
-          .update(updateData)
+          .update({
+            MemberFirstName: formData.firstName as string,
+            MemberLastName: formData.lastName as string, 
+            MemberPhNo: (formData.phone || null) as string | null,
+            MaritalStatus: (formData.maritalStatus || false) as boolean,
+            SpouseName: (formData.spouseName || null) as string | null,
+            HasChildren: (formData.hasChildren || false) as boolean,
+            NumberOfChildren: (formData.numberOfChildren || 0) as number,
+            ChildrenDetails: childrenDetailsString as string | null
+          } as any)
           .eq('MemberEmailId', userEmail);
           
         if (error) throw error;
