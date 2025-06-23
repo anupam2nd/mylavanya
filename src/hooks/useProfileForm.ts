@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ProfileFormData, ChildDetail } from "@/types/profile";
+import { ProfileFormData } from "@/types/profile";
 
 export const useProfileForm = (
   initialData: ProfileFormData,
@@ -110,10 +109,9 @@ export const useProfileForm = (
         }
       } 
       else if (userRole === 'member') {
-        // Convert childrenDetails to a simple JSON string to avoid type complexity
-        const childrenDetailsJson = formData.childrenDetails ? JSON.stringify(formData.childrenDetails) : null;
+        // Convert to plain object for database storage
+        const childrenData = formData.childrenDetails || [];
         
-        // Update member data in MemberMST with new fields
         const { error } = await supabase
           .from('MemberMST')
           .update({
@@ -124,15 +122,13 @@ export const useProfileForm = (
             SpouseName: formData.spouseName || null,
             HasChildren: formData.hasChildren || false,
             NumberOfChildren: formData.numberOfChildren || 0,
-            // Store as JSON string to avoid complex type issues
-            ChildrenDetails: childrenDetailsJson as any
+            ChildrenDetails: childrenData
           })
           .eq('MemberEmailId', userEmail);
           
         if (error) throw error;
       }
       else {
-        // First try to update by Username
         const { error } = await supabase
           .from('UserMST')
           .update({
@@ -145,14 +141,13 @@ export const useProfileForm = (
         if (error) {
           console.error("Error updating by Username:", error);
           
-          // Fallback to updating by ID
           const { error: idError } = await supabase
             .from('UserMST')
             .update({
               FirstName: formData.firstName,
               LastName: formData.lastName,
               PhoneNo: formData.phone ? Number(formData.phone) : null,
-              Username: userEmail // Ensure Username is updated too
+              Username: userEmail
             })
             .eq('id', Number(userId));
             
