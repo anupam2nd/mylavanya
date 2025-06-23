@@ -117,10 +117,26 @@ const AdminUsers = () => {
 
         if (artistMSTError) throw artistMSTError;
 
-        // Combine data from both tables
-        const combinedUsers = [
-          ...(userMSTData || []).map(user => ({ ...user, source: 'UserMST' as const })),
-          ...(artistMSTData || []).map(artist => ({ ...artist, role: 'artist', source: 'ArtistMST' as const }))
+        // Combine data from both tables with proper null handling
+        const combinedUsers: User[] = [
+          ...(userMSTData || []).map(user => ({ 
+            id: user.id,
+            email_id: user.email_id,
+            FirstName: user.FirstName,
+            LastName: user.LastName,
+            role: user.role,
+            active: user.active,
+            source: 'UserMST' as const 
+          })),
+          ...(artistMSTData || []).map(artist => ({ 
+            id: artist.id,
+            email_id: artist.email_id,
+            FirstName: artist.FirstName,
+            LastName: artist.LastName,
+            role: 'artist' as const,
+            active: artist.active,
+            source: 'ArtistMST' as const 
+          }))
         ];
 
         setUsers(combinedUsers);
@@ -309,7 +325,15 @@ const AdminUsers = () => {
           if (error) throw error;
           
           if (data && data.length > 0) {
-            const newUser = { ...data[0], role: 'artist', source: 'ArtistMST' as const };
+            const newUser: User = { 
+              id: data[0].id,
+              email_id: data[0].email_id,
+              FirstName: data[0].FirstName,
+              LastName: data[0].LastName,
+              role: 'artist', 
+              active: data[0].active,
+              source: 'ArtistMST' 
+            };
             setUsers([...users, newUser]);
           }
         } else {
@@ -331,7 +355,15 @@ const AdminUsers = () => {
           if (error) throw error;
           
           if (data && data.length > 0) {
-            const newUser = { ...data[0], source: 'UserMST' as const };
+            const newUser: User = { 
+              id: data[0].id,
+              email_id: data[0].email_id,
+              FirstName: data[0].FirstName,
+              LastName: data[0].LastName,
+              role: data[0].role,
+              active: data[0].active,
+              source: 'UserMST' 
+            };
             setUsers([...users, newUser]);
           }
         }
@@ -345,7 +377,7 @@ const AdminUsers = () => {
         const tableName = currentUser.source === 'ArtistMST' ? 'ArtistMST' : 'UserMST';
         const idColumn = currentUser.source === 'ArtistMST' ? 'ArtistId' : 'id';
         
-        let updateData: any = {};
+        let updateData: Record<string, any> = {};
         
         if (currentUser.source === 'ArtistMST') {
           updateData = {
