@@ -20,15 +20,12 @@ export function useArtistLogin() {
     
     try {
       console.log("Attempting artist login with:", email);
-      // Explicitly convert email to lowercase for consistent matching
       const normalizedEmail = email.trim().toLowerCase();
       
-      // Fix the query to properly handle types
       const { data, error } = await supabase
         .from('ArtistMST')
-        .select('ArtistId, emailid, ArtistFirstName, ArtistLastName')
+        .select('ArtistId, emailid, ArtistFirstName, ArtistLastName, password')
         .eq('emailid', normalizedEmail)
-        .eq('password', password)
         .maybeSingle();
       
       console.log("Artist query result:", data, error);
@@ -39,7 +36,15 @@ export function useArtistLogin() {
       }
       
       if (!data) {
-        throw new Error('Invalid credentials');
+        throw new Error('Artist not found');
+      }
+      
+      if (!data.password) {
+        throw new Error('Password not set for this artist');
+      }
+      
+      if (data.password !== password) {
+        throw new Error('Invalid password');
       }
       
       // Login using the context function with artist role
@@ -65,7 +70,7 @@ export function useArtistLogin() {
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: "Invalid email or password. Please try again.",
+        description: error instanceof Error ? error.message : "Invalid email or password. Please try again.",
       });
       return false;
     } finally {
