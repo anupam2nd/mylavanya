@@ -115,18 +115,22 @@ export const useProfileForm = (
           ? JSON.stringify(formData.childrenDetails) 
           : null;
         
-        // Use raw SQL approach to avoid TypeScript inference issues
-        const { error } = await supabase.rpc('update_member_profile', {
-          member_email: userEmail,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          phone_no: formData.phone || null,
-          marital_status: formData.maritalStatus || false,
-          spouse_name: formData.spouseName || null,
-          has_children: formData.hasChildren || false,
-          number_of_children: formData.numberOfChildren || 0,
-          children_details: childrenDetailsString
-        });
+        // Use separate updates to avoid complex type inference
+        const memberUpdate: Record<string, any> = {};
+        
+        if (formData.firstName !== undefined) memberUpdate.MemberFirstName = formData.firstName;
+        if (formData.lastName !== undefined) memberUpdate.MemberLastName = formData.lastName;
+        if (formData.phone !== undefined) memberUpdate.MemberPhNo = formData.phone;
+        if (formData.maritalStatus !== undefined) memberUpdate.MaritalStatus = formData.maritalStatus;
+        if (formData.spouseName !== undefined) memberUpdate.SpouseName = formData.spouseName;
+        if (formData.hasChildren !== undefined) memberUpdate.HasChildren = formData.hasChildren;
+        if (formData.numberOfChildren !== undefined) memberUpdate.NumberOfChildren = formData.numberOfChildren;
+        if (childrenDetailsString !== undefined) memberUpdate.ChildrenDetails = childrenDetailsString;
+        
+        const { error } = await supabase
+          .from('MemberMST')
+          .update(memberUpdate)
+          .eq('MemberEmailId', userEmail);
           
         if (error) throw error;
       }
