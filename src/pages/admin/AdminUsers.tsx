@@ -74,7 +74,7 @@ const AdminUsers = () => {
   
   const isSuperAdmin = user?.role === 'superadmin';
   
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("");
@@ -156,7 +156,7 @@ const AdminUsers = () => {
   const handleAddNew = () => {
     setIsNewUser(true);
     setCurrentUser(null);
-    setUsername("");
+    setEmail("");
     setFirstName("");
     setLastName("");
     setRole("admin");
@@ -167,7 +167,7 @@ const AdminUsers = () => {
   const handleEdit = (user: User) => {
     setIsNewUser(false);
     setCurrentUser(user);
-    setUsername(user.Username || "");
+    setEmail(user.Username || "");
     setFirstName(user.FirstName || "");
     setLastName(user.LastName || "");
     setRole(user.role || "admin");
@@ -253,8 +253,8 @@ const AdminUsers = () => {
 
   const handleSave = async () => {
     try {
-      if (!username) {
-        throw new Error("Username is required");
+      if (!email) {
+        throw new Error("Email is required");
       }
 
       if (isNewUser && !password) {
@@ -262,7 +262,7 @@ const AdminUsers = () => {
       }
 
       const userData: any = {
-        Username: username,
+        Username: email,
         FirstName: firstName || null,
         LastName: lastName || null,
         role: role || "admin",
@@ -474,13 +474,14 @@ const AdminUsers = () => {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="username" className="text-right">
-                  Username
+                <Label htmlFor="email" className="text-right">
+                  Email
                 </Label>
                 <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="col-span-3"
                 />
               </div>
