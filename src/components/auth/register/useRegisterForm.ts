@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { registerFormSchema, RegisterFormValues } from "./RegisterFormSchema";
+import { logger } from "@/utils/logger";
 
 interface UseRegisterFormProps {
   onSuccess: (email: string, password: string) => void;
@@ -45,7 +46,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       const email = values.email.trim().toLowerCase();
       const phoneNumber = values.phoneNumber.trim();
       
-      console.log("Attempting to register:", email, phoneNumber);
+      logger.debug("Starting member registration process");
       
       // Check if user already exists by email
       const { data: existingMembersByEmail, error: checkEmailError } = await supabase
@@ -54,12 +55,12 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
         .ilike('MemberEmailId', email);
       
       if (checkEmailError) {
-        console.error("Error checking existing user by email:", checkEmailError);
+        logger.error('Error checking existing user by email');
         throw new Error('Error checking if user exists');
       }
       
       if (existingMembersByEmail && existingMembersByEmail.length > 0) {
-        console.log("Member with this email already exists:", existingMembersByEmail);
+        logger.debug("Member with this email already exists");
         throw new Error('An account with this email already exists');
       }
       
@@ -70,32 +71,32 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
         .eq('MemberPhNo', phoneNumber);
       
       if (checkPhoneError) {
-        console.error("Error checking existing user by phone:", checkPhoneError);
+        logger.error('Error checking existing user by phone');
         throw new Error('Error checking if phone number exists');
       }
       
       if (existingMembersByPhone && existingMembersByPhone.length > 0) {
-        console.log("Member with this phone already exists:", existingMembersByPhone);
+        logger.debug("Member with this phone already exists");
         throw new Error(`This phone number is already registered with email: ${existingMembersByPhone[0].MemberEmailId}`);
       }
       
       // Hash the password using the edge function
-      console.log("Hashing password...");
+      logger.debug("Hashing password for member registration");
       const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
         body: { password: values.password }
       });
       
       if (hashError) {
-        console.error("Error hashing password:", hashError);
+        logger.error('Error hashing password');
         throw new Error('Error processing password');
       }
       
       if (!hashResult?.hashedPassword) {
-        console.error("No hashed password returned");
+        logger.error('No hashed password returned from edge function');
         throw new Error('Error processing password');
       }
       
-      console.log("Password hashed successfully");
+      logger.debug("Password hashed successfully, proceeding with member creation");
       
       // Format date for DB
       const formattedDate = values.dob ? format(values.dob, 'yyyy-MM-dd') : null;
@@ -118,10 +119,8 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
         ])
         .select();
       
-      console.log("Insert result:", data, insertError);
-      
       if (insertError) {
-        console.error("Error inserting new member:", insertError);
+        logger.error('Error inserting new member');
         // Handle unique constraint violations more gracefully
         if (insertError.code === '23505') {
           if (insertError.message.includes('MemberPhNo')) {
@@ -133,6 +132,8 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
         throw insertError;
       }
       
+      logger.debug("Member registration completed successfully");
+      
       toast.success("Registration successful", {
         description: "Your account has been created. You can now log in with your email or phone number.",
       });
@@ -140,7 +141,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       // Pass credentials back to parent for auto-login
       onSuccess(email, values.password);
     } catch (error: any) {
-      console.error('Registration error:', error);
+      logger.error('Member registration failed');
       toast.error("Registration failed", {
         description: error.message || "Something went wrong. Please try again.",
       });

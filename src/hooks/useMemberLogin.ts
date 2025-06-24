@@ -33,6 +33,8 @@ export function useMemberLogin() {
       let memberData;
       let memberError;
       
+      logger.debug('Starting member login process');
+      
       if (isEmail) {
         // Search by email
         const { data, error } = await supabase
@@ -68,7 +70,7 @@ export function useMemberLogin() {
       }
       
       // Verify password using the edge function
-      logger.debug('Verifying password...');
+      logger.debug('Verifying password for member login');
       
       const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
         body: { 
@@ -83,11 +85,11 @@ export function useMemberLogin() {
       }
       
       if (!verifyResult?.isValid) {
-        logger.debug('Password verification failed');
+        logger.debug('Password verification failed for member');
         throw new Error('Invalid credentials');
       }
       
-      logger.debug('Password verified successfully');
+      logger.debug('Member password verified successfully');
       
       login({
         id: memberData.id.toString(),
