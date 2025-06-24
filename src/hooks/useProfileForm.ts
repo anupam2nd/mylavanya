@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileFormData } from "@/types/profile";
+import { logger } from "@/utils/logger";
 
 export const useProfileForm = (
   initialData: ProfileFormData,
@@ -150,7 +151,7 @@ export const useProfileForm = (
           .eq('Username', userEmail);
           
         if (error) {
-          console.error("Error updating by Username:", error);
+          logger.error("Error updating profile by Username");
           
           // @ts-ignore - Suppressing TypeScript "Type instantiation is excessively deep" error
           const { error: idError } = await supabase
@@ -172,7 +173,7 @@ export const useProfileForm = (
         description: "Your profile has been successfully updated.",
       });
     } catch (error) {
-      console.error("Error updating profile:", error);
+      logger.error("Error updating profile");
       toast({
         title: "Update Failed",
         description: "There was a problem updating your profile. Please try again.",

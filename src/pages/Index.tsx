@@ -8,14 +8,14 @@ import BookingBanner from "@/components/sections/BookingBanner";
 import AuthModal from "@/components/auth/AuthModal";
 import MainLayout from "@/components/layout/MainLayout";
 import BannerSlider from "@/components/ui/BannerSlider";
+import { logger } from "@/utils/logger";
 
 const Index = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState("member");
   const navigate = useNavigate();
 
-  // Log to confirm Index is being loaded
-  console.log("Index page rendering");
+  logger.debug("Index page rendering");
 
   const handleLogin = (type: string = "member") => {
     setAuthModalTab(type);

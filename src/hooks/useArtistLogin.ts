@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import { logger } from "@/utils/logger";
 
 interface LoginCredentials {
   email: string;
@@ -19,7 +20,6 @@ export function useArtistLogin() {
     setIsLoading(true);
     
     try {
-      console.log("Attempting artist login with:", email);
       const normalizedEmail = email.trim().toLowerCase();
       
       const { data, error } = await supabase
@@ -28,10 +28,8 @@ export function useArtistLogin() {
         .eq('emailid', normalizedEmail)
         .maybeSingle();
       
-      console.log("Artist query result:", data, error);
-      
       if (error) {
-        console.error("Supabase query error:", error);
+        logger.error('Supabase query error during artist login');
         throw new Error('Error querying artist');
       }
       
@@ -71,7 +69,7 @@ export function useArtistLogin() {
 
       return true;
     } catch (error) {
-      console.error('Artist login error:', error);
+      logger.error('Artist login failed');
       toast({
         variant: "destructive",
         title: "Login failed",

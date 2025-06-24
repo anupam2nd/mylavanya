@@ -1,3 +1,4 @@
+
 import { useState, useMemo, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import ChartFilters from "@/components/admin/dashboard/ChartFilters";
 import { Booking } from "@/hooks/useBookings";
 import { toast } from "sonner";
 import RevenuePieChart from "@/components/user/RevenuePieChart";
+import { logger } from "@/utils/logger";
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -61,6 +63,7 @@ const UserDashboard = () => {
         
         setBookings(transformedData);
       } catch (error) {
+        logger.error('Unexpected error while fetching dashboard data');
         setError("An unexpected error occurred");
         toast.error("An unexpected error occurred while fetching data");
       } finally {

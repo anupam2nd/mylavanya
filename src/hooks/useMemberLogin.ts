@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { logger } from "@/utils/logger";
 
 interface MemberLoginCredentials {
   emailOrPhone: string;
@@ -19,7 +20,6 @@ export function useMemberLogin() {
     setIsLoading(true);
     
     try {
-      console.log("Attempting member login with:", emailOrPhone);
       const normalizedInput = emailOrPhone.trim().toLowerCase();
       
       // Determine if input is email or phone number
@@ -53,10 +53,8 @@ export function useMemberLogin() {
         memberError = error;
       }
       
-      console.log("Member query result:", memberData, memberError);
-      
       if (memberError) {
-        console.error("Supabase query error:", memberError);
+        logger.error('Supabase query error during member login');
         throw new Error('Error querying member');
       }
       
@@ -65,13 +63,12 @@ export function useMemberLogin() {
       }
       
       if (!memberData.password) {
-        console.error("No password found for member");
+        logger.error('No password found for member');
         throw new Error('Invalid credentials');
       }
       
       // Verify password using the edge function
-      console.log("Verifying password...");
-      console.log("Stored hash preview:", memberData.password.substring(0, 10) + "...");
+      logger.debug('Verifying password...');
       
       const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
         body: { 
@@ -80,19 +77,17 @@ export function useMemberLogin() {
         }
       });
       
-      console.log("Verify function response:", verifyResult, verifyError);
-      
       if (verifyError) {
-        console.error("Error verifying password:", verifyError);
+        logger.error('Error verifying password');
         throw new Error('Invalid credentials');
       }
       
       if (!verifyResult?.isValid) {
-        console.log("Password verification failed");
+        logger.debug('Password verification failed');
         throw new Error('Invalid credentials');
       }
       
-      console.log("Password verified successfully");
+      logger.debug('Password verified successfully');
       
       login({
         id: memberData.id.toString(),
@@ -111,7 +106,7 @@ export function useMemberLogin() {
 
       return true;
     } catch (error) {
-      console.error('Member login error:', error);
+      logger.error('Member login failed');
       toast.error(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.");
       return false;
     } finally {

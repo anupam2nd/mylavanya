@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { logger } from "@/utils/logger";
 
 interface LoginCredentials {
   email: string;
@@ -19,7 +20,6 @@ export function useLogin() {
     setIsLoading(true);
     
     try {
-      console.log("Attempting admin login with:", email);
       // Explicitly convert email to lowercase for consistent matching
       const normalizedEmail = email.trim().toLowerCase();
       
@@ -30,10 +30,8 @@ export function useLogin() {
         .eq('password', password)
         .maybeSingle();
       
-      console.log("Query result:", data, error);
-      
       if (error) {
-        console.error("Supabase query error:", error);
+        logger.error('Supabase query error during admin login');
         throw new Error('Error querying user');
       }
       
@@ -46,14 +44,14 @@ export function useLogin() {
         email: normalizedEmail,
         password: password
       }).catch(error => {
-        console.log("Auth sign-in failed, using custom auth only:", error);
+        logger.debug('Auth sign-in failed, using custom auth only');
         return { data: null, error };
       });
       
       if (authData?.session) {
-        console.log("Supabase auth session established:", authData.session.user.id);
+        logger.debug('Supabase auth session established');
       } else {
-        console.log("Using custom auth only, no Supabase session");
+        logger.debug('Using custom auth only, no Supabase session');
       }
       
       // Login using the context function
@@ -84,7 +82,7 @@ export function useLogin() {
 
       return true;
     } catch (error) {
-      console.error('Login error:', error);
+      logger.error('Admin login failed');
       toast.error("Login failed", {
         description: "Invalid email or password. Please try again.",
       });

@@ -6,6 +6,7 @@ import NewJobDialog from "./NewJobDialog";
 import { useBookingEdit } from "@/hooks/useBookingEdit";
 import { useToast } from "@/hooks/use-toast";
 import { useStatusOptions } from "@/hooks/useStatusOptions";
+import { logger } from "@/utils/logger";
 
 interface BookingDialogsProps {
   bookings: Booking[];
@@ -19,7 +20,7 @@ const BookingDialogs = ({ bookings, setBookings, currentUser }: BookingDialogsPr
   const { toast } = useToast();
   const { statusOptions } = useStatusOptions();
 
-  console.log("BookingDialogs - Current user:", currentUser);
+  logger.debug("BookingDialogs component loaded");
 
   const {
     editBooking,
@@ -67,7 +68,7 @@ const BookingDialogs = ({ bookings, setBookings, currentUser }: BookingDialogsPr
               currentUser
             };
             
-            console.log("EditBookingDialog - Saving with current user:", currentUser);
+            logger.debug("EditBookingDialog saving changes");
             await handleSaveChanges(formValues);
           }}
           statusOptions={statusOptions}
