@@ -100,7 +100,7 @@ const ServicesSection = () => {
                 className={`w-full h-full transition-all duration-300 group-hover:opacity-90`}
               >
                 {/* Image container */}
-                <div className="relative w-full h-48 ">
+                <div className="relative w-full h-80 sm:h-48">
                   <img
                     src={service.image}
                     alt={service.title}
