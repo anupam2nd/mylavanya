@@ -9,7 +9,6 @@ import {
   CarouselPrevious,
   type CarouselApi
 } from "./carousel";
-import { AspectRatio } from "./aspect-ratio";
 
 interface BannerImage {
   id: number;
@@ -87,11 +86,11 @@ const BannerSlider = () => {
           {bannerImages.map((image) => (
             <CarouselItem key={image.id}>
               <div className="w-full">
-                <div className="bg-muted rounded-lg overflow-hidden" style={{ height: '300px' }}>
+                <div className="bg-muted rounded-lg overflow-hidden" style={{ height: '400px' }}>
                   <img 
                     src={image.image_url} 
                     alt="Banner"
-                    className="w-full h-full object-contain bg-white"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               </div>
