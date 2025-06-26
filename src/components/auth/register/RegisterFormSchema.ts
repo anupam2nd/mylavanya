@@ -16,7 +16,7 @@ export const registerFormSchema = z.object({
     required_error: "Date of birth is required",
     invalid_type_error: "Date of birth is required",
   }),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(4, "Password must be at least 4 characters"),
   confirmPassword: z.string(),
   isPhoneVerified: z.boolean().refine(val => val === true, {
     message: "Phone number must be verified",
