@@ -124,7 +124,7 @@ const MobileNavigation = ({
                 }} 
                 className="border-primary/20 text-foreground w-full"
               >
-                Sign In
+                Book Now
               </ButtonCustom>
             )}
           </div>
