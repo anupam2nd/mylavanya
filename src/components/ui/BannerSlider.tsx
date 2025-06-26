@@ -86,7 +86,7 @@ const BannerSlider = () => {
           {bannerImages.map((image) => (
             <CarouselItem key={image.id}>
               <div className="w-full">
-                <div className="bg-muted rounded-lg overflow-hidden" style={{ height: '500px' }}>
+                <div className="bg-muted rounded-lg overflow-hidden" style={{ height: '700px' }}>
                   <img 
                     src={image.image_url} 
                     alt="Banner"
