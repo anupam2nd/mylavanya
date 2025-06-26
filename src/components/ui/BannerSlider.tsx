@@ -87,13 +87,13 @@ const BannerSlider = () => {
           {bannerImages.map((image) => (
             <CarouselItem key={image.id}>
               <div className="w-full">
-                <AspectRatio ratio={21 / 9} className="bg-muted rounded-lg overflow-hidden">
+                <div className="bg-muted rounded-lg overflow-hidden" style={{ height: '300px' }}>
                   <img 
                     src={image.image_url} 
                     alt="Banner"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-white"
                   />
-                </AspectRatio>
+                </div>
               </div>
             </CarouselItem>
           ))}
