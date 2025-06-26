@@ -58,7 +58,7 @@ const DesktopNavigation = ({
                 onClick={openMemberSignIn} 
                 className={`border-primary/20 transition-colors ${isScrolled ? 'text-foreground text-black bg-cyan-200' : 'text-black bg-cyan-200 border-white/30'}`}
               >
-                Sign In
+                Book Now
               </ButtonCustom>
             )}
           </div>
