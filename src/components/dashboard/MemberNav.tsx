@@ -43,7 +43,7 @@ const MemberNav = ({ logout }: MemberNavProps) => {
       <NavLink to="/services" icon={Package}>Services</NavLink>
       <NavLink to="/wishlist" icon={Heart}>Wishlist</NavLink>
       {hasBookings && (
-        <NavLink to="/track-booking" icon={FileText}>Track Booking</NavLink>
+        <NavLink to="/track" icon={FileText}>Track Booking</NavLink>
       )}
       
       <div className="pt-4 mt-4 border-t border-gray-200">

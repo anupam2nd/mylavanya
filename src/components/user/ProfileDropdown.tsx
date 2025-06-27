@@ -81,7 +81,7 @@ const ProfileDropdown = ({ className }: ProfileDropdownProps) => {
           <span>Wishlist</span>
         </DropdownMenuItem>
         {hasBookings && (
-          <DropdownMenuItem onClick={() => navigate("/track-booking")} className="cursor-pointer">
+          <DropdownMenuItem onClick={() => navigate("/track")} className="cursor-pointer">
             <FileText className="mr-2 h-4 w-4" />
             <span>Track Booking</span>
           </DropdownMenuItem>

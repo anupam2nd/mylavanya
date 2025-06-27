@@ -63,6 +63,19 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/track" element={<TrackBooking />} />
+            <Route path="/track-booking" element={<TrackBooking />} />
+            
+            {/* Profile and Wishlist Routes - accessible to all authenticated users */}
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/wishlist" element={
+              <ProtectedRoute>
+                <Wishlist />
+              </ProtectedRoute>
+            } />
             
             {/* User Dashboard Routes */}
             <Route path="/user/dashboard" element={
