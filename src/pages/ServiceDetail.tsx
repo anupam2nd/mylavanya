@@ -207,7 +207,7 @@ const ServiceDetail = () => {
     <MainLayout>
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-6">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             {/* Header */}
             <ServiceDetailHeader
               productName={service.ProductName}
@@ -217,37 +217,37 @@ const ServiceDetail = () => {
               onBack={handleBack}
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
-              {/* Image */}
+            {/* Full Width Image with 16:9 aspect ratio */}
+            <div className="mb-8">
               <ServiceImage
                 imageUrl={service.imageUrl}
                 productName={service.ProductName}
               />
+            </div>
 
-              {/* Service Details */}
-              <div className="space-y-6">
-                {/* Price Section */}
-                <ServiceActions
-                  price={service.Price}
-                  netPayable={service.NetPayable}
-                  discount={service.Discount}
-                  category={service.Category}
-                  subCategory={service.SubCategory}
-                  isAuthenticated={isAuthenticated}
-                  isInWishlist={isInWishlist}
-                  wishlistLoading={wishlistLoading}
-                  onBookNow={handleBookNow}
-                  onWishlistToggle={handleWishlistToggle}
-                />
+            {/* Content Below Image */}
+            <div className="space-y-6 mb-8">
+              {/* Price Section */}
+              <ServiceActions
+                price={service.Price}
+                netPayable={service.NetPayable}
+                discount={service.Discount}
+                category={service.Category}
+                subCategory={service.SubCategory}
+                isAuthenticated={isAuthenticated}
+                isInWishlist={isInWishlist}
+                wishlistLoading={wishlistLoading}
+                onBookNow={handleBookNow}
+                onWishlistToggle={handleWishlistToggle}
+              />
 
-                {/* Service Information */}
-                <ServiceInfo
-                  description={service.Description}
-                  services={service.Services}
-                  subservice={service.Subservice}
-                  scheme={service.Scheme}
-                />
-              </div>
+              {/* Service Information */}
+              <ServiceInfo
+                description={service.Description}
+                services={service.Services}
+                subservice={service.Subservice}
+                scheme={service.Scheme}
+              />
             </div>
 
             {/* Related Services */}
