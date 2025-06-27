@@ -27,7 +27,12 @@ const BookingBanner = ({
           </h2>
           <p className="text-lg mb-10 max-w-2xl mx-auto text-zinc-700">Our team of professional makeup artists and hair stylists are ready to transform your look for any special occasion.</p>
           
-          <ButtonCustom variant="glass" size="lg" onClick={onBookNow} className="hover:bg-white/30 backdrop-blur-md">
+          <ButtonCustom
+            variant="glass"
+            size="lg"
+            onClick={onBookNow}
+            className="hover:bg-blue-100/70 bg-blue-100"
+          >
             <Calendar className="mr-2" size={18} />
             Schedule Appointment
           </ButtonCustom>
