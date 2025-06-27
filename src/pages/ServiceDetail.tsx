@@ -1,436 +1,262 @@
+
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { ButtonCustom } from "@/components/ui/button-custom";
+import { toast } from "sonner";
+import MainLayout from "@/components/layout/MainLayout";
 import BookingForm from "@/components/booking/BookingForm";
-import { toast } from "@/hooks/use-toast";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { useAuth } from "@/context/AuthContext";
-import AuthModal from "@/components/auth/AuthModal";
-import { Heart, Image } from "lucide-react";
+import { useWishlist } from "@/hooks/useWishlist";
+import ServiceDetailHeader from "@/components/service-detail/ServiceDetailHeader";
+import ServiceImage from "@/components/service-detail/ServiceImage";
+import ServiceActions from "@/components/service-detail/ServiceActions";
+import ServiceInfo from "@/components/service-detail/ServiceInfo";
+import RelatedServices from "@/components/service-detail/RelatedServices";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+
+interface Service {
+  prod_id: number;
+  ProductName: string;
+  Services: string;
+  Price: number;
+  Description: string;
+  Category: string;
+  SubCategory: string;
+  Subservice: string;
+  Scheme: string;
+  Discount: number;
+  NetPayable: number;
+  imageUrl: string;
+  active: boolean;
+}
 
 const ServiceDetail = () => {
-  const { serviceId } = useParams<{ serviceId: string; }>();
+  const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [service, setService] = useState<any>(null);
+  const { isAuthenticated, user } = useAuth();
+  
+  const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const { user, isAuthenticated } = useAuth();
-  const [isInWishlist, setIsInWishlist] = useState(false);
-  const [wishlistLoading, setWishlistLoading] = useState(false);
-
-  // Handle incorrect URL format: "/service/" (singular) should be "/services/" (plural)
-  useEffect(() => {
-    // Check if we're on the wrong path format
-    if (location.pathname.includes('/service/') && !location.pathname.includes('/services/')) {
-      // Get the service ID from the incorrect path
-      const serviceIdFromPath = location.pathname.split('/').pop();
-      
-      // First check if we have a valid ID to work with
-      if (serviceIdFromPath && !isNaN(Number(serviceIdFromPath))) {
-        // Redirect to the correct path with the same ID
-        const correctPath = location.pathname.replace('/service/', '/services/');
-        navigate(correctPath, { replace: true });
-      } else {
-        // If we don't have a valid ID, just go back to services listing
-        navigate('/services', { replace: true });
-      }
-    }
-  }, [location.pathname, navigate]);
-
-  // Handle the case when user manually enters /service/ID directly
-  useEffect(() => {
-    const handlePopState = () => {
-      if (location.pathname.includes('/service/') && !location.pathname.includes('/services/')) {
-        navigate('/services', { replace: true });
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [location.pathname, navigate]);
-
-  useEffect(() => {
-    const fetchServiceDetails = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        if (!serviceId) {
-          throw new Error("Service ID is required");
-        }
-        const serviceIdNumber = parseInt(serviceId);
-        if (isNaN(serviceIdNumber)) {
-          throw new Error("Invalid service ID");
-        }
-
-        const {
-          data,
-          error
-        } = await supabase.from('PriceMST').select('*').eq('prod_id', serviceIdNumber).eq('active', true).single();
-        if (error) {
-          throw error;
-        }
-        setService(data);
-      } catch (error) {
-        setError("Could not load service details or the service may be inactive");
-        toast({
-          title: "Error",
-          description: "Could not load service details or the service may be inactive",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    if (serviceId) {
-      fetchServiceDetails();
-    }
-  }, [serviceId]);
+  const [relatedServices, setRelatedServices] = useState<Service[]>([]);
   
-  useEffect(() => {
-    // Check if service is in the user's wishlist
-    const checkWishlistStatus = async () => {
-      if (!isAuthenticated || !user || !serviceId) return;
-      
-      try {
-        const serviceIdNumber = parseInt(serviceId);
-        if (isNaN(serviceIdNumber)) return;
-        
-        const { data, error } = await supabase
-          .from('wishlist')
-          .select('id')
-          .eq('user_id', parseInt(user.id))
-          .eq('service_id', serviceIdNumber)
-          .maybeSingle();
-          
-        if (error) throw error;
-        setIsInWishlist(!!data);
-      } catch (error) {
-        // Error handled silently
-      }
-    };
-    
-    checkWishlistStatus();
-  }, [isAuthenticated, user, serviceId]);
-
-  const handleBookingSuccess = () => {
-    setShowBookingForm(false);
-  };
-
-  const handleBookNowClick = () => {
-    if (isAuthenticated && user?.role === 'member') {
-      setShowBookingForm(true);
-    } else {
-      // Show auth modal for login/registration
-      setShowAuthModal(true);
-    }
-  };
-
-  const handleAuthSuccess = () => {
-    setShowAuthModal(false);
-    // Small delay to ensure auth context is updated
-    setTimeout(() => {
-      setShowBookingForm(true);
-    }, 300);
-  };
+  const { toggleWishlist, isInWishlist, wishlistLoading } = useWishlist(service?.prod_id);
   
-  const handleWishlistToggle = async () => {
-    if (!isAuthenticated) {
-      setShowAuthModal(true);
-      return;
+  // Check if we should auto-open booking form
+  const shouldAutoBook = searchParams.get('book') === 'true';
+  const fromHome = location.state?.fromHome;
+
+  useEffect(() => {
+    if (id) {
+      fetchService();
     }
+  }, [id]);
+
+  // Auto-open booking form if book=true parameter is present
+  useEffect(() => {
+    if (shouldAutoBook && service && isAuthenticated) {
+      setShowBookingForm(true);
+      // Clean up the URL parameter
+      const params = new URLSearchParams(searchParams);
+      params.delete('book');
+      navigate(`/services/${id}?${params.toString()}`, { replace: true });
+    }
+  }, [shouldAutoBook, service, isAuthenticated, id, navigate, searchParams]);
+
+  const fetchService = async () => {
+    if (!id) return;
     
-    if (!serviceId || !user) return;
-    const serviceIdNumber = parseInt(serviceId);
-    if (isNaN(serviceIdNumber)) return;
-    
-    setWishlistLoading(true);
-    
+    setLoading(true);
     try {
-      if (isInWishlist) {
-        // Get the wishlist item id first
-        const { data: wishlistItem, error: fetchError } = await supabase
-          .from('wishlist')
-          .select('id')
-          .eq('user_id', parseInt(user.id))
-          .eq('service_id', serviceIdNumber)
-          .single();
-          
-        if (fetchError) throw fetchError;
+      const { data, error } = await supabase
+        .from('PriceMST')
+        .select('*')
+        .eq('prod_id', parseInt(id))
+        .eq('active', true)
+        .single();
+
+      if (error) {
+        toast.error("Service not found");
+        navigate('/services');
+        return;
+      }
+
+      setService(data);
+      
+      // Fetch related services
+      if (data.Category) {
+        const { data: related } = await supabase
+          .from('PriceMST')
+          .select('*')
+          .eq('Category', data.Category)
+          .eq('active', true)
+          .neq('prod_id', parseInt(id))
+          .limit(3);
         
-        // Remove from wishlist
-        const { error: removeError } = await supabase
-          .from('wishlist')
-          .delete()
-          .eq('id', wishlistItem.id)
-          .eq('user_id', parseInt(user.id));
-          
-        if (removeError) throw removeError;
-        
-        setIsInWishlist(false);
-        toast({
-          title: "Removed from wishlist",
-          description: `${service?.ProductName || 'Service'} has been removed from your wishlist`,
-        });
-      } else {
-        // Add to wishlist
-        const { error: addError } = await supabase
-          .from('wishlist')
-          .insert({
-            user_id: parseInt(user.id),
-            service_id: serviceIdNumber
-          });
-          
-        if (addError) throw addError;
-        
-        setIsInWishlist(true);
-        toast({
-          title: "Added to wishlist",
-          description: `${service?.ProductName || 'Service'} has been added to your wishlist`,
-        });
+        if (related) {
+          setRelatedServices(related);
+        }
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "There was a problem updating your wishlist",
-        variant: "destructive"
-      });
+      console.error('Error fetching service:', error);
+      toast.error("Failed to load service details");
     } finally {
-      setWishlistLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleBackNavigation = () => {
-    // Check if user came from home page by checking referrer or state
-    const referrer = document.referrer;
-    const isFromHomePage = referrer.includes(window.location.origin) && !referrer.includes('/services');
-    
-    // For mobile users coming from home page's MobileCategoryServices
-    if (isFromHomePage || location.state?.fromHome) {
-      navigate("/");
+  const handleBookNow = () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to book a service");
+      return;
+    }
+    setShowBookingForm(true);
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to add items to your wishlist");
+      return;
+    }
+    await toggleWishlist();
+  };
+
+  const handleBack = () => {
+    if (fromHome) {
+      navigate('/');
     } else {
-      // Get the referrer URL to extract search parameters
-      if (referrer && referrer.includes('/services')) {
-        try {
-          const referrerURL = new URL(referrer);
-          const searchParams = referrerURL.search;
-          
-          // Navigate back with preserved search parameters
-          navigate(`/services${searchParams}`);
-        } catch (error) {
-          // If there's an error parsing the referrer URL, just go to services
-          navigate("/services");
-        }
-      } else {
-        // Check if there are any search parameters in the current session storage
-        const savedFilters = sessionStorage.getItem('servicesFilters');
-        if (savedFilters) {
-          navigate(`/services?${savedFilters}`);
-        } else {
-          navigate("/services");
-        }
-      }
+      navigate('/services');
     }
-  };
-
-  const getBackButtonText = () => {
-    const referrer = document.referrer;
-    const isFromHomePage = referrer.includes(window.location.origin) && !referrer.includes('/services');
-    
-    if (isFromHomePage || location.state?.fromHome) {
-      return "← Back to Home";
-    }
-    return "← Back to Services";
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>;
-  }
-
-  if (error) {
-    return <div className="container mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-medium mb-4">Error Loading Service</h2>
-        <p className="text-gray-600 mb-6">{error}</p>
-        <Button onClick={handleBackNavigation}>
-          {getBackButtonText()}
-        </Button>
-      </div>;
+    return (
+      <MainLayout>
+        <div className="min-h-screen bg-gray-50">
+          <div className="container mx-auto px-4 py-6">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+              <div className="h-64 bg-gray-200 rounded mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    );
   }
 
   if (!service) {
-    return <div className="container mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-medium mb-4">Service not found</h2>
-        <p className="text-gray-600 mb-6">The service you are looking for does not exist.</p>
-        <Button onClick={handleBackNavigation}>
-          {getBackButtonText()}
-        </Button>
-      </div>;
+    return (
+      <MainLayout>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Service Not Found</h1>
+            <Button onClick={() => navigate('/services')}>
+              Back to Services
+            </Button>
+          </div>
+        </div>
+      </MainLayout>
+    );
   }
 
-  // Use imageUrl directly from service data
-  const serviceImage = service.imageUrl || "/placeholder.svg";
-  
-  const formattedServiceName = service ? [
-    service.Services,
-    service.Subservice,
-    service.ProductName
-  ].filter(Boolean).join(' - ') : '';
-  
-  const finalPrice = service ? (
-    service.NetPayable !== null && service.NetPayable !== undefined 
-      ? service.NetPayable 
-      : service.Discount 
-        ? service.Price - (service.Price * service.Discount / 100) 
-        : service.Price
-  ) : 0;
-  
-  // Format price without trailing zeros
-  const formatPrice = (price: number) => {
-    return `₹${price.toFixed(0)}`;
-  };
+  if (showBookingForm) {
+    return (
+      <MainLayout>
+        <div className="min-h-screen bg-gray-50">
+          <div className="container mx-auto px-4 py-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center gap-3 mb-6">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowBookingForm(false)}
+                  className="flex-shrink-0"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                <h1 className="text-xl md:text-2xl font-bold truncate">
+                  Book {service.ProductName}
+                </h1>
+              </div>
+              
+              <BookingForm
+                serviceId={service.prod_id}
+                serviceName={service.ProductName || service.Services}
+                servicePrice={service.NetPayable || service.Price}
+                serviceOriginalPrice={service.Price}
+                onCancel={() => setShowBookingForm(false)}
+                onSuccess={() => {
+                  setShowBookingForm(false);
+                  toast.success("Booking completed successfully!");
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
-  return <div className="min-h-screen bg-gray-50 pb-16">
-      <div className="bg-gradient-to-r from-violet-100 to-purple-50 py-8">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <Button variant="ghost" onClick={handleBackNavigation} className="mb-4">
-            {getBackButtonText()}
-          </Button>
-          
-          <div className="flex flex-col space-y-2">
-            <div>
-              <StatusBadge status={service.Services} className="text-lg font-bold px-4 py-2 bg-primary/20 text-primary">
-                {service.Services}
-              </StatusBadge>
+  return (
+    <MainLayout>
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-6">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <ServiceDetailHeader
+              productName={service.ProductName}
+              services={service.Services}
+              category={service.Category}
+              subCategory={service.SubCategory}
+              onBack={handleBack}
+            />
+
+            {/* Full Width Image with 16:9 aspect ratio */}
+            <div className="mb-8">
+              <ServiceImage
+                imageUrl={service.imageUrl}
+                productName={service.ProductName}
+              />
             </div>
-            {service.Subservice && (
-              <div className="text-xl font-medium text-gray-700">{service.Subservice}</div>
-            )}
-            {service.ProductName && (
-              <div className="text-base text-gray-500">{service.ProductName}</div>
-            )}
-            
-            {/* Price display with discount if available */}
-            {service.Discount || (service.NetPayable !== null && service.NetPayable !== undefined) ? (
-              <div className="flex items-center space-x-2 mt-1">
-                {service.Price !== finalPrice && (
-                  <span className="line-through text-gray-500">{formatPrice(service.Price)}</span>
-                )}
-                <span className="text-lg font-medium text-primary">{formatPrice(finalPrice)}</span>
-                {service.Discount && service.Discount > 0 && (
-                  <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded">
-                    {service.Discount}% OFF
-                  </span>
-                )}
-              </div>
-            ) : (
-              <p className="text-lg font-medium text-primary mt-1">{formatPrice(service.Price)}</p>
-            )}
+
+            {/* Content Below Image */}
+            <div className="space-y-6 mb-8">
+              {/* Price Section */}
+              <ServiceActions
+                price={service.Price}
+                netPayable={service.NetPayable}
+                discount={service.Discount}
+                category={service.Category}
+                subCategory={service.SubCategory}
+                isAuthenticated={isAuthenticated}
+                isInWishlist={isInWishlist}
+                wishlistLoading={wishlistLoading}
+                onBookNow={handleBookNow}
+                onWishlistToggle={handleWishlistToggle}
+              />
+
+              {/* Service Information */}
+              <ServiceInfo
+                description={service.Description}
+                services={service.Services}
+                subservice={service.Subservice}
+                scheme={service.Scheme}
+              />
+            </div>
+
+            {/* Related Services */}
+            <RelatedServices services={relatedServices} />
           </div>
         </div>
       </div>
-      
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="h-64 sm:h-80 bg-gray-200">
-                {serviceImage ? (
-                  <img alt={service.ProductName} className="w-full h-full object-cover" src={serviceImage} />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Image className="h-16 w-16 text-gray-300" />
-                  </div>
-                )}
-              </div>
-              <div className="p-6">
-                <h2 className="text-2xl font-semibold mb-4">Service Description</h2>
-                <p className="text-gray-600 mb-6">
-                  {service.Description || "Professional beauty service tailored for weddings and special occasions. Our expert team uses premium products to ensure you look your best on your special day."}
-                </p>
-                
-                <h3 className="text-xl font-medium mb-3">What's Included</h3>
-                <ul className="list-disc list-inside mb-6 space-y-2 text-gray-600">
-                  <li className="text-base font-semibold">Consultation to understand your preferences</li>
-                  <li>Premium quality products</li>
-                  <li>Touch-ups for perfect finish</li>
-                </ul>
-                
-                <h3 className="text-xl font-medium mb-3">Additional Information</h3>
-                <p className="text-gray-600">
-                  Our services are available for on-site appointments. We bring all necessary equipment to your location, whether it's a hotel, home, or venue.
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-              {/* <h2 className="text-lg font-semibold mb-3 text-center">Book This Service</h2> */}
-              
-              {!showBookingForm ? (
-                <div className="space-y-3">
-                  <ButtonCustom 
-                    variant="primary-gradient" 
-                    className="w-full" 
-                    size="lg" 
-                    onClick={handleBookNowClick}
-                  >
-                    Book Now
-                  </ButtonCustom>
-                  
-                  <ButtonCustom 
-                    variant="outline" 
-                    className={`w-full flex items-center justify-center gap-2 ${
-                      isInWishlist ? 'border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600' : ''
-                    }`}
-                    onClick={handleWishlistToggle}
-                    disabled={wishlistLoading}
-                  >
-                    <Heart className={`${isInWishlist ? 'fill-rose-500' : ''} ${wishlistLoading ? 'animate-pulse' : ''}`} size={18} />
-                    {isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                  </ButtonCustom>
-                </div>
-              ) : (
-                <BookingForm 
-                  serviceId={service.prod_id} 
-                  serviceName={formattedServiceName} 
-                  servicePrice={finalPrice}
-                  serviceOriginalPrice={service.Price}
-                  onCancel={() => setShowBookingForm(false)} 
-                  onSuccess={handleBookingSuccess} 
-                />
-              )}
-              
-              <div className="border-t mt-6 pt-6">
-                <h3 className="font-medium text-center mb-4">Need Help?</h3>
-                <div className="text-center">
-                  <p className="text-gray-600 text-sm mb-2">Contact our customer support</p>
-                  <p className="text-primary font-medium">contactus@lavanya.com</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Auth Modal */}
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)}
-        defaultTab="member"
-      />
-    </div>;
+    </MainLayout>
+  );
 };
 
 export default ServiceDetail;

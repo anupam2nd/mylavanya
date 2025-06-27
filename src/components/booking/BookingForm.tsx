@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
@@ -16,11 +16,16 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, FileText, ArrowRight, CalendarCheck } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPrice, onCancel, onSuccess }: BookingFormProps) => {
   const [bookingCompleted, setBookingCompleted] = useState(false);
   const [bookingRef, setBookingRef] = useState<string | null>(null);
+  const [memberData, setMemberData] = useState<any>(null);
+  const [isLoadingMember, setIsLoadingMember] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Prepare initial selected service if provided as prop
   const initialSelectedService = serviceId && serviceName && servicePrice 
@@ -46,6 +51,43 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
       selectedServices: initialSelectedService ? [initialSelectedService] : []
     },
   });
+
+  // Fetch member data if user is a member
+  useEffect(() => {
+    const fetchMemberData = async () => {
+      if (!user || user.role !== 'member') return;
+      
+      setIsLoadingMember(true);
+      try {
+        const { data, error } = await supabase
+          .from('MemberMST')
+          .select('*')
+          .eq('MemberEmailId', user.email)
+          .single();
+
+        if (error) {
+          console.error('Error fetching member data:', error);
+          return;
+        }
+
+        if (data) {
+          setMemberData(data);
+          // Auto-fill form with member data
+          form.setValue('name', `${data.MemberFirstName || ''} ${data.MemberLastName || ''}`.trim());
+          form.setValue('email', data.MemberEmailId || '');
+          form.setValue('phone', data.MemberPhNo || '');
+          form.setValue('address', data.MemberAdress || '');
+          form.setValue('pincode', data.MemberPincode || '');
+        }
+      } catch (error) {
+        console.error('Error in fetchMemberData:', error);
+      } finally {
+        setIsLoadingMember(false);
+      }
+    };
+
+    fetchMemberData();
+  }, [user, form]);
 
   const { isSubmitting, submitBooking } = useBookingSubmit();
 
@@ -128,7 +170,7 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
           
           <NotesField />
           
-          <FormActions isSubmitting={isSubmitting} onCancel={onCancel} />
+          <FormActions isSubmitting={isSubmitting || isLoadingMember} onCancel={onCancel} />
         </form>
       </Form>
     </div>
