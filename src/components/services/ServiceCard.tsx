@@ -160,7 +160,7 @@ const ServiceCard = ({
           <p className="text-gray-600 text-sm line-clamp-3">{truncatedDescription}</p>
         </CardContent>
         
-        <CardFooter className="p-4 pt-0 space-y-2">
+        <CardFooter className="p-4 pt-0 flex flex-col gap-2">
           <Button 
             onClick={handleBookNow}
             className="w-full"
@@ -169,14 +169,16 @@ const ServiceCard = ({
             Book Now
           </Button>
           
-          <Link 
-            to={`/services/${id}`} 
+          <Button 
+            variant="outline" 
             className="w-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/services/${id}`);
+            }}
           >
-            <Button variant="outline" className="w-full">
-              View Details
-            </Button>
-          </Link>
+            View Details
+          </Button>
         </CardFooter>
       </Card>
 
