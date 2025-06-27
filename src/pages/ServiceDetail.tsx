@@ -376,7 +376,7 @@ const ServiceDetail = () => {
           
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-              <h2 className="text-lg font-semibold mb-3 text-center">Book This Service</h2>
+              {/* <h2 className="text-lg font-semibold mb-3 text-center">Book This Service</h2> */}
               
               {!showBookingForm ? (
                 <div className="space-y-3">
