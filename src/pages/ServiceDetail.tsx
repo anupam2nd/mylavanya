@@ -1,17 +1,19 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Calendar, Heart, Star, MapPin, Clock, Users, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import MainLayout from "@/components/layout/MainLayout";
 import BookingForm from "@/components/booking/BookingForm";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/hooks/useWishlist";
+import ServiceDetailHeader from "@/components/service-detail/ServiceDetailHeader";
+import ServiceImage from "@/components/service-detail/ServiceImage";
+import ServiceActions from "@/components/service-detail/ServiceActions";
+import ServiceInfo from "@/components/service-detail/ServiceInfo";
+import RelatedServices from "@/components/service-detail/RelatedServices";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 interface Service {
   prod_id: number;
@@ -207,192 +209,49 @@ const ServiceDetail = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="max-w-6xl mx-auto">
             {/* Header */}
-            <div className="flex items-center gap-3 mb-6">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleBack}
-                className="flex-shrink-0"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl md:text-3xl font-bold truncate">
-                  {service.ProductName || service.Services}
-                </h1>
-                <p className="text-sm md:text-base text-muted-foreground truncate">
-                  {service.Category} • {service.SubCategory}
-                </p>
-              </div>
-            </div>
+            <ServiceDetailHeader
+              productName={service.ProductName}
+              services={service.Services}
+              category={service.Category}
+              subCategory={service.SubCategory}
+              onBack={handleBack}
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
               {/* Image */}
-              <div className="aspect-square rounded-lg overflow-hidden bg-white shadow-sm">
-                {service.imageUrl ? (
-                  <img
-                    src={service.imageUrl}
-                    alt={service.ProductName}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                    <span className="text-gray-400">No image available</span>
-                  </div>
-                )}
-              </div>
+              <ServiceImage
+                imageUrl={service.imageUrl}
+                productName={service.ProductName}
+              />
 
               {/* Service Details */}
               <div className="space-y-6">
                 {/* Price Section */}
-                <Card className="p-4 md:p-6 shadow-sm">
-                  <div className="flex items-baseline gap-3 mb-4">
-                    <span className="text-2xl md:text-3xl font-bold text-primary">
-                      ₹{service.NetPayable || service.Price}
-                    </span>
-                    {service.NetPayable && service.NetPayable !== service.Price && (
-                      <>
-                        <span className="text-lg md:text-xl text-gray-500 line-through">
-                          ₹{service.Price}
-                        </span>
-                        {service.Discount > 0 && (
-                          <Badge variant="destructive" className="text-xs">
-                            {service.Discount}% OFF
-                          </Badge>
-                        )}
-                      </>
-                    )}
-                  </div>
+                <ServiceActions
+                  price={service.Price}
+                  netPayable={service.NetPayable}
+                  discount={service.Discount}
+                  category={service.Category}
+                  subCategory={service.SubCategory}
+                  isAuthenticated={isAuthenticated}
+                  isInWishlist={isInWishlist}
+                  wishlistLoading={wishlistLoading}
+                  onBookNow={handleBookNow}
+                  onWishlistToggle={handleWishlistToggle}
+                />
 
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <Badge variant="secondary" className="text-xs">
-                      {service.Category}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      {service.SubCategory}
-                    </Badge>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button 
-                      size="lg" 
-                      className="flex-1 text-base py-3"
-                      onClick={handleBookNow}
-                    >
-                      <Calendar className="h-5 w-5 mr-2" />
-                      Book Now
-                    </Button>
-                    
-                    {isAuthenticated && (
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        onClick={handleWishlistToggle}
-                        disabled={wishlistLoading}
-                        className="sm:w-auto"
-                      >
-                        <Heart 
-                          className={`h-5 w-5 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} 
-                        />
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-
-                {/* Description */}
-                <Card className="p-4 md:p-6 shadow-sm">
-                  <h3 className="font-semibold text-lg mb-3">Service Description</h3>
-                  <p className="text-gray-600 leading-relaxed text-sm md:text-base">
-                    {service.Description || "Professional service tailored to your needs."}
-                  </p>
-                </Card>
-
-                {/* Service Details */}
-                <Card className="p-4 md:p-6 shadow-sm">
-                  <h3 className="font-semibold text-lg mb-3">Service Details</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Users className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                      <span className="text-sm md:text-base">Service: {service.Services}</span>
-                    </div>
-                    {service.Subservice && (
-                      <div className="flex items-center gap-3">
-                        <Star className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                        <span className="text-sm md:text-base">Specialty: {service.Subservice}</span>
-                      </div>
-                    )}
-                    {service.Scheme && (
-                      <div className="flex items-center gap-3">
-                        <Shield className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                        <span className="text-sm md:text-base">Package: {service.Scheme}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-3">
-                      <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                      <span className="text-sm md:text-base">Available at your location</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                      <span className="text-sm md:text-base">Flexible timing available</span>
-                    </div>
-                  </div>
-                </Card>
+                {/* Service Information */}
+                <ServiceInfo
+                  description={service.Description}
+                  services={service.Services}
+                  subservice={service.Subservice}
+                  scheme={service.Scheme}
+                />
               </div>
             </div>
 
             {/* Related Services */}
-            {relatedServices.length > 0 && (
-              <div>
-                <h2 className="text-xl md:text-2xl font-bold mb-6">Related Services</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                  {relatedServices.map((relatedService) => (
-                    <Card key={relatedService.prod_id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                      <div 
-                        className="aspect-video bg-gray-100 overflow-hidden"
-                        onClick={() => navigate(`/services/${relatedService.prod_id}`)}
-                      >
-                        {relatedService.imageUrl ? (
-                          <img
-                            src={relatedService.imageUrl}
-                            alt={relatedService.ProductName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-gray-400 text-sm">No image</span>
-                          </div>
-                        )}
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold mb-2 line-clamp-2 text-sm md:text-base">
-                          {relatedService.ProductName || relatedService.Services}
-                        </h3>
-                        <div className="flex items-baseline gap-2 mb-3">
-                          <span className="font-bold text-primary text-sm md:text-base">
-                            ₹{relatedService.NetPayable || relatedService.Price}
-                          </span>
-                          {relatedService.NetPayable && relatedService.NetPayable !== relatedService.Price && (
-                            <span className="text-xs md:text-sm text-gray-500 line-through">
-                              ₹{relatedService.Price}
-                            </span>
-                          )}
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full text-xs md:text-sm"
-                          onClick={() => navigate(`/services/${relatedService.prod_id}`)}
-                        >
-                          View Details
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+            <RelatedServices services={relatedServices} />
           </div>
         </div>
       </div>
