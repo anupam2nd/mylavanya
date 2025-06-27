@@ -10,7 +10,7 @@ export const registerFormSchema = z.object({
     .max(10, "Phone number must be exactly 10 digits")
     .regex(/^\d{10}$/, "Phone number must contain only digits"),
   address: z.string().min(1, "Address is required"),
-  pincode: z.string().min(6, "Pincode must be at least 6 digits"),
+  pincode: z.string().min(1, "Pincode is required").min(6, "Pincode must be at least 6 digits"),
   sex: z.enum(["Male", "Female", "Other"]),
   dob: z.date({
     required_error: "Date of birth is required",
