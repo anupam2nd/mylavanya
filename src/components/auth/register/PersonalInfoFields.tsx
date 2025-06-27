@@ -3,6 +3,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { useFormContext } from "react-hook-form";
 import { RegisterFormValues } from "./RegisterFormSchema";
+import { Asterisk } from "lucide-react";
 
 export default function PersonalInfoFields() {
   const form = useFormContext<RegisterFormValues>();
@@ -14,7 +15,9 @@ export default function PersonalInfoFields() {
         name="firstName"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>First Name</FormLabel>
+            <FormLabel className="flex items-center gap-1">
+              First Name <Asterisk className="h-3 w-3 text-red-500" />
+            </FormLabel>
             <FormControl>
               <Input placeholder="First name" {...field} />
             </FormControl>
@@ -28,7 +31,9 @@ export default function PersonalInfoFields() {
         name="lastName"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Last Name</FormLabel>
+            <FormLabel className="flex items-center gap-1">
+              Last Name <Asterisk className="h-3 w-3 text-red-500" />
+            </FormLabel>
             <FormControl>
               <Input placeholder="Last name" {...field} />
             </FormControl>

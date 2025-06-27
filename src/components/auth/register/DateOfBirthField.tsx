@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -10,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useFormContext } from "react-hook-form";
 import { RegisterFormValues } from "./RegisterFormSchema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Asterisk } from "lucide-react";
 
 export default function DateOfBirthField() {
   const form = useFormContext<RegisterFormValues>();
@@ -92,7 +92,9 @@ export default function DateOfBirthField() {
       name="dob"
       render={({ field }) => (
         <FormItem className="flex flex-col">
-          <FormLabel>Date of Birth (must be at least 7 years old)</FormLabel>
+          <FormLabel className="flex items-center gap-1">
+            Date of Birth (must be at least 7 years old) <Asterisk className="h-3 w-3 text-red-500" />
+          </FormLabel>
           
           <div className="grid grid-cols-2 gap-2 mb-2">
             <div>

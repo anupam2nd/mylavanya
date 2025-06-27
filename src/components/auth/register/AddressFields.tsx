@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFormContext } from "react-hook-form";
 import { RegisterFormValues } from "./RegisterFormSchema";
+import { Asterisk } from "lucide-react";
 
 export default function AddressFields() {
   const form = useFormContext<RegisterFormValues>();
@@ -15,7 +16,9 @@ export default function AddressFields() {
         name="address"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Address</FormLabel>
+            <FormLabel className="flex items-center gap-1">
+              Address <Asterisk className="h-3 w-3 text-red-500" />
+            </FormLabel>
             <FormControl>
               <Input placeholder="Your address" {...field} />
             </FormControl>
@@ -30,7 +33,9 @@ export default function AddressFields() {
           name="pincode"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Pincode</FormLabel>
+              <FormLabel className="flex items-center gap-1">
+                Pincode <Asterisk className="h-3 w-3 text-red-500" />
+              </FormLabel>
               <FormControl>
                 <Input placeholder="6-digit pincode" maxLength={6} {...field} />
               </FormControl>
@@ -44,7 +49,9 @@ export default function AddressFields() {
           name="sex"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Gender</FormLabel>
+              <FormLabel className="flex items-center gap-1">
+                Gender <Asterisk className="h-3 w-3 text-red-500" />
+              </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
