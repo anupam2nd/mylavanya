@@ -38,8 +38,7 @@ export function OtpVerificationForm({
       if (response.error) {
         // Handle different types of errors with user-friendly messages
         if (response.error.message?.includes("Invalid OTP") || 
-            response.error.message?.includes("invalid_otp") ||
-            response.status === 400) {
+            response.error.message?.includes("invalid_otp")) {
           toast.error("Invalid OTP. Please check the code and try again.");
         } else if (response.error.message?.includes("expired") || 
                    response.error.message?.includes("OTP expired")) {
