@@ -24,10 +24,8 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
 
   // If roles are specified and user's role is not included, redirect to their appropriate dashboard
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    // Redirect based on specific role - Fixed superadmin redirect
-    if (user.role === 'superadmin') {
-      return <Navigate to="/admin/dashboard" replace />;
-    } else if (user.role === 'admin') {
+    // Redirect based on specific role - Both superadmin and admin go to admin dashboard
+    if (user.role === 'superadmin' || user.role === 'admin') {
       return <Navigate to="/admin/dashboard" replace />;
     } else if (user.role === 'controller') {
       return <Navigate to="/controller/dashboard" replace />;

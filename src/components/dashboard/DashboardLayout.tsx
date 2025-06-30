@@ -30,6 +30,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Both admin and superadmin are treated as admin
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   const isSuperAdmin = user?.role === 'superadmin';
   const isMember = user?.role === 'member';

@@ -67,10 +67,8 @@ export function useLogin() {
         description: `Welcome back! You are now logged in as ${data.role}.`,
       });
       
-      // Redirect based on specific role - Fixed superadmin redirect
-      if (data.role === 'superadmin') {
-        navigate('/admin/dashboard');
-      } else if (data.role === 'admin') {
+      // Fixed redirect logic for superadmin and admin
+      if (data.role === 'superadmin' || data.role === 'admin') {
         navigate('/admin/dashboard');
       } else if (data.role === 'controller') {
         navigate('/controller/dashboard');
