@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +11,7 @@ import CategoriesTable from "@/components/admin/categories/CategoriesTable";
 import SubCategoriesTable from "@/components/admin/categories/SubCategoriesTable";
 import AddCategoryDialog from "@/components/admin/categories/AddCategoryDialog";
 import AddSubCategoryDialog from "@/components/admin/categories/AddSubCategoryDialog";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 interface Category {
   category_id: number;
@@ -100,134 +100,136 @@ const AdminCategories = () => {
   }));
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Category Management</h1>
-          <p className="text-muted-foreground">Manage categories and sub-categories</p>
+    <DashboardLayout title="Category Management">
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Category Management</h1>
+            <p className="text-muted-foreground">Manage categories and sub-categories</p>
+          </div>
         </div>
-      </div>
 
-      {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-muted p-1 rounded-lg w-fit">
-        <button
-          onClick={() => setActiveTab("categories")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === "categories"
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Categories
-        </button>
-        <button
-          onClick={() => setActiveTab("subcategories")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === "subcategories"
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Sub-Categories
-        </button>
-      </div>
+        {/* Tab Navigation */}
+        <div className="flex space-x-1 bg-muted p-1 rounded-lg w-fit">
+          <button
+            onClick={() => setActiveTab("categories")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "categories"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Categories
+          </button>
+          <button
+            onClick={() => setActiveTab("subcategories")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "subcategories"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Sub-Categories
+          </button>
+        </div>
 
-      {/* Search and Filters */}
-      <div className="flex justify-between items-center gap-4">
-        <div className="flex gap-4 flex-1">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder={`Search ${activeTab}...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        {/* Search and Filters */}
+        <div className="flex justify-between items-center gap-4">
+          <div className="flex gap-4 flex-1">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder={`Search ${activeTab}...`}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {activeTab === "subcategories" && (
+              <Select value={selectedCategoryFilter} onValueChange={setSelectedCategoryFilter}>
+                <SelectTrigger className="w-[250px]">
+                  <SelectValue placeholder="Filter by parent category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {subCategoryCounts.map((category) => (
+                    <SelectItem key={category.category_id} value={category.category_id.toString()}>
+                      {category.category_name} ({category.subCategoryCount})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           
-          {activeTab === "subcategories" && (
-            <Select value={selectedCategoryFilter} onValueChange={setSelectedCategoryFilter}>
-              <SelectTrigger className="w-[250px]">
-                <SelectValue placeholder="Filter by parent category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {subCategoryCounts.map((category) => (
-                  <SelectItem key={category.category_id} value={category.category_id.toString()}>
-                    {category.category_name} ({category.subCategoryCount})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <Button
+            onClick={() => {
+              if (activeTab === "categories") {
+                setShowAddCategoryDialog(true);
+              } else {
+                setShowAddSubCategoryDialog(true);
+              }
+            }}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add {activeTab === "categories" ? "Category" : "Sub-Category"}
+          </Button>
         </div>
-        
-        <Button
-          onClick={() => {
-            if (activeTab === "categories") {
-              setShowAddCategoryDialog(true);
-            } else {
-              setShowAddSubCategoryDialog(true);
-            }
-          }}
-          className="flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Add {activeTab === "categories" ? "Category" : "Sub-Category"}
-        </Button>
-      </div>
 
-      {/* Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {activeTab === "categories" ? "Categories" : "Sub-Categories"}
-            {activeTab === "subcategories" && selectedCategoryFilter !== "all" && (
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                ({filteredSubCategories.length} items)
-              </span>
+        {/* Content */}
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {activeTab === "categories" ? "Categories" : "Sub-Categories"}
+              {activeTab === "subcategories" && selectedCategoryFilter !== "all" && (
+                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  ({filteredSubCategories.length} items)
+                </span>
+              )}
+            </CardTitle>
+            <CardDescription>
+              {activeTab === "categories" 
+                ? "Manage main service categories"
+                : "Manage sub-categories within each main category"
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {activeTab === "categories" ? (
+              <CategoriesTable
+                categories={filteredCategories}
+                subCategoryCounts={subCategoryCounts}
+                loading={categoriesLoading}
+                onRefresh={handleRefresh}
+              />
+            ) : (
+              <SubCategoriesTable
+                subCategories={filteredSubCategories}
+                categories={categories}
+                loading={subCategoriesLoading}
+                onRefresh={handleRefresh}
+              />
             )}
-          </CardTitle>
-          <CardDescription>
-            {activeTab === "categories" 
-              ? "Manage main service categories"
-              : "Manage sub-categories within each main category"
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {activeTab === "categories" ? (
-            <CategoriesTable
-              categories={filteredCategories}
-              subCategoryCounts={subCategoryCounts}
-              loading={categoriesLoading}
-              onRefresh={handleRefresh}
-            />
-          ) : (
-            <SubCategoriesTable
-              subCategories={filteredSubCategories}
-              categories={categories}
-              loading={subCategoriesLoading}
-              onRefresh={handleRefresh}
-            />
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Dialogs */}
-      <AddCategoryDialog
-        open={showAddCategoryDialog}
-        onOpenChange={setShowAddCategoryDialog}
-        onSuccess={handleRefresh}
-      />
-      
-      <AddSubCategoryDialog
-        open={showAddSubCategoryDialog}
-        onOpenChange={setShowAddSubCategoryDialog}
-        categories={categories}
-        onSuccess={handleRefresh}
-      />
-    </div>
+        {/* Dialogs */}
+        <AddCategoryDialog
+          open={showAddCategoryDialog}
+          onOpenChange={setShowAddCategoryDialog}
+          onSuccess={handleRefresh}
+        />
+        
+        <AddSubCategoryDialog
+          open={showAddSubCategoryDialog}
+          onOpenChange={setShowAddSubCategoryDialog}
+          categories={categories}
+          onSuccess={handleRefresh}
+        />
+      </div>
+    </DashboardLayout>
   );
 };
 
