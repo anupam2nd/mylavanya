@@ -72,13 +72,14 @@ export default function Footer() {
               href: user?.role === 'member' ? "/user/bookings" : "/booking",
               onClick: handleBookingClick
             }] : []),
-            {
+            // Only show Admin and Artist signin if no one is logged in
+            ...(!isAuthenticated ? [{
               name: "Admin Signin",
               onClick: () => openAuthModal("admin")
             }, {
               name: "Artist Signin",
               onClick: () => openAuthModal("artist")
-            }].map(link => <li key={link.name}>
+            }] : [])].map(link => <li key={link.name}>
                   {link.href ? (
                     <Link 
                       to={link.href} 
