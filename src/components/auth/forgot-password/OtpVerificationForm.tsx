@@ -36,19 +36,42 @@ export function OtpVerificationForm({
       });
 
       if (response.error) {
-        toast.error(response.error.message || "Failed to verify OTP");
+        // Handle different types of errors with user-friendly messages
+        if (response.error.message?.includes("Invalid OTP") || 
+            response.error.message?.includes("invalid_otp") ||
+            response.status === 400) {
+          toast.error("Invalid OTP. Please check the code and try again.");
+        } else if (response.error.message?.includes("expired") || 
+                   response.error.message?.includes("OTP expired")) {
+          toast.error("OTP has expired. Please request a new one.");
+        } else if (response.error.message?.includes("not found")) {
+          toast.error("OTP not found. Please request a new one.");
+        } else {
+          toast.error("Failed to verify OTP. Please try again.");
+        }
+        console.error("OTP verification error:", response.error);
         return;
       }
 
-      if (response.data.success) {
+      if (response.data?.success) {
         toast.success("Phone number verified successfully!");
         onVerificationSuccess();
+      } else if (response.data?.error) {
+        // Handle specific error messages from the server
+        const errorMessage = response.data.error;
+        if (errorMessage.includes("Invalid OTP") || errorMessage.includes("invalid")) {
+          toast.error("Invalid OTP. Please check the code and try again.");
+        } else if (errorMessage.includes("expired")) {
+          toast.error("OTP has expired. Please request a new one.");
+        } else {
+          toast.error("Failed to verify OTP. Please try again.");
+        }
       } else {
-        toast.error(response.data.error || "Invalid OTP");
+        toast.error("Invalid OTP. Please check the code and try again.");
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
-      toast.error("Failed to verify OTP. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -62,11 +85,17 @@ export function OtpVerificationForm({
       });
 
       if (response.error) {
-        toast.error(response.error.message || "Failed to send OTP");
+        if (response.error.message?.includes("not found")) {
+          toast.error("Phone number not found. Please check and try again.");
+        } else {
+          toast.error("Failed to send OTP. Please try again.");
+        }
+        console.error("Error sending OTP:", response.error);
         return;
       }
 
-      toast.success("OTP sent successfully!");
+      toast.success("New OTP sent successfully!");
+      setOtp(""); // Clear the current OTP input
     } catch (error) {
       console.error("Error sending OTP:", error);
       toast.error("Failed to send OTP. Please try again.");
@@ -96,6 +125,12 @@ export function OtpVerificationForm({
           </InputOTPGroup>
         </InputOTP>
       </div>
+      
+      {otp.length === 6 && (
+        <p className="text-xs text-muted-foreground text-center">
+          Click "Verify OTP" to confirm your code
+        </p>
+      )}
       
       <div className="flex flex-col gap-3">
         <Button
@@ -129,6 +164,10 @@ export function OtpVerificationForm({
           )}
         </Button>
       </div>
+      
+      <p className="text-xs text-muted-foreground text-center">
+        Didn't receive the code? Wait a moment and try resending.
+      </p>
     </div>
   );
 }

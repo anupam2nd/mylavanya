@@ -71,7 +71,7 @@ serve(async (req) => {
     
     if (otpError || !otpRecord) {
       return new Response(
-        JSON.stringify({ error: "Invalid OTP" }),
+        JSON.stringify({ error: "Invalid OTP. Please check the code and try again." }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -92,7 +92,7 @@ serve(async (req) => {
       }
       
       return new Response(
-        JSON.stringify({ error: "OTP expired" }),
+        JSON.stringify({ error: "OTP has expired. Please request a new one." }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -121,8 +121,9 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error("Error in verify-registration-otp:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error", details: error.message }),
+      JSON.stringify({ error: "Something went wrong. Please try again." }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
