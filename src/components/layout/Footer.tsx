@@ -4,12 +4,14 @@ import { Instagram, Facebook, Mail, Phone, MapPin, ChevronRight } from "lucide-r
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useState } from "react";
 import AuthModal from "@/components/auth/AuthModal";
+import ArtistApplicationDialog from "@/components/artist/ArtistApplicationDialog";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState("member");
+  const [isArtistApplicationOpen, setIsArtistApplicationOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   
@@ -72,6 +74,11 @@ export default function Footer() {
               href: user?.role === 'member' ? "/user/bookings" : "/booking",
               onClick: handleBookingClick
             }] : []),
+            // Add Apply to Join Our Makeup Team option
+            {
+              name: "Apply to Join Our Makeup Team",
+              onClick: () => setIsArtistApplicationOpen(true)
+            },
             // Only show Admin and Artist signin if no one is logged in
             ...(!isAuthenticated ? [{
               name: "Admin Signin",
@@ -140,5 +147,9 @@ export default function Footer() {
       </div>
       
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authModalTab} />
+      <ArtistApplicationDialog 
+        isOpen={isArtistApplicationOpen}
+        onClose={() => setIsArtistApplicationOpen(false)}
+      />
     </footer>;
 }

@@ -9,6 +9,96 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ArtistApplication: {
+        Row: {
+          application_date: string | null
+          branch_name: string | null
+          course_knowledge: Json | null
+          created_at: string
+          date_of_birth: string | null
+          educational_qualification: string | null
+          full_address: string | null
+          full_name: string
+          gender: string | null
+          guardian_contact_no: string | null
+          guardian_name: string | null
+          has_job_experience: boolean | null
+          id: string
+          job_experience_years: number | null
+          job_type: string | null
+          landmark: string | null
+          marital_status: string | null
+          other_job_description: string | null
+          phone_no: string
+          pin_code: string | null
+          relationship_with_guardian: string | null
+          status: string | null
+          trainer_feedback: string | null
+          trainer_name: string | null
+          training_required: boolean | null
+          training_requirements: string | null
+          updated_at: string
+        }
+        Insert: {
+          application_date?: string | null
+          branch_name?: string | null
+          course_knowledge?: Json | null
+          created_at?: string
+          date_of_birth?: string | null
+          educational_qualification?: string | null
+          full_address?: string | null
+          full_name: string
+          gender?: string | null
+          guardian_contact_no?: string | null
+          guardian_name?: string | null
+          has_job_experience?: boolean | null
+          id?: string
+          job_experience_years?: number | null
+          job_type?: string | null
+          landmark?: string | null
+          marital_status?: string | null
+          other_job_description?: string | null
+          phone_no: string
+          pin_code?: string | null
+          relationship_with_guardian?: string | null
+          status?: string | null
+          trainer_feedback?: string | null
+          trainer_name?: string | null
+          training_required?: boolean | null
+          training_requirements?: string | null
+          updated_at?: string
+        }
+        Update: {
+          application_date?: string | null
+          branch_name?: string | null
+          course_knowledge?: Json | null
+          created_at?: string
+          date_of_birth?: string | null
+          educational_qualification?: string | null
+          full_address?: string | null
+          full_name?: string
+          gender?: string | null
+          guardian_contact_no?: string | null
+          guardian_name?: string | null
+          has_job_experience?: boolean | null
+          id?: string
+          job_experience_years?: number | null
+          job_type?: string | null
+          landmark?: string | null
+          marital_status?: string | null
+          other_job_description?: string | null
+          phone_no?: string
+          pin_code?: string | null
+          relationship_with_guardian?: string | null
+          status?: string | null
+          trainer_feedback?: string | null
+          trainer_name?: string | null
+          training_required?: boolean | null
+          training_requirements?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ArtistMST: {
         Row: {
           Active: boolean | null

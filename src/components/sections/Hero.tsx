@@ -1,5 +1,5 @@
 
-import { ArrowRight, Sparkles, Star } from "lucide-react";
+import { ArrowRight, Sparkles, Star, Users } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
@@ -7,6 +7,8 @@ import HeroSlideshow from "@/components/ui/HeroSlideshow";
 import ParticlesBackground from "@/components/ui/ParticlesBackground";
 import MobileBannerSlider from "@/components/ui/MobileBannerSlider";
 import MobileCategoryServices from "@/components/ui/MobileCategoryServices";
+import ArtistApplicationDialog from "@/components/artist/ArtistApplicationDialog";
+import { useState } from "react";
 
 interface HeroProps {
   onBookNow: () => void;
@@ -20,6 +22,7 @@ const Hero = ({
   onArtistLogin
 }: HeroProps) => {
   const isMobile = useIsMobile();
+  const [isArtistApplicationOpen, setIsArtistApplicationOpen] = useState(false);
 
   // Mobile version with banner slider and category services
   if (isMobile) {
@@ -32,6 +35,11 @@ const Hero = ({
           {/* Mobile Category Services */}
           <MobileCategoryServices />
         </div>
+        
+        <ArtistApplicationDialog 
+          isOpen={isArtistApplicationOpen}
+          onClose={() => setIsArtistApplicationOpen(false)}
+        />
       </div>
     );
   }
@@ -68,6 +76,11 @@ const Hero = ({
                 Book Your Service 
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
               </ButtonCustom>
+              
+              <ButtonCustom variant="primary-outline" size="lg" onClick={() => setIsArtistApplicationOpen(true)} className="group">
+                <Users className="mr-2" size={18} />
+                Apply to Join Our Makeup Team
+              </ButtonCustom>
             </div>
             
             <div className="flex items-center justify-center lg:justify-start space-x-4 text-sm text-muted-foreground pt-4">
@@ -88,6 +101,11 @@ const Hero = ({
           </div>
         </div>
       </div>
+      
+      <ArtistApplicationDialog 
+        isOpen={isArtistApplicationOpen}
+        onClose={() => setIsArtistApplicationOpen(false)}
+      />
     </div>
   );
 };
