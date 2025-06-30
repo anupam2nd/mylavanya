@@ -10,16 +10,16 @@ import {
 } from "./carousel";
 
 const slideImages = [
+    "/lovable-uploads/1187f0cd-cebd-4a82-b452-bd10a533ec8a.png",
+  "/lovable-uploads/5e4422e9-6278-43af-8311-c38f392b88ea.png",
+  "/lovable-uploads/43f7f919-15dd-41f5-b87b-2fcb7214ddcb.png",
+  "/lovable-uploads/fede23ba-d554-4d60-9b58-63d9e73c3d4a.png",
   "/lovable-uploads/61675467-d5c8-4b35-88c2-2ad11ccc7296.png",
   "/lovable-uploads/af122554-9480-4403-ab38-d124a3d8956f.png",
   "/lovable-uploads/69f38c02-dc33-40a1-9c88-a24b8445712c.png",
   "/lovable-uploads/aec1f01a-da7c-4d35-bdf2-ef891e20cca2.png",
   "/lovable-uploads/1ef09f3f-f1fe-4e09-abec-857f95e780db.png",
   "/lovable-uploads/a72340f7-4bae-4ad0-890c-cd1f3a5df5dc.png",
-  "/lovable-uploads/1187f0cd-cebd-4a82-b452-bd10a533ec8a.png",
-  "/lovable-uploads/5e4422e9-6278-43af-8311-c38f392b88ea.png",
-  "/lovable-uploads/43f7f919-15dd-41f5-b87b-2fcb7214ddcb.png",
-  "/lovable-uploads/fede23ba-d554-4d60-9b58-63d9e73c3d4a.png"
 ];
 
 const HeroSlideshow = () => {
