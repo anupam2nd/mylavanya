@@ -8,6 +8,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArtistPasswordSetup } from "./ArtistPasswordSetup";
+import ArtistForgotPassword from "./ArtistForgotPassword";
 
 type LoginStep = "credentials" | "password" | "setup";
 
@@ -18,6 +19,7 @@ export default function ArtistLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [artistData, setArtistData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { handleLogin } = useArtistLogin();
 
   const checkArtistExistence = async () => {
@@ -152,6 +154,11 @@ export default function ArtistLoginForm() {
     setArtistData(null);
   };
 
+  const handleForgotPasswordSuccess = (phone: string) => {
+    setShowForgotPassword(false);
+    toast.success("Password reset successfully! You can now login with your new password.");
+  };
+
   if (currentStep === "setup") {
     return (
       <ArtistPasswordSetup 
@@ -164,55 +171,76 @@ export default function ArtistLoginForm() {
 
   if (currentStep === "password") {
     return (
-      <form onSubmit={handlePasswordLogin} className="space-y-4">
-        <div className="space-y-2">
-          <Label>Artist Email</Label>
-          <Input 
-            value={artistData?.emailid || emailOrPhone}
-            disabled
-            className="bg-gray-50"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password-login">Password</Label>
-          <div className="relative">
+      <>
+        <form onSubmit={handlePasswordLogin} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Artist Email</Label>
             <Input 
-              id="password-login" 
-              type={showPassword ? "text" : "password"} 
-              placeholder="Enter your password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="pr-10"
+              value={artistData?.emailid || emailOrPhone}
+              disabled
+              className="bg-gray-50"
             />
-            <button 
-              type="button" 
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none" 
-              onClick={togglePasswordVisibility}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={resetForm}
-            className="flex-1"
-          >
-            Back
-          </Button>
-          <ButtonCustom 
-            variant="primary-gradient" 
-            className="flex-1"
-            type="submit"
-            disabled={isLoading}
-          >
-            {isLoading ? "Signing in..." : "Sign In"}
-          </ButtonCustom>
-        </div>
-      </form>
+          <div className="space-y-2">
+            <Label htmlFor="password-login">Password</Label>
+            <div className="relative">
+              <Input 
+                id="password-login" 
+                type={showPassword ? "text" : "password"} 
+                placeholder="Enter your password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="pr-10"
+              />
+              <button 
+                type="button" 
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none" 
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+          
+          {/* Add forgot password link */}
+          <div className="text-right">
+            <Button
+              type="button"
+              variant="link"
+              className="p-0 h-auto text-sm text-primary"
+              onClick={() => setShowForgotPassword(true)}
+            >
+              Forgot Password?
+            </Button>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={resetForm}
+              className="flex-1"
+            >
+              Back
+            </Button>
+            <ButtonCustom 
+              variant="primary-gradient" 
+              className="flex-1"
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? "Signing in..." : "Sign In"}
+            </ButtonCustom>
+          </div>
+        </form>
+
+        <ArtistForgotPassword
+          isOpen={showForgotPassword}
+          onClose={() => setShowForgotPassword(false)}
+          onSuccess={handleForgotPasswordSuccess}
+        />
+      </>
     );
   }
 

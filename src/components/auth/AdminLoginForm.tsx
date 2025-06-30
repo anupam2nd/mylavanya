@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +8,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AdminPasswordSetup } from "./AdminPasswordSetup";
+import AdminForgotPassword from "./AdminForgotPassword";
 
 type LoginStep = "credentials" | "password" | "setup";
 
@@ -19,6 +19,7 @@ export default function AdminLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { handleLogin } = useLogin();
 
   const checkUserExistence = async () => {
@@ -128,6 +129,11 @@ export default function AdminLoginForm() {
     setUserData(null);
   };
 
+  const handleForgotPasswordSuccess = (phone: string) => {
+    setShowForgotPassword(false);
+    toast.success("Password reset successfully! You can now login with your new password.");
+  };
+
   if (currentStep === "setup") {
     return (
       <AdminPasswordSetup 
@@ -140,61 +146,82 @@ export default function AdminLoginForm() {
 
   if (currentStep === "password") {
     return (
-      <form onSubmit={handlePasswordLogin} className="space-y-4">
-        <div className="mb-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            This login is for admins, controllers & superadmin only. 
-            Members should use the main sign in button.
-          </p>
-        </div>
-        <div className="space-y-2">
-          <Label>Email</Label>
-          <Input 
-            value={userData?.email_id || emailOrPhone}
-            disabled
-            className="bg-gray-50"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password-login">Password</Label>
-          <div className="relative">
-            <Input 
-              id="password-login" 
-              type={showPassword ? "text" : "password"} 
-              placeholder="Enter your password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="pr-10"
-            />
-            <button 
-              type="button" 
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none" 
-              onClick={togglePasswordVisibility}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+      <>
+        <form onSubmit={handlePasswordLogin} className="space-y-4">
+          <div className="mb-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              This login is for admins, controllers & superadmin only. 
+              Members should use the main sign in button.
+            </p>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={resetForm}
-            className="flex-1"
-          >
-            Back
-          </Button>
-          <ButtonCustom 
-            variant="primary-gradient" 
-            className="flex-1"
-            type="submit"
-            disabled={isLoading}
-          >
-            {isLoading ? "Signing in..." : "Admin Sign In"}
-          </ButtonCustom>
-        </div>
-      </form>
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input 
+              value={userData?.email_id || emailOrPhone}
+              disabled
+              className="bg-gray-50"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password-login">Password</Label>
+            <div className="relative">
+              <Input 
+                id="password-login" 
+                type={showPassword ? "text" : "password"} 
+                placeholder="Enter your password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="pr-10"
+              />
+              <button 
+                type="button" 
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none" 
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+          
+          {/* Add forgot password link */}
+          <div className="text-right">
+            <Button
+              type="button"
+              variant="link"
+              className="p-0 h-auto text-sm text-primary"
+              onClick={() => setShowForgotPassword(true)}
+            >
+              Forgot Password?
+            </Button>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={resetForm}
+              className="flex-1"
+            >
+              Back
+            </Button>
+            <ButtonCustom 
+              variant="primary-gradient" 
+              className="flex-1"
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? "Signing in..." : "Admin Sign In"}
+            </ButtonCustom>
+          </div>
+        </form>
+
+        <AdminForgotPassword
+          isOpen={showForgotPassword}
+          onClose={() => setShowForgotPassword(false)}
+          onSuccess={handleForgotPasswordSuccess}
+        />
+      </>
     );
   }
 
