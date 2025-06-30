@@ -104,64 +104,64 @@ const App = () => (
               </ProtectedRoute>
             } />
 
-            {/* Admin Dashboard Routes */}
+            {/* Admin Dashboard Routes - Fixed to include superadmin */}
             <Route path="/admin/dashboard" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <AdminDashboard />
               </ProtectedRoute>
             } />
             <Route path="/admin/services" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <AdminServices />
               </ProtectedRoute>
             } />
             <Route path="/admin/bookings" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <AdminBookings />
               </ProtectedRoute>
             } />
             <Route path="/admin/users" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <AdminUsers />
               </ProtectedRoute>
             } />
             <Route path="/admin/members" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <AdminMembers />
               </ProtectedRoute>
             } />
             <Route path="/admin/artists" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <AdminArtists />
               </ProtectedRoute>
             } />
             <Route path="/admin/categories" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <AdminCategories />
               </ProtectedRoute>
             } />
             <Route path="/admin/banner-images" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <AdminBannerImages />
               </ProtectedRoute>
             } />
             <Route path="/admin/status" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <AdminStatus />
               </ProtectedRoute>
             } />
             <Route path="/admin/faqs" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <AdminFaqs />
               </ProtectedRoute>
             } />
             <Route path="/admin/wishlist" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <WishlistController />
               </ProtectedRoute>
             } />
             <Route path="/admin/artist-activity" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <AdminArtistActivity />
               </ProtectedRoute>
             } />
