@@ -7,37 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import ArtistApplicationsTable from "@/components/admin/artist-applications/ArtistApplicationsTable";
 import ArtistApplicationDetailsDialog from "@/components/admin/artist-applications/ArtistApplicationDetailsDialog";
 import { useToast } from "@/hooks/use-toast";
+import { Database } from "@/integrations/supabase/types";
 
-interface ArtistApplication {
-  id: string;
-  full_name: string;
-  phone_no: string;
-  email?: string;
-  branch_name?: string;
-  application_date?: string;
-  status: string;
-  created_at: string;
-  date_of_birth?: string;
-  gender?: string;
-  full_address?: string;
-  landmark?: string;
-  pin_code?: string;
-  marital_status?: string;
-  guardian_name?: string;
-  guardian_contact_no?: string;
-  relationship_with_guardian?: string;
-  educational_qualification?: string;
-  job_type?: string;
-  job_experience_years?: number;
-  has_job_experience?: boolean;
-  other_job_description?: string;
-  course_knowledge?: any[];
-  trainer_name?: string;
-  training_required?: boolean;
-  training_requirements?: string;
-  trainer_feedback?: string;
-  updated_at: string;
-}
+// Use the exact type from Supabase database schema
+type ArtistApplication = Database['public']['Tables']['ArtistApplication']['Row'];
 
 const AdminArtistApplications = () => {
   const { toast } = useToast();
