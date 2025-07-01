@@ -103,7 +103,7 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
         </>
       )}
 
-      {/* Wishlist Controller - Available for all roles except artists */}
+      {/* Wishlist Controller - Available for all roles except artists - Fixed route for controllers */}
       <NavLink to="/admin/wishlist" icon={Heart}>
         Wishlist
       </NavLink>
