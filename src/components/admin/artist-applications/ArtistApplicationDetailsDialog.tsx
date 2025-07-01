@@ -49,6 +49,39 @@ const ArtistApplicationDetailsDialog = ({
     }
   };
 
+  // Helper function to render course knowledge as chips
+  const renderCourseKnowledge = () => {
+    if (!application.course_knowledge) return <p className="text-sm text-gray-500">No course knowledge available</p>;
+    
+    try {
+      // Parse the course knowledge if it's a string, otherwise use as is
+      let courseArray: string[] = [];
+      
+      if (typeof application.course_knowledge === 'string') {
+        courseArray = JSON.parse(application.course_knowledge);
+      } else if (Array.isArray(application.course_knowledge)) {
+        courseArray = application.course_knowledge;
+      }
+      
+      if (courseArray.length === 0) {
+        return <p className="text-sm text-gray-500">No course knowledge available</p>;
+      }
+      
+      return (
+        <div className="flex flex-wrap gap-2">
+          {courseArray.map((course, index) => (
+            <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+              {course}
+            </Badge>
+          ))}
+        </div>
+      );
+    } catch (error) {
+      console.error('Error parsing course knowledge:', error);
+      return <p className="text-sm text-red-500">Error displaying course knowledge</p>;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -234,19 +267,11 @@ const ArtistApplicationDetailsDialog = ({
           </div>
 
           {/* Course Knowledge */}
-          {application.course_knowledge && (
-            <>
-              <Separator />
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Course Knowledge</h3>
-                <div className="text-sm">
-                  <pre className="bg-gray-50 p-3 rounded text-xs overflow-auto">
-                    {JSON.stringify(application.course_knowledge, null, 2)}
-                  </pre>
-                </div>
-              </div>
-            </>
-          )}
+          <Separator />
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Course Knowledge</h3>
+            {renderCourseKnowledge()}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
