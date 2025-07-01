@@ -156,7 +156,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/admin/wishlist" element={
-              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin', 'controller']}>
                 <WishlistController />
               </ProtectedRoute>
             } />
