@@ -53,7 +53,7 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
         Bookings
       </NavLink>
 
-      {/* Controller users only get Dashboard, Bookings, Wishlist, and Logout */}
+      {/* Controller users only get Dashboard, Bookings, Banner Images, Wishlist, and Logout */}
       {!isController && (
         <>
           {/* Services - Only for Admin and SuperAdmin */}
@@ -79,14 +79,19 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
           <NavLink to="/admin/artists" icon={UserCheck}>
             Artists
           </NavLink>
+        </>
+      )}
 
-          {/* Banner Images - Only for Admin and SuperAdmin */}
-          {(isAdmin || isSuperAdmin) && (
-            <NavLink to="/admin/banner-images" icon={Image}>
-              Banner Images
-            </NavLink>
-          )}
+      {/* Banner Images - Available for Admin, SuperAdmin, and Controller */}
+      {(isAdmin || isSuperAdmin || isController) && (
+        <NavLink to="/admin/banner-images" icon={Image}>
+          Banner Images
+        </NavLink>
+      )}
 
+      {/* Non-controller specific menu items */}
+      {!isController && (
+        <>
           {/* Users - Only for SuperAdmin */}
           {isSuperAdmin && (
             <NavLink to="/admin/users" icon={Users}>
@@ -103,7 +108,7 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
         </>
       )}
 
-      {/* Wishlist Controller - Available for all roles except artists - Fixed route for controllers */}
+      {/* Wishlist Controller - Available for all roles except artists */}
       <NavLink to="/admin/wishlist" icon={Heart}>
         Wishlist
       </NavLink>

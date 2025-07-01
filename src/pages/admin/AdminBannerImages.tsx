@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -89,7 +90,7 @@ const AdminBannerImages = () => {
   };
 
   return (
-    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+    <ProtectedRoute allowedRoles={["admin", "superadmin", "controller"]}>
       <DashboardLayout title="Banner Images Management">
         <Card>
           <BannerImagesHeader 

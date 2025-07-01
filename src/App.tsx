@@ -141,7 +141,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/admin/banner-images" element={
-              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin', 'controller']}>
                 <AdminBannerImages />
               </ProtectedRoute>
             } />
