@@ -1,5 +1,5 @@
 
-import { LayoutDashboard, Users, Calendar, Settings, Wrench, UserCheck, Heart, HelpCircle, Palette, LogOut, Image, FolderTree } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, Settings, Wrench, UserCheck, Heart, HelpCircle, Palette, LogOut, Image, FolderTree, UserPlus } from "lucide-react";
 import NavLink from "./NavLink";
 import { Button } from "@/components/ui/button";
 
@@ -86,6 +86,13 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
       {(isAdmin || isSuperAdmin || isController) && (
         <NavLink to="/admin/banner-images" icon={Image}>
           Banner Images
+        </NavLink>
+      )}
+
+      {/* New Artist Applicant - Available for Admin, SuperAdmin, and Controller */}
+      {(isAdmin || isSuperAdmin || isController) && (
+        <NavLink to="/admin/artist-applications" icon={UserPlus}>
+          New Artist Applicant
         </NavLink>
       )}
 

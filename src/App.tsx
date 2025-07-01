@@ -35,6 +35,7 @@ import AdminStatus from "./pages/admin/AdminStatus";
 import AdminFaqs from "./pages/admin/AdminFaqs";
 import WishlistController from "./pages/admin/WishlistController";
 import AdminArtistActivity from "./pages/admin/AdminArtistActivity";
+import AdminArtistApplications from "./pages/admin/AdminArtistApplications";
 
 // Artist Dashboard Pages
 import ArtistDashboard from "./pages/artist/ArtistDashboard";
@@ -163,6 +164,11 @@ const App = () => (
             <Route path="/admin/artist-activity" element={
               <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <AdminArtistActivity />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/artist-applications" element={
+              <ProtectedRoute allowedRoles={['admin', 'superadmin', 'controller']}>
+                <AdminArtistApplications />
               </ProtectedRoute>
             } />
 
