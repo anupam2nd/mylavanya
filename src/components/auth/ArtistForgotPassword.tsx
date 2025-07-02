@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Dialog,
@@ -81,19 +80,44 @@ export default function ArtistForgotPassword({
 
   const handlePasswordResetSuccess = async (newPassword: string) => {
     try {
-      // Update password in ArtistMST table
+      console.log('Starting password reset for artist with phone:', phoneNumber);
+      
+      // Hash the password using the edge function - this is critical for artist security
+      const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: newPassword }
+      });
+      
+      if (hashError) {
+        console.error('Error hashing password for artist:', hashError);
+        toast.error("Failed to update password");
+        return;
+      }
+      
+      if (!hashResult?.hashedPassword) {
+        console.error('No hashed password returned from edge function for artist');
+        toast.error("Failed to update password");
+        return;
+      }
+      
+      console.log('Password hashed successfully for artist, updating database');
+      
+      // Update password in ArtistMST table with the hashed password
       const { error } = await supabase
         .from('ArtistMST')
-        .update({ password: newPassword })
+        .update({ password: hashResult.hashedPassword })
         .or(`ArtistPhno.eq.${phoneNumber},ArtistPhno.eq.91${phoneNumber}`);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating artist password in database:', error);
+        throw error;
+      }
 
+      console.log('Artist password updated successfully in database');
       toast.success("Password updated successfully!");
       onSuccess(phoneNumber);
       onClose();
     } catch (error) {
-      console.error("Error updating password:", error);
+      console.error("Error updating artist password:", error);
       toast.error("Failed to update password");
     }
   };
