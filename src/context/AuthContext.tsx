@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface User {
   id: string;
@@ -97,14 +98,9 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     setUser(null);
     localStorage.removeItem('user');
     
-    // Import and use the custom toast here
-    import('@/context/ToastContext').then(({ useCustomToast }) => {
-      const { showToast } = useCustomToast();
-      if (currentUser?.role === 'member') {
-        showToast("Logged out successfully", 'success', 3000);
-      }
-    }).catch(() => {
-      // Fallback if import fails
+    // Show logout toast notification
+    toast.success("Logged out successfully", {
+      duration: 3000,
     });
     
     // Also sign out from Supabase if there's an active session

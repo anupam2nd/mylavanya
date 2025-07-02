@@ -13,6 +13,7 @@ import { useAuth } from "@/context/AuthContext";
 import { User, BookOpen, Heart, LogOut, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ProfileDropdownProps {
   className?: string;
@@ -53,7 +54,6 @@ const ProfileDropdown = ({ className }: ProfileDropdownProps) => {
   
   const handleLogout = () => {
     logout();
-    navigate("/");
   };
   
   return (
