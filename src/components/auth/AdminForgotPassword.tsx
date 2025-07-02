@@ -80,6 +80,8 @@ export default function AdminForgotPassword({
 
   const handlePasswordResetSuccess = async () => {
     try {
+      // The actual password update is handled by the PasswordResetForm component
+      // This function is called after the password has been successfully updated
       console.log('Password reset completed for admin/controller with phone:', phoneNumber);
       showToast("🎉 Password updated successfully!", 'success', 4000);
       onSuccess(phoneNumber);
@@ -138,7 +140,7 @@ export default function AdminForgotPassword({
           )}
           
           {currentStep === "reset" && (
-            <PasswordResetForm
+            <AdminPasswordResetForm
               phoneNumber={phoneNumber}
               onPasswordResetSuccess={handlePasswordResetSuccess}
             />
@@ -156,5 +158,125 @@ export default function AdminForgotPassword({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Admin-specific password reset form that handles the actual password update
+function AdminPasswordResetForm({ 
+  phoneNumber, 
+  onPasswordResetSuccess 
+}: { 
+  phoneNumber: string; 
+  onPasswordResetSuccess: () => void; 
+}) {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const { showToast } = useCustomToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (password.length < 8) {
+      showToast("❌ Password must be at least 8 characters", 'error', 4000);
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      showToast("❌ Passwords do not match", 'error', 4000);
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      console.log('Starting password reset for admin/controller with phone:', phoneNumber);
+      
+      // Hash the password using the edge function
+      const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: password }
+      });
+      
+      if (hashError) {
+        console.error('Error hashing password for admin/controller:', hashError);
+        showToast("❌ Failed to update password", 'error', 4000);
+        return;
+      }
+      
+      if (!hashResult?.hashedPassword) {
+        console.error('No hashed password returned from edge function for admin/controller');
+        showToast("❌ Failed to update password", 'error', 4000);
+        return;
+      }
+      
+      console.log('Password hashed successfully for admin/controller, updating database');
+      
+      // Update password in UserMST table with the hashed password
+      const { error } = await supabase
+        .from('UserMST')
+        .update({ password: hashResult.hashedPassword })
+        .eq('PhoneNo', parseInt(phoneNumber));
+
+      if (error) {
+        console.error('Error updating admin/controller password in database:', error);
+        throw error;
+      }
+
+      console.log('Admin/controller password updated successfully in database');
+      onPasswordResetSuccess();
+    } catch (error) {
+      console.error("Error updating admin/controller password:", error);
+      showToast("❌ Failed to update password", 'error', 4000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <label htmlFor="new-password" className="text-sm font-medium">
+          New Password
+        </label>
+        <div className="relative">
+          <input
+            id="new-password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter new password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            required
+          />
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <label htmlFor="confirm-password" className="text-sm font-medium">
+          Confirm New Password
+        </label>
+        <input
+          id="confirm-password"
+          type="password"
+          placeholder="Confirm new password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          required
+        />
+      </div>
+      
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? "Updating Password..." : "Update Password"}
+      </Button>
+    </form>
   );
 }

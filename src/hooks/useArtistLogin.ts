@@ -82,7 +82,8 @@ export function useArtistLogin() {
       return true;
     } catch (error) {
       logger.error('Artist login failed');
-      showToast("❌ " + (error instanceof Error ? error.message : "Invalid email or password. Please try again."), 'error', 4000);
+      const errorMessage = error instanceof Error ? error.message : "Invalid email or password. Please try again.";
+      showToast("❌ " + errorMessage, 'error', 4000);
       return false;
     } finally {
       setIsLoading(false);
