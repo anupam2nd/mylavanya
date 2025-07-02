@@ -29,6 +29,7 @@ export default function ArtistForgotPassword({
 }: ArtistForgotPasswordProps) {
   const [currentStep, setCurrentStep] = useState<Step>("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const { showToast } = useCustomToast();
 
   const handlePhoneSubmit = async (phone: string) => {
     try {
@@ -41,17 +42,17 @@ export default function ArtistForgotPassword({
 
       if (error) {
         console.error("Error checking artist:", error);
-        toast.error("Error checking artist details");
+        showToast("❌ Error checking artist details", 'error', 4000);
         return;
       }
 
       if (!data) {
-        toast.error("No artist found with this phone number");
+        showToast("❌ No artist found with this phone number", 'error', 4000);
         return;
       }
 
       if (data.Active === false) {
-        toast.error("Your account has been deactivated. Please contact support.");
+        showToast("❌ Your account has been deactivated. Please contact support.", 'error', 4000);
         return;
       }
 
@@ -61,17 +62,17 @@ export default function ArtistForgotPassword({
       });
 
       if (response.error) {
-        toast.error("Failed to send OTP. Please try again.");
+        showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
         console.error("Error sending OTP:", response.error);
         return;
       }
 
-      toast.success("OTP sent successfully!");
+      showToast("📱 OTP sent successfully!", 'success', 4000);
       setPhoneNumber(phone);
       setCurrentStep("otp");
     } catch (error) {
       console.error("Error in phone verification process:", error);
-      toast.error("Something went wrong. Please try again.");
+      showToast("❌ Something went wrong. Please try again.", 'error', 4000);
     }
   };
 
@@ -90,13 +91,13 @@ export default function ArtistForgotPassword({
       
       if (hashError) {
         console.error('Error hashing password for artist:', hashError);
-        toast.error("Failed to update password");
+        showToast("❌ Failed to update password", 'error', 4000);
         return;
       }
       
       if (!hashResult?.hashedPassword) {
         console.error('No hashed password returned from edge function for artist');
-        toast.error("Failed to update password");
+        showToast("❌ Failed to update password", 'error', 4000);
         return;
       }
       
@@ -114,12 +115,12 @@ export default function ArtistForgotPassword({
       }
 
       console.log('Artist password updated successfully in database');
-      toast.success("Password updated successfully!");
+      showToast("🎉 Password updated successfully!", 'success', 4000);
       onSuccess(phoneNumber);
       onClose();
     } catch (error) {
       console.error("Error updating artist password:", error);
-      toast.error("Failed to update password");
+      showToast("❌ Failed to update password", 'error', 4000);
     }
   };
 
