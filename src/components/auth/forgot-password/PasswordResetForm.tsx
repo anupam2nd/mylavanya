@@ -15,13 +15,8 @@ interface PasswordResetFormProps {
 }
 
 const formSchema = z.object({
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
-  confirmPassword: z.string().min(8, "Please confirm your password"),
+  password: z.string().min(4, "Password must be at least 4 characters"),
+  confirmPassword: z.string().min(4, "Please confirm your password"),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"]
@@ -136,13 +131,9 @@ export function PasswordResetForm({ phoneNumber, onPasswordResetSuccess }: Passw
         />
 
         <div className="space-y-1 text-sm">
-          <p className="font-medium">Password requirements:</p>
+          <p className="font-medium">Password requirement:</p>
           <ul className="list-disc list-inside text-muted-foreground">
-            <li>Minimum 8 characters</li>
-            <li>At least one uppercase letter</li>
-            <li>At least one lowercase letter</li>
-            <li>At least one number</li>
-            <li>At least one special character</li>
+            <li>Minimum 4 characters</li>
           </ul>
         </div>
         
