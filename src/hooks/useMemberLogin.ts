@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
 
@@ -15,7 +14,6 @@ export function useMemberLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { showToast } = useCustomToast();
 
   const handleLogin = async ({ emailOrPhone, password }: MemberLoginCredentials, shouldNavigate: boolean = true) => {
     setIsLoading(true);
@@ -100,8 +98,6 @@ export function useMemberLogin() {
         lastName: memberData.MemberLastName
       });
       
-      showToast("Login successful. Welcome back!", 'success', 3000);
-      
       // Only navigate if shouldNavigate is true
       if (shouldNavigate) {
         navigate('/');
@@ -110,7 +106,6 @@ export function useMemberLogin() {
       return true;
     } catch (error) {
       logger.error('Member login failed:', error);
-      showToast(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.", 'error', 3000);
       return false;
     } finally {
       setIsLoading(false);
