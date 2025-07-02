@@ -85,7 +85,7 @@ export function useLogin() {
         lastName: data.LastName
       });
       
-      showToast(`Login successful. Welcome back! You are now logged in as ${data.role}.`, 'success', 3000);
+      showToast(`🎉 Login successful. Welcome back! You are now logged in as ${data.role}.`, 'success', 4000);
       
       // Fixed redirect logic for superadmin and admin
       if (data.role === 'superadmin' || data.role === 'admin') {
@@ -101,7 +101,7 @@ export function useLogin() {
       return true;
     } catch (error) {
       logger.error('Admin login failed');
-      showToast("Invalid email or password. Please try again.", 'error', 3000);
+      showToast("❌ Invalid email or password. Please try again.", 'error', 4000);
       return false;
     } finally {
       setIsLoading(false);

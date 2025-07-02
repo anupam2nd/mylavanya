@@ -100,7 +100,7 @@ export function useMemberLogin() {
         lastName: memberData.MemberLastName
       });
       
-      showToast("Login successful. Welcome back!", 'success', 3000);
+      showToast("🎉 Login successful. Welcome back!", 'success', 4000);
       
       // Only navigate if shouldNavigate is true
       if (shouldNavigate) {
@@ -110,7 +110,7 @@ export function useMemberLogin() {
       return true;
     } catch (error) {
       logger.error('Member login failed:', error);
-      showToast(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.", 'error', 3000);
+      showToast("❌ " + (error instanceof Error ? error.message : "Invalid email/phone or password. Please try again."), 'error', 4000);
       return false;
     } finally {
       setIsLoading(false);
