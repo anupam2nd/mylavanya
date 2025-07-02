@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Dialog,
@@ -128,12 +127,6 @@ export default function ArtistForgotPassword({
     setCurrentStep("phone");
     setPhoneNumber("");
     onClose();
-  };
-
-  const handleForgotPasswordSuccess = (phone: string) => {
-    setShowForgotPassword(false);
-    // Only use our custom toast system, remove the duplicate toast.success call
-    showToast("🎉 Password reset successful! You can now login with your new password.", 'success', 5000);
   };
 
   const getTitle = () => {
