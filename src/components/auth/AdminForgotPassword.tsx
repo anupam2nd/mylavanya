@@ -78,47 +78,15 @@ export default function AdminForgotPassword({
     setCurrentStep("reset");
   };
 
-  const handlePasswordResetSuccess = async (newPassword: string) => {
+  const handlePasswordResetSuccess = async () => {
     try {
-      console.log('Starting password reset for admin/controller with phone:', phoneNumber);
-      
-      // Hash the password using the edge function - this is critical for admin/controller security
-      const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
-        body: { password: newPassword }
-      });
-      
-      if (hashError) {
-        console.error('Error hashing password for admin/controller:', hashError);
-        showToast("❌ Failed to update password", 'error', 4000);
-        return;
-      }
-      
-      if (!hashResult?.hashedPassword) {
-        console.error('No hashed password returned from edge function for admin/controller');
-        showToast("❌ Failed to update password", 'error', 4000);
-        return;
-      }
-      
-      console.log('Password hashed successfully for admin/controller, updating database');
-      
-      // Update password in UserMST table with the hashed password
-      const { error } = await supabase
-        .from('UserMST')
-        .update({ password: hashResult.hashedPassword })
-        .eq('PhoneNo', parseInt(phoneNumber));
-
-      if (error) {
-        console.error('Error updating admin/controller password in database:', error);
-        throw error;
-      }
-
-      console.log('Admin/controller password updated successfully in database');
+      console.log('Password reset completed for admin/controller with phone:', phoneNumber);
       showToast("🎉 Password updated successfully!", 'success', 4000);
       onSuccess(phoneNumber);
       onClose();
     } catch (error) {
-      console.error("Error updating admin/controller password:", error);
-      showToast("❌ Failed to update password", 'error', 4000);
+      console.error("Error in password reset completion:", error);
+      showToast("❌ Failed to complete password reset", 'error', 4000);
     }
   };
 
