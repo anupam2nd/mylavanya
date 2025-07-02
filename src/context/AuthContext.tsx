@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -103,8 +102,17 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   const logout = () => {
     console.log("Logging out user");
+    const currentUser = user;
     setUser(null);
     localStorage.removeItem('user');
+    
+    // Show logout toast message
+    if (currentUser?.role === 'member') {
+      toast.success("Logged out successfully", {
+        description: "You have been logged out of your account.",
+        duration: 3000,
+      });
+    }
     
     // Also sign out from Supabase if there's an active session
     supabase.auth.signOut().then(() => {
