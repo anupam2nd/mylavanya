@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
 
@@ -15,6 +14,7 @@ export function useMemberLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useCustomToast();
 
   const handleLogin = async ({ emailOrPhone, password }: MemberLoginCredentials, shouldNavigate: boolean = true) => {
     console.log('Member login process started - checking for layout issues');
@@ -108,10 +108,7 @@ export function useMemberLogin() {
       
       console.log('Member login context called, showing toast now');
       
-      // Use a shorter duration to reduce layout impact
-      toast.success("Login successful. Welcome back!", {
-        duration: 3000,
-      });
+      showToast("Login successful. Welcome back!", 'success', 3000);
       
       // Only navigate if shouldNavigate is true
       if (shouldNavigate) {
@@ -123,9 +120,7 @@ export function useMemberLogin() {
     } catch (error) {
       logger.error('Member login failed:', error);
       console.error('Member login failed:', error);
-      toast.error(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.", {
-        duration: 3000,
-      });
+      showToast(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.", 'error', 3000);
       return false;
     } finally {
       console.log('Member login process finished, setting loading to false');

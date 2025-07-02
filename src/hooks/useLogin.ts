@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
 
@@ -15,6 +14,7 @@ export function useLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useCustomToast();
 
   const handleLogin = async ({ email, password }: LoginCredentials) => {
     console.log('Login process started - checking for layout issues');
@@ -89,11 +89,7 @@ export function useLogin() {
       
       console.log('Login context called, showing toast now');
       
-      // Use a shorter duration and simpler message to reduce layout impact
-      toast.success("Login successful", {
-        description: `Welcome back! You are now logged in as ${data.role}.`,
-        duration: 3000,
-      });
+      showToast(`Login successful. Welcome back! You are now logged in as ${data.role}.`, 'success', 3000);
       
       console.log('Toast shown, about to navigate');
       
@@ -111,10 +107,7 @@ export function useLogin() {
       return true;
     } catch (error) {
       logger.error('Admin login failed');
-      toast.error("Login failed", {
-        description: "Invalid email or password. Please try again.",
-        duration: 3000,
-      });
+      showToast("Invalid email or password. Please try again.", 'error', 3000);
       return false;
     } finally {
       console.log('Login process finished, setting loading to false');
