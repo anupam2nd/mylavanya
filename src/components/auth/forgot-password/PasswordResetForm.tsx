@@ -40,35 +40,43 @@ export function PasswordResetForm({ phoneNumber, onPasswordResetSuccess }: Passw
     try {
       setIsLoading(true);
       
-      // Hash the password using the edge function
+      console.log('Starting password reset for member with phone:', phoneNumber);
+      
+      // Hash the password using the edge function - this is critical for member security
       const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
         body: { password: data.password }
       });
       
       if (hashError) {
-        console.error('Error hashing password:', hashError);
+        console.error('Error hashing password for member:', hashError);
         toast.error("Failed to update password");
         return;
       }
       
       if (!hashResult?.hashedPassword) {
-        console.error('No hashed password returned from edge function');
+        console.error('No hashed password returned from edge function for member');
         toast.error("Failed to update password");
         return;
       }
       
-      // Update the password in the database for this phone number
+      console.log('Password hashed successfully for member, updating database');
+      
+      // Update the password in the MemberMST table with the hashed password
       const { error } = await supabase
         .from('MemberMST')
         .update({ password: hashResult.hashedPassword })
         .eq('MemberPhNo', phoneNumber);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating member password in database:', error);
+        throw error;
+      }
       
+      console.log('Member password updated successfully in database');
       toast.success("Password updated successfully");
       onPasswordResetSuccess();
     } catch (error: any) {
-      console.error("Error updating password:", error);
+      console.error("Error updating member password:", error);
       toast.error("Failed to update password");
     } finally {
       setIsLoading(false);
