@@ -135,9 +135,26 @@ export function ArtistPasswordSetup({ artistData, onComplete, onBack }: ArtistPa
 
     setIsLoading(true);
     try {
+      // Hash the password using the edge function
+      const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: newPassword }
+      });
+      
+      if (hashError) {
+        console.error('Error hashing password:', hashError);
+        toast.error("Failed to process password. Please try again.");
+        return;
+      }
+      
+      if (!hashResult?.hashedPassword) {
+        console.error('No hashed password returned from edge function');
+        toast.error("Failed to process password. Please try again.");
+        return;
+      }
+
       const { error } = await supabase
         .from('ArtistMST')
-        .update({ password: newPassword })
+        .update({ password: hashResult.hashedPassword })
         .eq('ArtistId', artistData.ArtistId);
 
       if (error) {

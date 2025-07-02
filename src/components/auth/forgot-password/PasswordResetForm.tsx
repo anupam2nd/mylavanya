@@ -40,10 +40,27 @@ export function PasswordResetForm({ phoneNumber, onPasswordResetSuccess }: Passw
     try {
       setIsLoading(true);
       
+      // Hash the password using the edge function
+      const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: data.password }
+      });
+      
+      if (hashError) {
+        console.error('Error hashing password:', hashError);
+        toast.error("Failed to update password");
+        return;
+      }
+      
+      if (!hashResult?.hashedPassword) {
+        console.error('No hashed password returned from edge function');
+        toast.error("Failed to update password");
+        return;
+      }
+      
       // Update the password in the database for this phone number
       const { error } = await supabase
         .from('MemberMST')
-        .update({ password: data.password })
+        .update({ password: hashResult.hashedPassword })
         .eq('MemberPhNo', phoneNumber);
       
       if (error) throw error;
