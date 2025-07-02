@@ -130,6 +130,12 @@ export default function ArtistForgotPassword({
     onClose();
   };
 
+  const handleForgotPasswordSuccess = (phone: string) => {
+    setShowForgotPassword(false);
+    // Only use our custom toast system, remove the duplicate toast.success call
+    showToast("🎉 Password reset successful! You can now login with your new password.", 'success', 5000);
+  };
+
   const getTitle = () => {
     switch (currentStep) {
       case "phone":
