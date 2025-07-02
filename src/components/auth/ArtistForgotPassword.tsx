@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Dialog,
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { OtpVerificationForm } from "./forgot-password/OtpVerificationForm";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 
 interface ArtistForgotPasswordProps {
   isOpen: boolean;
@@ -195,11 +196,12 @@ export default function ArtistForgotPassword({
 function ArtistPhoneNumberForm({ onSubmit }: { onSubmit: (phone: string) => void }) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useCustomToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (phoneNumber.length !== 10) {
-      toast.error("Please enter a valid 10-digit phone number");
+      showToast("❌ Please enter a valid 10-digit phone number", 'error', 4000);
       return;
     }
     setIsLoading(true);
@@ -249,17 +251,18 @@ function ArtistPasswordResetForm({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { showToast } = useCustomToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (password.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      showToast("❌ Password must be at least 8 characters", 'error', 4000);
       return;
     }
     
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      showToast("❌ Passwords do not match", 'error', 4000);
       return;
     }
 
