@@ -12,7 +12,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       position="top-center"
-      offset={16}
+      offset={0}
       toastOptions={{
         classNames: {
           toast:
@@ -23,20 +23,6 @@ const Toaster = ({ ...props }: ToasterProps) => {
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
         },
-        style: {
-          position: "fixed",
-          top: "16px",
-          zIndex: 9999,
-          pointerEvents: "auto",
-        }
-      }}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
-        pointerEvents: "none",
       }}
       {...props}
     />
