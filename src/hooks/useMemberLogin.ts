@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
 
@@ -15,6 +15,7 @@ export function useMemberLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useCustomToast();
 
   const handleLogin = async ({ emailOrPhone, password }: MemberLoginCredentials, shouldNavigate: boolean = true) => {
     setIsLoading(true);
@@ -69,7 +70,7 @@ export function useMemberLogin() {
         throw new Error('Invalid credentials');
       }
       
-      // Verify password using the edge function
+      // Verify password using the edge function - this handles both hashed and legacy passwords
       logger.debug('Verifying password for member login');
       
       const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
@@ -80,7 +81,7 @@ export function useMemberLogin() {
       });
       
       if (verifyError) {
-        logger.error('Error verifying password');
+        logger.error('Error verifying password for member:', verifyError);
         throw new Error('Invalid credentials');
       }
       
@@ -99,7 +100,7 @@ export function useMemberLogin() {
         lastName: memberData.MemberLastName
       });
       
-      toast.success("Login successful. Welcome back!");
+      showToast("Login successful. Welcome back!", 'success', 3000);
       
       // Only navigate if shouldNavigate is true
       if (shouldNavigate) {
@@ -108,8 +109,8 @@ export function useMemberLogin() {
 
       return true;
     } catch (error) {
-      logger.error('Member login failed');
-      toast.error(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.");
+      logger.error('Member login failed:', error);
+      showToast(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.", 'error', 3000);
       return false;
     } finally {
       setIsLoading(false);

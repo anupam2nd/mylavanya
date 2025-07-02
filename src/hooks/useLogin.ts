@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
 
@@ -15,6 +15,7 @@ export function useLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useCustomToast();
 
   const handleLogin = async ({ email, password }: LoginCredentials) => {
     setIsLoading(true);
@@ -25,9 +26,8 @@ export function useLogin() {
       
       const { data, error } = await supabase
         .from('UserMST')
-        .select('id, email_id, role, FirstName, LastName')
+        .select('id, email_id, role, FirstName, LastName, password')
         .ilike('email_id', normalizedEmail)
-        .eq('password', password)
         .maybeSingle();
       
       if (error) {
@@ -36,6 +36,28 @@ export function useLogin() {
       }
       
       if (!data) {
+        throw new Error('Invalid credentials');
+      }
+      
+      if (!data.password) {
+        throw new Error('Invalid credentials');
+      }
+      
+      // Verify password using the edge function
+      const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
+        body: { 
+          password: password,
+          hashedPassword: data.password
+        }
+      });
+      
+      if (verifyError) {
+        logger.error('Error verifying password');
+        throw new Error('Invalid credentials');
+      }
+      
+      if (!verifyResult?.isValid) {
+        logger.debug('Password verification failed for admin/controller');
         throw new Error('Invalid credentials');
       }
       
@@ -63,9 +85,7 @@ export function useLogin() {
         lastName: data.LastName
       });
       
-      toast.success("Login successful", {
-        description: `Welcome back! You are now logged in as ${data.role}.`,
-      });
+      showToast(`Login successful. Welcome back! You are now logged in as ${data.role}.`, 'success', 3000);
       
       // Fixed redirect logic for superadmin and admin
       if (data.role === 'superadmin' || data.role === 'admin') {
@@ -81,9 +101,7 @@ export function useLogin() {
       return true;
     } catch (error) {
       logger.error('Admin login failed');
-      toast.error("Login failed", {
-        description: "Invalid email or password. Please try again.",
-      });
+      showToast("Invalid email or password. Please try again.", 'error', 3000);
       return false;
     } finally {
       setIsLoading(false);

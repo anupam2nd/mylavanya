@@ -46,7 +46,21 @@ export function useArtistLogin() {
         throw new Error('Password not set for this artist');
       }
       
-      if (data.password !== password) {
+      // Verify password using the edge function
+      const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
+        body: { 
+          password: password,
+          hashedPassword: data.password
+        }
+      });
+      
+      if (verifyError) {
+        logger.error('Error verifying password');
+        throw new Error('Invalid password');
+      }
+      
+      if (!verifyResult?.isValid) {
+        logger.debug('Password verification failed for artist');
         throw new Error('Invalid password');
       }
       

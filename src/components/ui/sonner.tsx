@@ -10,8 +10,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
-      className="toaster group fixed"
+      className="toaster group"
       position="top-center"
+      offset={0}
+      gap={0}
       toastOptions={{
         classNames: {
           toast:
@@ -23,9 +25,17 @@ const Toaster = ({ ...props }: ToasterProps) => {
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
         },
         style: {
-          // Ensure toast doesn't cause layout shifts
-          position: "fixed",
-        }
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          pointerEvents: 'auto',
+          margin: 0,
+          padding: 0
+        },
+        duration: 2500,
+        unstyled: false
       }}
       {...props}
     />

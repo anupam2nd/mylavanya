@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Dialog,
@@ -79,19 +78,44 @@ export default function AdminForgotPassword({
 
   const handlePasswordResetSuccess = async (newPassword: string) => {
     try {
-      // Update password in UserMST table
+      console.log('Starting password reset for admin/controller with phone:', phoneNumber);
+      
+      // Hash the password using the edge function - this is critical for admin/controller security
+      const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: newPassword }
+      });
+      
+      if (hashError) {
+        console.error('Error hashing password for admin/controller:', hashError);
+        toast.error("Failed to update password");
+        return;
+      }
+      
+      if (!hashResult?.hashedPassword) {
+        console.error('No hashed password returned from edge function for admin/controller');
+        toast.error("Failed to update password");
+        return;
+      }
+      
+      console.log('Password hashed successfully for admin/controller, updating database');
+      
+      // Update password in UserMST table with the hashed password
       const { error } = await supabase
         .from('UserMST')
-        .update({ password: newPassword })
+        .update({ password: hashResult.hashedPassword })
         .eq('PhoneNo', parseInt(phoneNumber));
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating admin/controller password in database:', error);
+        throw error;
+      }
 
+      console.log('Admin/controller password updated successfully in database');
       toast.success("Password updated successfully!");
       onSuccess(phoneNumber);
       onClose();
     } catch (error) {
-      console.error("Error updating password:", error);
+      console.error("Error updating admin/controller password:", error);
       toast.error("Failed to update password");
     }
   };
