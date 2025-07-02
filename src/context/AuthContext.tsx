@@ -93,8 +93,19 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   };
 
   const logout = () => {
+    const currentUser = user;
     setUser(null);
     localStorage.removeItem('user');
+    
+    // Import and use the custom toast here
+    import('@/context/ToastContext').then(({ useCustomToast }) => {
+      const { showToast } = useCustomToast();
+      if (currentUser?.role === 'member') {
+        showToast("Logged out successfully", 'success', 3000);
+      }
+    }).catch(() => {
+      // Fallback if import fails
+    });
     
     // Also sign out from Supabase if there's an active session
     supabase.auth.signOut().then(() => {

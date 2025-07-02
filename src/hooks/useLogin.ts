@@ -2,9 +2,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
+import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
-import { toast } from "sonner";
 
 interface LoginCredentials {
   email: string;
@@ -15,6 +15,7 @@ export function useLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useCustomToast();
 
   const handleLogin = async ({ email, password }: LoginCredentials) => {
     setIsLoading(true);
@@ -30,18 +31,16 @@ export function useLogin() {
         .maybeSingle();
       
       if (error) {
-        toast.error('Error querying user');
-        return false;
+        logger.error('Supabase query error during admin login');
+        throw new Error('Error querying user');
       }
       
       if (!data) {
-        toast.error('Invalid credentials');
-        return false;
+        throw new Error('Invalid credentials');
       }
       
       if (!data.password) {
-        toast.error('Invalid credentials');
-        return false;
+        throw new Error('Invalid credentials');
       }
       
       // Verify password using the edge function
@@ -53,13 +52,13 @@ export function useLogin() {
       });
       
       if (verifyError) {
-        toast.error('Invalid credentials');
-        return false;
+        logger.error('Error verifying password');
+        throw new Error('Invalid credentials');
       }
       
       if (!verifyResult?.isValid) {
-        toast.error('Invalid credentials');
-        return false;
+        logger.debug('Password verification failed for admin/controller');
+        throw new Error('Invalid credentials');
       }
       
       // Create a session for this user in Supabase for JWT-based auth
@@ -67,8 +66,15 @@ export function useLogin() {
         email: normalizedEmail,
         password: password
       }).catch(error => {
+        logger.debug('Auth sign-in failed, using custom auth only');
         return { data: null, error };
       });
+      
+      if (authData?.session) {
+        logger.debug('Supabase auth session established');
+      } else {
+        logger.debug('Using custom auth only, no Supabase session');
+      }
       
       // Login using the context function
       login({
@@ -79,7 +85,7 @@ export function useLogin() {
         lastName: data.LastName
       });
       
-      toast.success('Login successful! Welcome back.');
+      showToast(`Login successful. Welcome back! You are now logged in as ${data.role}.`, 'success', 3000);
       
       // Fixed redirect logic for superadmin and admin
       if (data.role === 'superadmin' || data.role === 'admin') {
@@ -94,7 +100,8 @@ export function useLogin() {
 
       return true;
     } catch (error) {
-      toast.error('Login failed. Please try again.');
+      logger.error('Admin login failed');
+      showToast("Invalid email or password. Please try again.", 'error', 3000);
       return false;
     } finally {
       setIsLoading(false);

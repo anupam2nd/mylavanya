@@ -2,9 +2,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
+import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
-import { toast } from "sonner";
 
 interface MemberLoginCredentials {
   emailOrPhone: string;
@@ -15,6 +15,7 @@ export function useMemberLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useCustomToast();
 
   const handleLogin = async ({ emailOrPhone, password }: MemberLoginCredentials, shouldNavigate: boolean = true) => {
     setIsLoading(true);
@@ -27,12 +28,13 @@ export function useMemberLogin() {
       const isPhone = /^\d{10}$/.test(normalizedInput);
       
       if (!isEmail && !isPhone) {
-        toast.error('Please enter a valid email address or 10-digit phone number');
-        return false;
+        throw new Error('Please enter a valid email address or 10-digit phone number');
       }
       
       let memberData;
       let memberError;
+      
+      logger.debug('Starting member login process');
       
       if (isEmail) {
         // Search by email
@@ -55,21 +57,22 @@ export function useMemberLogin() {
       }
       
       if (memberError) {
-        toast.error('Error querying member');
-        return false;
+        logger.error('Supabase query error during member login');
+        throw new Error('Error querying member');
       }
       
       if (!memberData) {
-        toast.error('Invalid credentials');
-        return false;
+        throw new Error('Invalid credentials');
       }
       
       if (!memberData.password) {
-        toast.error('Invalid credentials');
-        return false;
+        logger.error('No password found for member');
+        throw new Error('Invalid credentials');
       }
       
       // Verify password using the edge function - this handles both hashed and legacy passwords
+      logger.debug('Verifying password for member login');
+      
       const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
         body: { 
           password: password,
@@ -78,14 +81,16 @@ export function useMemberLogin() {
       });
       
       if (verifyError) {
-        toast.error('Invalid credentials');
-        return false;
+        logger.error('Error verifying password for member:', verifyError);
+        throw new Error('Invalid credentials');
       }
       
       if (!verifyResult?.isValid) {
-        toast.error('Invalid credentials');
-        return false;
+        logger.debug('Password verification failed for member');
+        throw new Error('Invalid credentials');
       }
+      
+      logger.debug('Member password verified successfully');
       
       login({
         id: memberData.id.toString(),
@@ -95,7 +100,7 @@ export function useMemberLogin() {
         lastName: memberData.MemberLastName
       });
       
-      toast.success('Login successful! Welcome back.');
+      showToast("Login successful. Welcome back!", 'success', 3000);
       
       // Only navigate if shouldNavigate is true
       if (shouldNavigate) {
@@ -104,7 +109,8 @@ export function useMemberLogin() {
 
       return true;
     } catch (error) {
-      toast.error('Login failed. Please try again.');
+      logger.error('Member login failed:', error);
+      showToast(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.", 'error', 3000);
       return false;
     } finally {
       setIsLoading(false);
