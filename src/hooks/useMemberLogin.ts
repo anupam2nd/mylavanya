@@ -17,6 +17,7 @@ export function useMemberLogin() {
   const { login } = useAuth();
 
   const handleLogin = async ({ emailOrPhone, password }: MemberLoginCredentials, shouldNavigate: boolean = true) => {
+    console.log('Member login process started - checking for layout issues');
     setIsLoading(true);
     
     try {
@@ -95,6 +96,8 @@ export function useMemberLogin() {
       console.log('Member password verified successfully');
       logger.debug('Member password verified successfully');
       
+      console.log('About to call member login context - this might cause layout shift');
+      
       login({
         id: memberData.id.toString(),
         email: memberData.MemberEmailId,
@@ -103,10 +106,16 @@ export function useMemberLogin() {
         lastName: memberData.MemberLastName
       });
       
-      toast.success("Login successful. Welcome back!");
+      console.log('Member login context called, showing toast now');
+      
+      // Use a shorter duration to reduce layout impact
+      toast.success("Login successful. Welcome back!", {
+        duration: 3000,
+      });
       
       // Only navigate if shouldNavigate is true
       if (shouldNavigate) {
+        console.log('About to navigate after member login');
         navigate('/');
       }
 
@@ -114,9 +123,12 @@ export function useMemberLogin() {
     } catch (error) {
       logger.error('Member login failed:', error);
       console.error('Member login failed:', error);
-      toast.error(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.", {
+        duration: 3000,
+      });
       return false;
     } finally {
+      console.log('Member login process finished, setting loading to false');
       setIsLoading(false);
     }
   };

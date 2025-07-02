@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +29,7 @@ export default function AdminLoginForm() {
       return;
     }
 
+    console.log('Starting user existence check - potential layout shift point');
     setIsLoading(true);
     try {
       const normalizedInput = emailOrPhone.trim().toLowerCase();
@@ -69,6 +71,7 @@ export default function AdminLoginForm() {
         return;
       }
 
+      console.log('User data found, setting state - potential layout shift point');
       setUserData(data);
       
       if (data.password) {
@@ -80,6 +83,7 @@ export default function AdminLoginForm() {
       console.error("Error:", error);
       toast.error("Something went wrong. Please try again.");
     } finally {
+      console.log('User existence check finished');
       setIsLoading(false);
     }
   };
@@ -92,6 +96,7 @@ export default function AdminLoginForm() {
       return;
     }
 
+    console.log('Starting password login - potential layout shift point');
     setIsLoading(true);
     try {
       const success = await handleLogin({
@@ -106,6 +111,7 @@ export default function AdminLoginForm() {
       console.error("Login error:", error);
       toast.error("Login failed. Please try again.");
     } finally {
+      console.log('Password login finished');
       setIsLoading(false);
     }
   };

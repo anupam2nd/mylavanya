@@ -17,6 +17,7 @@ export function useLogin() {
   const { login } = useAuth();
 
   const handleLogin = async ({ email, password }: LoginCredentials) => {
+    console.log('Login process started - checking for layout issues');
     setIsLoading(true);
     
     try {
@@ -75,6 +76,8 @@ export function useLogin() {
         logger.debug('Using custom auth only, no Supabase session');
       }
       
+      console.log('About to call login context - this might cause layout shift');
+      
       // Login using the context function
       login({
         id: data.id.toString(),
@@ -84,9 +87,15 @@ export function useLogin() {
         lastName: data.LastName
       });
       
+      console.log('Login context called, showing toast now');
+      
+      // Use a shorter duration and simpler message to reduce layout impact
       toast.success("Login successful", {
         description: `Welcome back! You are now logged in as ${data.role}.`,
+        duration: 3000,
       });
+      
+      console.log('Toast shown, about to navigate');
       
       // Fixed redirect logic for superadmin and admin
       if (data.role === 'superadmin' || data.role === 'admin') {
@@ -104,9 +113,11 @@ export function useLogin() {
       logger.error('Admin login failed');
       toast.error("Login failed", {
         description: "Invalid email or password. Please try again.",
+        duration: 3000,
       });
       return false;
     } finally {
+      console.log('Login process finished, setting loading to false');
       setIsLoading(false);
     }
   };
