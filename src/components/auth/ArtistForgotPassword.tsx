@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Dialog,
@@ -114,7 +115,7 @@ export default function ArtistForgotPassword({
       }
 
       console.log('Artist password updated successfully in database');
-      showToast("🎉 Password updated successfully!", 'success', 4000);
+      // Only show one toast message - remove the duplicate
       onSuccess(phoneNumber);
       onClose();
     } catch (error) {
