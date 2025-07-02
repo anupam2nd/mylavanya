@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -71,6 +71,7 @@ const NewJobDialog = ({
   const [otpSent, setOtpSent] = useState(false);
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const { showToast } = useCustomToast();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -103,14 +104,12 @@ const NewJobDialog = ({
       // For demonstration, we'll just log it and show a toast
       console.log(`OTP for customer ${customerName}: ${otp}`);
       
-      toast.success(`OTP sent to ${customerName}'s phone`, {
-        description: `For demo purposes, the OTP is: ${otp}`
-      });
+      showToast(`📱 OTP sent to ${customerName}'s phone`, 'success', 4000);
       
       setOtpSent(true);
     } catch (error) {
       console.error("Error sending OTP:", error);
-      toast.error("Failed to send OTP");
+      showToast("❌ Failed to send OTP", 'error', 4000);
     } finally {
       setIsSubmitting(false);
     }
@@ -125,11 +124,11 @@ const NewJobDialog = ({
       if (values.otp === generatedOtp) {
         await handleFormSubmit(form.getValues());
       } else {
-        toast.error("Invalid OTP. Please try again.");
+        showToast("❌ Invalid OTP. Please try again.", 'error', 4000);
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
-      toast.error("OTP verification failed");
+      showToast("❌ OTP verification failed", 'error', 4000);
     } finally {
       setIsVerifying(false);
     }
@@ -159,12 +158,12 @@ const NewJobDialog = ({
 
       if (error) throw error;
 
-      toast.success("New job created successfully");
+      showToast("🎉 New job created successfully", 'success', 4000);
       onOpenChange(false);
       onJobCreated();
     } catch (error) {
       console.error("Error creating job:", error);
-      toast.error("Failed to create job");
+      showToast("❌ Failed to create job", 'error', 4000);
     } finally {
       setIsSubmitting(false);
       setOtpSent(false);

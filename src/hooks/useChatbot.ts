@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { ChatMessage, ChatbotState } from '@/types/chatbot';
-import { toast } from 'sonner';
+import { useCustomToast } from '@/context/ToastContext';
 
 const API_ENDPOINT = 'https://n8n.stepzbasic.xyz/webhook/70a3b0d0-28aa-4787-9087-33d299b5c049';
 
@@ -12,6 +12,7 @@ export function useChatbot() {
     isOpen: false,
     error: null,
   });
+  const { showToast } = useCustomToast();
 
   const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
@@ -94,9 +95,9 @@ export function useChatbot() {
         error: null, // Clear error since we're showing a fallback message
       }));
       
-      toast.error('Connection issue. Please try again or contact support.');
+      showToast('❌ Connection issue. Please try again or contact support.', 'error', 4000);
     }
-  }, []);
+  }, [showToast]);
 
   const toggleChat = useCallback(() => {
     setState(prev => ({ ...prev, isOpen: !prev.isOpen }));

@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import { 
   Dialog,
   DialogContent,
@@ -50,6 +51,7 @@ const ServiceForm = ({
   onSave,
   services
 }: ServiceFormProps) => {
+  const { showToast } = useCustomToast();
   const {
     serviceName,
     setServiceName,
@@ -88,10 +90,7 @@ const ServiceForm = ({
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving service:', error);
-      // Fix: Using the correct format for toast with sonner
-      toast.error("Save failed", {
-        description: error instanceof Error ? error.message : "There was a problem saving the service"
-      });
+      showToast("❌ Save failed", 'error', 4000);
     }
   };
 

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Dialog,
@@ -13,7 +14,7 @@ import { OtpVerificationForm } from "./forgot-password/OtpVerificationForm";
 import { PasswordResetForm } from "./forgot-password/PasswordResetForm";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 
 interface AdminForgotPasswordProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ export default function AdminForgotPassword({
 }: AdminForgotPasswordProps) {
   const [currentStep, setCurrentStep] = useState<Step>("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const { showToast } = useCustomToast();
 
   const handlePhoneSubmit = async (phone: string) => {
     try {
@@ -43,12 +45,12 @@ export default function AdminForgotPassword({
 
       if (error) {
         console.error("Error checking user:", error);
-        toast.error("Error checking user details");
+        showToast("❌ Error checking user details", 'error', 4000);
         return;
       }
 
       if (!data) {
-        toast.error("No admin/controller user found with this phone number");
+        showToast("❌ No admin/controller user found with this phone number", 'error', 4000);
         return;
       }
 
@@ -58,17 +60,17 @@ export default function AdminForgotPassword({
       });
 
       if (response.error) {
-        toast.error("Failed to send OTP. Please try again.");
+        showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
         console.error("Error sending OTP:", response.error);
         return;
       }
 
-      toast.success("OTP sent successfully!");
+      showToast("📱 OTP sent successfully!", 'success', 4000);
       setPhoneNumber(phone);
       setCurrentStep("otp");
     } catch (error) {
       console.error("Error in phone verification process:", error);
-      toast.error("Something went wrong. Please try again.");
+      showToast("❌ Something went wrong. Please try again.", 'error', 4000);
     }
   };
 
@@ -87,13 +89,13 @@ export default function AdminForgotPassword({
       
       if (hashError) {
         console.error('Error hashing password for admin/controller:', hashError);
-        toast.error("Failed to update password");
+        showToast("❌ Failed to update password", 'error', 4000);
         return;
       }
       
       if (!hashResult?.hashedPassword) {
         console.error('No hashed password returned from edge function for admin/controller');
-        toast.error("Failed to update password");
+        showToast("❌ Failed to update password", 'error', 4000);
         return;
       }
       
@@ -111,12 +113,12 @@ export default function AdminForgotPassword({
       }
 
       console.log('Admin/controller password updated successfully in database');
-      toast.success("Password updated successfully!");
+      showToast("🎉 Password updated successfully!", 'success', 4000);
       onSuccess(phoneNumber);
       onClose();
     } catch (error) {
       console.error("Error updating admin/controller password:", error);
-      toast.error("Failed to update password");
+      showToast("❌ Failed to update password", 'error', 4000);
     }
   };
 
@@ -157,7 +159,7 @@ export default function AdminForgotPassword({
         
         <div className="py-4">
           {currentStep === "phone" && (
-            <AdminPhoneNumberForm onSubmit={handlePhoneSubmit} />
+            <PhoneNumberForm onSubmit={handlePhoneSubmit} />
           )}
           
           {currentStep === "otp" && (
@@ -168,7 +170,7 @@ export default function AdminForgotPassword({
           )}
           
           {currentStep === "reset" && (
-            <AdminPasswordResetForm
+            <PasswordResetForm
               phoneNumber={phoneNumber}
               onPasswordResetSuccess={handlePasswordResetSuccess}
             />
@@ -186,130 +188,5 @@ export default function AdminForgotPassword({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-// Admin-specific phone number form
-function AdminPhoneNumberForm({ onSubmit }: { onSubmit: (phone: string) => void }) {
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (phoneNumber.length !== 10) {
-      toast.error("Please enter a valid 10-digit phone number");
-      return;
-    }
-    setIsLoading(true);
-    await onSubmit(phoneNumber);
-    setIsLoading(false);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <label htmlFor="phone" className="text-sm font-medium">
-          Phone Number
-        </label>
-        <input
-          id="phone"
-          type="tel"
-          placeholder="Enter your phone number"
-          value={phoneNumber}
-          onChange={(e) => {
-            const value = e.target.value.replace(/[^0-9]/g, '');
-            if (value.length <= 10) {
-              setPhoneNumber(value);
-            }
-          }}
-          maxLength={10}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          required
-        />
-      </div>
-      
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Sending OTP..." : "Send OTP"}
-      </Button>
-    </form>
-  );
-}
-
-// Admin-specific password reset form
-function AdminPasswordResetForm({ 
-  phoneNumber, 
-  onPasswordResetSuccess 
-}: { 
-  phoneNumber: string; 
-  onPasswordResetSuccess: (password: string) => void; 
-}) {
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    setIsLoading(true);
-    await onPasswordResetSuccess(password);
-    setIsLoading(false);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <label htmlFor="new-password" className="text-sm font-medium">
-          New Password
-        </label>
-        <div className="relative">
-          <input
-            id="new-password"
-            type={showPassword ? "text" : "password"}
-            placeholder="Enter new password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            required
-          />
-          <button
-            type="button"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? "Hide" : "Show"}
-          </button>
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <label htmlFor="confirm-password" className="text-sm font-medium">
-          Confirm New Password
-        </label>
-        <input
-          id="confirm-password"
-          type="password"
-          placeholder="Confirm new password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          required
-        />
-      </div>
-      
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Updating Password..." : "Update Password"}
-      </Button>
-    </form>
   );
 }

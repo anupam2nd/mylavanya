@@ -6,7 +6,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 import { useArtistLogin } from "@/hooks/useArtistLogin";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import { ArtistPasswordSetup } from "./ArtistPasswordSetup";
 import ArtistForgotPassword from "./ArtistForgotPassword";
 
@@ -21,10 +21,11 @@ export default function ArtistLoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { handleLogin } = useArtistLogin();
+  const { showToast } = useCustomToast();
 
   const checkArtistExistence = async () => {
     if (!emailOrPhone.trim()) {
-      toast.error("Please enter email or phone number");
+      showToast("❌ Please enter email or phone number", 'error', 4000);
       return;
     }
 
@@ -50,18 +51,18 @@ export default function ArtistLoginForm() {
         
         if (error) {
           console.error("Error checking artist:", error);
-          toast.error("Error checking artist details");
+          showToast("❌ Error checking artist details", 'error', 4000);
           return;
         }
 
         if (!data) {
-          toast.error("No artist found with this phone number");
+          showToast("❌ No artist found with this phone number", 'error', 4000);
           return;
         }
 
         // Check if artist is active
         if (data.Active === false) {
-          toast.error("Your account has been deactivated. Please contact support.");
+          showToast("❌ Your account has been deactivated. Please contact support.", 'error', 4000);
           return;
         }
 
@@ -79,18 +80,18 @@ export default function ArtistLoginForm() {
       
       if (error) {
         console.error("Error checking artist:", error);
-        toast.error("Error checking artist details");
+        showToast("❌ Error checking artist details", 'error', 4000);
         return;
       }
 
       if (!data) {
-        toast.error("No artist found with this email");
+        showToast("❌ No artist found with this email", 'error', 4000);
         return;
       }
 
       // Check if artist is active
       if (data.Active === false) {
-        toast.error("Your account has been deactivated. Please contact support.");
+        showToast("❌ Your account has been deactivated. Please contact support.", 'error', 4000);
         return;
       }
 
@@ -103,7 +104,7 @@ export default function ArtistLoginForm() {
       }
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Something went wrong. Please try again.");
+      showToast("❌ Something went wrong. Please try again.", 'error', 4000);
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +114,7 @@ export default function ArtistLoginForm() {
     e.preventDefault();
     
     if (!password.trim()) {
-      toast.error("Please enter your password");
+      showToast("❌ Please enter your password", 'error', 4000);
       return;
     }
 
@@ -125,18 +126,18 @@ export default function ArtistLoginForm() {
       });
       
       if (!success) {
-        toast.error("Invalid password. Please try again.");
+        showToast("❌ Invalid password. Please try again.", 'error', 4000);
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Login failed. Please try again.");
+      showToast("❌ Login failed. Please try again.", 'error', 4000);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handlePasswordSetupComplete = () => {
-    toast.success("Password set successfully! Please login again with your credentials.");
+    showToast("🎉 Password set successfully! Please login again with your credentials.", 'success', 4000);
     setCurrentStep("credentials");
     setEmailOrPhone("");
     setPassword("");
@@ -156,7 +157,7 @@ export default function ArtistLoginForm() {
 
   const handleForgotPasswordSuccess = (phone: string) => {
     setShowForgotPassword(false);
-    toast.success("Password reset successfully! You can now login with your new password.");
+    showToast("🎉 Password reset successfully! You can now login with your new password.", 'success', 4000);
   };
 
   if (currentStep === "setup") {
