@@ -7,7 +7,6 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 import { useLogin } from "@/hooks/useLogin";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { AdminPasswordSetup } from "./AdminPasswordSetup";
 import AdminForgotPassword from "./AdminForgotPassword";
 
@@ -21,16 +20,17 @@ export default function AdminLoginForm() {
   const [userData, setUserData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const { handleLogin } = useLogin();
 
   const checkUserExistence = async () => {
     if (!emailOrPhone.trim()) {
-      toast.error("Please enter email or phone number");
+      setErrorMessage("Please enter email or phone number");
       return;
     }
 
-    console.log('Starting user existence check - potential layout shift point');
     setIsLoading(true);
+    setErrorMessage("");
     try {
       const normalizedInput = emailOrPhone.trim().toLowerCase();
       
@@ -49,29 +49,27 @@ export default function AdminLoginForm() {
       const { data, error } = await query.maybeSingle();
       
       if (error) {
-        console.error("Error checking user:", error);
-        toast.error("Error checking user details");
+        setErrorMessage("Error checking user details");
         return;
       }
 
       if (!data) {
-        toast.error(isEmail ? "No user found with this email" : "No user found with this phone number");
+        setErrorMessage(isEmail ? "No user found with this email" : "No user found with this phone number");
         return;
       }
 
       // Check if user is active
       if (data.active === false) {
-        toast.error("Your account has been deactivated. Please contact support.");
+        setErrorMessage("Your account has been deactivated. Please contact support.");
         return;
       }
 
       // Check if user role is admin or controller
       if (!['admin', 'controller', 'superadmin'].includes(data.role)) {
-        toast.error("Access denied. This login is for admin and controller users only.");
+        setErrorMessage("Access denied. This login is for admin and controller users only.");
         return;
       }
 
-      console.log('User data found, setting state - potential layout shift point');
       setUserData(data);
       
       if (data.password) {
@@ -80,10 +78,8 @@ export default function AdminLoginForm() {
         setCurrentStep("setup");
       }
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("Something went wrong. Please try again.");
+      setErrorMessage("Something went wrong. Please try again.");
     } finally {
-      console.log('User existence check finished');
       setIsLoading(false);
     }
   };
@@ -92,12 +88,12 @@ export default function AdminLoginForm() {
     e.preventDefault();
     
     if (!password.trim()) {
-      toast.error("Please enter your password");
+      setErrorMessage("Please enter your password");
       return;
     }
 
-    console.log('Starting password login - potential layout shift point');
     setIsLoading(true);
+    setErrorMessage("");
     try {
       const success = await handleLogin({
         email: userData.email_id,
@@ -105,23 +101,21 @@ export default function AdminLoginForm() {
       });
       
       if (!success) {
-        toast.error("Invalid password. Please try again.");
+        setErrorMessage("Invalid password. Please try again.");
       }
     } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Login failed. Please try again.");
+      setErrorMessage("Login failed. Please try again.");
     } finally {
-      console.log('Password login finished');
       setIsLoading(false);
     }
   };
 
   const handlePasswordSetupComplete = () => {
-    toast.success("Password set successfully! Please login again with your credentials.");
     setCurrentStep("credentials");
     setEmailOrPhone("");
     setPassword("");
     setUserData(null);
+    setErrorMessage("");
   };
 
   const togglePasswordVisibility = () => {
@@ -133,11 +127,11 @@ export default function AdminLoginForm() {
     setEmailOrPhone("");
     setPassword("");
     setUserData(null);
+    setErrorMessage("");
   };
 
   const handleForgotPasswordSuccess = (phone: string) => {
     setShowForgotPassword(false);
-    toast.success("Password reset successfully! You can now login with your new password.");
   };
 
   if (currentStep === "setup") {
@@ -160,6 +154,11 @@ export default function AdminLoginForm() {
               Members should use the main sign in button.
             </p>
           </div>
+          {errorMessage && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+              {errorMessage}
+            </div>
+          )}
           <div className="space-y-2">
             <Label>Email</Label>
             <Input 
@@ -239,6 +238,11 @@ export default function AdminLoginForm() {
           Members should use the main sign in button.
         </p>
       </div>
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          {errorMessage}
+        </div>
+      )}
       <div className="space-y-2">
         <Label htmlFor="email-phone">Email or Phone Number</Label>
         <Input 
