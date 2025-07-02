@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -98,9 +97,20 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     setUser(null);
     localStorage.removeItem('user');
     
-    // Show logout toast notification
-    toast.success("Logged out successfully", {
-      duration: 3000,
+    // Show enhanced logout toast notification
+    toast.success("👋 Logged out successfully", {
+      duration: 4000,
+      style: {
+        background: '#10B981',
+        color: 'white',
+        border: 'none',
+        borderRadius: '12px',
+        fontSize: '16px',
+        fontWeight: '500',
+        padding: '16px 20px',
+        boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.25), 0 10px 10px -5px rgba(16, 185, 129, 0.04)',
+      },
+      className: 'logout-toast',
     });
     
     // Also sign out from Supabase if there's an active session
