@@ -9,6 +9,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPasswordSetup } from "./AdminPasswordSetup";
 import AdminForgotPassword from "./AdminForgotPassword";
+import { toast } from "sonner";
 
 type LoginStep = "credentials" | "password" | "setup";
 
@@ -20,17 +21,15 @@ export default function AdminLoginForm() {
   const [userData, setUserData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const { handleLogin } = useLogin();
 
   const checkUserExistence = async () => {
     if (!emailOrPhone.trim()) {
-      setErrorMessage("Please enter email or phone number");
+      toast.error("Please enter email or phone number");
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage("");
     try {
       const normalizedInput = emailOrPhone.trim().toLowerCase();
       
@@ -49,24 +48,24 @@ export default function AdminLoginForm() {
       const { data, error } = await query.maybeSingle();
       
       if (error) {
-        setErrorMessage("Error checking user details");
+        toast.error("Error checking user details");
         return;
       }
 
       if (!data) {
-        setErrorMessage(isEmail ? "No user found with this email" : "No user found with this phone number");
+        toast.error(isEmail ? "No user found with this email" : "No user found with this phone number");
         return;
       }
 
       // Check if user is active
       if (data.active === false) {
-        setErrorMessage("Your account has been deactivated. Please contact support.");
+        toast.error("Your account has been deactivated. Please contact support.");
         return;
       }
 
       // Check if user role is admin or controller
       if (!['admin', 'controller', 'superadmin'].includes(data.role)) {
-        setErrorMessage("Access denied. This login is for admin and controller users only.");
+        toast.error("Access denied. This login is for admin and controller users only.");
         return;
       }
 
@@ -78,7 +77,7 @@ export default function AdminLoginForm() {
         setCurrentStep("setup");
       }
     } catch (error) {
-      setErrorMessage("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -88,25 +87,17 @@ export default function AdminLoginForm() {
     e.preventDefault();
     
     if (!password.trim()) {
-      setErrorMessage("Please enter your password");
+      toast.error("Please enter your password");
       return;
     }
 
-    setIsLoading(true);
-    setErrorMessage("");
-    try {
-      const success = await handleLogin({
-        email: userData.email_id,
-        password: password
-      });
-      
-      if (!success) {
-        setErrorMessage("Invalid password. Please try again.");
-      }
-    } catch (error) {
-      setErrorMessage("Login failed. Please try again.");
-    } finally {
-      setIsLoading(false);
+    const success = await handleLogin({
+      email: userData.email_id,
+      password: password
+    });
+    
+    if (!success) {
+      // Error toast is already shown in useLogin hook
     }
   };
 
@@ -115,7 +106,6 @@ export default function AdminLoginForm() {
     setEmailOrPhone("");
     setPassword("");
     setUserData(null);
-    setErrorMessage("");
   };
 
   const togglePasswordVisibility = () => {
@@ -127,7 +117,6 @@ export default function AdminLoginForm() {
     setEmailOrPhone("");
     setPassword("");
     setUserData(null);
-    setErrorMessage("");
   };
 
   const handleForgotPasswordSuccess = (phone: string) => {
@@ -154,11 +143,6 @@ export default function AdminLoginForm() {
               Members should use the main sign in button.
             </p>
           </div>
-          {errorMessage && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-              {errorMessage}
-            </div>
-          )}
           <div className="space-y-2">
             <Label>Email</Label>
             <Input 
@@ -238,11 +222,6 @@ export default function AdminLoginForm() {
           Members should use the main sign in button.
         </p>
       </div>
-      {errorMessage && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          {errorMessage}
-        </div>
-      )}
       <div className="space-y-2">
         <Label htmlFor="email-phone">Email or Phone Number</Label>
         <Input 

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
+import { toast } from "sonner";
 
 interface LoginCredentials {
   email: string;
@@ -29,16 +30,18 @@ export function useLogin() {
         .maybeSingle();
       
       if (error) {
-        logger.error('Supabase query error during admin login');
-        throw new Error('Error querying user');
+        toast.error('Error querying user');
+        return false;
       }
       
       if (!data) {
-        throw new Error('Invalid credentials');
+        toast.error('Invalid credentials');
+        return false;
       }
       
       if (!data.password) {
-        throw new Error('Invalid credentials');
+        toast.error('Invalid credentials');
+        return false;
       }
       
       // Verify password using the edge function
@@ -50,13 +53,13 @@ export function useLogin() {
       });
       
       if (verifyError) {
-        logger.error('Error verifying password');
-        throw new Error('Invalid credentials');
+        toast.error('Invalid credentials');
+        return false;
       }
       
       if (!verifyResult?.isValid) {
-        logger.debug('Password verification failed for admin/controller');
-        throw new Error('Invalid credentials');
+        toast.error('Invalid credentials');
+        return false;
       }
       
       // Create a session for this user in Supabase for JWT-based auth
@@ -64,15 +67,8 @@ export function useLogin() {
         email: normalizedEmail,
         password: password
       }).catch(error => {
-        logger.debug('Auth sign-in failed, using custom auth only');
         return { data: null, error };
       });
-      
-      if (authData?.session) {
-        logger.debug('Supabase auth session established');
-      } else {
-        logger.debug('Using custom auth only, no Supabase session');
-      }
       
       // Login using the context function
       login({
@@ -82,6 +78,8 @@ export function useLogin() {
         firstName: data.FirstName,
         lastName: data.LastName
       });
+      
+      toast.success('Login successful! Welcome back.');
       
       // Fixed redirect logic for superadmin and admin
       if (data.role === 'superadmin' || data.role === 'admin') {
@@ -96,7 +94,7 @@ export function useLogin() {
 
       return true;
     } catch (error) {
-      logger.error('Admin login failed');
+      toast.error('Login failed. Please try again.');
       return false;
     } finally {
       setIsLoading(false);

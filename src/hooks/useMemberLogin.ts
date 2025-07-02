@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
+import { toast } from "sonner";
 
 interface MemberLoginCredentials {
   emailOrPhone: string;
@@ -26,13 +27,12 @@ export function useMemberLogin() {
       const isPhone = /^\d{10}$/.test(normalizedInput);
       
       if (!isEmail && !isPhone) {
-        throw new Error('Please enter a valid email address or 10-digit phone number');
+        toast.error('Please enter a valid email address or 10-digit phone number');
+        return false;
       }
       
       let memberData;
       let memberError;
-      
-      logger.debug('Starting member login process');
       
       if (isEmail) {
         // Search by email
@@ -55,22 +55,21 @@ export function useMemberLogin() {
       }
       
       if (memberError) {
-        logger.error('Supabase query error during member login');
-        throw new Error('Error querying member');
+        toast.error('Error querying member');
+        return false;
       }
       
       if (!memberData) {
-        throw new Error('Invalid credentials');
+        toast.error('Invalid credentials');
+        return false;
       }
       
       if (!memberData.password) {
-        logger.error('No password found for member');
-        throw new Error('Invalid credentials');
+        toast.error('Invalid credentials');
+        return false;
       }
       
       // Verify password using the edge function - this handles both hashed and legacy passwords
-      logger.debug('Verifying password for member login');
-      
       const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
         body: { 
           password: password,
@@ -79,16 +78,14 @@ export function useMemberLogin() {
       });
       
       if (verifyError) {
-        logger.error('Error verifying password for member:', verifyError);
-        throw new Error('Invalid credentials');
+        toast.error('Invalid credentials');
+        return false;
       }
       
       if (!verifyResult?.isValid) {
-        logger.debug('Password verification failed for member');
-        throw new Error('Invalid credentials');
+        toast.error('Invalid credentials');
+        return false;
       }
-      
-      logger.debug('Member password verified successfully');
       
       login({
         id: memberData.id.toString(),
@@ -98,6 +95,8 @@ export function useMemberLogin() {
         lastName: memberData.MemberLastName
       });
       
+      toast.success('Login successful! Welcome back.');
+      
       // Only navigate if shouldNavigate is true
       if (shouldNavigate) {
         navigate('/');
@@ -105,7 +104,7 @@ export function useMemberLogin() {
 
       return true;
     } catch (error) {
-      logger.error('Member login failed:', error);
+      toast.error('Login failed. Please try again.');
       return false;
     } finally {
       setIsLoading(false);
