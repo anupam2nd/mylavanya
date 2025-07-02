@@ -36,10 +36,13 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
   }
   
   const handleLoginSuccess = () => {
+    console.log("AUTH MODAL: Login success callback triggered - potential layout shift point");
     if (onLoginSuccess) {
       onLoginSuccess();
     }
+    console.log("AUTH MODAL: About to close modal - potential layout shift point");
     onClose();
+    console.log("AUTH MODAL: Modal closed");
   };
 
   const toggleForm = () => {

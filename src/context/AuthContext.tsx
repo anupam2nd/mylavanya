@@ -86,9 +86,10 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   }, []);
 
   const login = (userData: User) => {
-    console.log("Logging in user:", userData);
+    console.log("AUTH CONTEXT: About to set user state - potential layout shift point");
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
+    console.log("AUTH CONTEXT: User state set, localStorage updated");
     
     // Also set up a Supabase session for the user if it's not set
     supabase.auth.getSession().then(({ data }) => {
