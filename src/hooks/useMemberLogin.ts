@@ -69,7 +69,9 @@ export function useMemberLogin() {
         throw new Error('Invalid credentials');
       }
       
-      // Verify password using the edge function
+      console.log('Member found, verifying password...');
+      
+      // Verify password using the edge function - this handles both hashed and legacy passwords
       logger.debug('Verifying password for member login');
       
       const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
@@ -80,15 +82,17 @@ export function useMemberLogin() {
       });
       
       if (verifyError) {
-        logger.error('Error verifying password');
+        logger.error('Error verifying password for member:', verifyError);
         throw new Error('Invalid credentials');
       }
       
       if (!verifyResult?.isValid) {
         logger.debug('Password verification failed for member');
+        console.log('Password verification failed for member');
         throw new Error('Invalid credentials');
       }
       
+      console.log('Member password verified successfully');
       logger.debug('Member password verified successfully');
       
       login({
@@ -108,7 +112,8 @@ export function useMemberLogin() {
 
       return true;
     } catch (error) {
-      logger.error('Member login failed');
+      logger.error('Member login failed:', error);
+      console.error('Member login failed:', error);
       toast.error(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.");
       return false;
     } finally {

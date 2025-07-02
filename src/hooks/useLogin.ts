@@ -25,9 +25,8 @@ export function useLogin() {
       
       const { data, error } = await supabase
         .from('UserMST')
-        .select('id, email_id, role, FirstName, LastName')
+        .select('id, email_id, role, FirstName, LastName, password')
         .ilike('email_id', normalizedEmail)
-        .eq('password', password)
         .maybeSingle();
       
       if (error) {
@@ -36,6 +35,28 @@ export function useLogin() {
       }
       
       if (!data) {
+        throw new Error('Invalid credentials');
+      }
+      
+      if (!data.password) {
+        throw new Error('Invalid credentials');
+      }
+      
+      // Verify password using the edge function
+      const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
+        body: { 
+          password: password,
+          hashedPassword: data.password
+        }
+      });
+      
+      if (verifyError) {
+        logger.error('Error verifying password');
+        throw new Error('Invalid credentials');
+      }
+      
+      if (!verifyResult?.isValid) {
+        logger.debug('Password verification failed for admin/controller');
         throw new Error('Invalid credentials');
       }
       
