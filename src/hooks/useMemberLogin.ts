@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +18,6 @@ export function useMemberLogin() {
   const { showToast } = useCustomToast();
 
   const handleLogin = async ({ emailOrPhone, password }: MemberLoginCredentials, shouldNavigate: boolean = true) => {
-    console.log('Member login process started - checking for layout issues');
     setIsLoading(true);
     
     try {
@@ -70,8 +70,6 @@ export function useMemberLogin() {
         throw new Error('Invalid credentials');
       }
       
-      console.log('Member found, verifying password...');
-      
       // Verify password using the edge function - this handles both hashed and legacy passwords
       logger.debug('Verifying password for member login');
       
@@ -89,14 +87,10 @@ export function useMemberLogin() {
       
       if (!verifyResult?.isValid) {
         logger.debug('Password verification failed for member');
-        console.log('Password verification failed for member');
         throw new Error('Invalid credentials');
       }
       
-      console.log('Member password verified successfully');
       logger.debug('Member password verified successfully');
-      
-      console.log('About to call member login context - this might cause layout shift');
       
       login({
         id: memberData.id.toString(),
@@ -106,24 +100,19 @@ export function useMemberLogin() {
         lastName: memberData.MemberLastName
       });
       
-      console.log('Member login context called, showing toast now');
-      
       showToast("Login successful. Welcome back!", 'success', 3000);
       
       // Only navigate if shouldNavigate is true
       if (shouldNavigate) {
-        console.log('About to navigate after member login');
         navigate('/');
       }
 
       return true;
     } catch (error) {
       logger.error('Member login failed:', error);
-      console.error('Member login failed:', error);
       showToast(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.", 'error', 3000);
       return false;
     } finally {
-      console.log('Member login process finished, setting loading to false');
       setIsLoading(false);
     }
   };

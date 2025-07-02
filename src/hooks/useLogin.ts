@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +18,6 @@ export function useLogin() {
   const { showToast } = useCustomToast();
 
   const handleLogin = async ({ email, password }: LoginCredentials) => {
-    console.log('Login process started - checking for layout issues');
     setIsLoading(true);
     
     try {
@@ -76,8 +76,6 @@ export function useLogin() {
         logger.debug('Using custom auth only, no Supabase session');
       }
       
-      console.log('About to call login context - this might cause layout shift');
-      
       // Login using the context function
       login({
         id: data.id.toString(),
@@ -87,11 +85,7 @@ export function useLogin() {
         lastName: data.LastName
       });
       
-      console.log('Login context called, showing toast now');
-      
       showToast(`Login successful. Welcome back! You are now logged in as ${data.role}.`, 'success', 3000);
-      
-      console.log('Toast shown, about to navigate');
       
       // Fixed redirect logic for superadmin and admin
       if (data.role === 'superadmin' || data.role === 'admin') {
@@ -110,7 +104,6 @@ export function useLogin() {
       showToast("Invalid email or password. Please try again.", 'error', 3000);
       return false;
     } finally {
-      console.log('Login process finished, setting loading to false');
       setIsLoading(false);
     }
   };

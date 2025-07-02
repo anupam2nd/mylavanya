@@ -21,11 +21,8 @@ export default function MemberLoginForm({ onLoginSuccess }: MemberLoginFormProps
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("MEMBER LOGIN FORM: Form submitted - potential layout shift point");
     const success = await handleLogin(loginData, false); // Pass false to prevent navigation
-    console.log("MEMBER LOGIN FORM: Login attempt completed, success:", success);
     if (success && onLoginSuccess) {
-      console.log("MEMBER LOGIN FORM: Calling onLoginSuccess callback");
       onLoginSuccess();
     }
   };
