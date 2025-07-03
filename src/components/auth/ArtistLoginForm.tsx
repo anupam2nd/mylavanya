@@ -126,11 +126,11 @@ export default function ArtistLoginForm() {
       });
       
       if (!success) {
-        // handleLogin already shows the error toast, no need for additional toast here
+        showToast("❌ Invalid password. Please try again.", 'error', 4000);
       }
     } catch (error) {
       console.error("Login error:", error);
-      // handleLogin already shows error toast, no need for additional toast here
+      showToast("❌ Login failed. Please try again.", 'error', 4000);
     } finally {
       setIsLoading(false);
     }
