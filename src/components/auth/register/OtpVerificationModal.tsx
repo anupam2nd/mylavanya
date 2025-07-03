@@ -46,15 +46,16 @@ const OtpVerificationModal = ({
       }
 
       if (response.data.success) {
-        showToast("✅ Phone number verified successfully!", 'success', 4000);
+        // Only call onVerificationSuccess, don't show toast here as ContactFields will handle it
         onVerificationSuccess();
         onOpenChange(false);
       } else {
-        showToast("❌ " + (response.data.error || "Invalid OTP"), 'error', 4000);
+        // Show specific error message for invalid OTP
+        showToast("❌ Invalid OTP. Please check the code and try again.", 'error', 4000);
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
-      showToast("❌ Failed to verify OTP. Please try again.", 'error', 4000);
+      showToast("❌ Invalid OTP. Please check the code and try again.", 'error', 4000);
     } finally {
       setIsVerifying(false);
     }

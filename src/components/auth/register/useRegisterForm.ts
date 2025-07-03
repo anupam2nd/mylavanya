@@ -135,7 +135,8 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       
       logger.debug("Member registration completed successfully");
       
-      showToast("🎉 Registration successful! Your account has been created. You can now log in with your email or phone number.", 'success', 4000);
+      // Show only one success toast
+      showToast("🎉 Registration successful! Your account has been created. Please log in with your credentials.", 'success', 4000);
       
       // Pass credentials back to parent for auto-login
       onSuccess(email, values.password);
