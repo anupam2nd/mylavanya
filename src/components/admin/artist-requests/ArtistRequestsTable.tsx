@@ -49,7 +49,8 @@ export default function ArtistRequestsTable() {
         throw error;
       }
 
-      console.log('Fetched applications:', data?.length || 0, applications);
+      console.log('Fetched applications:', data?.length || 0, 'applications');
+      console.log('Sample application data:', data?.[0]);
       return data;
     },
   });
@@ -101,15 +102,31 @@ export default function ArtistRequestsTable() {
     console.error('Query error:', error);
     return (
       <div className="flex justify-center items-center py-8">
-        <div className="text-lg text-red-600">Error loading artist requests. Please try again.</div>
+        <div className="text-lg text-red-600">
+          Error loading artist requests: {error.message}
+          <br />
+          <Button 
+            onClick={() => refetch()} 
+            className="mt-2"
+            variant="outline"
+          >
+            Try Again
+          </Button>
+        </div>
       </div>
     );
   }
 
   if (!applications || applications.length === 0) {
     return (
-      <div className="flex justify-center items-center py-8">
+      <div className="flex flex-col justify-center items-center py-8 space-y-4">
         <div className="text-lg text-gray-500">No artist requests found.</div>
+        <Button 
+          onClick={() => refetch()} 
+          variant="outline"
+        >
+          Refresh
+        </Button>
       </div>
     );
   }
