@@ -49,7 +49,7 @@ export default function ArtistRequestsTable() {
         throw error;
       }
 
-      console.log('Fetched applications:', data?.length || 0);
+      console.log('Fetched applications:', data?.length || 0, applications);
       return data;
     },
   });
