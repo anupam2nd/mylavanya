@@ -25,8 +25,9 @@ interface StatusUpdateDialogProps {
 const statusOptions = [
   { value: 'pending', label: 'Pending' },
   { value: 'under_review', label: 'Under Review' },
-  { value: 'approved', label: 'Approved' },
+  { value: 'selected', label: 'Selected' },
   { value: 'rejected', label: 'Rejected' },
+  { value: 'on_hold', label: 'On Hold' },
 ];
 
 export default function StatusUpdateDialog({
@@ -45,6 +46,8 @@ export default function StatusUpdateDialog({
     setIsSubmitting(true);
 
     try {
+      console.log('Updating application:', application.id, 'with status:', status);
+      
       const { error } = await supabase
         .from('ArtistApplication')
         .update({

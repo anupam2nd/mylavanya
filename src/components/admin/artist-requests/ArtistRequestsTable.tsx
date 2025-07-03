@@ -34,9 +34,11 @@ export default function ArtistRequestsTable() {
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const { showToast } = useCustomToast();
 
-  const { data: applications, isLoading, refetch } = useQuery({
+  const { data: applications, isLoading, refetch, error } = useQuery({
     queryKey: ['artist-applications'],
     queryFn: async () => {
+      console.log('Fetching artist applications...');
+      
       const { data, error } = await supabase
         .from('ArtistApplication')
         .select('*')
@@ -47,21 +49,26 @@ export default function ArtistRequestsTable() {
         throw error;
       }
 
+      console.log('Fetched applications:', data?.length || 0);
       return data;
     },
   });
 
   const getStatusBadge = (status: string) => {
     const statusColors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800',
-      under_review: 'bg-blue-100 text-blue-800',
+      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      under_review: 'bg-blue-100 text-blue-800 border-blue-200',
+      selected: 'bg-green-100 text-green-800 border-green-200',
+      rejected: 'bg-red-100 text-red-800 border-red-200',
+      on_hold: 'bg-orange-100 text-orange-800 border-orange-200',
     };
 
+    const colorClass = statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800 border-gray-200';
+    const displayText = status?.replace('_', ' ').toUpperCase() || 'PENDING';
+
     return (
-      <Badge className={statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
-        {status?.replace('_', ' ').toUpperCase() || 'PENDING'}
+      <Badge className={`${colorClass} border`}>
+        {displayText}
       </Badge>
     );
   };
@@ -90,6 +97,23 @@ export default function ArtistRequestsTable() {
     );
   }
 
+  if (error) {
+    console.error('Query error:', error);
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="text-lg text-red-600">Error loading artist requests. Please try again.</div>
+      </div>
+    );
+  }
+
+  if (!applications || applications.length === 0) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="text-lg text-gray-500">No artist requests found.</div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="rounded-md border">
@@ -105,7 +129,7 @@ export default function ArtistRequestsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {applications?.map((application) => (
+            {applications.map((application) => (
               <TableRow key={application.id}>
                 <TableCell className="font-medium">{application.full_name}</TableCell>
                 <TableCell>{application.phone_no}</TableCell>
