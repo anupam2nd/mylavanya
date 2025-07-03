@@ -104,7 +104,7 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
       )}
 
       {/* Wishlist Controller - Available for all roles except artists */}
-      <NavLink to={isController ? "/controller/dashboard" : "/admin/wishlist"} icon={Heart}>
+      <NavLink to={isController ? "/controller/wishlist" : "/admin/wishlist"} icon={Heart}>
         Wishlist
       </NavLink>
 

@@ -74,6 +74,7 @@ function App() {
               {/* Controller Routes */}
               <Route path="/controller/dashboard" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerDashboard /></ProtectedAdminRoute>} />
               <Route path="/controller/bookings" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerBookings /></ProtectedAdminRoute>} />
+              <Route path="/controller/wishlist" element={<ProtectedAdminRoute allowedRoles={['controller']}><WishlistController /></ProtectedAdminRoute>} />
               <Route path="/controller/artist-activity" element={<ProtectedAdminRoute allowedRoles={['controller']}><ArtistActivity /></ProtectedAdminRoute>} />
               
               {/* Artist Routes */}
