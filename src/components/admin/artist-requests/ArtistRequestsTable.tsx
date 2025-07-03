@@ -1,32 +1,19 @@
+
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
 import ArtistRequestDetailsDialog from "./ArtistRequestDetailsDialog";
 import StatusUpdateDialog from "./StatusUpdateDialog";
-
-interface ArtistApplication {
-  id: string;
-  full_name: string;
-  phone_no: string;
-  email?: string;
-  application_date: string;
-  status: string;
-  branch_name?: string;
-  created_at: string;
-}
+import ArtistApplicationRow from "./ArtistApplicationRow";
+import { useArtistApplications, ArtistApplication } from "@/hooks/useArtistApplications";
 
 export default function ArtistRequestsTable() {
   const [selectedRequest, setSelectedRequest] = useState<ArtistApplication | null>(null);
@@ -34,61 +21,8 @@ export default function ArtistRequestsTable() {
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const { showToast } = useCustomToast();
   const { user, isAuthenticated } = useAuth();
-
-  const { data: applications, isLoading, refetch, error } = useQuery({
-    queryKey: ['artist-applications'],
-    queryFn: async () => {
-      console.log('Fetching artist applications...');
-      console.log('Auth user from context:', user);
-      console.log('Is authenticated:', isAuthenticated);
-      
-      // Check both context auth and Supabase auth
-      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-      console.log('Supabase user:', supabaseUser?.id);
-      
-      if (!isAuthenticated || !user) {
-        throw new Error('User not authenticated in context');
-      }
-      
-      if (!supabaseUser) {
-        throw new Error('User not authenticated in Supabase');
-      }
-      
-      const { data, error } = await supabase
-        .from('ArtistApplication')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching artist applications:', error);
-        throw error;
-      }
-
-      console.log('Fetched applications:', data?.length || 0, 'applications');
-      console.log('Sample application data:', data?.[0]);
-      return data;
-    },
-    enabled: isAuthenticated && !!user, // Only run query if authenticated
-  });
-
-  const getStatusBadge = (status: string) => {
-    const statusColors = {
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      under_review: 'bg-blue-100 text-blue-800 border-blue-200',
-      selected: 'bg-green-100 text-green-800 border-green-200',
-      rejected: 'bg-red-100 text-red-800 border-red-200',
-      on_hold: 'bg-orange-100 text-orange-800 border-orange-200',
-    };
-
-    const colorClass = statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800 border-gray-200';
-    const displayText = status?.replace('_', ' ').toUpperCase() || 'PENDING';
-
-    return (
-      <Badge className={`${colorClass} border`}>
-        {displayText}
-      </Badge>
-    );
-  };
+  
+  const { data: applications, isLoading, refetch, error } = useArtistApplications();
 
   const handleViewDetails = (application: ArtistApplication) => {
     setSelectedRequest(application);
@@ -177,37 +111,12 @@ export default function ArtistRequestsTable() {
           </TableHeader>
           <TableBody>
             {applications.map((application) => (
-              <TableRow key={application.id}>
-                <TableCell className="font-medium">{application.full_name}</TableCell>
-                <TableCell>{application.phone_no}</TableCell>
-                <TableCell>{application.branch_name || 'N/A'}</TableCell>
-                <TableCell>
-                  {application.application_date ? 
-                    new Date(application.application_date).toLocaleDateString() : 
-                    new Date(application.created_at).toLocaleDateString()
-                  }
-                </TableCell>
-                <TableCell>{getStatusBadge(application.status || 'pending')}</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewDetails(application)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleStatusUpdate(application)}
-                    >
-                      Update Status
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
+              <ArtistApplicationRow
+                key={application.id}
+                application={application}
+                onViewDetails={handleViewDetails}
+                onStatusUpdate={handleStatusUpdate}
+              />
             ))}
           </TableBody>
         </Table>
