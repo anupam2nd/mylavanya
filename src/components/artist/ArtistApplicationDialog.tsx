@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import { Loader2 } from "lucide-react";
 
 interface ArtistApplicationDialogProps {
@@ -31,6 +30,7 @@ const courseOptions = [
 
 export default function ArtistApplicationDialog({ isOpen, onClose }: ArtistApplicationDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showToast } = useCustomToast();
   const [formData, setFormData] = useState({
     branch_name: "",
     application_date: new Date().toISOString().split('T')[0],
@@ -77,7 +77,7 @@ export default function ArtistApplicationDialog({ isOpen, onClose }: ArtistAppli
     e.preventDefault();
     
     if (!formData.full_name || !formData.phone_no) {
-      toast.error("Please fill in all required fields");
+      showToast("❌ Please fill in all required fields", 'error', 4000);
       return;
     }
 
@@ -95,11 +95,11 @@ export default function ArtistApplicationDialog({ isOpen, onClose }: ArtistAppli
 
       if (error) {
         console.error('Error submitting application:', error);
-        toast.error("Failed to submit application. Please try again.");
+        showToast("❌ Failed to submit application. Please try again.", 'error', 4000);
         return;
       }
 
-      toast.success("Application submitted successfully! We'll contact you soon.");
+      showToast("🎉 Application submitted successfully! We'll contact you soon.", 'success', 4000);
       onClose();
       
       // Reset form
@@ -130,7 +130,7 @@ export default function ArtistApplicationDialog({ isOpen, onClose }: ArtistAppli
       });
     } catch (error) {
       console.error('Error submitting application:', error);
-      toast.error("An unexpected error occurred. Please try again.");
+      showToast("❌ An unexpected error occurred. Please try again.", 'error', 4000);
     } finally {
       setIsSubmitting(false);
     }
