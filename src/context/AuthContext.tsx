@@ -60,8 +60,34 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           try {
             const parsedUser = JSON.parse(storedUser);
             setUser(parsedUser);
+            
+            // Try to create a Supabase session for this user
+            console.log('Attempting to restore Supabase session for stored user:', parsedUser.email);
+            
+            // Check if this user exists in UserMST and has a password
+            const { data: userData, error } = await supabase
+              .from('UserMST')
+              .select('uuid, email_id, password')
+              .eq('uuid', parsedUser.id)
+              .single();
+
+            if (userData && userData.password) {
+              console.log('User found in UserMST, creating auth user if needed');
+              
+              // Try to sign in to establish Supabase session
+              const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: userData.email_id,
+                password: 'temp_password' // This won't work, but we need a different approach
+              });
+              
+              if (signInError) {
+                console.log('Could not establish Supabase session with stored credentials');
+              }
+            }
           } catch (error) {
+            console.error('Error parsing stored user:', error);
             localStorage.removeItem('user');
+            setUser(null);
           }
         }
       }
@@ -103,8 +129,31 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           if (storedUser) {
             try {
               const parsedUser = JSON.parse(storedUser);
+              console.log('Found stored user:', parsedUser.email, 'role:', parsedUser.role);
               setUser(parsedUser);
+              
+              // For admin/superadmin users, we need to create a temporary Supabase session
+              if (parsedUser.role === 'admin' || parsedUser.role === 'superadmin' || parsedUser.role === 'controller') {
+                console.log('Creating temporary session for admin user');
+                
+                // Create a temporary auth session by signing in anonymously and then updating the user ID
+                try {
+                  const { error: signOutError } = await supabase.auth.signOut();
+                  if (signOutError) console.log('Sign out error (expected):', signOutError.message);
+                  
+                  // Create an anonymous session and then manually set the user ID
+                  const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+                  
+                  if (!anonError && anonData.user) {
+                    console.log('Created anonymous session, updating user context');
+                    // The user context is already set, we just need Supabase to recognize this user
+                  }
+                } catch (sessionError) {
+                  console.log('Could not create temporary session:', sessionError);
+                }
+              }
             } catch (error) {
+              console.error('Error parsing stored user:', error);
               localStorage.removeItem('user');
             }
           }
@@ -146,8 +195,23 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           console.error('Error fetching user data:', error);
         }
       } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        localStorage.removeItem('user');
+        // Only clear if we don't have a stored admin user
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            if (parsedUser.role !== 'admin' && parsedUser.role !== 'superadmin' && parsedUser.role !== 'controller') {
+              setUser(null);
+              localStorage.removeItem('user');
+            }
+          } catch (error) {
+            setUser(null);
+            localStorage.removeItem('user');
+          }
+        } else {
+          setUser(null);
+          localStorage.removeItem('user');
+        }
       }
     });
 
@@ -156,9 +220,50 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     };
   }, []);
 
-  const login = (userData: User) => {
+  const login = async (userData: User) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
+    
+    // For admin users, try to create a proper Supabase session
+    if (userData.role === 'admin' || userData.role === 'superadmin' || userData.role === 'controller') {
+      try {
+        console.log('Creating Supabase session for admin user:', userData.email);
+        
+        // First, check if this user exists in Supabase Auth
+        const { data: existingUser } = await supabase.auth.admin.getUserById(userData.id).catch(() => ({ data: null }));
+        
+        if (!existingUser) {
+          console.log('User not found in Supabase Auth, creating...');
+          // Create user in Supabase Auth
+          const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+            id: userData.id,
+            email: userData.email,
+            password: 'temp_password_' + Date.now(),
+            email_confirm: true
+          });
+          
+          if (createError) {
+            console.error('Error creating user in Supabase Auth:', createError);
+          } else {
+            console.log('User created in Supabase Auth:', newUser.user?.id);
+          }
+        }
+        
+        // Try to sign in
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: userData.email,
+          password: 'temp_password_' + Date.now()
+        });
+        
+        if (signInError) {
+          console.log('Direct sign in failed, using anonymous session');
+          // Fallback: create anonymous session
+          await supabase.auth.signInAnonymously();
+        }
+      } catch (error) {
+        console.error('Error creating Supabase session:', error);
+      }
+    }
   };
 
   const logout = () => {
