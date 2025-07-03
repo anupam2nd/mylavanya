@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,9 +32,29 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const refreshSession = async () => {
     try {
       const { data } = await supabase.auth.getSession();
+      console.log('Refreshing session:', data.session?.user?.id);
       
-      // If there's no session but we have a stored user, retrieve it
-      if (!data.session && !user) {
+      if (data.session?.user) {
+        // Get user details from UserMST table
+        const { data: userData, error } = await supabase
+          .from('UserMST')
+          .select('*')
+          .eq('uuid', data.session.user.id)
+          .single();
+
+        if (userData && !error) {
+          const userObj = {
+            id: userData.uuid,
+            email: userData.email_id || data.session.user.email || '',
+            role: userData.role || 'user',
+            firstName: userData.FirstName,
+            lastName: userData.LastName,
+          };
+          setUser(userObj);
+          localStorage.setItem('user', JSON.stringify(userObj));
+        }
+      } else {
+        // If there's no session but we have a stored user, retrieve it
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
           try {
@@ -45,33 +66,89 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         }
       }
     } catch (error) {
-      // Handle session refresh error silently
+      console.error('Error refreshing session:', error);
     }
   };
 
   useEffect(() => {
-    // Check if user is stored in localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    // Initialize auth state
+    const initializeAuth = async () => {
       try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
+        // First, check for existing session
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial session check:', session?.user?.id);
         
-        // Initialize Supabase auth with the stored user
-        supabase.auth.getSession().then(({ data }) => {
-          if (!data.session) {
-            // No active Supabase session, but user exists in localStorage
+        if (session?.user) {
+          // Get user details from UserMST table
+          const { data: userData, error } = await supabase
+            .from('UserMST')
+            .select('*')
+            .eq('uuid', session.user.id)
+            .single();
+
+          if (userData && !error) {
+            const userObj = {
+              id: userData.uuid,
+              email: userData.email_id || session.user.email || '',
+              role: userData.role || 'user',
+              firstName: userData.FirstName,
+              lastName: userData.LastName,
+            };
+            setUser(userObj);
+            localStorage.setItem('user', JSON.stringify(userObj));
           }
-        });
+        } else {
+          // Check if user is stored in localStorage
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            try {
+              const parsedUser = JSON.parse(storedUser);
+              setUser(parsedUser);
+            } catch (error) {
+              localStorage.removeItem('user');
+            }
+          }
+        }
       } catch (error) {
-        localStorage.removeItem('user');
+        console.error('Error initializing auth:', error);
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    initializeAuth();
     
     // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Auth state changed
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Get user details from UserMST table when signed in
+        try {
+          const { data: userData, error } = await supabase
+            .from('UserMST')
+            .select('*')
+            .eq('uuid', session.user.id)
+            .single();
+
+          if (userData && !error) {
+            const userObj = {
+              id: userData.uuid,
+              email: userData.email_id || session.user.email || '',
+              role: userData.role || 'user',
+              firstName: userData.FirstName,
+              lastName: userData.LastName,
+            };
+            setUser(userObj);
+            localStorage.setItem('user', JSON.stringify(userObj));
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        localStorage.removeItem('user');
+      }
     });
 
     return () => {
@@ -82,18 +159,9 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const login = (userData: User) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
-    
-    // Also set up a Supabase session for the user if it's not set
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        // We can't actually create a session without the proper auth flow,
-        // but we ensure the user is stored in localStorage
-      }
-    });
   };
 
   const logout = () => {
-    const currentUser = user;
     setUser(null);
     localStorage.removeItem('user');
     

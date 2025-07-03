@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCustomToast } from "@/context/ToastContext";
+import { useAuth } from "@/context/AuthContext";
 import {
   Table,
   TableBody,
@@ -33,18 +33,25 @@ export default function ArtistRequestsTable() {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const { showToast } = useCustomToast();
+  const { user, isAuthenticated } = useAuth();
 
   const { data: applications, isLoading, refetch, error } = useQuery({
     queryKey: ['artist-applications'],
     queryFn: async () => {
       console.log('Fetching artist applications...');
+      console.log('Auth user from context:', user);
+      console.log('Is authenticated:', isAuthenticated);
       
-      // Check if user is authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('Current user:', user?.id);
+      // Check both context auth and Supabase auth
+      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+      console.log('Supabase user:', supabaseUser?.id);
       
-      if (!user) {
-        throw new Error('User not authenticated');
+      if (!isAuthenticated || !user) {
+        throw new Error('User not authenticated in context');
+      }
+      
+      if (!supabaseUser) {
+        throw new Error('User not authenticated in Supabase');
       }
       
       const { data, error } = await supabase
@@ -61,6 +68,7 @@ export default function ArtistRequestsTable() {
       console.log('Sample application data:', data?.[0]);
       return data;
     },
+    enabled: isAuthenticated && !!user, // Only run query if authenticated
   });
 
   const getStatusBadge = (status: string) => {
@@ -98,6 +106,16 @@ export default function ArtistRequestsTable() {
     setSelectedRequest(null);
   };
 
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="text-lg text-red-600">
+          Please log in to view artist requests.
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -113,7 +131,9 @@ export default function ArtistRequestsTable() {
         <div className="text-lg text-red-600">
           Error loading artist requests: {error.message}
           <br />
-          <span className="text-sm">Please make sure you are logged in with proper permissions.</span>
+          <span className="text-sm">
+            User: {user?.email} | Role: {user?.role}
+          </span>
           <br />
           <Button 
             onClick={() => refetch()} 
