@@ -2,11 +2,11 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { registerFormSchema, RegisterFormValues } from "./RegisterFormSchema";
 import { logger } from "@/utils/logger";
+import { useCustomToast } from "@/context/ToastContext";
 
 interface UseRegisterFormProps {
   onSuccess: (email: string, password: string) => void;
@@ -14,6 +14,7 @@ interface UseRegisterFormProps {
 
 export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useCustomToast();
   
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
@@ -35,7 +36,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
   const handleRegister = async (values: RegisterFormValues) => {
     // Ensure phone is verified
     if (!values.isPhoneVerified) {
-      toast.error("Please verify your phone number before registering");
+      showToast("❌ Please verify your phone number before registering", 'error', 4000);
       return;
     }
     
@@ -134,17 +135,13 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       
       logger.debug("Member registration completed successfully");
       
-      toast.success("Registration successful", {
-        description: "Your account has been created. You can now log in with your email or phone number.",
-      });
+      showToast("🎉 Registration successful! Your account has been created. You can now log in with your email or phone number.", 'success', 4000);
       
       // Pass credentials back to parent for auto-login
       onSuccess(email, values.password);
     } catch (error: any) {
       logger.error('Member registration failed');
-      toast.error("Registration failed", {
-        description: error.message || "Something went wrong. Please try again.",
-      });
+      showToast("❌ Registration failed: " + (error.message || "Something went wrong. Please try again."), 'error', 4000);
     } finally {
       setIsLoading(false);
     }
