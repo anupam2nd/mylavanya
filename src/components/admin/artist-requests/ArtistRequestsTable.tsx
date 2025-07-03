@@ -39,6 +39,14 @@ export default function ArtistRequestsTable() {
     queryFn: async () => {
       console.log('Fetching artist applications...');
       
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user?.id);
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
       const { data, error } = await supabase
         .from('ArtistApplication')
         .select('*')
@@ -104,6 +112,8 @@ export default function ArtistRequestsTable() {
       <div className="flex justify-center items-center py-8">
         <div className="text-lg text-red-600">
           Error loading artist requests: {error.message}
+          <br />
+          <span className="text-sm">Please make sure you are logged in with proper permissions.</span>
           <br />
           <Button 
             onClick={() => refetch()} 
