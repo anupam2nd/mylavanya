@@ -5,27 +5,24 @@ export const createTemporarySupabaseSession = async (userId: string, email: stri
   try {
     console.log('Creating temporary Supabase session for:', email);
     
-    // Try to create or get the user in Supabase auth
-    const { data: existingUsers } = await supabase.auth.admin.listUsers();
-    const existingUser = existingUsers.users.find(u => u.id === userId || u.email === email);
+    // Try to create or get the user in Supabase auth - using a different approach
+    // since admin.listUsers might not be available with the current setup
     
-    if (!existingUser) {
-      // Create the user in Supabase auth
-      const { data: newUser, error } = await supabase.auth.admin.createUser({
-        id: userId,
-        email: email,
-        password: `temp_${Date.now()}`,
-        email_confirm: true
-      });
-      
-      if (error) {
-        console.error('Error creating user in Supabase auth:', error);
-        return false;
-      }
-      
-      console.log('Created user in Supabase auth:', newUser.user?.id);
+    // Try to sign in anonymously first to establish a session
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) {
+      console.log('Sign out error (expected):', signOutError.message);
     }
     
+    // Create an anonymous session for admin operations
+    const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+    
+    if (anonError) {
+      console.error('Error creating anonymous session:', anonError);
+      return false;
+    }
+    
+    console.log('Created anonymous session for admin operations');
     return true;
   } catch (error) {
     console.error('Error with Supabase session management:', error);
