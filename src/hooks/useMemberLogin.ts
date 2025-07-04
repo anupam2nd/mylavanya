@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
 
@@ -15,6 +15,7 @@ export function useMemberLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useCustomToast();
 
   const handleLogin = async ({ emailOrPhone, password }: MemberLoginCredentials, shouldNavigate: boolean = true) => {
     setIsLoading(true);
@@ -69,8 +70,6 @@ export function useMemberLogin() {
         throw new Error('Invalid credentials');
       }
       
-      console.log('Member found, verifying password...');
-      
       // Verify password using the edge function - this handles both hashed and legacy passwords
       logger.debug('Verifying password for member login');
       
@@ -88,11 +87,9 @@ export function useMemberLogin() {
       
       if (!verifyResult?.isValid) {
         logger.debug('Password verification failed for member');
-        console.log('Password verification failed for member');
         throw new Error('Invalid credentials');
       }
       
-      console.log('Member password verified successfully');
       logger.debug('Member password verified successfully');
       
       login({
@@ -103,7 +100,7 @@ export function useMemberLogin() {
         lastName: memberData.MemberLastName
       });
       
-      toast.success("Login successful. Welcome back!");
+      showToast("🎉 Login successful. Welcome back!", 'success', 4000);
       
       // Only navigate if shouldNavigate is true
       if (shouldNavigate) {
@@ -113,8 +110,7 @@ export function useMemberLogin() {
       return true;
     } catch (error) {
       logger.error('Member login failed:', error);
-      console.error('Member login failed:', error);
-      toast.error(error instanceof Error ? error.message : "Invalid email/phone or password. Please try again.");
+      showToast("❌ " + (error instanceof Error ? error.message : "Invalid email/phone or password. Please try again."), 'error', 4000);
       return false;
     } finally {
       setIsLoading(false);

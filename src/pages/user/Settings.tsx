@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { useToast } from "@/hooks/use-toast";
+import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -35,7 +35,7 @@ const Settings = () => {
   const [notifications, setNotifications] = useState(true);
   const [marketing, setMarketing] = useState(false);
   const [isPasswordChanging, setIsPasswordChanging] = useState(false);
-  const { toast } = useToast();
+  const { showToast } = useCustomToast();
   const { user } = useAuth();
 
   const passwordForm = useForm<z.infer<typeof changePasswordSchema>>({
@@ -49,11 +49,7 @@ const Settings = () => {
 
   const onSubmitPasswordChange = async (values: z.infer<typeof changePasswordSchema>) => {
     if (!user?.id) {
-      toast({
-        title: "Authentication Error",
-        description: "You must be logged in to change your password",
-        variant: "destructive"
-      });
+      showToast("❌ You must be logged in to change your password", 'error', 4000);
       return;
     }
 
@@ -72,11 +68,7 @@ const Settings = () => {
       }
 
       if (userData.password !== values.currentPassword) {
-        toast({
-          title: "Incorrect Password",
-          description: "Your current password is incorrect",
-          variant: "destructive"
-        });
+        showToast("❌ Your current password is incorrect", 'error', 4000);
         return;
       }
 
@@ -90,29 +82,18 @@ const Settings = () => {
         throw updateError;
       }
 
-      toast({
-        title: "Password Updated",
-        description: "Your password has been successfully changed",
-      });
-
+      showToast("🎉 Password updated successfully!", 'success', 4000);
       passwordForm.reset();
     } catch (error) {
       console.error("Error changing password:", error);
-      toast({
-        title: "Update Failed",
-        description: "There was a problem updating your password. Please try again.",
-        variant: "destructive"
-      });
+      showToast("❌ There was a problem updating your password. Please try again.", 'error', 4000);
     } finally {
       setIsPasswordChanging(false);
     }
   };
 
   const handleSaveSettings = () => {
-    toast({
-      title: "Settings Saved",
-      description: "Your notification settings have been updated.",
-    });
+    showToast("✅ Settings saved successfully!", 'success', 4000);
   };
 
   return (

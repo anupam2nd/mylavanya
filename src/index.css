@@ -176,6 +176,11 @@
   .slide-item {
     @apply overflow-hidden rounded-xl border-2 border-white/30 shadow-lg transition-all duration-500 hover:scale-105;
   }
+
+  /* Logout toast custom styling */
+  .logout-toast {
+    @apply animate-in slide-in-from-top-2 duration-500;
+  }
 }
 
 @layer utilities {

@@ -8,7 +8,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import { supabase } from "@/integrations/supabase/client";
 
 interface OtpVerificationModalProps {
@@ -26,10 +26,11 @@ const OtpVerificationModal = ({
 }: OtpVerificationModalProps) => {
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const { showToast } = useCustomToast();
 
   const handleVerifyOtp = async () => {
     if (otp.length !== 6) {
-      toast.error("Please enter a valid 6-digit OTP");
+      showToast("❌ Please enter a valid 6-digit OTP", 'error', 4000);
       return;
     }
 
@@ -40,20 +41,21 @@ const OtpVerificationModal = ({
       });
 
       if (response.error) {
-        toast.error(response.error.message || "Failed to verify OTP");
+        showToast("❌ " + (response.error.message || "Failed to verify OTP"), 'error', 4000);
         return;
       }
 
       if (response.data.success) {
-        toast.success("Phone number verified successfully!");
+        // Only call onVerificationSuccess, don't show toast here as ContactFields will handle it
         onVerificationSuccess();
         onOpenChange(false);
       } else {
-        toast.error(response.data.error || "Invalid OTP");
+        // Show specific error message for invalid OTP
+        showToast("❌ Invalid OTP. Please check the code and try again.", 'error', 4000);
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
-      toast.error("Failed to verify OTP. Please try again.");
+      showToast("❌ Invalid OTP. Please check the code and try again.", 'error', 4000);
     } finally {
       setIsVerifying(false);
     }
@@ -66,14 +68,14 @@ const OtpVerificationModal = ({
       });
 
       if (response.error) {
-        toast.error(response.error.message || "Failed to send OTP");
+        showToast("❌ " + (response.error.message || "Failed to send OTP"), 'error', 4000);
         return;
       }
 
-      toast.success("OTP sent successfully!");
+      showToast("📱 OTP sent successfully!", 'success', 4000);
     } catch (error) {
       console.error("Error sending OTP:", error);
-      toast.error("Failed to send OTP. Please try again.");
+      showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
     }
   };
 

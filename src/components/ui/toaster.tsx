@@ -52,11 +52,7 @@ export function Toaster() {
         }
 
         return (
-          <Toast 
-            key={id} 
-            {...props}
-            style={{ pointerEvents: "auto" }}
-          >
+          <Toast key={id} {...props}>
             <div className="grid gap-1">
               {title && <ToastTitle className="text-lg font-bold">{title}</ToastTitle>}
               {description && (

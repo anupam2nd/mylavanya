@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import { RegisterFormValues } from "./RegisterFormSchema";
 import { Asterisk } from "lucide-react";
 import OtpVerificationModal from "./OtpVerificationModal";
@@ -14,13 +14,14 @@ const ContactFields = () => {
   const form = useFormContext<RegisterFormValues>();
   const [sendingOtp, setSendingOtp] = useState(false);
   const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const { showToast } = useCustomToast();
   
   const phoneNumber = form.watch("phoneNumber");
   const isPhoneVerified = form.watch("isPhoneVerified");
   
   const handleSendOTP = async () => {
     if (!phoneNumber || phoneNumber.length !== 10) {
-      toast.error("Please enter a valid 10-digit phone number");
+      showToast("❌ Please enter a valid 10-digit phone number", 'error', 4000);
       return;
     }
 
@@ -39,7 +40,7 @@ const ContactFields = () => {
       }
       
       if (existingPhone && existingPhone.length > 0) {
-        toast.error(`This phone number is already registered with email: ${existingPhone[0].MemberEmailId}`);
+        showToast(`❌ This phone number is already registered with email: ${existingPhone[0].MemberEmailId}`, 'error', 4000);
         setSendingOtp(false);
         return;
       }
@@ -50,15 +51,15 @@ const ContactFields = () => {
       });
 
       if (response.error) {
-        toast.error("Failed to send OTP. Please try again.");
+        showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
         console.error("Error sending OTP:", response.error);
       } else {
-        toast.success("OTP sent successfully!");
+        showToast("📱 OTP sent successfully!", 'success', 4000);
         setOtpModalOpen(true);
       }
     } catch (error) {
       console.error("Error in OTP process:", error);
-      toast.error("Something went wrong. Please try again.");
+      showToast("❌ Something went wrong. Please try again.", 'error', 4000);
     } finally {
       setSendingOtp(false);
     }
@@ -67,7 +68,7 @@ const ContactFields = () => {
   const handleOtpSuccess = () => {
     form.setValue("isPhoneVerified", true);
     setOtpModalOpen(false);
-    toast.success("Phone number verified successfully! This number is now reserved for your account.");
+    showToast("✅ Phone number verified successfully! This number is now reserved for your account.", 'success', 4000);
   };
 
   return (

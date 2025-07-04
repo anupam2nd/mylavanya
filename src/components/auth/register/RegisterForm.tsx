@@ -8,7 +8,7 @@ import DateOfBirthField from "./DateOfBirthField";
 import PasswordFields from "./PasswordFields";
 import { useRegisterForm } from "./useRegisterForm";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 
 interface RegisterFormProps {
   onSuccess: (email: string, password: string) => void;
@@ -17,11 +17,12 @@ interface RegisterFormProps {
 
 export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
   const { form, isLoading, handleRegister } = useRegisterForm({ onSuccess });
+  const { showToast } = useCustomToast();
   
   const onSubmit = form.handleSubmit((data) => {
     // Check if phone is verified before proceeding
     if (!data.isPhoneVerified) {
-      toast.error("Please verify your phone number before creating an account");
+      showToast("❌ Please verify your phone number before creating an account", 'error', 4000);
       return;
     }
     
