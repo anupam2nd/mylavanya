@@ -37,8 +37,6 @@ export default function AdminForgotPassword({
   const handlePhoneSubmit = async (phone: string) => {
     setIsLoading(true);
     try {
-      console.log('Starting phone verification for admin/controller with phone:', phone);
-      
       // Check if phone number exists in UserMST table for admin/controller users
       const { data, error } = await supabase
         .from('UserMST')
@@ -54,27 +52,21 @@ export default function AdminForgotPassword({
       }
 
       if (!data) {
-        console.log('No admin/controller user found with phone:', phone);
         showToast("❌ No admin/controller user found with this phone number", 'error', 4000);
         return;
       }
 
-      console.log('Admin/controller user found, sending OTP to:', phone);
-
-      // Send OTP using the edge function
-      const { data: otpResponse, error: otpError } = await supabase.functions.invoke("send-registration-otp", {
+      // Send OTP
+      const response = await supabase.functions.invoke("send-registration-otp", {
         body: { phoneNumber: phone },
       });
 
-      console.log('OTP response:', otpResponse, 'OTP error:', otpError);
-
-      if (otpError) {
-        console.error("Error sending OTP:", otpError);
+      if (response.error) {
         showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
+        console.error("Error sending OTP:", response.error);
         return;
       }
 
-      console.log('OTP sent successfully to admin/controller');
       showToast("📱 OTP sent successfully!", 'success', 4000);
       setPhoneNumber(phone);
       setCurrentStep("otp");
@@ -92,7 +84,10 @@ export default function AdminForgotPassword({
 
   const handlePasswordResetSuccess = async () => {
     try {
+      // The actual password update is handled by the PasswordResetForm component
+      // This function is called after the password has been successfully updated
       console.log('Password reset completed for admin/controller with phone:', phoneNumber);
+      // Show only one success message - remove the duplicate toast here
       onSuccess(phoneNumber);
       onClose();
     } catch (error) {
@@ -139,7 +134,7 @@ export default function AdminForgotPassword({
         
         <div className="py-4">
           {currentStep === "phone" && (
-            <PhoneNumberForm onSubmit={handlePhoneSubmit} isLoading={isLoading} />
+            <PhoneNumberForm onSubmit={handlePhoneSubmit} />
           )}
           
           {currentStep === "otp" && (
@@ -235,6 +230,7 @@ function AdminPasswordResetForm({
       }
 
       console.log('Admin/controller password updated successfully in database');
+      // Show only one success message here
       showToast("🎉 Password reset successfully! You can now login with your new password.", 'success', 4000);
       onPasswordResetSuccess();
     } catch (error) {
