@@ -33,6 +33,8 @@ export default function ArtistForgotPassword({
 
   const handlePhoneSubmit = async (phone: string) => {
     try {
+      console.log('Starting phone verification for artist with phone:', phone);
+      
       // Check if phone number exists in ArtistMST table
       const { data, error } = await supabase
         .from('ArtistMST')
@@ -47,6 +49,7 @@ export default function ArtistForgotPassword({
       }
 
       if (!data) {
+        console.log('No artist found with phone:', phone);
         showToast("❌ No artist found with this phone number", 'error', 4000);
         return;
       }
@@ -56,17 +59,22 @@ export default function ArtistForgotPassword({
         return;
       }
 
-      // Send OTP
-      const response = await supabase.functions.invoke("send-registration-otp", {
+      console.log('Artist found, sending OTP to:', phone);
+
+      // Send OTP using the edge function
+      const { data: otpResponse, error: otpError } = await supabase.functions.invoke("send-registration-otp", {
         body: { phoneNumber: phone },
       });
 
-      if (response.error) {
+      console.log('OTP response:', otpResponse, 'OTP error:', otpError);
+
+      if (otpError) {
+        console.error("Error sending OTP:", otpError);
         showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
-        console.error("Error sending OTP:", response.error);
         return;
       }
 
+      console.log('OTP sent successfully to artist');
       showToast("📱 OTP sent successfully!", 'success', 4000);
       setPhoneNumber(phone);
       setCurrentStep("otp");
@@ -84,7 +92,7 @@ export default function ArtistForgotPassword({
     try {
       console.log('Starting password reset for artist with phone:', phoneNumber);
       
-      // Hash the password using the edge function - this is critical for artist security
+      // Hash the password using the edge function
       const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
         body: { password: newPassword }
       });
@@ -115,7 +123,7 @@ export default function ArtistForgotPassword({
       }
 
       console.log('Artist password updated successfully in database');
-      // Only show one toast message - remove the duplicate
+      showToast("🎉 Password reset successfully! You can now login with your new password.", 'success', 4000);
       onSuccess(phoneNumber);
       onClose();
     } catch (error) {
@@ -205,6 +213,8 @@ function ArtistPhoneNumberForm({ onSubmit }: { onSubmit: (phone: string) => void
       showToast("❌ Please enter a valid 10-digit phone number", 'error', 4000);
       return;
     }
+    
+    console.log('ArtistPhoneNumberForm submitting phone:', phoneNumber);
     setIsLoading(true);
     await onSubmit(phoneNumber);
     setIsLoading(false);
@@ -230,6 +240,7 @@ function ArtistPhoneNumberForm({ onSubmit }: { onSubmit: (phone: string) => void
           maxLength={10}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           required
+          disabled={isLoading}
         />
       </div>
       
