@@ -31,9 +31,11 @@ export default function AdminForgotPassword({
 }: AdminForgotPasswordProps) {
   const [currentStep, setCurrentStep] = useState<Step>("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useCustomToast();
 
   const handlePhoneSubmit = async (phone: string) => {
+    setIsLoading(true);
     try {
       // Check if phone number exists in UserMST table for admin/controller users
       const { data, error } = await supabase
@@ -71,6 +73,8 @@ export default function AdminForgotPassword({
     } catch (error) {
       console.error("Error in phone verification process:", error);
       showToast("❌ Something went wrong. Please try again.", 'error', 4000);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -95,6 +99,7 @@ export default function AdminForgotPassword({
   const handleClose = () => {
     setCurrentStep("phone");
     setPhoneNumber("");
+    setIsLoading(false);
     onClose();
   };
 
@@ -152,6 +157,7 @@ export default function AdminForgotPassword({
             type="button"
             variant="outline"
             onClick={handleClose}
+            disabled={isLoading}
           >
             Cancel
           </Button>

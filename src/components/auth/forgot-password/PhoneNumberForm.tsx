@@ -6,8 +6,6 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
-import { useCustomToast } from "@/context/ToastContext";
 
 interface PhoneNumberFormProps {
   onSubmit: (phoneNumber: string) => void;
@@ -19,7 +17,6 @@ const formSchema = z.object({
 
 export function PhoneNumberForm({ onSubmit }: PhoneNumberFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { showToast } = useCustomToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -29,40 +26,11 @@ export function PhoneNumberForm({ onSubmit }: PhoneNumberFormProps) {
   });
 
   const handleSubmit = async (data: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-
-      // Check if phone number exists in the database
-      const { data: existingUser, error } = await supabase
-        .from('MemberMST')
-        .select('id')
-        .eq('MemberPhNo', data.phoneNumber)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          showToast("❌ No account found with this phone number", 'error', 4000);
-          return;
-        }
-        throw error;
-      }
-
-      // Send OTP
-      const response = await supabase.functions.invoke("send-registration-otp", {
-        body: { phoneNumber: data.phoneNumber },
-      });
-
-      if (response.error) {
-        showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
-        console.error("Error sending OTP:", response.error);
-        return;
-      }
-
-      showToast("📱 OTP sent successfully!", 'success', 4000);
+      // Just pass the phone number to parent component
+      // The parent will handle the actual OTP sending logic
       onSubmit(data.phoneNumber);
-    } catch (error) {
-      console.error("Error in phone verification process:", error);
-      showToast("❌ Something went wrong. Please try again.", 'error', 4000);
     } finally {
       setIsLoading(false);
     }

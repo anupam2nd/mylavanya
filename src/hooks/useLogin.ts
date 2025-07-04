@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
+import { ensureSupabaseSession } from "@/utils/authUtils";
 
 interface LoginCredentials {
   email: string;
@@ -26,8 +27,9 @@ export function useLogin() {
       
       const { data, error } = await supabase
         .from('UserMST')
-        .select('id, email_id, role, FirstName, LastName, password')
+        .select('id, uuid, email_id, role, FirstName, LastName, password, active')
         .ilike('email_id', normalizedEmail)
+        .eq('active', true)
         .maybeSingle();
       
       if (error) {
@@ -61,29 +63,20 @@ export function useLogin() {
         throw new Error('Invalid credentials');
       }
       
-      // Create a session for this user in Supabase for JWT-based auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: normalizedEmail,
-        password: password
-      }).catch(error => {
-        logger.debug('Auth sign-in failed, using custom auth only');
-        return { data: null, error };
-      });
-      
-      if (authData?.session) {
-        logger.debug('Supabase auth session established');
-      } else {
-        logger.debug('Using custom auth only, no Supabase session');
-      }
-      
-      // Login using the context function
-      login({
-        id: data.id.toString(),
+      // Create user object
+      const userObj = {
+        id: data.uuid,
         email: data.email_id,
         role: data.role,
         firstName: data.FirstName,
         lastName: data.LastName
-      });
+      };
+
+      // Login using the context function (this will attempt to create Supabase session)
+      await login(userObj);
+      
+      // Ensure Supabase session is established for data access
+      await ensureSupabaseSession(userObj);
       
       showToast(`🎉 Login successful. Welcome back! You are now logged in as ${data.role}.`, 'success', 4000);
       
