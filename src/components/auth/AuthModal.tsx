@@ -1,16 +1,13 @@
 
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import SupabaseMemberLoginForm from "./SupabaseMemberLoginForm";
-import SupabaseRegisterForm from "./register/SupabaseRegisterForm";
-import AdminLoginForm from "./AdminLoginForm";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import AuthModalHeader from "./AuthModalHeader";
+import LoginForm from "./LoginForm";
+import MemberLoginForm from "./MemberLoginForm";
 import ArtistLoginForm from "./ArtistLoginForm";
+import RegisterForm from "./register/RegisterForm";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -20,78 +17,88 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLoginSuccess }: AuthModalProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [isLoading, setIsLoading] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
-
-  const handleClose = () => {
-    setShowRegister(false);
-    setActiveTab(defaultTab);
-    onClose();
-  };
-
+  
+  const getTitle = () => {
+    if (showRegister) {
+      return "Create Member Account";
+    }
+    
+    switch(defaultTab) {
+      case "artist":
+        return "Artist Sign In";
+      case "admin":
+        return "Admin Sign In";
+      default:
+        return "Member Sign In";
+    }
+  }
+  
   const handleLoginSuccess = () => {
     if (onLoginSuccess) {
       onLoginSuccess();
     }
-    handleClose();
+    onClose();
   };
 
-  const handleRegisterSuccess = () => {
-    setShowRegister(false);
-    handleClose();
+  const toggleForm = () => {
+    setShowRegister(!showRegister);
   };
-
+  
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {showRegister && activeTab === "member" ? "Create Member Account" : 
-             activeTab === "member" ? "Member Sign In" : 
-             activeTab === "admin" ? "Admin Sign In" : 
-             "Artist Sign In"}
-          </DialogTitle>
-        </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden max-h-[90vh] w-[95vw] sm:w-auto">
+        <AuthModalHeader 
+          title={getTitle()}
+          onClose={() => {
+            setShowRegister(false);
+            onClose();
+          }}
+          isLoading={isLoading}
+        />
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="member">Member</TabsTrigger>
-            <TabsTrigger value="admin">Admin</TabsTrigger>
-            <TabsTrigger value="artist">Artist</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="member" className="mt-4">
-            {showRegister ? (
-              <SupabaseRegisterForm 
-                onSuccess={handleRegisterSuccess}
-                onSignInClick={() => setShowRegister(false)}
-              />
-            ) : (
-              <div className="space-y-4">
-                <SupabaseMemberLoginForm onLoginSuccess={handleLoginSuccess} />
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Don't have an account?{" "}
-                    <button 
-                      className="text-primary hover:underline"
-                      onClick={() => setShowRegister(true)}
-                    >
-                      Sign up
-                    </button>
-                  </p>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="admin" className="mt-4">
-            <AdminLoginForm />
-          </TabsContent>
-          
-          <TabsContent value="artist" className="mt-4">
+        <div className="p-4 sm:p-6">
+          {showRegister ? (
+            <RegisterForm 
+              onSuccess={(email, password) => {
+                setShowRegister(false);
+                // We don't auto-login here, just show the login form again
+                toast.success("Registration successful! Please sign in with your new account.");
+              }} 
+              onSignInClick={toggleForm}
+            />
+          ) : defaultTab === "artist" ? (
             <ArtistLoginForm />
-          </TabsContent>
-        </Tabs>
+          ) : defaultTab === "admin" ? (
+            <LoginForm />
+          ) : (
+            <>
+              <MemberLoginForm onLoginSuccess={handleLoginSuccess} />
+              <div className="mt-4 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Don't have an account?{" "}
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto text-primary"
+                    onClick={toggleForm}
+                  >
+                    Register now
+                  </Button>
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+        
+        <div className="p-4 sm:p-6 pt-2 border-t">
+          <div className="text-center text-xs sm:text-sm">
+            By continuing, you agree to our{" "}
+            <a href="/terms" className="text-primary hover:underline">Terms of Service</a>{" "}
+            and{" "}
+            <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

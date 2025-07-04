@@ -1,14 +1,14 @@
 
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/SupabaseAuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 export const useNavbarLogic = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState("member");
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -44,13 +44,9 @@ export const useNavbarLogic = () => {
     setIsAuthModalOpen(true);
   };
   
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      closeMenu();
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+  const handleLogout = () => {
+    logout();
+    closeMenu();
   };
 
   return {

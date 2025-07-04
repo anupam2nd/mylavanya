@@ -2,7 +2,7 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import ChatBot from "../chatbot/ChatBot";
-import { useAuth } from "@/context/SupabaseAuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 

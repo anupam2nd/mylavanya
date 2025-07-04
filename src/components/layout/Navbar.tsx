@@ -63,7 +63,6 @@ const Navbar = () => {
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
         defaultTab={authModalTab} 
-        onLoginSuccess={() => setIsAuthModalOpen(false)}
       />
     </>
   );

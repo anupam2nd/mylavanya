@@ -1,6 +1,7 @@
 
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -45,55 +46,59 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/services/:id" element={<ServiceDetail />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/track-booking" element={<TrackBooking />} />
-          
-          {/* Admin Routes */}
-          <Route path="/admin/dashboard" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminDashboard /></ProtectedAdminRoute>} />
-          <Route path="/admin/users" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminUsers /></ProtectedAdminRoute>} />
-          <Route path="/admin/members" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminMembers /></ProtectedAdminRoute>} />
-          <Route path="/admin/bookings" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminBookings /></ProtectedAdminRoute>} />
-          <Route path="/admin/services" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminServices /></ProtectedAdminRoute>} />
-          <Route path="/admin/categories" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminCategories /></ProtectedAdminRoute>} />
-          <Route path="/admin/banner-images" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminBannerImages /></ProtectedAdminRoute>} />
-          <Route path="/admin/status" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminStatus /></ProtectedAdminRoute>} />
-          <Route path="/admin/artists" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminArtists /></ProtectedAdminRoute>} />
-          <Route path="/admin/artist-activity" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminArtistActivity /></ProtectedAdminRoute>} />
-          <Route path="/admin/faqs" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminFaqs /></ProtectedAdminRoute>} />
-          <Route path="/admin/wishlist" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><WishlistController /></ProtectedAdminRoute>} />
-          <Route path="/admin/artist-requests" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminArtistRequests /></ProtectedAdminRoute>} />
-          
-          {/* Controller Routes */}
-          <Route path="/controller/dashboard" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerDashboard /></ProtectedAdminRoute>} />
-          <Route path="/controller/bookings" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerBookings /></ProtectedAdminRoute>} />
-          <Route path="/controller/wishlist" element={<ProtectedAdminRoute allowedRoles={['controller']}><WishlistController /></ProtectedAdminRoute>} />
-          <Route path="/controller/artist-requests" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerArtistRequests /></ProtectedAdminRoute>} />
-          <Route path="/controller/artist-activity" element={<ProtectedAdminRoute allowedRoles={['controller']}><ArtistActivity /></ProtectedAdminRoute>} />
-          
-          {/* Artist Routes */}
-          <Route path="/artist/dashboard" element={<ProtectedAdminRoute allowedRoles={['artist']}><ArtistDashboard /></ProtectedAdminRoute>} />
-          <Route path="/artist/bookings" element={<ProtectedAdminRoute allowedRoles={['artist']}><ArtistBookings /></ProtectedAdminRoute>} />
-          
-          {/* User Routes */}
-          <Route path="/user/dashboard" element={<ProtectedAdminRoute allowedRoles={['member']}><UserDashboard /></ProtectedAdminRoute>} />
-          <Route path="/user/bookings" element={<ProtectedAdminRoute allowedRoles={['member']}><UserBookings /></ProtectedAdminRoute>} />
-          <Route path="/user/profile" element={<ProtectedAdminRoute allowedRoles={['member']}><Profile /></ProtectedAdminRoute>} />
-          <Route path="/user/settings" element={<ProtectedAdminRoute allowedRoles={['member']}><Settings /></ProtectedAdminRoute>} />
-          <Route path="/user/wishlist" element={<ProtectedAdminRoute allowedRoles={['member']}><Wishlist /></ProtectedAdminRoute>} />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster />
-        <Sonner />
-      </ToastProvider>
+      <Router>
+        <AuthProvider>
+          <ToastProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/services/:id" element={<ServiceDetail />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/track-booking" element={<TrackBooking />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin/dashboard" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminDashboard /></ProtectedAdminRoute>} />
+              <Route path="/admin/users" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminUsers /></ProtectedAdminRoute>} />
+              <Route path="/admin/members" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminMembers /></ProtectedAdminRoute>} />
+              <Route path="/admin/bookings" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminBookings /></ProtectedAdminRoute>} />
+              <Route path="/admin/services" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminServices /></ProtectedAdminRoute>} />
+              <Route path="/admin/categories" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminCategories /></ProtectedAdminRoute>} />
+              <Route path="/admin/banner-images" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminBannerImages /></ProtectedAdminRoute>} />
+              <Route path="/admin/status" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminStatus /></ProtectedAdminRoute>} />
+              <Route path="/admin/artists" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminArtists /></ProtectedAdminRoute>} />
+              <Route path="/admin/artist-activity" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminArtistActivity /></ProtectedAdminRoute>} />
+              <Route path="/admin/faqs" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminFaqs /></ProtectedAdminRoute>} />
+              <Route path="/admin/wishlist" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><WishlistController /></ProtectedAdminRoute>} />
+              <Route path="/admin/artist-requests" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminArtistRequests /></ProtectedAdminRoute>} />
+              
+              {/* Controller Routes */}
+              <Route path="/controller/dashboard" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerDashboard /></ProtectedAdminRoute>} />
+              <Route path="/controller/bookings" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerBookings /></ProtectedAdminRoute>} />
+              <Route path="/controller/wishlist" element={<ProtectedAdminRoute allowedRoles={['controller']}><WishlistController /></ProtectedAdminRoute>} />
+              <Route path="/controller/artist-requests" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerArtistRequests /></ProtectedAdminRoute>} />
+              <Route path="/controller/artist-activity" element={<ProtectedAdminRoute allowedRoles={['controller']}><ArtistActivity /></ProtectedAdminRoute>} />
+              
+              {/* Artist Routes */}
+              <Route path="/artist/dashboard" element={<ProtectedAdminRoute allowedRoles={['artist']}><ArtistDashboard /></ProtectedAdminRoute>} />
+              <Route path="/artist/bookings" element={<ProtectedAdminRoute allowedRoles={['artist']}><ArtistBookings /></ProtectedAdminRoute>} />
+              
+              {/* User Routes */}
+              <Route path="/user/dashboard" element={<ProtectedAdminRoute allowedRoles={['member']}><UserDashboard /></ProtectedAdminRoute>} />
+              <Route path="/user/bookings" element={<ProtectedAdminRoute allowedRoles={['member']}><UserBookings /></ProtectedAdminRoute>} />
+              <Route path="/user/profile" element={<ProtectedAdminRoute allowedRoles={['member']}><Profile /></ProtectedAdminRoute>} />
+              <Route path="/user/settings" element={<ProtectedAdminRoute allowedRoles={['member']}><Settings /></ProtectedAdminRoute>} />
+              <Route path="/user/wishlist" element={<ProtectedAdminRoute allowedRoles={['member']}><Wishlist /></ProtectedAdminRoute>} />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+            <Sonner />
+          </ToastProvider>
+        </AuthProvider>
+      </Router>
     </QueryClientProvider>
   );
 }

@@ -1,27 +1,15 @@
 
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
-import "./index.css";
-import { BrowserRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/context/SupabaseAuthContext";
-import { ToastProvider } from "@/context/ToastContext";
+import { createRoot } from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
 
-const queryClient = new QueryClient();
+// Make sure we're selecting the correct root element
+const rootElement = document.getElementById("root");
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <ToastProvider>
-            <App />
-            <Toaster />
-          </ToastProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
-  </StrictMode>
-);
+if (!rootElement) {
+  throw new Error("Root element not found! Make sure there is a div with id 'root' in your HTML.");
+}
+
+const root = createRoot(rootElement);
+
+root.render(<App />);
