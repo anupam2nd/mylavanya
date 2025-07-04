@@ -87,7 +87,7 @@ export default function AdminForgotPassword({
       // The actual password update is handled by the PasswordResetForm component
       // This function is called after the password has been successfully updated
       console.log('Password reset completed for admin/controller with phone:', phoneNumber);
-      showToast("🎉 Password updated successfully!", 'success', 4000);
+      // Show only one success message - remove the duplicate toast here
       onSuccess(phoneNumber);
       onClose();
     } catch (error) {
@@ -230,6 +230,8 @@ function AdminPasswordResetForm({
       }
 
       console.log('Admin/controller password updated successfully in database');
+      // Show only one success message here
+      showToast("🎉 Password reset successfully! You can now login with your new password.", 'success', 4000);
       onPasswordResetSuccess();
     } catch (error) {
       console.error("Error updating admin/controller password:", error);
