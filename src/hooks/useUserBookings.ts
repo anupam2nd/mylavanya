@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/SupabaseAuthContext";
 import { Booking } from "./useBookings";
 
 export const useUserBookings = () => {
@@ -15,21 +15,31 @@ export const useUserBookings = () => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const { data: authSession } = await supabase.auth.getSession();
-        
-        if (authSession?.session?.user?.id) {
-          const userId = parseInt(authSession.session.user.id, 10);
-          
-          if (!isNaN(userId)) {
-            const { data, error } = await supabase
-              .from('UserMST')
-              .select('email_id, FirstName, LastName')
-              .eq('id', userId)
-              .single();
-              
-            if (!error && data) {
-              setCurrentUser(data);
-            }
+        if (user?.role === 'member') {
+          // For member users, get profile from member_profiles
+          const { data, error } = await supabase
+            .from('member_profiles')
+            .select('first_name, last_name, phone_number')
+            .eq('id', user.id)
+            .single();
+            
+          if (!error && data) {
+            setCurrentUser({
+              email_id: user.email,
+              FirstName: data.first_name,
+              LastName: data.last_name
+            });
+          }
+        } else {
+          // For admin/controller users, get from UserMST
+          const { data, error } = await supabase
+            .from('UserMST')
+            .select('email_id, FirstName, LastName')
+            .eq('id', parseInt(user?.id || '0'))
+            .single();
+            
+          if (!error && data) {
+            setCurrentUser(data);
           }
         }
       } catch (error) {
@@ -37,8 +47,10 @@ export const useUserBookings = () => {
       }
     };
     
-    fetchCurrentUser();
-  }, []);
+    if (user) {
+      fetchCurrentUser();
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -96,7 +108,9 @@ export const useUserBookings = () => {
       }
     };
 
-    fetchBookings();
+    if (user) {
+      fetchBookings();
+    }
   }, [toast, user]);
 
   return { bookings, setBookings, loading, currentUser };
