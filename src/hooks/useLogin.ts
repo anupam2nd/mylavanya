@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
-import { ensureSupabaseSession } from "@/utils/authUtils";
 
 interface LoginCredentials {
   email: string;
@@ -22,7 +21,6 @@ export function useLogin() {
     setIsLoading(true);
     
     try {
-      // Explicitly convert email to lowercase for consistent matching
       const normalizedEmail = email.trim().toLowerCase();
       
       const { data, error } = await supabase
@@ -45,7 +43,6 @@ export function useLogin() {
         throw new Error('Invalid credentials');
       }
       
-      // Verify password using the edge function
       const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
         body: { 
           password: password,
@@ -63,7 +60,6 @@ export function useLogin() {
         throw new Error('Invalid credentials');
       }
       
-      // Create user object
       const userObj = {
         id: data.uuid,
         email: data.email_id,
@@ -72,15 +68,10 @@ export function useLogin() {
         lastName: data.LastName
       };
 
-      // Login using the context function (this will attempt to create Supabase session)
       await login(userObj);
-      
-      // Ensure Supabase session is established for data access
-      await ensureSupabaseSession(userObj);
       
       showToast(`🎉 Login successful. Welcome back! You are now logged in as ${data.role}.`, 'success', 4000);
       
-      // Fixed redirect logic for superadmin and admin
       if (data.role === 'superadmin' || data.role === 'admin') {
         navigate('/admin/dashboard');
       } else if (data.role === 'controller') {
