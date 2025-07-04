@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Dialog,
@@ -36,8 +37,6 @@ export default function AdminForgotPassword({
   const handlePhoneSubmit = async (phone: string) => {
     setIsLoading(true);
     try {
-      console.log('Checking admin/controller user with phone:', phone);
-      
       // Check if phone number exists in UserMST table for admin/controller users
       const { data, error } = await supabase
         .from('UserMST')
@@ -53,44 +52,27 @@ export default function AdminForgotPassword({
       }
 
       if (!data) {
-        console.log('No admin/controller user found with phone:', phone);
         showToast("❌ No admin/controller user found with this phone number", 'error', 4000);
         return;
       }
-
-      console.log('Admin/controller user found, sending OTP...');
 
       // Send OTP
       const response = await supabase.functions.invoke("send-registration-otp", {
         body: { phoneNumber: phone },
       });
 
-      console.log('OTP function response for admin:', response);
-
       if (response.error) {
-        console.error("Error sending OTP:", response.error);
-        showToast(`❌ Failed to send OTP: ${response.error.message || 'Unknown error'}`, 'error', 4000);
-        return;
-      }
-
-      if (response.data?.error) {
-        console.error("OTP API error:", response.data.error);
-        showToast(`❌ ${response.data.error}`, 'error', 4000);
-        return;
-      }
-
-      if (response.data?.success) {
-        console.log('OTP sent successfully to admin');
-        showToast("📱 OTP sent successfully!", 'success', 4000);
-        setPhoneNumber(phone);
-        setCurrentStep("otp");
-      } else {
-        console.error("Unexpected response format:", response.data);
         showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
+        console.error("Error sending OTP:", response.error);
+        return;
       }
+
+      showToast("📱 OTP sent successfully!", 'success', 4000);
+      setPhoneNumber(phone);
+      setCurrentStep("otp");
     } catch (error) {
       console.error("Error in phone verification process:", error);
-      showToast(`❌ Something went wrong: ${error.message || 'Unknown error'}`, 'error', 4000);
+      showToast("❌ Something went wrong. Please try again.", 'error', 4000);
     } finally {
       setIsLoading(false);
     }

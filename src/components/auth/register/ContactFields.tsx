@@ -29,8 +29,6 @@ const ContactFields = () => {
     try {
       setSendingOtp(true);
       
-      console.log('Checking if phone number is already registered:', phoneNumber);
-      
       const { data: existingPhone, error: phoneCheckError } = await supabase
         .from('MemberMST')
         .select('id, MemberEmailId')
@@ -38,7 +36,6 @@ const ContactFields = () => {
         .limit(1);
       
       if (phoneCheckError) {
-        console.error('Error checking existing phone:', phoneCheckError);
         throw phoneCheckError;
       }
       
@@ -48,38 +45,21 @@ const ContactFields = () => {
         return;
       }
 
-      console.log('Phone number is available, sending OTP...');
-
       // Send OTP via Supabase Edge Function
       const response = await supabase.functions.invoke("send-registration-otp", {
         body: { phoneNumber }
       });
 
-      console.log('OTP function response:', response);
-
       if (response.error) {
-        console.error("OTP sending failed:", response.error);
-        showToast(`❌ Failed to send OTP: ${response.error.message || 'Unknown error'}`, 'error', 4000);
-        return;
-      }
-
-      if (response.data?.error) {
-        console.error("OTP API error:", response.data.error);
-        showToast(`❌ ${response.data.error}`, 'error', 4000);
-        return;
-      }
-
-      if (response.data?.success) {
-        console.log('OTP sent successfully');
+        showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
+        console.error("Error sending OTP:", response.error);
+      } else {
         showToast("📱 OTP sent successfully!", 'success', 4000);
         setOtpModalOpen(true);
-      } else {
-        console.error("Unexpected response format:", response.data);
-        showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
       }
     } catch (error) {
       console.error("Error in OTP process:", error);
-      showToast(`❌ Something went wrong: ${error.message || 'Unknown error'}`, 'error', 4000);
+      showToast("❌ Something went wrong. Please try again.", 'error', 4000);
     } finally {
       setSendingOtp(false);
     }
