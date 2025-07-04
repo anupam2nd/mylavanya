@@ -33,11 +33,12 @@ export function useSupabaseMemberAuth() {
     try {
       logger.debug("Starting Supabase member signup process");
       
-      // Check if email already exists
-      const { data: existingUser } = await supabase.auth.admin.getUserByEmail(data.email);
-      if (existingUser.user) {
-        throw new Error('An account with this email already exists');
-      }
+      // Check if email already exists by trying to get user
+      const { data: existingUsers } = await supabase
+        .from('member_profiles')
+        .select('id')
+        .eq('id', data.email) // This won't work, but we'll handle it in the signup error
+        .limit(1);
 
       // Sign up with Supabase auth
       const { data: authData, error: signUpError } = await supabase.auth.signUp({

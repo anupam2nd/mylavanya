@@ -16,9 +16,10 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultTab?: string;
+  onLoginSuccess?: () => void;
 }
 
-export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLoginSuccess }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [showRegister, setShowRegister] = useState(false);
 
@@ -29,6 +30,9 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: Au
   };
 
   const handleLoginSuccess = () => {
+    if (onLoginSuccess) {
+      onLoginSuccess();
+    }
     handleClose();
   };
 
@@ -81,11 +85,11 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member" }: Au
           </TabsContent>
           
           <TabsContent value="admin" className="mt-4">
-            <AdminLoginForm onLoginSuccess={handleLoginSuccess} />
+            <AdminLoginForm />
           </TabsContent>
           
           <TabsContent value="artist" className="mt-4">
-            <ArtistLoginForm onLoginSuccess={handleLoginSuccess} />
+            <ArtistLoginForm />
           </TabsContent>
         </Tabs>
       </DialogContent>
