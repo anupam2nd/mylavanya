@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 
 interface PhoneNumberFormProps {
   onSubmit: (phoneNumber: string) => void;
@@ -19,6 +19,7 @@ const formSchema = z.object({
 
 export function PhoneNumberForm({ onSubmit }: PhoneNumberFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useCustomToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,7 +41,7 @@ export function PhoneNumberForm({ onSubmit }: PhoneNumberFormProps) {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          toast.error("No account found with this phone number");
+          showToast("❌ No account found with this phone number", 'error', 4000);
           return;
         }
         throw error;
@@ -52,16 +53,16 @@ export function PhoneNumberForm({ onSubmit }: PhoneNumberFormProps) {
       });
 
       if (response.error) {
-        toast.error("Failed to send OTP. Please try again.");
+        showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
         console.error("Error sending OTP:", response.error);
         return;
       }
 
-      toast.success("OTP sent successfully!");
+      showToast("📱 OTP sent successfully!", 'success', 4000);
       onSubmit(data.phoneNumber);
     } catch (error) {
       console.error("Error in phone verification process:", error);
-      toast.error("Something went wrong. Please try again.");
+      showToast("❌ Something went wrong. Please try again.", 'error', 4000);
     } finally {
       setIsLoading(false);
     }

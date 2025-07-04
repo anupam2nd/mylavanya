@@ -27,8 +27,10 @@ import AdminArtists from "@/pages/admin/AdminArtists";
 import AdminArtistActivity from "@/pages/admin/AdminArtistActivity";
 import AdminFaqs from "@/pages/admin/AdminFaqs";
 import WishlistController from "@/pages/admin/WishlistController";
+import AdminArtistRequests from "@/pages/admin/AdminArtistRequests";
 import ControllerDashboard from "@/pages/controller/ControllerDashboard";
 import ControllerBookings from "@/pages/controller/ControllerBookings";
+import ControllerArtistRequests from "@/pages/controller/ControllerArtistRequests";
 import ArtistActivity from "@/pages/controller/ArtistActivity";
 import ArtistDashboard from "@/pages/artist/ArtistDashboard";
 import ArtistBookings from "@/pages/artist/ArtistBookings";
@@ -70,10 +72,13 @@ function App() {
               <Route path="/admin/artist-activity" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminArtistActivity /></ProtectedAdminRoute>} />
               <Route path="/admin/faqs" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminFaqs /></ProtectedAdminRoute>} />
               <Route path="/admin/wishlist" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><WishlistController /></ProtectedAdminRoute>} />
+              <Route path="/admin/artist-requests" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminArtistRequests /></ProtectedAdminRoute>} />
               
               {/* Controller Routes */}
               <Route path="/controller/dashboard" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerDashboard /></ProtectedAdminRoute>} />
               <Route path="/controller/bookings" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerBookings /></ProtectedAdminRoute>} />
+              <Route path="/controller/wishlist" element={<ProtectedAdminRoute allowedRoles={['controller']}><WishlistController /></ProtectedAdminRoute>} />
+              <Route path="/controller/artist-requests" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerArtistRequests /></ProtectedAdminRoute>} />
               <Route path="/controller/artist-activity" element={<ProtectedAdminRoute allowedRoles={['controller']}><ArtistActivity /></ProtectedAdminRoute>} />
               
               {/* Artist Routes */}

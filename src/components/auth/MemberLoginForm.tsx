@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import ForgotPassword from "./ForgotPassword";
 import { useMemberLogin } from "@/hooks/useMemberLogin";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import { Eye, EyeOff } from "lucide-react";
 
 interface MemberLoginFormProps {
@@ -18,6 +18,7 @@ export default function MemberLoginForm({ onLoginSuccess }: MemberLoginFormProps
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { isLoading, handleLogin } = useMemberLogin();
+  const { showToast } = useCustomToast();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +31,7 @@ export default function MemberLoginForm({ onLoginSuccess }: MemberLoginFormProps
   const handleForgotPasswordSuccess = (phone: string) => {
     // Auto-fill the phone number in the login form
     setLoginData(prev => ({ ...prev, emailOrPhone: phone }));
-    toast.info("Password reset successful. Please login with your new password.");
+    showToast("🔐 Password reset successful. Please login with your new password.", 'info', 4000);
   };
 
   const togglePasswordVisibility = () => {

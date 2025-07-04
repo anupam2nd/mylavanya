@@ -1,5 +1,5 @@
 
-import { LayoutDashboard, Users, Calendar, Settings, Wrench, UserCheck, Heart, HelpCircle, Palette, LogOut, Image, FolderTree } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, Settings, Wrench, UserCheck, Heart, HelpCircle, Palette, LogOut, Image, FolderTree, FileText } from "lucide-react";
 import NavLink from "./NavLink";
 import { Button } from "@/components/ui/button";
 
@@ -53,7 +53,7 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
         Bookings
       </NavLink>
 
-      {/* Controller users only get Dashboard, Bookings, Wishlist, and Logout */}
+      {/* Controller users only get Dashboard, Bookings, Banner Images, Wishlist, and Logout */}
       {!isController && (
         <>
           {/* Services - Only for Admin and SuperAdmin */}
@@ -79,14 +79,26 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
           <NavLink to="/admin/artists" icon={UserCheck}>
             Artists
           </NavLink>
+        </>
+      )}
 
-          {/* Banner Images - Only for Admin and SuperAdmin */}
-          {(isAdmin || isSuperAdmin) && (
-            <NavLink to="/admin/banner-images" icon={Image}>
-              Banner Images
-            </NavLink>
-          )}
+      {/* Banner Images - Available for Admin, SuperAdmin, and Controller */}
+      {(isAdmin || isSuperAdmin || isController) && (
+        <NavLink to="/admin/banner-images" icon={Image}>
+          Banner Images
+        </NavLink>
+      )}
 
+      {/* New Artist Applicant - Available for Admin, SuperAdmin, and Controller */}
+      {(isAdmin || isSuperAdmin || isController) && (
+        <NavLink to="/admin/artist-applications" icon={UserPlus}>
+          New Artist Applicant
+        </NavLink>
+      )}
+
+      {/* Non-controller specific menu items */}
+      {!isController && (
+        <>
           {/* Users - Only for SuperAdmin */}
           {isSuperAdmin && (
             <NavLink to="/admin/users" icon={Users}>
@@ -103,8 +115,13 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
         </>
       )}
 
+      {/* Artist Request - Available for all roles except artists */}
+      <NavLink to={isController ? "/controller/artist-requests" : "/admin/artist-requests"} icon={FileText}>
+        Artist Request
+      </NavLink>
+
       {/* Wishlist Controller - Available for all roles except artists */}
-      <NavLink to="/admin/wishlist" icon={Heart}>
+      <NavLink to={isController ? "/controller/wishlist" : "/admin/wishlist"} icon={Heart}>
         Wishlist
       </NavLink>
 

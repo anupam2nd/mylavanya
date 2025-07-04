@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
 
@@ -15,6 +15,7 @@ export function useArtistLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useCustomToast();
 
   const handleLogin = async ({ email, password }: LoginCredentials) => {
     setIsLoading(true);
@@ -73,10 +74,7 @@ export function useArtistLogin() {
         lastName: data.ArtistLastName
       });
       
-      toast({
-        title: "Login successful",
-        description: `Welcome back! You are now logged in as an artist.`,
-      });
+      showToast("🎉 Login successful. Welcome back! You are now logged in as an artist.", 'success', 4000);
       
       // Redirect to artist dashboard
       navigate('/artist/dashboard');
@@ -84,11 +82,8 @@ export function useArtistLogin() {
       return true;
     } catch (error) {
       logger.error('Artist login failed');
-      toast({
-        variant: "destructive",
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "Invalid email or password. Please try again.",
-      });
+      const errorMessage = error instanceof Error ? error.message : "Invalid email or password. Please try again.";
+      showToast("❌ " + errorMessage, 'error', 4000);
       return false;
     } finally {
       setIsLoading(false);
