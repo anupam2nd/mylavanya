@@ -30,6 +30,7 @@ import WishlistController from "@/pages/admin/WishlistController";
 import AdminArtistRequests from "@/pages/admin/AdminArtistRequests";
 import ControllerDashboard from "@/pages/controller/ControllerDashboard";
 import ControllerBookings from "@/pages/controller/ControllerBookings";
+import ControllerBannerImages from "@/pages/controller/ControllerBannerImages";
 import ControllerArtistRequests from "@/pages/controller/ControllerArtistRequests";
 import ArtistActivity from "@/pages/controller/ArtistActivity";
 import ArtistDashboard from "@/pages/artist/ArtistDashboard";
@@ -77,6 +78,7 @@ function App() {
               {/* Controller Routes */}
               <Route path="/controller/dashboard" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerDashboard /></ProtectedAdminRoute>} />
               <Route path="/controller/bookings" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerBookings /></ProtectedAdminRoute>} />
+              <Route path="/controller/banner-images" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerBannerImages /></ProtectedAdminRoute>} />
               <Route path="/controller/wishlist" element={<ProtectedAdminRoute allowedRoles={['controller']}><WishlistController /></ProtectedAdminRoute>} />
               <Route path="/controller/artist-requests" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerArtistRequests /></ProtectedAdminRoute>} />
               <Route path="/controller/artist-activity" element={<ProtectedAdminRoute allowedRoles={['controller']}><ArtistActivity /></ProtectedAdminRoute>} />
