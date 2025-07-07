@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
-import { useMemberLogin } from "@/hooks/useMemberLogin";
 import { useCustomToast } from "@/context/ToastContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
+import { convertToAuthFormat, isPhoneInput, isEmailInput } from "@/utils/syntheticEmail";
 
 interface SupabaseMemberLoginFormProps {
   onLoginSuccess?: () => void;
@@ -15,14 +16,54 @@ interface SupabaseMemberLoginFormProps {
 export default function SupabaseMemberLoginForm({ onLoginSuccess }: SupabaseMemberLoginFormProps) {
   const [loginData, setLoginData] = useState({ emailOrPhone: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const { isLoading, handleLogin } = useMemberLogin();
+  const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useCustomToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await handleLogin(loginData, false); // Pass false to prevent navigation
-    if (success && onLoginSuccess) {
-      onLoginSuccess();
+    
+    const { emailOrPhone, password } = loginData;
+    
+    if (!emailOrPhone || !password) {
+      showToast("Please enter both email/phone and password", 'error');
+      return;
+    }
+
+    // Validate input format
+    const isEmail = isEmailInput(emailOrPhone);
+    const isPhone = isPhoneInput(emailOrPhone);
+    
+    if (!isEmail && !isPhone) {
+      showToast("Please enter a valid email address or 10-digit phone number", 'error');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // Convert phone number to synthetic email if needed
+      const authEmail = convertToAuthFormat(emailOrPhone);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: authEmail,
+        password: password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        showToast("🎉 Login successful. Welcome back!", 'success', 4000);
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      showToast("❌ Invalid credentials. Please check your email/phone and password.", 'error', 4000);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -33,14 +74,26 @@ export default function SupabaseMemberLoginForm({ onLoginSuccess }: SupabaseMemb
     }
 
     // Only handle forgot password for email addresses
-    const isEmail = loginData.emailOrPhone.includes('@');
+    const isEmail = isEmailInput(loginData.emailOrPhone);
     if (!isEmail) {
       showToast("Password reset is only available for email addresses. Please enter your email.", 'error');
       return;
     }
 
-    // For now, show a message that this feature is not yet implemented for Supabase members
-    showToast("Password reset for email addresses will be available soon. Please contact support if needed.", 'info');
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(loginData.emailOrPhone, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      showToast("Password reset email sent. Please check your inbox.", 'success');
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      showToast("Failed to send password reset email. Please try again.", 'error');
+    }
   };
 
   return (

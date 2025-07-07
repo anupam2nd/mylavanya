@@ -8,6 +8,7 @@ import { useCustomToast } from "@/context/ToastContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { generateSyntheticEmail, isPhoneInput, isEmailInput } from "@/utils/syntheticEmail";
 
 interface SupabaseRegisterFormProps {
   onSuccess: () => void;
@@ -18,8 +19,7 @@ export default function SupabaseRegisterForm({ onSuccess, onSignInClick }: Supab
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    email: "",
-    phoneNumber: "",
+    emailOrPhone: "",
     password: "",
     confirmPassword: "",
     sex: "Male",
@@ -45,11 +45,29 @@ export default function SupabaseRegisterForm({ onSuccess, onSignInClick }: Supab
       return;
     }
 
+    // Validate email or phone input
+    const isEmail = isEmailInput(formData.emailOrPhone);
+    const isPhone = isPhoneInput(formData.emailOrPhone);
+
+    if (!isEmail && !isPhone) {
+      showToast("Please enter a valid email address or 10-digit phone number", 'error');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      let authEmail = formData.emailOrPhone.trim().toLowerCase();
+      let isPhoneRegistration = false;
+
+      // If it's a phone number, generate synthetic email
+      if (isPhone) {
+        authEmail = generateSyntheticEmail(formData.emailOrPhone);
+        isPhoneRegistration = true;
+      }
+
       const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
+        email: authEmail,
         password: formData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
@@ -57,11 +75,14 @@ export default function SupabaseRegisterForm({ onSuccess, onSignInClick }: Supab
             userType: 'member',
             firstName: formData.firstName,
             lastName: formData.lastName,
-            phoneNumber: formData.phoneNumber,
+            phoneNumber: isPhoneRegistration ? formData.emailOrPhone : '',
+            originalPhone: isPhoneRegistration ? formData.emailOrPhone : '',
+            syntheticEmail: isPhoneRegistration ? authEmail : '',
             sex: formData.sex,
             dob: formData.dob,
             address: formData.address,
-            pincode: formData.pincode
+            pincode: formData.pincode,
+            isPhoneRegistration
           }
         }
       });
@@ -71,7 +92,11 @@ export default function SupabaseRegisterForm({ onSuccess, onSignInClick }: Supab
       }
 
       if (data.user) {
-        showToast("Registration successful! Please check your email to verify your account.", 'success');
+        if (isPhoneRegistration) {
+          showToast("Registration successful! You can now sign in with your phone number.", 'success');
+        } else {
+          showToast("Registration successful! Please check your email to verify your account.", 'success');
+        }
         onSuccess();
       }
     } catch (error: any) {
@@ -114,25 +139,13 @@ export default function SupabaseRegisterForm({ onSuccess, onSignInClick }: Supab
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="emailOrPhone">Email or Phone Number</Label>
         <Input
-          id="email"
-          type="email"
-          placeholder="Enter your email"
-          value={formData.email}
-          onChange={(e) => handleInputChange('email', e.target.value)}
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="phoneNumber">Phone Number</Label>
-        <Input
-          id="phoneNumber"
-          type="tel"
-          placeholder="Enter your 10-digit phone number"
-          value={formData.phoneNumber}
-          onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+          id="emailOrPhone"
+          type="text"
+          placeholder="Enter your email or 10-digit phone number"
+          value={formData.emailOrPhone}
+          onChange={(e) => handleInputChange('emailOrPhone', e.target.value)}
           required
         />
       </div>
