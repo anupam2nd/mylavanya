@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
+import { isSyntheticEmail } from '@/utils/syntheticEmail';
 
 interface AuthContextType {
   user: User | null;
@@ -27,8 +28,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         
         if (session?.user) {
-          // Determine user type and fetch appropriate profile data
-          await handleUserSession(session);
+          // Handle user session and profile data
+          setTimeout(() => {
+            handleUserSession(session);
+          }, 0);
         } else {
           setUser(null);
         }
@@ -51,27 +54,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleUserSession = async (session: Session) => {
     try {
-      const userEmail = session.user.email;
-      const userMetadata = session.user.user_metadata;
+      const authUser = session.user;
+      const userEmail = authUser.email;
+      const userMetadata = authUser.user_metadata;
       
-      // Check if user is a member (from Supabase auth)
-      if (userMetadata?.userType === 'member') {
+      // Check if user is a member (from Supabase auth with userType metadata or synthetic email)
+      const isMemberAuth = userMetadata?.userType === 'member' || (userEmail && isSyntheticEmail(userEmail));
+      
+      if (isMemberAuth) {
         // Fetch member profile data
-        const { data: memberProfile } = await supabase
+        const { data: memberProfile, error } = await supabase
           .from('member_profiles')
           .select('*')
-          .eq('id', session.user.id)
+          .eq('id', authUser.id)
           .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching member profile:', error);
+        }
 
         if (memberProfile) {
           setUser({
-            id: session.user.id,
-            email: userEmail || '',
+            id: authUser.id,
+            email: memberProfile.email || memberProfile.synthetic_email || userEmail || '',
             role: 'member',
             firstName: memberProfile.first_name,
             lastName: memberProfile.last_name
           });
           return;
+        } else {
+          // Create member profile if it doesn't exist
+          const { handleMemberProfileCreation } = await import('@/utils/memberProfileHandler');
+          await handleMemberProfileCreation(authUser);
+          
+          // Retry fetching the profile
+          const { data: newProfile } = await supabase
+            .from('member_profiles')
+            .select('*')
+            .eq('id', authUser.id)
+            .single();
+            
+          if (newProfile) {
+            setUser({
+              id: authUser.id,
+              email: newProfile.email || newProfile.synthetic_email || userEmail || '',
+              role: 'member',
+              firstName: newProfile.first_name,
+              lastName: newProfile.last_name
+            });
+            return;
+          }
         }
       }
 
@@ -113,24 +145,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Check if user is a legacy member (from MemberMST)
-      const { data: legacyMember } = await supabase
-        .from('MemberMST')
-        .select('*')
-        .eq('MemberEmailId', userEmail)
-        .single();
-
-      if (legacyMember) {
-        setUser({
-          id: legacyMember.uuid,
-          email: userEmail || '',
-          role: 'member',
-          firstName: legacyMember.MemberFirstName,
-          lastName: legacyMember.MemberLastName
-        });
-        return;
-      }
-
       console.log('No user profile found for:', userEmail);
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -139,29 +153,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string, role?: string): Promise<boolean> => {
     try {
-      // For members and cases where role is not specified, try Supabase auth first
-      if (!role || role === 'member') {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-          // If Supabase auth fails, it might be a legacy user
-          console.log('Supabase auth failed, might be legacy user');
-          return false;
-        }
-        
-        return !!data.user;
-      }
-
-      // For admin/artist users, also use Supabase auth but they should already be migrated
+      // Use Supabase auth for all login attempts
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Login error:', error);
+        return false;
+      }
+      
       return !!data.user;
     } catch (error) {
       console.error('Login error:', error);
