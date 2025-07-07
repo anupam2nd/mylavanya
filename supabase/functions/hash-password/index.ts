@@ -7,6 +7,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -14,7 +15,7 @@ serve(async (req) => {
   try {
     const { password } = await req.json()
     
-    console.log('Hash-password function called')
+    console.log('Hash-password function called for member registration')
     
     if (!password) {
       console.error('No password provided to hash-password function')
@@ -27,12 +28,15 @@ serve(async (req) => {
       )
     }
 
+    // Use Web Crypto API for password hashing (more compatible with Deno)
     const encoder = new TextEncoder()
     const data = encoder.encode(password)
     
+    // Generate a random salt
     const salt = crypto.getRandomValues(new Uint8Array(16))
     const saltString = Array.from(salt, byte => byte.toString(16).padStart(2, '0')).join('')
     
+    // Import the password as a key
     const key = await crypto.subtle.importKey(
       'raw',
       data,
@@ -41,6 +45,7 @@ serve(async (req) => {
       ['deriveBits']
     )
     
+    // Derive the hash using PBKDF2
     const hashBuffer = await crypto.subtle.deriveBits(
       {
         name: 'PBKDF2',
@@ -55,9 +60,10 @@ serve(async (req) => {
     const hashArray = new Uint8Array(hashBuffer)
     const hashString = Array.from(hashArray, byte => byte.toString(16).padStart(2, '0')).join('')
     
+    // Combine salt and hash for storage
     const hashedPassword = `pbkdf2:100000:${saltString}:${hashString}`
     
-    console.log('Password hashed successfully')
+    console.log('Password hashed successfully for member')
 
     return new Response(
       JSON.stringify({ hashedPassword }),

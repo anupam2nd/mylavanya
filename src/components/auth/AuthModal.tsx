@@ -3,9 +3,9 @@ import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AuthModalHeader from "./AuthModalHeader";
 import LoginForm from "./LoginForm";
-import MemberLoginForm from "./MemberLoginForm";
 import ArtistLoginForm from "./ArtistLoginForm";
-import RegisterForm from "./register/RegisterForm";
+import SupabaseMemberLoginForm from "./SupabaseMemberLoginForm";
+import SupabaseRegisterForm from "./SupabaseRegisterForm";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -45,6 +45,11 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
   const toggleForm = () => {
     setShowRegister(!showRegister);
   };
+
+  const handleRegisterSuccess = () => {
+    setShowRegister(false);
+    toast.success("Registration successful! Please check your email to verify your account.");
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -60,12 +65,8 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
         
         <div className="p-4 sm:p-6">
           {showRegister ? (
-            <RegisterForm 
-              onSuccess={(email, password) => {
-                setShowRegister(false);
-                // We don't auto-login here, just show the login form again
-                toast.success("Registration successful! Please sign in with your new account.");
-              }} 
+            <SupabaseRegisterForm 
+              onSuccess={handleRegisterSuccess}
               onSignInClick={toggleForm}
             />
           ) : defaultTab === "artist" ? (
@@ -74,7 +75,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
             <LoginForm />
           ) : (
             <>
-              <MemberLoginForm onLoginSuccess={handleLoginSuccess} />
+              <SupabaseMemberLoginForm onLoginSuccess={handleLoginSuccess} />
               <div className="mt-4 text-center">
                 <p className="text-sm text-muted-foreground">
                   Don't have an account?{" "}

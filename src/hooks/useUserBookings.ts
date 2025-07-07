@@ -15,30 +15,38 @@ export const useUserBookings = () => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const { data: authSession } = await supabase.auth.getSession();
-        
-        if (authSession?.session?.user?.id) {
-          const userId = parseInt(authSession.session.user.id, 10);
-          
-          if (!isNaN(userId)) {
-            const { data, error } = await supabase
-              .from('UserMST')
-              .select('email_id, FirstName, LastName')
-              .eq('id', userId)
-              .single();
-              
-            if (!error && data) {
-              setCurrentUser(data);
-            }
+        if (user?.role === 'member') {
+          // For members using Supabase auth, get profile data
+          const { data } = await supabase
+            .from('member_profiles')
+            .select('email, first_name, last_name')
+            .eq('id', user.id)
+            .single();
+            
+          if (data) {
+            setCurrentUser({
+              email_id: data.email,
+              FirstName: data.first_name,
+              LastName: data.last_name
+            });
           }
+        } else if (user?.role && ['admin', 'superadmin', 'controller', 'artist'].includes(user.role)) {
+          // For other user types, use existing logic
+          setCurrentUser({
+            email_id: user.email,
+            FirstName: user.firstName,
+            LastName: user.lastName
+          });
         }
       } catch (error) {
         console.error('Error fetching user:', error);
       }
     };
     
-    fetchCurrentUser();
-  }, []);
+    if (user) {
+      fetchCurrentUser();
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -55,7 +63,7 @@ export const useUserBookings = () => {
             query = query.eq('ArtistId', artistId);
           }
         } 
-        // For member role, filter bookings by email
+        // For member role, filter bookings by email or auth.uid()
         else if (user?.role === 'member' && user?.email) {
           console.log("Filtering bookings by member email:", user.email);
           query = query.eq('email', user.email);
@@ -96,7 +104,9 @@ export const useUserBookings = () => {
       }
     };
 
-    fetchBookings();
+    if (user) {
+      fetchBookings();
+    }
   }, [toast, user]);
 
   return { bookings, setBookings, loading, currentUser };

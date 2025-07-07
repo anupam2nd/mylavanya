@@ -323,6 +323,66 @@ export type Database = {
         }
         Relationships: []
       }
+      member_profiles: {
+        Row: {
+          address: string | null
+          children_details: Json | null
+          created_at: string | null
+          date_of_birth: string | null
+          email: string | null
+          first_name: string
+          has_children: boolean | null
+          id: string
+          last_name: string
+          marital_status: boolean | null
+          member_status: boolean | null
+          number_of_children: number | null
+          phone_number: string | null
+          pincode: string | null
+          sex: string | null
+          spouse_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          children_details?: Json | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          email?: string | null
+          first_name: string
+          has_children?: boolean | null
+          id: string
+          last_name: string
+          marital_status?: boolean | null
+          member_status?: boolean | null
+          number_of_children?: number | null
+          phone_number?: string | null
+          pincode?: string | null
+          sex?: string | null
+          spouse_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          children_details?: Json | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          email?: string | null
+          first_name?: string
+          has_children?: boolean | null
+          id?: string
+          last_name?: string
+          marital_status?: boolean | null
+          member_status?: boolean | null
+          number_of_children?: number | null
+          phone_number?: string | null
+          pincode?: string | null
+          sex?: string | null
+          spouse_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       MemberMST: {
         Row: {
           ChildrenDetails: Json | null
@@ -747,6 +807,10 @@ export type Database = {
           service_category: string
           service_description: string
         }[]
+      }
+      migrate_member_to_supabase_auth: {
+        Args: { member_email: string; member_password: string }
+        Returns: string
       }
       remove_from_wishlist: {
         Args: { wishlist_id_param: number; user_id_param: string }

@@ -76,7 +76,7 @@ export default function Footer() {
             }] : []),
             // Add Apply to Join Our Makeup Team option
             {
-              name: "Apply to Join Our Makeup Team",
+              name: "Join Our Makeup Team",
               onClick: () => setIsArtistApplicationOpen(true)
             },
             // Only show Admin and Artist signin if no one is logged in

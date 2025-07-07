@@ -1,225 +1,196 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-
-interface User {
-  id: string;
-  email: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-}
+import { Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  login: (user: User) => void;
-  logout: () => void;
   isAuthenticated: boolean;
-  refreshSession: () => Promise<void>;
+  login: (email: string, password: string, role?: string) => Promise<boolean>;
+  logout: () => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-
-  const refreshSession = async () => {
-    try {
-      const { data } = await supabase.auth.getSession();
-      console.log('Refreshing session:', data.session?.user?.id);
-      
-      if (data.session?.user) {
-        const { data: userData, error } = await supabase
-          .from('UserMST')
-          .select('*')
-          .eq('uuid', data.session.user.id)
-          .single();
-
-        if (userData && !error) {
-          const userObj = {
-            id: userData.uuid,
-            email: userData.email_id || data.session.user.email || '',
-            role: userData.role || 'user',
-            firstName: userData.FirstName,
-            lastName: userData.LastName,
-          };
-          setUser(userObj);
-          localStorage.setItem('user', JSON.stringify(userObj));
-        }
-      } else {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          try {
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-          } catch (error) {
-            console.error('Error parsing stored user:', error);
-            localStorage.removeItem('user');
-            setUser(null);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error refreshing session:', error);
-    }
-  };
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('Initial session check:', session?.user?.id);
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        setSession(session);
         
         if (session?.user) {
-          const { data: userData, error } = await supabase
-            .from('UserMST')
-            .select('*')
-            .eq('uuid', session.user.id)
-            .single();
-
-          if (userData && !error) {
-            const userObj = {
-              id: userData.uuid,
-              email: userData.email_id || session.user.email || '',
-              role: userData.role || 'user',
-              firstName: userData.FirstName,
-              lastName: userData.LastName,
-            };
-            setUser(userObj);
-            localStorage.setItem('user', JSON.stringify(userObj));
-          }
-        } else {
-          const storedUser = localStorage.getItem('user');
-          if (storedUser) {
-            try {
-              const parsedUser = JSON.parse(storedUser);
-              console.log('Found stored user:', parsedUser.email, 'role:', parsedUser.role);
-              setUser(parsedUser);
-            } catch (error) {
-              console.error('Error parsing stored user:', error);
-              localStorage.removeItem('user');
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeAuth();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.id);
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        try {
-          const { data: userData, error } = await supabase
-            .from('UserMST')
-            .select('*')
-            .eq('uuid', session.user.id)
-            .single();
-
-          if (userData && !error) {
-            const userObj = {
-              id: userData.uuid,
-              email: userData.email_id || session.user.email || '',
-              role: userData.role || 'user',
-              firstName: userData.FirstName,
-              lastName: userData.LastName,
-            };
-            setUser(userObj);
-            localStorage.setItem('user', JSON.stringify(userObj));
-          }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-        }
-      } else if (event === 'SIGNED_OUT') {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          try {
-            const parsedUser = JSON.parse(storedUser);
-            if (parsedUser.role !== 'admin' && parsedUser.role !== 'superadmin' && parsedUser.role !== 'controller') {
-              setUser(null);
-              localStorage.removeItem('user');
-            }
-          } catch (error) {
-            setUser(null);
-            localStorage.removeItem('user');
-          }
+          // Determine user type and fetch appropriate profile data
+          await handleUserSession(session);
         } else {
           setUser(null);
-          localStorage.removeItem('user');
         }
+        setLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        handleUserSession(session);
+      } else {
+        setLoading(false);
       }
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-    
-    if (userData.role === 'admin' || userData.role === 'superadmin' || userData.role === 'controller') {
-      try {
-        console.log('Creating Supabase session for admin user:', userData.email);
-        await supabase.auth.signInAnonymously();
-      } catch (error) {
-        console.error('Error creating Supabase session:', error);
+  const handleUserSession = async (session: Session) => {
+    try {
+      const userEmail = session.user.email;
+      const userMetadata = session.user.user_metadata;
+      
+      // Check if user is a member (from Supabase auth)
+      if (userMetadata?.userType === 'member') {
+        // Fetch member profile data
+        const { data: memberProfile } = await supabase
+          .from('member_profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (memberProfile) {
+          setUser({
+            id: session.user.id,
+            email: userEmail || '',
+            role: 'member',
+            firstName: memberProfile.first_name,
+            lastName: memberProfile.last_name
+          });
+          return;
+        }
       }
+
+      // Check if user is an admin/superadmin/controller
+      const { data: adminUser } = await supabase
+        .from('UserMST')
+        .select('*')
+        .eq('email_id', userEmail)
+        .eq('active', true)
+        .single();
+
+      if (adminUser) {
+        setUser({
+          id: adminUser.uuid,
+          email: userEmail || '',
+          role: adminUser.role || 'admin',
+          firstName: adminUser.FirstName,
+          lastName: adminUser.LastName
+        });
+        return;
+      }
+
+      // Check if user is an artist
+      const { data: artistUser } = await supabase
+        .from('ArtistMST')
+        .select('*')
+        .eq('emailid', userEmail)
+        .eq('Active', true)
+        .single();
+
+      if (artistUser) {
+        setUser({
+          id: artistUser.uuid,
+          email: userEmail || '',
+          role: 'artist',
+          firstName: artistUser.ArtistFirstName,
+          lastName: artistUser.ArtistLastName
+        });
+        return;
+      }
+
+      // Check if user is a legacy member (from MemberMST)
+      const { data: legacyMember } = await supabase
+        .from('MemberMST')
+        .select('*')
+        .eq('MemberEmailId', userEmail)
+        .single();
+
+      if (legacyMember) {
+        setUser({
+          id: legacyMember.uuid,
+          email: userEmail || '',
+          role: 'member',
+          firstName: legacyMember.MemberFirstName,
+          lastName: legacyMember.MemberLastName
+        });
+        return;
+      }
+
+      console.log('No user profile found for:', userEmail);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    
-    toast.success("👋 Logged out successfully", {
-      duration: 4000,
-      style: {
-        background: '#10B981',
-        color: 'white',
-        border: 'none',
-        borderRadius: '12px',
-        fontSize: '16px',
-        fontWeight: '500',
-        padding: '16px 20px',
-        boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.25), 0 10px 10px -5px rgba(16, 185, 129, 0.04)',
-      },
-      className: 'logout-toast',
-    });
-    
-    supabase.auth.signOut().then(() => {
-      navigate('/');
-    });
+  const login = async (email: string, password: string, role?: string): Promise<boolean> => {
+    try {
+      // For members and cases where role is not specified, try Supabase auth first
+      if (!role || role === 'member') {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          // If Supabase auth fails, it might be a legacy user
+          console.log('Supabase auth failed, might be legacy user');
+          return false;
+        }
+        
+        return !!data.user;
+      }
+
+      // For admin/artist users, also use Supabase auth but they should already be migrated
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      return !!data.user;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    }
   };
 
-  const contextValue = {
-    user, 
-    loading, 
-    login, 
-    logout, 
-    isAuthenticated: user !== null,
-    refreshSession
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value: AuthContextType = {
+    user,
+    isAuthenticated: !!user,
+    login,
+    logout,
+    loading,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');

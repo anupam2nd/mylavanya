@@ -79,7 +79,7 @@ const Hero = ({
               
               <ButtonCustom variant="primary-outline" size="lg" onClick={() => setIsArtistApplicationOpen(true)} className="group">
                 <Users className="mr-2" size={18} />
-                Apply to Join Our Makeup Team
+                Join Our Makeup Team
               </ButtonCustom>
             </div>
             

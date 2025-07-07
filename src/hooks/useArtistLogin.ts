@@ -65,21 +65,17 @@ export function useArtistLogin() {
         throw new Error('Invalid password');
       }
       
-      // Login using the context function with artist role
-      login({
-        id: data.ArtistId.toString(),
-        email: data.emailid,
-        role: 'artist',
-        firstName: data.ArtistFirstName,
-        lastName: data.ArtistLastName
-      });
+      // Login using the context function with artist role - fix: pass email and password
+      const success = await login(data.emailid, password, 'artist');
       
-      showToast("🎉 Login successful. Welcome back! You are now logged in as an artist.", 'success', 4000);
-      
-      // Redirect to artist dashboard
-      navigate('/artist/dashboard');
+      if (success) {
+        showToast("🎉 Login successful. Welcome back! You are now logged in as an artist.", 'success', 4000);
+        
+        // Redirect to artist dashboard
+        navigate('/artist/dashboard');
+      }
 
-      return true;
+      return success;
     } catch (error) {
       logger.error('Artist login failed');
       const errorMessage = error instanceof Error ? error.message : "Invalid email or password. Please try again.";

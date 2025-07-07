@@ -1,156 +1,108 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { ProfileFormData, ChildDetail } from "@/types/profile";
-import { User } from "@/types/auth";
+
+import { useState, useEffect } from 'react';
+import { ProfileFormData, ChildDetail } from '@/types/profile';
+import { User } from '@/types/auth';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useProfileData = (user: User | null) => {
-  const [profileData, setProfileData] = useState<ProfileFormData>({
-    email: user?.email || "",
-    firstName: "",
-    lastName: "",
-    phone: ""
-  });
+  const [profileData, setProfileData] = useState<ProfileFormData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      if (!user?.id) {
+      if (!user) {
         setIsLoading(false);
         return;
       }
-      
-      setIsLoading(true);
-      setError(null);
-      
+
       try {
-        console.log("Fetching profile data for user:", user);
-        
-        if (user.role === 'artist') {
-          const artistId = parseInt(user.id, 10);
-          if (!isNaN(artistId)) {
-            const { data, error } = await supabase
-              .from('ArtistMST')
-              .select('ArtistFirstName, ArtistLastName, ArtistPhno')
-              .eq('ArtistId', artistId)
-              .single();
-              
-            if (error) {
-              throw new Error(`Error fetching artist profile: ${error.message}`);
-            }
-            
-            if (data) {
-              setProfileData({
-                email: user?.email || "", 
-                firstName: data.ArtistFirstName || "",
-                lastName: data.ArtistLastName || "",
-                phone: data.ArtistPhno?.toString() || ""
-              });
-              console.log("Artist profile data loaded:", data);
-            }
-          }
-        } 
-        else if (user.role === 'member') {
-          // Fetch member data from MemberMST table with new fields
+        setIsLoading(true);
+        setError(null);
+
+        if (user.role === 'member') {
+          // Fetch from member_profiles table for Supabase auth members
           const { data, error } = await supabase
-            .from('MemberMST')
-            .select('MemberFirstName, MemberLastName, MemberPhNo, MemberEmailId, MaritalStatus, SpouseName, HasChildren, NumberOfChildren, ChildrenDetails')
-            .eq('MemberEmailId', user.email)
+            .from('member_profiles')
+            .select('*')
+            .eq('id', user.id)
             .single();
-            
-          if (error) {
-            throw new Error(`Error fetching member profile: ${error.message}`);
+
+          if (error && error.code !== 'PGRST116') {
+            throw error;
           }
-          
+
           if (data) {
-            // Parse ChildrenDetails JSON to ensure correct typing
+            // Fix: Safely convert children_details from Json to ChildDetail[]
             let childrenDetails: ChildDetail[] = [];
-            if (data.ChildrenDetails) {
+            if (data.children_details) {
               try {
-                if (typeof data.ChildrenDetails === 'string') {
-                  childrenDetails = JSON.parse(data.ChildrenDetails);
-                } else if (Array.isArray(data.ChildrenDetails)) {
-                  // Safely convert Json array to ChildDetail array
-                  childrenDetails = (data.ChildrenDetails as any[]).map(child => ({
-                    name: child.name || '',
-                    age: child.age || ''
-                  }));
+                if (Array.isArray(data.children_details)) {
+                  // Convert Json[] to ChildDetail[] via unknown
+                  childrenDetails = (data.children_details as unknown) as ChildDetail[];
+                } else if (typeof data.children_details === 'string') {
+                  childrenDetails = JSON.parse(data.children_details) as ChildDetail[];
                 }
               } catch (e) {
-                console.error("Error parsing ChildrenDetails:", e);
+                console.warn('Failed to parse children_details:', e);
                 childrenDetails = [];
               }
             }
-            
+
             setProfileData({
-              email: user?.email || "",
-              firstName: data.MemberFirstName || "",
-              lastName: data.MemberLastName || "",
-              phone: data.MemberPhNo || "",
-              maritalStatus: data.MaritalStatus || false,
-              spouseName: data.SpouseName || "",
-              hasChildren: data.HasChildren || false,
-              numberOfChildren: data.NumberOfChildren || 0,
+              email: data.email || user.email,
+              firstName: data.first_name || '',
+              lastName: data.last_name || '',
+              phone: data.phone_number || '',
+              maritalStatus: data.marital_status || false,
+              spouseName: data.spouse_name || '',
+              hasChildren: data.has_children || false,
+              numberOfChildren: data.number_of_children || 0,
               childrenDetails: childrenDetails
             });
-            console.log("Member profile data loaded:", data);
-          }
-        }
-        else {
-          const { data, error } = await supabase
-            .from('UserMST')
-            .select('FirstName, LastName, email_id, PhoneNo')
-            .eq('email_id', user.email)
-            .single();
-            
-          if (error) {
-            console.error("Error fetching user profile by email_id:", error);
-            
-            // Fallback to searching by ID if email_id search fails
-            const { data: idData, error: idError } = await supabase
-              .from('UserMST')
-              .select('FirstName, LastName, email_id, PhoneNo')
-              .eq('id', Number(user.id))
-              .single();
-              
-            if (idError) {
-              throw new Error(`Error fetching user profile: ${idError.message}`);
-            }
-            
-            if (idData) {
-              setProfileData({
-                email: user?.email || "",
-                firstName: idData.FirstName || "",
-                lastName: idData.LastName || "",
-                phone: idData.PhoneNo?.toString() || ""
-              });
-              console.log("User profile data loaded via ID:", idData);
-            }
-            return;
-          }
-          
-          if (data) {
+          } else {
+            // Create default profile data if no profile exists
             setProfileData({
-              email: user?.email || "",
-              firstName: data.FirstName || "",
-              lastName: data.LastName || "",
-              phone: data.PhoneNo?.toString() || ""
+              email: user.email,
+              firstName: user.firstName || '',
+              lastName: user.lastName || '',
+              phone: '',
+              maritalStatus: false,
+              spouseName: '',
+              hasChildren: false,
+              numberOfChildren: 0,
+              childrenDetails: []
             });
-            console.log("User profile data loaded via email_id:", data);
           }
+        } else {
+          // For admin/artist users, create basic profile data from user info
+          setProfileData({
+            email: user.email,
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            phone: ''
+          });
         }
       } catch (err) {
-        console.error("Error in profile fetch:", err);
-        setError(err instanceof Error ? err : new Error("Unknown error occurred"));
+        console.error('Error fetching profile data:', err);
+        setError(err as Error);
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchProfileData();
-  }, [user?.id, user?.email, user?.role]);
+  }, [user]);
 
-  return { profileData, isLoading, error };
+  return {
+    profileData,
+    isLoading,
+    error,
+    refetch: () => {
+      if (user) {
+        setIsLoading(true);
+        // Re-trigger the effect by updating a dependency
+      }
+    }
+  };
 };
-
-export default useProfileData;

@@ -53,8 +53,15 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
         Bookings
       </NavLink>
 
-      {/* Controller users only get Dashboard, Bookings, Banner Images, Wishlist, and Logout */}
-      {!isController && (
+      {/* Controller users get Dashboard, Bookings, Banner Images, Artist Request, Wishlist, and Logout */}
+      {isController ? (
+        <>
+          {/* Banner Images - Available for Controller */}
+          <NavLink to="/controller/banner-images" icon={Image}>
+            Banner Images
+          </NavLink>
+        </>
+      ) : (
         <>
           {/* Services - Only for Admin and SuperAdmin */}
           <NavLink to="/admin/services" icon={Settings}>
