@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { ProfileFormData } from '@/types/profile';
+import { ProfileFormData, ChildDetail } from '@/types/profile';
 import { User } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -33,6 +33,21 @@ export const useProfileData = (user: User | null) => {
           }
 
           if (data) {
+            // Fix: Safely convert children_details from Json to ChildDetail[]
+            let childrenDetails: ChildDetail[] = [];
+            if (data.children_details) {
+              try {
+                if (Array.isArray(data.children_details)) {
+                  childrenDetails = data.children_details as ChildDetail[];
+                } else if (typeof data.children_details === 'string') {
+                  childrenDetails = JSON.parse(data.children_details) as ChildDetail[];
+                }
+              } catch (e) {
+                console.warn('Failed to parse children_details:', e);
+                childrenDetails = [];
+              }
+            }
+
             setProfileData({
               email: data.email || user.email,
               firstName: data.first_name || '',
@@ -42,7 +57,7 @@ export const useProfileData = (user: User | null) => {
               spouseName: data.spouse_name || '',
               hasChildren: data.has_children || false,
               numberOfChildren: data.number_of_children || 0,
-              childrenDetails: data.children_details || []
+              childrenDetails: childrenDetails
             });
           } else {
             // Create default profile data if no profile exists

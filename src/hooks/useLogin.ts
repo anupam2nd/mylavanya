@@ -63,35 +63,25 @@ export function useLogin() {
         throw new Error('Invalid credentials');
       }
       
-      // Create user object
-      const userObj = {
-        id: data.uuid,
-        email: data.email_id,
-        role: data.role,
-        firstName: data.FirstName,
-        lastName: data.LastName
-      };
-
-      // Login using the context function (this will attempt to create Supabase session)
-      await login(userObj);
+      // Login using the context function - fix: pass email and password with role
+      const success = await login(data.email_id, password, data.role);
       
-      // Ensure Supabase session is established for data access
-      await ensureSupabaseSession(userObj);
-      
-      showToast(`🎉 Login successful. Welcome back! You are now logged in as ${data.role}.`, 'success', 4000);
-      
-      // Fixed redirect logic for superadmin and admin
-      if (data.role === 'superadmin' || data.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else if (data.role === 'controller') {
-        navigate('/controller/dashboard');
-      } else if (data.role === 'artist') {
-        navigate('/artist/dashboard');
-      } else {
-        navigate('/user/dashboard');
+      if (success) {
+        showToast(`🎉 Login successful. Welcome back! You are now logged in as ${data.role}.`, 'success', 4000);
+        
+        // Fixed redirect logic for superadmin and admin
+        if (data.role === 'superadmin' || data.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else if (data.role === 'controller') {
+          navigate('/controller/dashboard');
+        } else if (data.role === 'artist') {
+          navigate('/artist/dashboard');
+        } else {
+          navigate('/user/dashboard');
+        }
       }
 
-      return true;
+      return success;
     } catch (error) {
       logger.error('Admin login failed');
       showToast("❌ Invalid email or password. Please try again.", 'error', 4000);

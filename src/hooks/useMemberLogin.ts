@@ -92,22 +92,19 @@ export function useMemberLogin() {
       
       logger.debug('Member password verified successfully');
       
-      login({
-        id: memberData.id.toString(),
-        email: memberData.MemberEmailId,
-        role: 'member',
-        firstName: memberData.MemberFirstName,
-        lastName: memberData.MemberLastName
-      });
+      // Login using the context function - fix: pass email and password with role
+      const success = await login(memberData.MemberEmailId, password, 'member');
       
-      showToast("🎉 Login successful. Welcome back!", 'success', 4000);
-      
-      // Only navigate if shouldNavigate is true
-      if (shouldNavigate) {
-        navigate('/');
+      if (success) {
+        showToast("🎉 Login successful. Welcome back!", 'success', 4000);
+        
+        // Only navigate if shouldNavigate is true
+        if (shouldNavigate) {
+          navigate('/');
+        }
       }
 
-      return true;
+      return success;
     } catch (error) {
       logger.error('Member login failed:', error);
       showToast("❌ " + (error instanceof Error ? error.message : "Invalid email/phone or password. Please try again."), 'error', 4000);
