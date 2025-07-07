@@ -54,7 +54,7 @@ export const useBookings = () => {
           query = query.eq('ArtistId', artistId);
         }
       } else if (user.role === 'member') {
-        // For member users, only show their own bookings
+        // For member users using Supabase auth, show their own bookings
         if (user.email) {
           console.log("Filtering bookings for member email:", user.email);
           query = query.eq('email', user.email);

@@ -329,6 +329,7 @@ export type Database = {
           children_details: Json | null
           created_at: string | null
           date_of_birth: string | null
+          email: string | null
           first_name: string
           has_children: boolean | null
           id: string
@@ -347,6 +348,7 @@ export type Database = {
           children_details?: Json | null
           created_at?: string | null
           date_of_birth?: string | null
+          email?: string | null
           first_name: string
           has_children?: boolean | null
           id: string
@@ -365,6 +367,7 @@ export type Database = {
           children_details?: Json | null
           created_at?: string | null
           date_of_birth?: string | null
+          email?: string | null
           first_name?: string
           has_children?: boolean | null
           id?: string
@@ -804,6 +807,10 @@ export type Database = {
           service_category: string
           service_description: string
         }[]
+      }
+      migrate_member_to_supabase_auth: {
+        Args: { member_email: string; member_password: string }
+        Returns: string
       }
       remove_from_wishlist: {
         Args: { wishlist_id_param: number; user_id_param: string }
