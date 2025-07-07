@@ -78,11 +78,9 @@ const ContactFields = () => {
         name="email"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="flex items-center gap-1">
-              Email <Asterisk className="h-3 w-3 text-red-500" />
-            </FormLabel>
+            <FormLabel>Email (Optional)</FormLabel>
             <FormControl>
-              <Input placeholder="Enter your email" {...field} />
+              <Input placeholder="Enter your email (optional)" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
