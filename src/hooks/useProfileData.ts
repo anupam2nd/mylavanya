@@ -38,7 +38,8 @@ export const useProfileData = (user: User | null) => {
             if (data.children_details) {
               try {
                 if (Array.isArray(data.children_details)) {
-                  childrenDetails = data.children_details as ChildDetail[];
+                  // Convert Json[] to ChildDetail[] via unknown
+                  childrenDetails = (data.children_details as unknown) as ChildDetail[];
                 } else if (typeof data.children_details === 'string') {
                   childrenDetails = JSON.parse(data.children_details) as ChildDetail[];
                 }
