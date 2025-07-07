@@ -113,6 +113,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      // Check if user is a legacy member (from MemberMST)
+      const { data: legacyMember } = await supabase
+        .from('MemberMST')
+        .select('*')
+        .eq('MemberEmailId', userEmail)
+        .single();
+
+      if (legacyMember) {
+        setUser({
+          id: legacyMember.uuid,
+          email: userEmail || '',
+          role: 'member',
+          firstName: legacyMember.MemberFirstName,
+          lastName: legacyMember.MemberLastName
+        });
+        return;
+      }
+
       console.log('No user profile found for:', userEmail);
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -121,19 +139,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string, role?: string): Promise<boolean> => {
     try {
-      // For members, use Supabase auth directly
+      // For members and cases where role is not specified, try Supabase auth first
       if (!role || role === 'member') {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        if (error) throw error;
+        if (error) {
+          // If Supabase auth fails, it might be a legacy user
+          console.log('Supabase auth failed, might be legacy user');
+          return false;
+        }
+        
         return !!data.user;
       }
 
-      // For admin/artist users, we still use the existing login logic
-      // but also create a Supabase session if successful
+      // For admin/artist users, also use Supabase auth but they should already be migrated
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,

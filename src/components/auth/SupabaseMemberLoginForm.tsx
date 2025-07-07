@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
+import { useMemberLogin } from "@/hooks/useMemberLogin";
 import { useCustomToast } from "@/context/ToastContext";
-import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
 
 interface SupabaseMemberLoginFormProps {
@@ -13,71 +13,46 @@ interface SupabaseMemberLoginFormProps {
 }
 
 export default function SupabaseMemberLoginForm({ onLoginSuccess }: SupabaseMemberLoginFormProps) {
-  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [loginData, setLoginData] = useState({ emailOrPhone: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoading, handleLogin } = useMemberLogin();
   const { showToast } = useCustomToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginData.email,
-        password: loginData.password,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.user) {
-        showToast("Successfully signed in!", 'success');
-        if (onLoginSuccess) {
-          onLoginSuccess();
-        }
-      }
-    } catch (error: any) {
-      console.error('Login error:', error);
-      showToast(error.message || "Login failed. Please check your credentials.", 'error');
-    } finally {
-      setIsLoading(false);
+    const success = await handleLogin(loginData, false); // Pass false to prevent navigation
+    if (success && onLoginSuccess) {
+      onLoginSuccess();
     }
   };
 
   const handleForgotPassword = async () => {
-    if (!loginData.email) {
-      showToast("Please enter your email address first", 'error');
+    if (!loginData.emailOrPhone) {
+      showToast("Please enter your email or phone number first", 'error');
       return;
     }
 
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(loginData.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      showToast("Password reset email sent! Please check your inbox.", 'success');
-    } catch (error: any) {
-      console.error('Password reset error:', error);
-      showToast(error.message || "Failed to send password reset email", 'error');
+    // Only handle forgot password for email addresses
+    const isEmail = loginData.emailOrPhone.includes('@');
+    if (!isEmail) {
+      showToast("Password reset is only available for email addresses. Please enter your email.", 'error');
+      return;
     }
+
+    // For now, show a message that this feature is not yet implemented for Supabase members
+    showToast("Password reset for email addresses will be available soon. Please contact support if needed.", 'info');
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email-login">Email</Label>
+        <Label htmlFor="emailOrPhone-login">Email or Phone Number</Label>
         <Input
-          id="email-login"
-          type="email"
-          placeholder="Your email address"
-          value={loginData.email}
-          onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+          id="emailOrPhone-login"
+          type="text"
+          placeholder="Your email or 10-digit phone number"
+          value={loginData.emailOrPhone}
+          onChange={(e) => setLoginData({ ...loginData, emailOrPhone: e.target.value })}
           required
         />
       </div>

@@ -31,13 +31,36 @@ export function useMemberLogin() {
         throw new Error('Please enter a valid email address or 10-digit phone number');
       }
       
+      // First, try Supabase auth for email-based login
+      if (isEmail) {
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: normalizedInput,
+            password: password,
+          });
+
+          if (data.user && !error) {
+            logger.debug('Supabase auth login successful');
+            showToast("🎉 Login successful. Welcome back!", 'success', 4000);
+            
+            if (shouldNavigate) {
+              navigate('/');
+            }
+            return true;
+          }
+        } catch (supabaseError) {
+          logger.debug('Supabase auth failed, trying legacy auth');
+        }
+      }
+      
+      // Fall back to legacy member authentication
       let memberData;
       let memberError;
       
-      logger.debug('Starting member login process');
+      logger.debug('Starting legacy member login process');
       
       if (isEmail) {
-        // Search by email
+        // Search by email in MemberMST
         const { data, error } = await supabase
           .from('MemberMST')
           .select('id, MemberFirstName, MemberLastName, MemberEmailId, MemberPhNo, MemberAdress, MemberPincode, password')
@@ -46,7 +69,7 @@ export function useMemberLogin() {
         memberData = data;
         memberError = error;
       } else {
-        // Search by phone number
+        // Search by phone number in MemberMST
         const { data, error } = await supabase
           .from('MemberMST')
           .select('id, MemberFirstName, MemberLastName, MemberEmailId, MemberPhNo, MemberAdress, MemberPincode, password')
@@ -92,8 +115,32 @@ export function useMemberLogin() {
       
       logger.debug('Member password verified successfully');
       
-      // Login using the context function - fix: pass email and password with role
-      const success = await login(memberData.MemberEmailId, password, 'member');
+      // For legacy members, create a Supabase auth session
+      if (memberData.MemberEmailId) {
+        try {
+          // Try to create a Supabase auth user for this member
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: memberData.MemberEmailId,
+            password: password,
+            options: {
+              data: {
+                firstName: memberData.MemberFirstName,
+                lastName: memberData.MemberLastName,
+                userType: 'member'
+              }
+            }
+          });
+
+          if (signUpData.user && !signUpError) {
+            logger.debug('Created Supabase auth user for legacy member');
+          }
+        } catch (authError) {
+          logger.debug('Could not create Supabase auth user, continuing with legacy login');
+        }
+      }
+      
+      // Login using the context function
+      const success = await login(memberData.MemberEmailId || normalizedInput, password, 'member');
       
       if (success) {
         showToast("🎉 Login successful. Welcome back!", 'success', 4000);
