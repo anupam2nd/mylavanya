@@ -7,7 +7,6 @@ import ArtistLoginForm from "./ArtistLoginForm";
 import SupabaseMemberLoginForm from "./SupabaseMemberLoginForm";
 import SupabaseRegisterForm from "./SupabaseRegisterForm";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -48,7 +47,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
 
   const handleRegisterSuccess = () => {
     setShowRegister(false);
-    toast.success("Registration successful! Please check your email to verify your account.");
+    // Removed the duplicate toast.success call that was causing the white toast
   };
   
   return (
@@ -100,7 +99,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
             <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
           </div>
         </div>
-      </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
