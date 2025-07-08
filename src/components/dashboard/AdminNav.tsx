@@ -1,5 +1,5 @@
 
-import { LayoutDashboard, Users, Calendar, Settings, Wrench, UserCheck, Heart, HelpCircle, Palette, LogOut, Image, FolderTree, FileText } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, Settings, Wrench, UserCheck, Heart, HelpCircle, Palette, LogOut, Image, FolderTree, FileText, UserPlus } from "lucide-react";
 import NavLink from "./NavLink";
 import { Button } from "@/components/ui/button";
 
