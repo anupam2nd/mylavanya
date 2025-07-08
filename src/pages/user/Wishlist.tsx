@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,7 +36,7 @@ const Wishlist = () => {
       try {
         setLoading(true);
         
-        // Query the wishlist table directly with type assertion
+        // Query the wishlist table directly
         const { data, error } = await supabase
           .from('wishlist')
           .select(`
@@ -52,7 +51,7 @@ const Wishlist = () => {
               Description
             )
           `)
-          .eq('user_id', user.id as any); // Type assertion for UUID
+          .eq('user_id', user.id);
 
         if (error) {
           throw error;
@@ -62,7 +61,7 @@ const Wishlist = () => {
         const formattedItems: WishlistItem[] = data?.map(item => ({
           id: item.id,
           service_id: item.service_id,
-          user_id: String(item.user_id), // Convert to string properly
+          user_id: item.user_id as string, // Now properly UUID
           created_at: item.created_at,
           service_name: item.PriceMST.ProductName,
           service_price: item.PriceMST.Price,
@@ -94,7 +93,7 @@ const Wishlist = () => {
         .from('wishlist')
         .delete()
         .eq('id', itemId)
-        .eq('user_id', user.id as any); // Type assertion for UUID
+        .eq('user_id', user.id);
 
       if (error) throw error;
       
