@@ -744,19 +744,19 @@ export type Database = {
           created_at: string | null
           id: number
           service_id: number
-          user_id: number
+          user_id: number | null
         }
         Insert: {
           created_at?: string | null
           id?: number
           service_id: number
-          user_id: number
+          user_id?: number | null
         }
         Update: {
           created_at?: string | null
           id?: number
           service_id?: number
-          user_id?: number
+          user_id?: number | null
         }
         Relationships: [
           {
