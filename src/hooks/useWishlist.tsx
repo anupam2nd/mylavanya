@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 export const useWishlist = (serviceId?: number) => {
   const { user, isAuthenticated } = useAuth();
@@ -39,7 +39,11 @@ export const useWishlist = (serviceId?: number) => {
     if (e) e.stopPropagation();
     
     if (!isAuthenticated) {
-      toast.error("Please login to add items to your wishlist");
+      toast({
+        title: "Authentication Required",
+        description: "Please login to add items to your wishlist",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -69,7 +73,10 @@ export const useWishlist = (serviceId?: number) => {
         if (removeError) throw removeError;
         
         setIsInWishlist(false);
-        toast.success("Removed from wishlist");
+        toast({
+          title: "Removed from wishlist",
+          description: "Item has been removed from your wishlist",
+        });
       } else {
         // Add to wishlist
         const { error: addError } = await supabase
@@ -82,11 +89,18 @@ export const useWishlist = (serviceId?: number) => {
         if (addError) throw addError;
         
         setIsInWishlist(true);
-        toast.success("Added to wishlist");
+        toast({
+          title: "Added to wishlist",
+          description: "Item has been added to your wishlist",
+        });
       }
     } catch (error) {
       console.error("Error updating wishlist:", error);
-      toast.error("There was a problem updating your wishlist");
+      toast({
+        title: "Error",
+        description: "There was a problem updating your wishlist",
+        variant: "destructive",
+      });
     } finally {
       setWishlistLoading(false);
     }
