@@ -7,10 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { registerFormSchema, RegisterFormValues } from "./RegisterFormSchema";
 import { logger } from "@/utils/logger";
 import { useCustomToast } from "@/context/ToastContext";
-import { generateSyntheticEmail } from "@/utils/syntheticEmail";
 
 interface UseRegisterFormProps {
-  onSuccess: (email: string, password: string) => void;
+  onSuccess: (phone: string, password: string) => void;
 }
 
 export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
@@ -47,12 +46,12 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       const phoneNumber = values.phoneNumber.trim();
       const email = values.email?.trim() || "";
       
-      logger.debug("Starting member registration process");
+      logger.debug("Starting member registration process with phone auth");
       
-      // Check if phone number is already registered with enhanced uniqueness check
+      // Check if phone number is already registered
       const { data: existingMembersByPhone, error: checkPhoneError } = await supabase
         .from('MemberMST')
-        .select('id, MemberEmailId')
+        .select('id, MemberEmailId, MemberPhNo')
         .eq('MemberPhNo', phoneNumber);
       
       if (checkPhoneError) {
@@ -62,14 +61,14 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       
       if (existingMembersByPhone && existingMembersByPhone.length > 0) {
         logger.debug("Member with this phone already exists");
-        throw new Error(`This phone number is already registered with email: ${existingMembersByPhone[0].MemberEmailId}`);
+        throw new Error(`This phone number is already registered`);
       }
       
       // Check if email is provided and already exists
       if (email) {
         const { data: existingMembersByEmail, error: checkEmailError } = await supabase
           .from('MemberMST')
-          .select('id')
+          .select('id, MemberPhNo')
           .ilike('MemberEmailId', email);
         
         if (checkEmailError) {
@@ -83,45 +82,66 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
         }
       }
       
-      // Generate synthetic email for phone-based registration
-      const syntheticEmail = generateSyntheticEmail(phoneNumber);
-      
-      // Use synthetic email for Supabase auth registration
+      // Use Supabase phone authentication
       const { data, error } = await supabase.auth.signUp({
-        email: syntheticEmail,
+        phone: `+91${phoneNumber}`,
         password: values.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
           data: {
             userType: 'member',
             firstName: values.firstName,
             lastName: values.lastName,
             phoneNumber: phoneNumber,
-            originalPhone: phoneNumber,
             email: email || null,
             sex: values.sex,
             dob: values.dob ? format(values.dob, 'yyyy-MM-dd') : null,
             address: values.address,
             pincode: values.pincode,
-            isPhoneRegistration: true
           }
         }
       });
 
       if (error) {
-        logger.error('Supabase auth registration failed');
+        logger.error('Supabase auth registration failed:', error);
         throw error;
       }
 
       if (data.user) {
-        logger.debug("Member registration completed successfully");
-        showToast("🎉 Registration successful! Your account has been created. You can now sign in with your phone number.", 'success', 4000);
+        logger.debug("Phone auth registration successful, now creating member record");
         
-        // Pass synthetic email for auto-login
-        onSuccess(syntheticEmail, values.password);
+        // Create member record in MemberMST table with same UUID
+        const { error: memberError } = await supabase
+          .from('MemberMST')
+          .insert({
+            uuid: data.user.id,
+            MemberFirstName: values.firstName,
+            MemberLastName: values.lastName,
+            MemberPhNo: phoneNumber,
+            MemberEmailId: email || null,
+            MemberSex: values.sex,
+            MemberDOB: values.dob ? format(values.dob, 'yyyy-MM-dd') : null,
+            MemberAdress: values.address,
+            MemberPincode: values.pincode,
+            MemberStatus: true,
+            MaritalStatus: false,
+            HasChildren: false,
+            NumberOfChildren: 0,
+            ChildrenDetails: []
+          });
+
+        if (memberError) {
+          logger.error('Error creating member record:', memberError);
+          throw new Error('Failed to create member profile');
+        }
+        
+        logger.debug("Member registration completed successfully");
+        showToast("🎉 Registration successful! Please verify the OTP sent to your phone to complete the process.", 'success', 5000);
+        
+        // Pass phone number for auto-login after OTP verification
+        onSuccess(`+91${phoneNumber}`, values.password);
       }
     } catch (error: any) {
-      logger.error('Member registration failed');
+      logger.error('Member registration failed:', error);
       showToast("❌ Registration failed: " + (error.message || "Something went wrong. Please try again."), 'error', 4000);
     } finally {
       setIsLoading(false);

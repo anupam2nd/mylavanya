@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
-import { convertToAuthFormat, isPhoneInput, isEmailInput } from "@/utils/syntheticEmail";
 
 interface MemberLoginCredentials {
   emailOrPhone: string;
@@ -18,35 +17,46 @@ export function useMemberLogin() {
   const { login } = useAuth();
   const { showToast } = useCustomToast();
 
+  const isEmailInput = (input: string): boolean => {
+    return input.includes('@');
+  };
+
+  const isPhoneInput = (input: string): boolean => {
+    const cleanInput = input.replace(/\D/g, '');
+    return cleanInput.length === 10 && /^\d{10}$/.test(cleanInput);
+  };
+
   const handleLogin = async ({ emailOrPhone, password }: MemberLoginCredentials, shouldNavigate: boolean = true) => {
     setIsLoading(true);
     
     try {
       const normalizedInput = emailOrPhone.trim();
       
-      // Validate input format
-      const isEmail = isEmailInput(normalizedInput);
-      const isPhone = isPhoneInput(normalizedInput);
+      let authCredentials: { email?: string; phone?: string; password: string };
       
-      if (!isEmail && !isPhone) {
+      if (isEmailInput(normalizedInput)) {
+        // Login with email
+        authCredentials = {
+          email: normalizedInput.toLowerCase(),
+          password: password,
+        };
+      } else if (isPhoneInput(normalizedInput)) {
+        // Login with phone number
+        authCredentials = {
+          phone: `+91${normalizedInput}`,
+          password: password,
+        };
+      } else {
         throw new Error('Please enter a valid email address or 10-digit phone number');
       }
       
-      // Convert phone number to synthetic email if needed
-      const authEmail = convertToAuthFormat(normalizedInput);
-      
       logger.debug('Attempting login with:', { 
-        originalInput: normalizedInput, 
-        authEmail, 
-        isPhone, 
-        isEmail 
+        type: authCredentials.email ? 'email' : 'phone',
+        credential: authCredentials.email || authCredentials.phone
       });
       
       // Use Supabase auth for login
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: authEmail,
-        password: password,
-      });
+      const { data, error } = await supabase.auth.signInWithPassword(authCredentials);
 
       if (error) {
         logger.error('Supabase auth login failed:', error);
