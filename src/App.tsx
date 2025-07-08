@@ -60,6 +60,10 @@ function App() {
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/track-booking" element={<TrackBooking />} />
               
+              {/* Member Routes - both /profile and /user/profile work */}
+              <Route path="/profile" element={<ProtectedAdminRoute allowedRoles={['member']}><Profile /></ProtectedAdminRoute>} />
+              <Route path="/wishlist" element={<ProtectedAdminRoute allowedRoles={['member']}><Wishlist /></ProtectedAdminRoute>} />
+              
               {/* Admin Routes */}
               <Route path="/admin/dashboard" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminDashboard /></ProtectedAdminRoute>} />
               <Route path="/admin/users" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminUsers /></ProtectedAdminRoute>} />
