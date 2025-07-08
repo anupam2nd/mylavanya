@@ -69,7 +69,7 @@ const WishlistController = () => {
             const { data: memberData } = await supabase
               .from('MemberMST')
               .select('MemberFirstName, MemberLastName, MemberEmailId')
-              .eq('uuid', item.user_id as any); // Type assertion for UUID lookup
+              .eq('uuid', String(item.user_id)); // Convert to string properly
 
             // If member found, use their name
             if (memberData && memberData.length > 0) {
@@ -77,7 +77,7 @@ const WishlistController = () => {
               return {
                 id: item.id,
                 service_id: item.service_id,
-                user_id: item.user_id as string, // Cast to string for UUID
+                user_id: String(item.user_id), // Convert to string properly
                 created_at: item.created_at,
                 service_name: item.PriceMST.ProductName,
                 service_price: item.PriceMST.Price,
@@ -90,7 +90,7 @@ const WishlistController = () => {
               return {
                 id: item.id,
                 service_id: item.service_id,
-                user_id: item.user_id as string, // Cast to string for UUID
+                user_id: String(item.user_id), // Convert to string properly
                 created_at: item.created_at,
                 service_name: item.PriceMST.ProductName,
                 service_price: item.PriceMST.Price,

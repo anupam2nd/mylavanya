@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,7 +62,7 @@ const Wishlist = () => {
         const formattedItems: WishlistItem[] = data?.map(item => ({
           id: item.id,
           service_id: item.service_id,
-          user_id: item.user_id as string, // Cast to string for UUID
+          user_id: String(item.user_id), // Convert to string properly
           created_at: item.created_at,
           service_name: item.PriceMST.ProductName,
           service_price: item.PriceMST.Price,
