@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +13,7 @@ import { format } from "date-fns";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: number;  // Changed from string to number
+  user_id: string;  // Changed from number to string (UUID)
   created_at: string;
   service_name: string;
   service_price: number;
@@ -65,11 +64,11 @@ const WishlistController = () => {
         // Fetch user information for each wishlist item
         const enhancedData: WishlistItem[] = await Promise.all(
           data.map(async (item) => {
-            // Query MemberMST with numeric user_id
+            // Query MemberMST with UUID user_id
             const { data: memberData } = await supabase
               .from('MemberMST')
               .select('MemberFirstName, MemberLastName, MemberEmailId')
-              .eq('id', item.user_id)
+              .eq('uuid', item.user_id)
               .single();
 
             // If member found, use their name
@@ -119,7 +118,6 @@ const WishlistController = () => {
     fetchAllWishlist();
   }, []);
   
-  // Prepare data for export
   const exportData: ExportItem[] = wishlistItems.map(item => ({
     product_created_at: item.product_created_at ? format(new Date(item.product_created_at), 'yyyy-MM-dd') : 'Unknown',
     service_name: item.service_name,
@@ -127,7 +125,6 @@ const WishlistController = () => {
     service_price: item.service_price
   }));
 
-  // Define headers for the CSV export
   const exportHeaders = {
     product_created_at: 'Product Created At',
     service_name: 'Product Name',
