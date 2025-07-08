@@ -2,12 +2,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { toast } from "@/hooks/use-toast";
+import { useCustomToast } from "@/context/ToastContext";
 
 export const useWishlist = (serviceId?: number) => {
   const { user, isAuthenticated } = useAuth();
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const { showToast } = useCustomToast();
 
   // Check wishlist status when component mounts
   useEffect(() => {
@@ -39,11 +40,7 @@ export const useWishlist = (serviceId?: number) => {
     if (e) e.stopPropagation();
     
     if (!isAuthenticated) {
-      toast({
-        title: "Authentication Required",
-        description: "Please login to add items to your wishlist",
-        variant: "destructive",
-      });
+      showToast("Please login to add items to your wishlist", "error");
       return;
     }
     
@@ -73,10 +70,7 @@ export const useWishlist = (serviceId?: number) => {
         if (removeError) throw removeError;
         
         setIsInWishlist(false);
-        toast({
-          title: "Removed from wishlist",
-          description: "Item has been removed from your wishlist",
-        });
+        showToast("Removed from wishlist", "success");
       } else {
         // Add to wishlist
         const { error: addError } = await supabase
@@ -89,18 +83,11 @@ export const useWishlist = (serviceId?: number) => {
         if (addError) throw addError;
         
         setIsInWishlist(true);
-        toast({
-          title: "Added to wishlist",
-          description: "Item has been added to your wishlist",
-        });
+        showToast("Added to wishlist", "success");
       }
     } catch (error) {
       console.error("Error updating wishlist:", error);
-      toast({
-        title: "Error",
-        description: "There was a problem updating your wishlist",
-        variant: "destructive",
-      });
+      showToast("There was a problem updating your wishlist", "error");
     } finally {
       setWishlistLoading(false);
     }
