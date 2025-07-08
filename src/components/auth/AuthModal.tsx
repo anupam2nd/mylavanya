@@ -99,7 +99,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
             <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
           </div>
         </div>
-      </Dialog>
+      </DialogContent>
     </Dialog>
   );
 }
