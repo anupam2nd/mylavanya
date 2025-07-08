@@ -6,18 +6,18 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 
 interface PhoneNumberFormProps {
   onSubmit: (phoneNumber: string) => void;
+  isLoading?: boolean;
 }
 
 const formSchema = z.object({
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits").max(10, "Phone number must be 10 digits"),
 });
 
-export function PhoneNumberForm({ onSubmit }: PhoneNumberFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
-
+export function PhoneNumberForm({ onSubmit, isLoading = false }: PhoneNumberFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -26,14 +26,7 @@ export function PhoneNumberForm({ onSubmit }: PhoneNumberFormProps) {
   });
 
   const handleSubmit = async (data: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
-    try {
-      // Just pass the phone number to parent component
-      // The parent will handle the actual OTP sending logic
-      onSubmit(data.phoneNumber);
-    } finally {
-      setIsLoading(false);
-    }
+    onSubmit(data.phoneNumber);
   };
 
   return (
@@ -54,6 +47,7 @@ export function PhoneNumberForm({ onSubmit }: PhoneNumberFormProps) {
                   const value = e.target.value.replace(/[^0-9]/g, '');
                   field.onChange(value);
                 }}
+                disabled={isLoading}
               />
               <FormMessage />
             </FormItem>
@@ -61,7 +55,14 @@ export function PhoneNumberForm({ onSubmit }: PhoneNumberFormProps) {
         />
         
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Verifying..." : "Send OTP"}
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Sending OTP...
+            </>
+          ) : (
+            "Send OTP"
+          )}
         </Button>
       </form>
     </Form>
