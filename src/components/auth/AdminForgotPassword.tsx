@@ -134,7 +134,7 @@ export default function AdminForgotPassword({
         
         <div className="py-4">
           {currentStep === "phone" && (
-            <PhoneNumberForm onSubmit={handlePhoneSubmit} />
+            <PhoneNumberForm onSubmit={handlePhoneSubmit} isLoading={isLoading} />
           )}
           
           {currentStep === "otp" && (
