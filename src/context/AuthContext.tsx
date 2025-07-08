@@ -84,49 +84,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        // Fallback to member_profiles table
-        const { data: memberProfile, error } = await supabase
-          .from('member_profiles')
-          .select('*')
-          .eq('id', authUser.id)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching member profile:', error);
-        }
-
-        if (memberProfile) {
-          setUser({
-            id: authUser.id,
-            email: memberProfile.email || memberProfile.synthetic_email || userEmail || '',
-            role: 'member',
-            firstName: memberProfile.first_name,
-            lastName: memberProfile.last_name
-          });
-          return;
-        } else {
-          // Create member profile if it doesn't exist
-          const { handleMemberProfileCreation } = await import('@/utils/memberProfileHandler');
-          await handleMemberProfileCreation(authUser);
-          
-          // Retry fetching the profile
-          const { data: newProfile } = await supabase
-            .from('member_profiles')
-            .select('*')
-            .eq('id', authUser.id)
-            .single();
-            
-          if (newProfile) {
-            setUser({
-              id: authUser.id,
-              email: newProfile.email || newProfile.synthetic_email || userEmail || '',
-              role: 'member',
-              firstName: newProfile.first_name,
-              lastName: newProfile.last_name
-            });
-            return;
-          }
-        }
+        // If no member data found, create a basic user profile from auth data
+        console.log('No member profile found, creating basic user profile');
+        setUser({
+          id: authUser.id,
+          email: userEmail || '',
+          role: 'member',
+          firstName: userMetadata?.firstName || '',
+          lastName: userMetadata?.lastName || ''
+        });
+        return;
       }
 
       // Check if user is an admin/superadmin/controller
