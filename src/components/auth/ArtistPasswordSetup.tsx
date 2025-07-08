@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -135,7 +134,36 @@ export function ArtistPasswordSetup({ artistData, onComplete, onBack }: ArtistPa
 
     setIsLoading(true);
     try {
-      // Hash the password using the edge function
+      // First, create the artist in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: artistData.emailid,
+        password: newPassword,
+        options: {
+          data: {
+            userType: 'artist',
+            firstName: artistData.ArtistFirstName,
+            lastName: artistData.ArtistLastName,
+            artistId: artistData.ArtistId,
+            phoneNumber: phoneNumber
+          },
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (authError) {
+        console.error('Supabase auth signup failed:', authError);
+        toast.error("Failed to create artist account: " + authError.message);
+        return;
+      }
+
+      if (!authData.user) {
+        toast.error("Failed to create artist account");
+        return;
+      }
+
+      console.log('Artist created in Supabase Auth:', authData.user.id);
+
+      // Hash the password using the edge function for database storage
       const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
         body: { password: newPassword }
       });
@@ -152,22 +180,26 @@ export function ArtistPasswordSetup({ artistData, onComplete, onBack }: ArtistPa
         return;
       }
 
-      const { error } = await supabase
+      // Update the ArtistMST table with the hashed password and UUID
+      const { error: updateError } = await supabase
         .from('ArtistMST')
-        .update({ password: hashResult.hashedPassword })
+        .update({ 
+          password: hashResult.hashedPassword,
+          uuid: authData.user.id
+        })
         .eq('ArtistId', artistData.ArtistId);
 
-      if (error) {
-        console.error("Error updating password:", error);
+      if (updateError) {
+        console.error("Error updating artist record:", updateError);
         toast.error("Failed to set password. Please try again.");
         return;
       }
 
-      toast.success("Password set successfully!");
+      toast.success("Artist account created successfully! You can now sign in.");
       onComplete();
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Failed to set password. Please try again.");
+      toast.error("Failed to create artist account. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -353,7 +385,7 @@ export function ArtistPasswordSetup({ artistData, onComplete, onBack }: ArtistPa
           onClick={setPassword}
           disabled={isLoading}
         >
-          {isLoading ? "Setting Password..." : "Set Password"}
+          {isLoading ? "Creating Account..." : "Create Account"}
         </ButtonCustom>
       </div>
     </div>

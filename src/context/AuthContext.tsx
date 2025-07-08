@@ -61,6 +61,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Check if user is a member (from Supabase auth with userType metadata or synthetic email)
       const isMemberAuth = userMetadata?.userType === 'member' || (userEmail && isSyntheticEmail(userEmail));
       
+      // Check if user is an artist (from Supabase auth with userType metadata)
+      const isArtistAuth = userMetadata?.userType === 'artist';
+
       if (isMemberAuth) {
         // Fetch member data from MemberMST table using UUID
         const { data: memberData, error: memberError } = await supabase
@@ -96,6 +99,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      if (isArtistAuth) {
+        // Fetch artist data from ArtistMST table using UUID
+        const { data: artistData, error: artistError } = await supabase
+          .from('ArtistMST')
+          .select('*')
+          .eq('uuid', authUser.id)
+          .single();
+
+        if (artistError && artistError.code !== 'PGRST116') {
+          console.error('Error fetching artist data:', artistError);
+        }
+
+        if (artistData) {
+          setUser({
+            id: authUser.id,
+            email: artistData.emailid || userEmail || '',
+            role: 'artist',
+            firstName: artistData.ArtistFirstName,
+            lastName: artistData.ArtistLastName
+          });
+          return;
+        }
+
+        // If no artist data found, create a basic user profile from auth data
+        console.log('No artist profile found, creating basic user profile');
+        setUser({
+          id: authUser.id,
+          email: userEmail || '',
+          role: 'artist',
+          firstName: userMetadata?.firstName || '',
+          lastName: userMetadata?.lastName || ''
+        });
+        return;
+      }
+
       // Check if user is an admin/superadmin/controller
       const { data: adminUser } = await supabase
         .from('UserMST')
@@ -115,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Check if user is an artist
+      // Fallback: Check if user is an artist (legacy without Supabase Auth)
       const { data: artistUser } = await supabase
         .from('ArtistMST')
         .select('*')
