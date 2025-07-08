@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,7 +69,7 @@ const WishlistController = () => {
             const { data: memberData } = await supabase
               .from('MemberMST')
               .select('MemberFirstName, MemberLastName, MemberEmailId')
-              .eq('uuid', item.user_id); // Now properly UUID
+              .eq('uuid', String(item.user_id)); // Convert to string for UUID comparison
 
             // If member found, use their name
             if (memberData && memberData.length > 0) {
@@ -76,7 +77,7 @@ const WishlistController = () => {
               return {
                 id: item.id,
                 service_id: item.service_id,
-                user_id: item.user_id as string, // Now properly UUID
+                user_id: String(item.user_id), // Convert to string for consistency
                 created_at: item.created_at,
                 service_name: item.PriceMST.ProductName,
                 service_price: item.PriceMST.Price,
@@ -89,7 +90,7 @@ const WishlistController = () => {
               return {
                 id: item.id,
                 service_id: item.service_id,
-                user_id: item.user_id as string, // Now properly UUID
+                user_id: String(item.user_id), // Convert to string for consistency
                 created_at: item.created_at,
                 service_name: item.PriceMST.ProductName,
                 service_price: item.PriceMST.Price,
