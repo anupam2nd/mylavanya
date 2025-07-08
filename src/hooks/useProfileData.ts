@@ -21,11 +21,11 @@ export const useProfileData = (user: User | null) => {
         setError(null);
 
         if (user.role === 'member') {
-          // Fetch from member_profiles table for Supabase auth members
+          // Fetch from MemberMST table for members
           const { data, error } = await supabase
-            .from('member_profiles')
+            .from('MemberMST')
             .select('*')
-            .eq('id', user.id)
+            .eq('uuid', user.id)
             .single();
 
           if (error && error.code !== 'PGRST116') {
@@ -33,15 +33,14 @@ export const useProfileData = (user: User | null) => {
           }
 
           if (data) {
-            // Fix: Safely convert children_details from Json to ChildDetail[]
+            // Parse children details from MemberMST
             let childrenDetails: ChildDetail[] = [];
-            if (data.children_details) {
+            if (data.ChildrenDetails) {
               try {
-                if (Array.isArray(data.children_details)) {
-                  // Convert Json[] to ChildDetail[] via unknown
-                  childrenDetails = (data.children_details as unknown) as ChildDetail[];
-                } else if (typeof data.children_details === 'string') {
-                  childrenDetails = JSON.parse(data.children_details) as ChildDetail[];
+                if (Array.isArray(data.ChildrenDetails)) {
+                  childrenDetails = (data.ChildrenDetails as unknown) as ChildDetail[];
+                } else if (typeof data.ChildrenDetails === 'string') {
+                  childrenDetails = JSON.parse(data.ChildrenDetails) as ChildDetail[];
                 }
               } catch (e) {
                 console.warn('Failed to parse children_details:', e);
@@ -50,14 +49,14 @@ export const useProfileData = (user: User | null) => {
             }
 
             setProfileData({
-              email: data.email || user.email,
-              firstName: data.first_name || '',
-              lastName: data.last_name || '',
-              phone: data.phone_number || '',
-              maritalStatus: data.marital_status || false,
-              spouseName: data.spouse_name || '',
-              hasChildren: data.has_children || false,
-              numberOfChildren: data.number_of_children || 0,
+              email: data.MemberEmailId || user.email,
+              firstName: data.MemberFirstName || '',
+              lastName: data.MemberLastName || '',
+              phone: data.MemberPhNo || '',
+              maritalStatus: data.MaritalStatus || false,
+              spouseName: data.SpouseName || '',
+              hasChildren: data.HasChildren || false,
+              numberOfChildren: data.NumberOfChildren || 0,
               childrenDetails: childrenDetails
             });
           } else {

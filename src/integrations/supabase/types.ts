@@ -412,6 +412,7 @@ export type Database = {
           NumberOfChildren: number | null
           password: string | null
           SpouseName: string | null
+          synthetic_email: string | null
           uuid: string
         }
         Insert: {
@@ -431,6 +432,7 @@ export type Database = {
           NumberOfChildren?: number | null
           password?: string | null
           SpouseName?: string | null
+          synthetic_email?: string | null
           uuid?: string
         }
         Update: {
@@ -450,6 +452,7 @@ export type Database = {
           NumberOfChildren?: number | null
           password?: string | null
           SpouseName?: string | null
+          synthetic_email?: string | null
           uuid?: string
         }
         Relationships: []

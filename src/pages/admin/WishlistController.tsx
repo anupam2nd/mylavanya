@@ -14,7 +14,7 @@ import { format } from "date-fns";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: number;  // Changed from string to number
+  user_id: string;  // UUID string
   created_at: string;
   service_name: string;
   service_price: number;
@@ -40,7 +40,7 @@ const WishlistController = () => {
         setLoading(true);
         console.log("Fetching all wishlist items");
         
-        // Query to join wishlist with PriceMST and MemberMST tables
+        // Query to join wishlist with PriceMST tables
         const { data, error } = await supabase
           .from('wishlist')
           .select(`
@@ -65,15 +65,15 @@ const WishlistController = () => {
         // Fetch user information for each wishlist item
         const enhancedData: WishlistItem[] = await Promise.all(
           data.map(async (item) => {
-            // Query MemberMST with numeric user_id
+            // Query MemberMST with UUID user_id
             const { data: memberData } = await supabase
               .from('MemberMST')
               .select('MemberFirstName, MemberLastName, MemberEmailId')
-              .eq('id', item.user_id)
-              .single();
+              .eq('uuid', item.user_id);
 
             // If member found, use their name
-            if (memberData) {
+            if (memberData && memberData.length > 0) {
+              const member = memberData[0];
               return {
                 id: item.id,
                 service_id: item.service_id,
@@ -83,7 +83,7 @@ const WishlistController = () => {
                 service_price: item.PriceMST.Price,
                 service_category: item.PriceMST.Category,
                 product_created_at: item.PriceMST.created_at,
-                customer_name: `${memberData.MemberFirstName || ''} ${memberData.MemberLastName || ''}`.trim() || 'Unknown'
+                customer_name: `${member.MemberFirstName || ''} ${member.MemberLastName || ''}`.trim() || 'Unknown'
               };
             } else {
               // If no member found, return with unknown customer name
@@ -119,7 +119,6 @@ const WishlistController = () => {
     fetchAllWishlist();
   }, []);
   
-  // Prepare data for export
   const exportData: ExportItem[] = wishlistItems.map(item => ({
     product_created_at: item.product_created_at ? format(new Date(item.product_created_at), 'yyyy-MM-dd') : 'Unknown',
     service_name: item.service_name,
@@ -127,7 +126,6 @@ const WishlistController = () => {
     service_price: item.service_price
   }));
 
-  // Define headers for the CSV export
   const exportHeaders = {
     product_created_at: 'Product Created At',
     service_name: 'Product Name',

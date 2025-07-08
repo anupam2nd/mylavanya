@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: number;  // Changed from string to number
+  user_id: string;  // UUID string
   created_at: string;
   service_name: string;
   service_price: number;
@@ -36,8 +37,7 @@ const Wishlist = () => {
       try {
         setLoading(true);
         
-        // Instead of using the RPC function, query the wishlist table directly
-        // and join with the PriceMST table to get service details
+        // Query the wishlist table directly
         const { data, error } = await supabase
           .from('wishlist')
           .select(`
@@ -52,7 +52,7 @@ const Wishlist = () => {
               Description
             )
           `)
-          .eq('user_id', parseInt(user.id));
+          .eq('user_id', user.id);
 
         if (error) {
           throw error;
@@ -94,7 +94,7 @@ const Wishlist = () => {
         .from('wishlist')
         .delete()
         .eq('id', itemId)
-        .eq('user_id', parseInt(user.id));
+        .eq('user_id', user.id);
 
       if (error) throw error;
       

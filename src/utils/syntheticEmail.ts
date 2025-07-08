@@ -4,7 +4,7 @@
  */
 
 export const SYNTHETIC_EMAIL_DOMAIN = '@member.mylavanya.com';
-export const COUNTRY_CODE = '+91';
+export const COUNTRY_CODE = '91';
 
 /**
  * Generate synthetic email from phone number

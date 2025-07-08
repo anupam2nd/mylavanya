@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCustomToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logger } from "@/utils/logger";
-import { convertToAuthFormat, isPhoneInput, isEmailInput } from "@/utils/syntheticEmail";
+import { generateSyntheticEmail, isEmailInput, isPhoneInput } from "@/utils/syntheticEmail";
 
 interface MemberLoginCredentials {
   emailOrPhone: string;
@@ -24,25 +24,21 @@ export function useMemberLogin() {
     try {
       const normalizedInput = emailOrPhone.trim();
       
-      // Validate input format
-      const isEmail = isEmailInput(normalizedInput);
-      const isPhone = isPhoneInput(normalizedInput);
+      let authEmail: string;
       
-      if (!isEmail && !isPhone) {
+      if (isEmailInput(normalizedInput)) {
+        // Login with email
+        authEmail = normalizedInput.toLowerCase();
+        logger.debug('Attempting login with email:', authEmail);
+      } else if (isPhoneInput(normalizedInput)) {
+        // Convert phone to synthetic email for login
+        authEmail = generateSyntheticEmail(normalizedInput);
+        logger.debug('Attempting login with phone converted to synthetic email:', authEmail);
+      } else {
         throw new Error('Please enter a valid email address or 10-digit phone number');
       }
       
-      // Convert phone number to synthetic email if needed
-      const authEmail = convertToAuthFormat(normalizedInput);
-      
-      logger.debug('Attempting login with:', { 
-        originalInput: normalizedInput, 
-        authEmail, 
-        isPhone, 
-        isEmail 
-      });
-      
-      // Use Supabase auth for login
+      // Use Supabase email authentication
       const { data, error } = await supabase.auth.signInWithPassword({
         email: authEmail,
         password: password,
