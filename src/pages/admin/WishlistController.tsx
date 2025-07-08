@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import { format } from "date-fns";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: string;  // Changed from number to string (UUID)
+  user_id: string;  // UUID string
   created_at: string;
   service_name: string;
   service_price: number;
@@ -39,7 +40,7 @@ const WishlistController = () => {
         setLoading(true);
         console.log("Fetching all wishlist items");
         
-        // Query to join wishlist with PriceMST and MemberMST tables
+        // Query to join wishlist with PriceMST tables
         const { data, error } = await supabase
           .from('wishlist')
           .select(`
@@ -68,28 +69,28 @@ const WishlistController = () => {
             const { data: memberData } = await supabase
               .from('MemberMST')
               .select('MemberFirstName, MemberLastName, MemberEmailId')
-              .eq('uuid', item.user_id)
-              .single();
+              .eq('uuid', item.user_id as any); // Type assertion for UUID lookup
 
             // If member found, use their name
-            if (memberData) {
+            if (memberData && memberData.length > 0) {
+              const member = memberData[0];
               return {
                 id: item.id,
                 service_id: item.service_id,
-                user_id: item.user_id,
+                user_id: item.user_id as string, // Cast to string for UUID
                 created_at: item.created_at,
                 service_name: item.PriceMST.ProductName,
                 service_price: item.PriceMST.Price,
                 service_category: item.PriceMST.Category,
                 product_created_at: item.PriceMST.created_at,
-                customer_name: `${memberData.MemberFirstName || ''} ${memberData.MemberLastName || ''}`.trim() || 'Unknown'
+                customer_name: `${member.MemberFirstName || ''} ${member.MemberLastName || ''}`.trim() || 'Unknown'
               };
             } else {
               // If no member found, return with unknown customer name
               return {
                 id: item.id,
                 service_id: item.service_id,
-                user_id: item.user_id,
+                user_id: item.user_id as string, // Cast to string for UUID
                 created_at: item.created_at,
                 service_name: item.PriceMST.ProductName,
                 service_price: item.PriceMST.Price,

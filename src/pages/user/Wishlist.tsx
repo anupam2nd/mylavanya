@@ -12,7 +12,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: string;  // Changed to string (UUID)
+  user_id: string;  // UUID string
   created_at: string;
   service_name: string;
   service_price: number;
@@ -36,8 +36,7 @@ const Wishlist = () => {
       try {
         setLoading(true);
         
-        // Instead of using the RPC function, query the wishlist table directly
-        // and join with the PriceMST table to get service details
+        // Query the wishlist table directly with type assertion
         const { data, error } = await supabase
           .from('wishlist')
           .select(`
@@ -52,7 +51,7 @@ const Wishlist = () => {
               Description
             )
           `)
-          .eq('user_id', user.id); // Use user.id directly as UUID
+          .eq('user_id', user.id as any); // Type assertion for UUID
 
         if (error) {
           throw error;
@@ -62,7 +61,7 @@ const Wishlist = () => {
         const formattedItems: WishlistItem[] = data?.map(item => ({
           id: item.id,
           service_id: item.service_id,
-          user_id: item.user_id,
+          user_id: item.user_id as string, // Cast to string for UUID
           created_at: item.created_at,
           service_name: item.PriceMST.ProductName,
           service_price: item.PriceMST.Price,
@@ -94,7 +93,7 @@ const Wishlist = () => {
         .from('wishlist')
         .delete()
         .eq('id', itemId)
-        .eq('user_id', user.id); // Use user.id directly as UUID
+        .eq('user_id', user.id as any); // Type assertion for UUID
 
       if (error) throw error;
       
