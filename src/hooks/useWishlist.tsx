@@ -15,12 +15,24 @@ export const useWishlist = (serviceId?: number) => {
     const checkWishlistStatus = async () => {
       if (!isAuthenticated || !user || !serviceId) return;
       
+      // Get the member's numeric ID from MemberMST table using UUID
+      const { data: memberData, error: memberError } = await supabase
+        .from('MemberMST')
+        .select('id')
+        .eq('uuid', user.id)
+        .single();
+        
+      if (memberError || !memberData) {
+        console.error("Error fetching member data:", memberError);
+        return;
+      }
+      
       try {
         setWishlistLoading(true);
         const { data, error } = await supabase
           .from('wishlist')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('user_id', memberData.id)
           .eq('service_id', serviceId)
           .maybeSingle();
           
@@ -46,6 +58,19 @@ export const useWishlist = (serviceId?: number) => {
     
     if (!user || !serviceId) return;
     
+    // Get the member's numeric ID from MemberMST table using UUID
+    const { data: memberData, error: memberError } = await supabase
+      .from('MemberMST')
+      .select('id')
+      .eq('uuid', user.id)
+      .single();
+      
+    if (memberError || !memberData) {
+      console.error("Error fetching member data:", memberError);
+      showToast("There was a problem updating your wishlist", "error");
+      return;
+    }
+    
     setWishlistLoading(true);
     
     try {
@@ -54,7 +79,7 @@ export const useWishlist = (serviceId?: number) => {
         const { data: wishlistItem, error: fetchError } = await supabase
           .from('wishlist')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('user_id', memberData.id)
           .eq('service_id', serviceId)
           .single();
           
@@ -65,7 +90,7 @@ export const useWishlist = (serviceId?: number) => {
           .from('wishlist')
           .delete()
           .eq('id', wishlistItem.id)
-          .eq('user_id', user.id);
+          .eq('user_id', memberData.id);
           
         if (removeError) throw removeError;
         
@@ -76,7 +101,7 @@ export const useWishlist = (serviceId?: number) => {
         const { error: addError } = await supabase
           .from('wishlist')
           .insert({
-            user_id: user.id,
+            user_id: memberData.id,
             service_id: serviceId
           });
           
@@ -96,11 +121,24 @@ export const useWishlist = (serviceId?: number) => {
   // Method for adding and removing multiple items from wishlist
   const addToWishlist = async (id: number) => {
     if (!user) return;
+    
+    // Get the member's numeric ID from MemberMST table using UUID
+    const { data: memberData, error: memberError } = await supabase
+      .from('MemberMST')
+      .select('id')
+      .eq('uuid', user.id)
+      .single();
+      
+    if (memberError || !memberData) {
+      console.error("Error fetching member data:", memberError);
+      return false;
+    }
+    
     try {
       const { error } = await supabase
         .from('wishlist')
         .insert({
-          user_id: user.id,
+          user_id: memberData.id,
           service_id: id
         });
         
@@ -114,11 +152,24 @@ export const useWishlist = (serviceId?: number) => {
   
   const removeFromWishlist = async (id: number) => {
     if (!user) return;
+    
+    // Get the member's numeric ID from MemberMST table using UUID
+    const { data: memberData, error: memberError } = await supabase
+      .from('MemberMST')
+      .select('id')
+      .eq('uuid', user.id)
+      .single();
+      
+    if (memberError || !memberData) {
+      console.error("Error fetching member data:", memberError);
+      return false;
+    }
+    
     try {
       const { data: wishlistItem, error: fetchError } = await supabase
         .from('wishlist')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', memberData.id)
         .eq('service_id', id)
         .single();
         

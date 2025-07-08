@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +12,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: string;  // UUID string
+  user_id: number;  // Changed from string to number to match database schema
   created_at: string;
   service_name: string;
   service_price: number;
@@ -37,7 +36,20 @@ const Wishlist = () => {
       try {
         setLoading(true);
         
-        // Query the wishlist table directly
+        // First get the member's numeric ID from MemberMST table using UUID
+        const { data: memberData, error: memberError } = await supabase
+          .from('MemberMST')
+          .select('id')
+          .eq('uuid', user.id)
+          .single();
+          
+        if (memberError || !memberData) {
+          console.error("Error fetching member data:", memberError);
+          setWishlistItems([]);
+          return;
+        }
+        
+        // Query the wishlist table using the numeric member ID
         const { data, error } = await supabase
           .from('wishlist')
           .select(`
@@ -52,7 +64,7 @@ const Wishlist = () => {
               Description
             )
           `)
-          .eq('user_id', user.id);
+          .eq('user_id', memberData.id);
 
         if (error) {
           throw error;
@@ -89,12 +101,29 @@ const Wishlist = () => {
     if (!user) return;
     
     try {
+      // Get the member's numeric ID from MemberMST table using UUID
+      const { data: memberData, error: memberError } = await supabase
+        .from('MemberMST')
+        .select('id')
+        .eq('uuid', user.id)
+        .single();
+        
+      if (memberError || !memberData) {
+        console.error("Error fetching member data:", memberError);
+        toast({
+          title: "Error",
+          description: "Failed to remove item from wishlist",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Delete directly from the wishlist table
       const { error } = await supabase
         .from('wishlist')
         .delete()
         .eq('id', itemId)
-        .eq('user_id', user.id);
+        .eq('user_id', memberData.id);
 
       if (error) throw error;
       

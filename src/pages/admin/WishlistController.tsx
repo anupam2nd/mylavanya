@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +13,7 @@ import { format } from "date-fns";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: string;  // UUID string
+  user_id: number;  // Changed from string to number to match database schema
   created_at: string;
   service_name: string;
   service_price: number;
@@ -65,11 +64,11 @@ const WishlistController = () => {
         // Fetch user information for each wishlist item
         const enhancedData: WishlistItem[] = await Promise.all(
           data.map(async (item) => {
-            // Query MemberMST with UUID user_id
+            // Query MemberMST with numeric user_id
             const { data: memberData } = await supabase
               .from('MemberMST')
               .select('MemberFirstName, MemberLastName, MemberEmailId')
-              .eq('uuid', item.user_id);
+              .eq('id', item.user_id);
 
             // If member found, use their name
             if (memberData && memberData.length > 0) {
