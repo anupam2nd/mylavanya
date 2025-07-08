@@ -7,10 +7,9 @@ interface SupabaseRegisterFormProps {
 }
 
 export default function SupabaseRegisterForm({ onSuccess, onSignInClick }: SupabaseRegisterFormProps) {
-  const handleRegisterSuccess = (phone: string, password: string) => {
-    // After successful registration, user needs to verify OTP
-    // The onSuccess callback will be called after OTP verification
-    console.log('Registration successful, awaiting OTP verification for:', phone);
+  const handleRegisterSuccess = (authEmail: string, password: string) => {
+    // After successful registration, user is ready to login
+    console.log('Registration successful for:', authEmail);
     onSuccess();
   };
 

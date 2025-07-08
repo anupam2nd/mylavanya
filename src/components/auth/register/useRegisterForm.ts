@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { registerFormSchema, RegisterFormValues } from "./RegisterFormSchema";
 import { logger } from "@/utils/logger";
 import { useCustomToast } from "@/context/ToastContext";
+import { generateSyntheticEmail } from "@/utils/syntheticEmail";
 
 interface UseRegisterFormProps {
   onSuccess: (phone: string, password: string) => void;
@@ -46,7 +47,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       const phoneNumber = values.phoneNumber.trim();
       const email = values.email?.trim() || "";
       
-      logger.debug("Starting member registration process with phone auth");
+      logger.debug("Starting member registration process with synthetic email strategy");
       
       // Check if phone number is already registered
       const { data: existingMembersByPhone, error: checkPhoneError } = await supabase
@@ -82,9 +83,15 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
         }
       }
       
-      // Use Supabase phone authentication
+      // Determine email for Supabase auth
+      const authEmail = email || generateSyntheticEmail(phoneNumber);
+      const syntheticEmail = email ? null : authEmail;
+      
+      logger.debug("Using email for Supabase auth:", authEmail);
+      
+      // Use Supabase email authentication (with real or synthetic email)
       const { data, error } = await supabase.auth.signUp({
-        phone: `+91${phoneNumber}`,
+        email: authEmail,
         password: values.password,
         options: {
           data: {
@@ -107,7 +114,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       }
 
       if (data.user) {
-        logger.debug("Phone auth registration successful, now creating member record");
+        logger.debug("Email auth registration successful, now creating member record");
         
         // Create member record in MemberMST table with same UUID
         const { error: memberError } = await supabase
@@ -118,6 +125,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
             MemberLastName: values.lastName,
             MemberPhNo: phoneNumber,
             MemberEmailId: email || null,
+            synthetic_email: syntheticEmail,
             MemberSex: values.sex,
             MemberDOB: values.dob ? format(values.dob, 'yyyy-MM-dd') : null,
             MemberAdress: values.address,
@@ -135,10 +143,10 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
         }
         
         logger.debug("Member registration completed successfully");
-        showToast("🎉 Registration successful! Please verify the OTP sent to your phone to complete the process.", 'success', 5000);
+        showToast("🎉 Registration successful! You can now sign in with your credentials.", 'success', 5000);
         
-        // Pass phone number for auto-login after OTP verification
-        onSuccess(`+91${phoneNumber}`, values.password);
+        // Pass the auth email (real or synthetic) for login
+        onSuccess(authEmail, values.password);
       }
     } catch (error: any) {
       logger.error('Member registration failed:', error);

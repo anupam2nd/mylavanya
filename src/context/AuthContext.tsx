@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,7 +61,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const isMemberAuth = userMetadata?.userType === 'member' || (userEmail && isSyntheticEmail(userEmail));
       
       if (isMemberAuth) {
-        // Fetch member profile data
+        // Fetch member data from MemberMST table using UUID
+        const { data: memberData, error: memberError } = await supabase
+          .from('MemberMST')
+          .select('*')
+          .eq('uuid', authUser.id)
+          .single();
+
+        if (memberError && memberError.code !== 'PGRST116') {
+          console.error('Error fetching member data:', memberError);
+        }
+
+        if (memberData) {
+          setUser({
+            id: authUser.id,
+            email: memberData.MemberEmailId || memberData.synthetic_email || userEmail || '',
+            role: 'member',
+            firstName: memberData.MemberFirstName,
+            lastName: memberData.MemberLastName
+          });
+          return;
+        }
+
+        // Fallback to member_profiles table
         const { data: memberProfile, error } = await supabase
           .from('member_profiles')
           .select('*')
