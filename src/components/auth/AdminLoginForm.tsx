@@ -99,17 +99,12 @@ export default function AdminLoginForm() {
     console.log('Starting password login - potential layout shift point');
     setIsLoading(true);
     try {
-      const success = await handleLogin({
+      await handleLogin({
         email: userData.email_id,
         password: password
       });
-      
-      if (!success) {
-        showToast("❌ Invalid password. Please try again.", 'error', 4000);
-      }
     } catch (error) {
       console.error("Login error:", error);
-      showToast("❌ Login failed. Please try again.", 'error', 4000);
     } finally {
       console.log('Password login finished');
       setIsLoading(false);
