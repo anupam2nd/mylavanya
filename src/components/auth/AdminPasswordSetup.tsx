@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import {
   InputOTP,
   InputOTPGroup,
@@ -31,35 +31,62 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const { showToast } = useCustomToast();
 
   const sendOTP = async () => {
     if (!phoneNumber.trim()) {
-      toast.error("Please enter your phone number");
+      showToast("❌ Please enter your phone number", 'error', 4000);
       return;
     }
 
     if (phoneNumber.length !== 10) {
-      toast.error("Please enter a valid 10-digit phone number");
+      showToast("❌ Please enter a valid 10-digit phone number", 'error', 4000);
       return;
     }
 
     setIsLoading(true);
     try {
+      // Check if phone number exists in UserMST for admin/controller/superadmin users
+      const { data: userExists, error: userCheckError } = await supabase
+        .from('UserMST')
+        .select('id, email_id, role, PhoneNo')
+        .eq('PhoneNo', parseInt(phoneNumber))
+        .in('role', ['admin', 'controller', 'superadmin'])
+        .eq('active', true)
+        .maybeSingle();
+
+      if (userCheckError) {
+        console.error("Error checking user:", userCheckError);
+        showToast("❌ Error checking user details", 'error', 4000);
+        return;
+      }
+
+      if (!userExists) {
+        showToast("❌ Phone number not found for admin/controller/superadmin user", 'error', 4000);
+        return;
+      }
+
+      // Verify the phone number matches the current user's data
+      if (userExists.id !== userData.id) {
+        showToast("❌ Phone number doesn't match your account", 'error', 4000);
+        return;
+      }
+
       const response = await supabase.functions.invoke("send-registration-otp", {
         body: { phoneNumber },
       });
 
       if (response.error) {
-        toast.error("Failed to send OTP. Please try again.");
+        showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
         console.error("Error sending OTP:", response.error);
         return;
       }
 
-      toast.success("OTP sent successfully!");
+      showToast("✅ OTP sent successfully!", 'success', 4000);
       setCurrentStep("otp");
     } catch (error) {
       console.error("Error sending OTP:", error);
-      toast.error("Failed to send OTP. Please try again.");
+      showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +94,7 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
 
   const verifyOTP = async () => {
     if (otp.length !== 6) {
-      toast.error("Please enter a valid 6-digit OTP");
+      showToast("❌ Please enter a valid 6-digit OTP", 'error', 4000);
       return;
     }
 
@@ -78,19 +105,19 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
       });
 
       if (response.error) {
-        toast.error(response.error.message || "Invalid OTP");
+        showToast(`❌ ${response.error.message || "Invalid OTP"}`, 'error', 4000);
         return;
       }
 
       if (response.data.success) {
-        toast.success("Phone number verified successfully!");
+        showToast("✅ Phone number verified successfully!", 'success', 4000);
         setCurrentStep("password");
       } else {
-        toast.error(response.data.error || "Invalid OTP");
+        showToast(`❌ ${response.data.error || "Invalid OTP"}`, 'error', 4000);
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
-      toast.error("Failed to verify OTP. Please try again.");
+      showToast("❌ Failed to verify OTP. Please try again.", 'error', 4000);
     } finally {
       setIsLoading(false);
     }
@@ -104,14 +131,14 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
       });
 
       if (response.error) {
-        toast.error("Failed to resend OTP. Please try again.");
+        showToast("❌ Failed to resend OTP. Please try again.", 'error', 4000);
         return;
       }
 
-      toast.success("OTP resent successfully!");
+      showToast("✅ OTP resent successfully!", 'success', 4000);
     } catch (error) {
       console.error("Error resending OTP:", error);
-      toast.error("Failed to resend OTP. Please try again.");
+      showToast("❌ Failed to resend OTP. Please try again.", 'error', 4000);
     } finally {
       setIsResending(false);
     }
@@ -119,17 +146,17 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
 
   const setPassword = async () => {
     if (!newPassword.trim()) {
-      toast.error("Please enter a password");
+      showToast("❌ Please enter a password", 'error', 4000);
       return;
     }
 
     if (newPassword.length < 8) {
-      toast.error("Password must be at least 8 characters long");
+      showToast("❌ Password must be at least 8 characters long", 'error', 4000);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      showToast("❌ Passwords do not match", 'error', 4000);
       return;
     }
 
@@ -142,13 +169,13 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
       
       if (hashError) {
         console.error('Error hashing password:', hashError);
-        toast.error("Failed to process password. Please try again.");
+        showToast("❌ Failed to process password. Please try again.", 'error', 4000);
         return;
       }
       
       if (!hashResult?.hashedPassword) {
         console.error('No hashed password returned from edge function');
-        toast.error("Failed to process password. Please try again.");
+        showToast("❌ Failed to process password. Please try again.", 'error', 4000);
         return;
       }
 
@@ -160,7 +187,7 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
 
       if (updateError) {
         console.error("Error updating password:", updateError);
-        toast.error("Failed to set password. Please try again.");
+        showToast("❌ Failed to set password. Please try again.", 'error', 4000);
         return;
       }
 
@@ -175,7 +202,7 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
 
       if (authError) {
         console.error("Error creating auth user:", authError);
-        toast.error("Failed to setup authentication. Please contact admin.");
+        showToast("❌ Failed to setup authentication. Please contact admin.", 'error', 4000);
         return;
       }
 
@@ -188,16 +215,16 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
 
         if (uuidUpdateError) {
           console.error("Error updating UUID:", uuidUpdateError);
-          toast.error("Failed to link accounts. Please contact admin.");
+          showToast("❌ Failed to link accounts. Please contact admin.", 'error', 4000);
           return;
         }
       }
 
-      toast.success("Password set successfully! You can now login with your email and password.");
+      showToast("🎉 Password set successfully! You can now login with your email and password.", 'success', 4000);
       onComplete();
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Failed to set password. Please try again.");
+      showToast("❌ Failed to set password. Please try again.", 'error', 4000);
     } finally {
       setIsLoading(false);
     }
