@@ -152,18 +152,48 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
         return;
       }
 
-      const { error } = await supabase
+      // Update UserMST with hashed password
+      const { error: updateError } = await supabase
         .from('UserMST')
         .update({ password: hashResult.hashedPassword })
         .eq('id', userData.id);
 
-      if (error) {
-        console.error("Error updating password:", error);
+      if (updateError) {
+        console.error("Error updating password:", updateError);
         toast.error("Failed to set password. Please try again.");
         return;
       }
 
-      toast.success("Password set successfully!");
+      // Create user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userData.email_id,
+        password: newPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (authError) {
+        console.error("Error creating auth user:", authError);
+        toast.error("Failed to setup authentication. Please contact admin.");
+        return;
+      }
+
+      // Update UserMST with auth UUID to link accounts
+      if (authData.user) {
+        const { error: uuidUpdateError } = await supabase
+          .from('UserMST')
+          .update({ uuid: authData.user.id })
+          .eq('id', userData.id);
+
+        if (uuidUpdateError) {
+          console.error("Error updating UUID:", uuidUpdateError);
+          toast.error("Failed to link accounts. Please contact admin.");
+          return;
+        }
+      }
+
+      toast.success("Password set successfully! You can now login with your email and password.");
       onComplete();
     } catch (error) {
       console.error("Error:", error);

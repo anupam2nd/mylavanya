@@ -134,17 +134,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Check if user is an admin/superadmin/controller
+      // Check if user is an admin/superadmin/controller by UUID or email
       const { data: adminUser } = await supabase
         .from('UserMST')
         .select('*')
-        .eq('email_id', userEmail)
+        .or(`uuid.eq.${authUser.id},email_id.ilike.${userEmail}`)
         .eq('active', true)
         .single();
 
       if (adminUser) {
         setUser({
-          id: adminUser.uuid,
+          id: authUser.id,
           email: userEmail || '',
           role: adminUser.role || 'admin',
           firstName: adminUser.FirstName,
