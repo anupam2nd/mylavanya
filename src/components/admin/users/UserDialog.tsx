@@ -66,35 +66,38 @@ export const UserDialog = ({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="email" className="text-right">Email</Label>
+            <Label htmlFor="email" className="text-right">Email *</Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="col-span-3"
+              required
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="first-name" className="text-right">First Name</Label>
+            <Label htmlFor="first-name" className="text-right">First Name *</Label>
             <Input
               id="first-name"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               className="col-span-3"
+              required
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="last-name" className="text-right">Last Name</Label>
+            <Label htmlFor="last-name" className="text-right">Last Name *</Label>
             <Input
               id="last-name"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               className="col-span-3"
+              required
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="phone-no" className="text-right">Phone Number</Label>
+            <Label htmlFor="phone-no" className="text-right">Phone Number *</Label>
             <Input
               id="phone-no"
               type="tel"
@@ -106,8 +109,8 @@ export const UserDialog = ({
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="role" className="text-right">Role</Label>
-            <Select value={role} onValueChange={setRole}>
+            <Label htmlFor="role" className="text-right">Role *</Label>
+            <Select value={role} onValueChange={setRole} required>
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
