@@ -333,7 +333,7 @@ export type Database = {
           ChildrenDetails: Json | null
           created_at: string | null
           HasChildren: boolean | null
-          id: number
+          id: string
           MaritalStatus: boolean | null
           MemberAdress: string | null
           MemberDOB: string | null
@@ -356,7 +356,7 @@ export type Database = {
           ChildrenDetails?: Json | null
           created_at?: string | null
           HasChildren?: boolean | null
-          id?: number
+          id?: string
           MaritalStatus?: boolean | null
           MemberAdress?: string | null
           MemberDOB?: string | null
@@ -379,7 +379,7 @@ export type Database = {
           ChildrenDetails?: Json | null
           created_at?: string | null
           HasChildren?: boolean | null
-          id?: number
+          id?: string
           MaritalStatus?: boolean | null
           MemberAdress?: string | null
           MemberDOB?: string | null
