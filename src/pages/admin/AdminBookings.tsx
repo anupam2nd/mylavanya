@@ -68,7 +68,7 @@ const AdminBookings = () => {
             .from('UserMST')
             .select('email_id, FirstName, LastName, role')
             .eq('email_id', authUser.email)
-            .single();
+            .maybeSingle();
             
           if (!error && data) {
             console.log("Current user data fetched by email:", data);
