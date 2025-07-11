@@ -126,12 +126,11 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
           throw new Error('Failed to process password');
         }
 
-        // Create member record in MemberMST table with same UUID for both id and uuid fields
+        // Create member record in MemberMST table using id field
         const { error: memberError } = await supabase
           .from('MemberMST')
           .insert({
             id: data.user.id,  // Use auth.uid() for id field
-            uuid: data.user.id, // Keep uuid field for legacy compatibility
             MemberFirstName: values.firstName,
             MemberLastName: values.lastName,
             MemberPhNo: phoneNumber,
