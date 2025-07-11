@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ export default function AdminLoginForm() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { handleLogin } = useLogin();
   const { showToast } = useCustomToast();
+  const navigate = useNavigate();
 
   const checkUserExistence = async () => {
     if (!emailOrPhone.trim()) {
@@ -99,17 +101,38 @@ export default function AdminLoginForm() {
     console.log('Starting password login - potential layout shift point');
     setIsLoading(true);
     try {
-      const success = await handleLogin({
-        email: userData.email_id,
-        password: password
-      });
-      
-      if (!success) {
-        showToast("❌ Invalid password. Please try again.", 'error', 4000);
+      // Check if user has been migrated to Supabase Auth (has uuid)
+      if (userData.uuid) {
+        // Use Supabase Auth login for migrated users
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: userData.email_id,
+          password: password
+        });
+
+        if (error) {
+          throw new Error('Invalid email or password');
+        }
+
+        if (data.user) {
+          showToast(`🎉 Login successful. Welcome back! You are now logged in as ${userData.role}.`, 'success', 4000);
+          
+          // Redirect based on role
+          if (userData.role === 'superadmin' || userData.role === 'admin') {
+            navigate('/admin/dashboard');
+          } else if (userData.role === 'controller') {
+            navigate('/controller/dashboard');
+          }
+        }
+      } else {
+        // Use legacy login for users not yet migrated
+        await handleLogin({
+          email: userData.email_id,
+          password: password
+        });
       }
     } catch (error) {
       console.error("Login error:", error);
-      showToast("❌ Login failed. Please try again.", 'error', 4000);
+      showToast("❌ Invalid email or password. Please try again.", 'error', 4000);
     } finally {
       console.log('Password login finished');
       setIsLoading(false);
