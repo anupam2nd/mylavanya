@@ -20,7 +20,7 @@ export const useUserBookings = () => {
             .from('MemberMST')
             .select('MemberEmailId, MemberFirstName, MemberLastName')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
             
           if (data) {
             setCurrentUser({

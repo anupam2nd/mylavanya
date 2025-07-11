@@ -350,7 +350,6 @@ export type Database = {
           SpouseName: string | null
           synthetic_email: string | null
           updated_at: string | null
-          uuid: string
         }
         Insert: {
           ChildrenDetails?: Json | null
@@ -373,7 +372,6 @@ export type Database = {
           SpouseName?: string | null
           synthetic_email?: string | null
           updated_at?: string | null
-          uuid?: string
         }
         Update: {
           ChildrenDetails?: Json | null
@@ -396,7 +394,6 @@ export type Database = {
           SpouseName?: string | null
           synthetic_email?: string | null
           updated_at?: string | null
-          uuid?: string
         }
         Relationships: []
       }

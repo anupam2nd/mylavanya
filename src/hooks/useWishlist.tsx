@@ -15,12 +15,12 @@ export const useWishlist = (serviceId?: number) => {
     const checkWishlistStatus = async () => {
       if (!isAuthenticated || !user || !serviceId) return;
       
-      // Get the member's numeric ID from MemberMST table using UUID
+      // Get the member's ID from MemberMST table
       const { data: memberData, error: memberError } = await supabase
         .from('MemberMST')
         .select('id')
-        .eq('uuid', user.id)
-        .single();
+        .eq('id', user.id)
+        .maybeSingle();
         
       if (memberError || !memberData) {
         console.error("Error fetching member data:", memberError);
@@ -58,12 +58,12 @@ export const useWishlist = (serviceId?: number) => {
     
     if (!user || !serviceId) return;
     
-    // Get the member's numeric ID from MemberMST table using UUID
+    // Get the member's ID from MemberMST table
     const { data: memberData, error: memberError } = await supabase
       .from('MemberMST')
       .select('id')
-      .eq('uuid', user.id)
-      .single();
+      .eq('id', user.id)
+      .maybeSingle();
       
     if (memberError || !memberData) {
       console.error("Error fetching member data:", memberError);
@@ -122,12 +122,12 @@ export const useWishlist = (serviceId?: number) => {
   const addToWishlist = async (id: number) => {
     if (!user) return;
     
-    // Get the member's numeric ID from MemberMST table using UUID
+    // Get the member's ID from MemberMST table
     const { data: memberData, error: memberError } = await supabase
       .from('MemberMST')
       .select('id')
-      .eq('uuid', user.id)
-      .single();
+      .eq('id', user.id)
+      .maybeSingle();
       
     if (memberError || !memberData) {
       console.error("Error fetching member data:", memberError);
@@ -153,12 +153,12 @@ export const useWishlist = (serviceId?: number) => {
   const removeFromWishlist = async (id: number) => {
     if (!user) return;
     
-    // Get the member's numeric ID from MemberMST table using UUID
+    // Get the member's ID from MemberMST table
     const { data: memberData, error: memberError } = await supabase
       .from('MemberMST')
       .select('id')
-      .eq('uuid', user.id)
-      .single();
+      .eq('id', user.id)
+      .maybeSingle();
       
     if (memberError || !memberData) {
       console.error("Error fetching member data:", memberError);

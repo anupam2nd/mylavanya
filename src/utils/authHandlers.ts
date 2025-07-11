@@ -39,7 +39,7 @@ const handleMemberSession = async (authUser: any, setUser: (user: User | null) =
   const userEmail = authUser.email;
   const userMetadata = authUser.user_metadata;
 
-  // Fetch member data from MemberMST table using ID
+  // Fetch member data from MemberMST table using ID field (synced with auth.uid())
   const { data: memberData, error: memberError } = await supabase
     .from('MemberMST')
     .select('*')

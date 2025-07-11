@@ -36,12 +36,12 @@ const Wishlist = () => {
       try {
         setLoading(true);
         
-        // First get the member's numeric ID from MemberMST table using UUID
+        // Get the member's ID from MemberMST table
         const { data: memberData, error: memberError } = await supabase
           .from('MemberMST')
           .select('id')
-          .eq('uuid', user.id)
-          .single();
+          .eq('id', user.id)
+          .maybeSingle();
           
         if (memberError || !memberData) {
           console.error("Error fetching member data:", memberError);
@@ -101,12 +101,12 @@ const Wishlist = () => {
     if (!user) return;
     
     try {
-      // Get the member's numeric ID from MemberMST table using UUID
+      // Get the member's ID from MemberMST table
       const { data: memberData, error: memberError } = await supabase
         .from('MemberMST')
         .select('id')
-        .eq('uuid', user.id)
-        .single();
+        .eq('id', user.id)
+        .maybeSingle();
         
       if (memberError || !memberData) {
         console.error("Error fetching member data:", memberError);
