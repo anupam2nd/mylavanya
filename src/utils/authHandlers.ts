@@ -44,7 +44,7 @@ const handleMemberSession = async (authUser: any, setUser: (user: User | null) =
     .from('MemberMST')
     .select('*')
     .eq('id', authUser.id)
-    .single();
+    .maybeSingle();
 
   if (memberError && memberError.code !== 'PGRST116') {
     console.error('Error fetching member data:', memberError);
