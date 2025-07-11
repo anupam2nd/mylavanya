@@ -30,7 +30,7 @@ export default function ForgotPassword({
   const [currentStep, setCurrentStep] = useState<Step>("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
 
-  const handlePhoneSubmit = (phone: string) => {
+  const handlePhoneSubmit = async (phone: string) => {
     setPhoneNumber(phone);
     setCurrentStep("otp");
   };
