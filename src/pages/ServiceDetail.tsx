@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCustomToast } from "@/context/ToastContext";
 import MainLayout from "@/components/layout/MainLayout";
 import BookingForm from "@/components/booking/BookingForm";
 import { useAuth } from "@/context/AuthContext";
@@ -43,6 +43,7 @@ const ServiceDetail = () => {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [relatedServices, setRelatedServices] = useState<Service[]>([]);
   
+  const { showToast } = useCustomToast();
   const { toggleWishlist, isInWishlist, wishlistLoading } = useWishlist(service?.prod_id);
   
   // Check if we should auto-open booking form
@@ -79,7 +80,7 @@ const ServiceDetail = () => {
         .single();
 
       if (error) {
-        toast.error("Service not found");
+        showToast("❌ Service not found", 'error', 4000);
         navigate('/services');
         return;
       }
@@ -102,7 +103,7 @@ const ServiceDetail = () => {
       }
     } catch (error) {
       console.error('Error fetching service:', error);
-      toast.error("Failed to load service details");
+      showToast("❌ Failed to load service details", 'error', 4000);
     } finally {
       setLoading(false);
     }
@@ -110,7 +111,7 @@ const ServiceDetail = () => {
 
   const handleBookNow = () => {
     if (!isAuthenticated) {
-      toast.error("Please login to book a service");
+      showToast("❌ Please login to book a service", 'error', 4000);
       return;
     }
     setShowBookingForm(true);
@@ -118,7 +119,7 @@ const ServiceDetail = () => {
 
   const handleWishlistToggle = async () => {
     if (!isAuthenticated) {
-      toast.error("Please login to add items to your wishlist");
+      showToast("❌ Please login to add items to your wishlist", 'error', 4000);
       return;
     }
     await toggleWishlist();
@@ -193,7 +194,7 @@ const ServiceDetail = () => {
                 onCancel={() => setShowBookingForm(false)}
                 onSuccess={() => {
                   setShowBookingForm(false);
-                  toast.success("Booking completed successfully!");
+                  showToast("🎉 Booking completed successfully!", 'success', 5000);
                 }}
               />
             </div>
