@@ -50,6 +50,20 @@ export function useMemberLogin() {
       }
       
       if (data.user) {
+        // Verify user exists in MemberMST table
+        const { data: memberData, error: memberError } = await supabase
+          .from('MemberMST')
+          .select('id')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (memberError || !memberData) {
+          logger.error('User not found in MemberMST table');
+          // Sign out the user since they're not a valid member
+          await supabase.auth.signOut();
+          throw new Error('Access denied. This login is only for registered members.');
+        }
+
         logger.debug('Login successful');
         showToast("🎉 Login successful. Welcome back!", 'success', 4000);
         
