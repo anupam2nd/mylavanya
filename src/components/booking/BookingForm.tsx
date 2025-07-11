@@ -52,17 +52,17 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
     },
   });
 
-  // Fetch member data if user is a member
+  // Fetch member data if user is authenticated
   useEffect(() => {
     const fetchMemberData = async () => {
-      if (!user || user.role !== 'member') return;
+      if (!user) return;
       
       setIsLoadingMember(true);
       try {
         const { data, error } = await supabase
-          .from('MemberMST')
+          .from('member_profiles')
           .select('*')
-          .eq('MemberEmailId', user.email)
+          .eq('id', user.id)
           .single();
 
         if (error) {
@@ -72,12 +72,12 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
 
         if (data) {
           setMemberData(data);
-          // Auto-fill form with member data
-          form.setValue('name', `${data.MemberFirstName || ''} ${data.MemberLastName || ''}`.trim());
-          form.setValue('email', data.MemberEmailId || '');
-          form.setValue('phone', data.MemberPhNo || '');
-          form.setValue('address', data.MemberAdress || '');
-          form.setValue('pincode', data.MemberPincode || '');
+          // Auto-fill form with member data (exclude appointment date and time)
+          form.setValue('name', `${data.first_name || ''} ${data.last_name || ''}`.trim());
+          form.setValue('email', data.email || '');
+          form.setValue('phone', data.phone_number || '');
+          form.setValue('address', data.address || '');
+          form.setValue('pincode', data.pincode || '');
         }
       } catch (error) {
         console.error('Error in fetchMemberData:', error);
