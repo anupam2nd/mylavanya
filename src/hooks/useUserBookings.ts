@@ -19,7 +19,7 @@ export const useUserBookings = () => {
           const { data } = await supabase
             .from('MemberMST')
             .select('MemberEmailId, MemberFirstName, MemberLastName')
-            .eq('uuid', user.id)
+            .eq('id', user.id)
             .maybeSingle();
             
           if (data) {
