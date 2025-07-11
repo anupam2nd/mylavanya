@@ -12,7 +12,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: number;  // Changed from string to number to match database schema
+  user_id: string;  // Changed from number to string to match UUID in database
   created_at: string;
   service_name: string;
   service_price: number;

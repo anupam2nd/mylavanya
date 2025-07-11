@@ -52,17 +52,17 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
     },
   });
 
-  // Fetch member data if user is a member
+  // Fetch member data if user is authenticated
   useEffect(() => {
     const fetchMemberData = async () => {
-      if (!user || user.role !== 'member') return;
+      if (!user) return;
       
       setIsLoadingMember(true);
       try {
         const { data, error } = await supabase
           .from('MemberMST')
           .select('*')
-          .eq('MemberEmailId', user.email)
+          .eq('id', user.id)
           .single();
 
         if (error) {
@@ -72,7 +72,7 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
 
         if (data) {
           setMemberData(data);
-          // Auto-fill form with member data
+          // Auto-fill form with member data (exclude appointment date and time)
           form.setValue('name', `${data.MemberFirstName || ''} ${data.MemberLastName || ''}`.trim());
           form.setValue('email', data.MemberEmailId || '');
           form.setValue('phone', data.MemberPhNo || '');

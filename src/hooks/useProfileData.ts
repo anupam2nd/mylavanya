@@ -25,7 +25,7 @@ export const useProfileData = (user: User | null) => {
           const { data, error } = await supabase
             .from('MemberMST')
             .select('*')
-            .eq('uuid', user.id)
+            .eq('id', user.id)
             .single();
 
           if (error && error.code !== 'PGRST116') {
