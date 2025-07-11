@@ -714,7 +714,7 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "MemberMST"
-            referencedColumns: ["uuid"]
+            referencedColumns: ["id"]
           },
         ]
       }
