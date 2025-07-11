@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,16 +17,16 @@ export const useUserBookings = () => {
         if (user?.role === 'member') {
           // For members using Supabase auth, get profile data
           const { data } = await supabase
-            .from('member_profiles')
-            .select('email, first_name, last_name')
+            .from('MemberMST')
+            .select('MemberEmailId, MemberFirstName, MemberLastName')
             .eq('id', user.id)
             .single();
             
           if (data) {
             setCurrentUser({
-              email_id: data.email,
-              FirstName: data.first_name,
-              LastName: data.last_name
+              email_id: data.MemberEmailId,
+              FirstName: data.MemberFirstName,
+              LastName: data.MemberLastName
             });
           }
         } else if (user?.role && ['admin', 'superadmin', 'controller', 'artist'].includes(user.role)) {

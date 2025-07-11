@@ -60,7 +60,7 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
       setIsLoadingMember(true);
       try {
         const { data, error } = await supabase
-          .from('member_profiles')
+          .from('MemberMST')
           .select('*')
           .eq('id', user.id)
           .single();
@@ -73,11 +73,11 @@ const BookingForm = ({ serviceId, serviceName, servicePrice, serviceOriginalPric
         if (data) {
           setMemberData(data);
           // Auto-fill form with member data (exclude appointment date and time)
-          form.setValue('name', `${data.first_name || ''} ${data.last_name || ''}`.trim());
-          form.setValue('email', data.email || '');
-          form.setValue('phone', data.phone_number || '');
-          form.setValue('address', data.address || '');
-          form.setValue('pincode', data.pincode || '');
+          form.setValue('name', `${data.MemberFirstName || ''} ${data.MemberLastName || ''}`.trim());
+          form.setValue('email', data.MemberEmailId || '');
+          form.setValue('phone', data.MemberPhNo || '');
+          form.setValue('address', data.MemberAdress || '');
+          form.setValue('pincode', data.MemberPincode || '');
         }
       } catch (error) {
         console.error('Error in fetchMemberData:', error);
