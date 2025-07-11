@@ -65,11 +65,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const isArtistAuth = userMetadata?.userType === 'artist';
 
       if (isMemberAuth) {
-        // Fetch member data from MemberMST table using UUID
+        // Fetch member data from MemberMST table using ID
         const { data: memberData, error: memberError } = await supabase
           .from('MemberMST')
           .select('*')
-          .eq('uuid', authUser.id)
+          .eq('id', authUser.id)
           .single();
 
         if (memberError && memberError.code !== 'PGRST116') {
