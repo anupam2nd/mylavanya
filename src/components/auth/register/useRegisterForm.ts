@@ -116,6 +116,16 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       if (data.user) {
         logger.debug("Email auth registration successful, now creating member record");
         
+        // Hash password using edge function
+        const { data: hashedPasswordData, error: hashError } = await supabase.functions.invoke('hash-password', {
+          body: { password: values.password }
+        });
+
+        if (hashError || !hashedPasswordData?.hashedPassword) {
+          logger.error('Error hashing password:', hashError);
+          throw new Error('Failed to process password');
+        }
+
         // Create member record in MemberMST table with same UUID
         const { error: memberError } = await supabase
           .from('MemberMST')
@@ -130,6 +140,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
             MemberDOB: values.dob ? format(values.dob, 'yyyy-MM-dd') : null,
             MemberAdress: values.address,
             MemberPincode: values.pincode,
+            password: hashedPasswordData.hashedPassword,
             MemberStatus: true,
             MaritalStatus: false,
             HasChildren: false,
