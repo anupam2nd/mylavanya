@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useCustomToast } from "@/context/ToastContext";
 
 interface PhoneNumberFormProps {
   onSubmit: (phoneNumber: string) => void;
@@ -18,6 +20,9 @@ const formSchema = z.object({
 });
 
 export function PhoneNumberForm({ onSubmit, isLoading = false }: PhoneNumberFormProps) {
+  const [loading, setLoading] = useState(false);
+  const { showToast } = useCustomToast();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -26,7 +31,46 @@ export function PhoneNumberForm({ onSubmit, isLoading = false }: PhoneNumberForm
   });
 
   const handleSubmit = async (data: z.infer<typeof formSchema>) => {
-    onSubmit(data.phoneNumber);
+    setLoading(true);
+    
+    try {
+      // Check if phone number exists in MemberMST table
+      const { data: members, error } = await supabase
+        .from('MemberMST')
+        .select('MemberPhNo')
+        .eq('MemberPhNo', data.phoneNumber)
+        .limit(1);
+
+      if (error) {
+        console.error('Error checking member:', error);
+        showToast("❌ Error checking phone number. Please try again.", 'error', 4000);
+        return;
+      }
+
+      if (!members || members.length === 0) {
+        showToast("❌ Phone number not found. Please check and try again.", 'error', 4000);
+        return;
+      }
+
+      // Send OTP if phone number exists
+      const response = await supabase.functions.invoke("send-registration-otp", {
+        body: { phoneNumber: data.phoneNumber },
+      });
+
+      if (response.error) {
+        showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
+        console.error("Error sending OTP:", response.error);
+        return;
+      }
+
+      showToast("📱 OTP sent successfully!", 'success', 4000);
+      onSubmit(data.phoneNumber);
+    } catch (error) {
+      console.error("Error in phone number verification:", error);
+      showToast("❌ Something went wrong. Please try again.", 'error', 4000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,8 +98,8 @@ export function PhoneNumberForm({ onSubmit, isLoading = false }: PhoneNumberForm
           )}
         />
         
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? (
+        <Button type="submit" className="w-full" disabled={loading || isLoading}>
+          {(loading || isLoading) ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Sending OTP...
