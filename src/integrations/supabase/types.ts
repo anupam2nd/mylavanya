@@ -328,75 +328,10 @@ export type Database = {
         }
         Relationships: []
       }
-      member_profiles: {
-        Row: {
-          address: string | null
-          children_details: Json | null
-          created_at: string | null
-          date_of_birth: string | null
-          email: string | null
-          first_name: string
-          has_children: boolean | null
-          id: string
-          last_name: string
-          marital_status: boolean | null
-          member_status: boolean | null
-          number_of_children: number | null
-          original_phone: string | null
-          phone_number: string | null
-          pincode: string | null
-          sex: string | null
-          spouse_name: string | null
-          synthetic_email: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          address?: string | null
-          children_details?: Json | null
-          created_at?: string | null
-          date_of_birth?: string | null
-          email?: string | null
-          first_name: string
-          has_children?: boolean | null
-          id: string
-          last_name: string
-          marital_status?: boolean | null
-          member_status?: boolean | null
-          number_of_children?: number | null
-          original_phone?: string | null
-          phone_number?: string | null
-          pincode?: string | null
-          sex?: string | null
-          spouse_name?: string | null
-          synthetic_email?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          address?: string | null
-          children_details?: Json | null
-          created_at?: string | null
-          date_of_birth?: string | null
-          email?: string | null
-          first_name?: string
-          has_children?: boolean | null
-          id?: string
-          last_name?: string
-          marital_status?: boolean | null
-          member_status?: boolean | null
-          number_of_children?: number | null
-          original_phone?: string | null
-          phone_number?: string | null
-          pincode?: string | null
-          sex?: string | null
-          spouse_name?: string | null
-          synthetic_email?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       MemberMST: {
         Row: {
           ChildrenDetails: Json | null
+          created_at: string | null
           HasChildren: boolean | null
           id: number
           MaritalStatus: boolean | null
@@ -410,13 +345,16 @@ export type Database = {
           MemberSex: string | null
           MemberStatus: boolean | null
           NumberOfChildren: number | null
+          original_phone: string | null
           password: string | null
           SpouseName: string | null
           synthetic_email: string | null
+          updated_at: string | null
           uuid: string
         }
         Insert: {
           ChildrenDetails?: Json | null
+          created_at?: string | null
           HasChildren?: boolean | null
           id?: number
           MaritalStatus?: boolean | null
@@ -430,13 +368,16 @@ export type Database = {
           MemberSex?: string | null
           MemberStatus?: boolean | null
           NumberOfChildren?: number | null
+          original_phone?: string | null
           password?: string | null
           SpouseName?: string | null
           synthetic_email?: string | null
+          updated_at?: string | null
           uuid?: string
         }
         Update: {
           ChildrenDetails?: Json | null
+          created_at?: string | null
           HasChildren?: boolean | null
           id?: number
           MaritalStatus?: boolean | null
@@ -450,9 +391,11 @@ export type Database = {
           MemberSex?: string | null
           MemberStatus?: boolean | null
           NumberOfChildren?: number | null
+          original_phone?: string | null
           password?: string | null
           SpouseName?: string | null
           synthetic_email?: string | null
+          updated_at?: string | null
           uuid?: string
         }
         Relationships: []
@@ -744,19 +687,19 @@ export type Database = {
           created_at: string | null
           id: number
           service_id: number
-          user_id: number | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: number
           service_id: number
-          user_id?: number | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: number
           service_id?: number
-          user_id?: number | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -771,7 +714,7 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "MemberMST"
-            referencedColumns: ["id"]
+            referencedColumns: ["uuid"]
           },
         ]
       }
