@@ -15,7 +15,7 @@ import { StatusToggleDialog } from "@/components/admin/users/StatusToggleDialog"
 import { useUserManagement } from "@/hooks/useUserManagement";
 
 interface User {
-  id: number;
+  id: string;
   email_id: string | null;
   FirstName: string | null;
   LastName: string | null;
