@@ -11,7 +11,7 @@ interface MainLayoutProps {
 }
 
 const MainLayout = ({ children }: MainLayoutProps) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,6 +37,17 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       // Members will stay on whatever page they're on - no redirection
     }
   }, [user, navigate]);
+
+  // Show loading spinner while auth is initializing
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen overflow-x-hidden">
+        <div className="flex-grow flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden">
