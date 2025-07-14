@@ -2,8 +2,8 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface User {
-  id: string;
-  email_id: string | null;
+  id: string | null;
+  email_id: string;
   FirstName: string | null;
   LastName: string | null;
   role: string | null;
