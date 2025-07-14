@@ -162,57 +162,68 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
 
     setIsLoading(true);
     try {
-      // Hash the password using the edge function
-      const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
-        body: { password: newPassword }
-      });
+      console.log('Creating Supabase Auth account for admin user:', userData.email_id);
       
-      if (hashError) {
-        console.error('Error hashing password:', hashError);
-        showToast("❌ Failed to process password. Please try again.", 'error', 4000);
-        return;
-      }
-      
-      if (!hashResult?.hashedPassword) {
-        console.error('No hashed password returned from edge function');
-        showToast("❌ Failed to process password. Please try again.", 'error', 4000);
-        return;
-      }
-
-      // Update UserMST with hashed password
-      const { error: updateError } = await supabase
-        .from('UserMST')
-        .update({ password: hashResult.hashedPassword })
-        .eq('id', userData.id);
-
-      if (updateError) {
-        console.error("Error updating password:", updateError);
-        showToast("❌ Failed to set password. Please try again.", 'error', 4000);
-        return;
-      }
-
-      // Create user in Supabase Auth
+      // Create user in Supabase Auth first (NEW MIGRATION APPROACH)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email_id,
         password: newPassword,
         options: {
+          data: {
+            firstName: userData.FirstName,
+            lastName: userData.LastName,
+            role: userData.role,
+            userMSTId: userData.id
+          },
           emailRedirectTo: `${window.location.origin}/`
         }
       });
 
       if (authError) {
-        console.error("Error creating auth user:", authError);
-        showToast("❌ Failed to setup authentication. Please contact admin.", 'error', 4000);
+        console.error("Error creating Supabase auth user:", authError);
+        if (authError.message.includes('already registered')) {
+          showToast("❌ This email is already registered. Please try logging in instead.", 'error', 4000);
+        } else {
+          showToast("❌ Failed to create account: " + authError.message, 'error', 4000);
+        }
         return;
       }
 
-      // Password update completed successfully
-      console.log("Password set successfully for user:", userData.id);
-      showToast("🎉 Password set successfully! You can now login with your email and password.", 'success', 4000);
+      console.log('Supabase auth user created successfully:', authData);
+      
+      // Hash the password for UserMST storage (for backward compatibility)
+      const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: newPassword }
+      });
+      
+      if (hashError || !hashResult?.hashedPassword) {
+        console.error('Password hashing failed:', hashError);
+        // Continue without updating UserMST password hash - Supabase Auth is primary now
+        console.log('Continuing without UserMST password update');
+      } else {
+        // Update UserMST with hashed password and link to Supabase Auth user
+        const { error: updateError } = await supabase
+          .from('UserMST')
+          .update({ 
+            password: hashResult.hashedPassword,
+            id: authData.user?.id || userData.id // Link to Supabase Auth user ID
+          })
+          .eq('id', userData.id);
+        
+        if (updateError) {
+          console.error('Error updating UserMST:', updateError);
+          // Continue even if UserMST update fails - Supabase Auth account is primary
+          console.log('Continuing despite UserMST update error');
+        }
+      }
+
+      // Password setup completed successfully
+      console.log("Admin user migrated to Supabase Auth successfully:", userData.id);
+      showToast("🎉 Account created successfully! Please use the login form to sign in.", 'success', 4000);
       onComplete();
     } catch (error) {
       console.error("Error:", error);
-      showToast("❌ Failed to set password. Please try again.", 'error', 4000);
+      showToast("❌ Failed to set up account. Please try again.", 'error', 4000);
     } finally {
       setIsLoading(false);
     }

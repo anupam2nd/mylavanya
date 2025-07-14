@@ -25,7 +25,35 @@ export function useLogin() {
       const normalizedEmail = email.trim().toLowerCase();
       console.log('Starting login process for:', normalizedEmail);
       
-      // First check if this is an admin/controller/superadmin user
+      // First try Supabase Auth login (for migrated admin users)
+      console.log('Attempting Supabase Auth login first');
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
+
+      if (!authError && authData.user) {
+        console.log('Supabase Auth login successful');
+        
+        // Check if this is an admin user by checking UserMST
+        const { data: userData, error: userError } = await supabase
+          .from('UserMST')
+          .select('id, email_id, role, FirstName, LastName')
+          .ilike('email_id', normalizedEmail)
+          .eq('active', true)
+          .maybeSingle();
+        
+        if (!userError && userData && ['admin', 'superadmin', 'controller'].includes(userData.role)) {
+          console.log('Migrated admin user logged in via Supabase Auth:', userData.role);
+          return true; // AuthProvider will handle the session
+        } else {
+          console.log('Regular user logged in via Supabase Auth');
+          return true; // AuthProvider will handle the session
+        }
+      }
+      
+      // If Supabase Auth failed, try legacy admin login
+      console.log('Supabase Auth failed, checking for legacy admin user');
       const { data, error } = await supabase
         .from('UserMST')
         .select('id, email_id, role, FirstName, LastName, password, active')
@@ -40,23 +68,18 @@ export function useLogin() {
       }
       
       if (!data) {
-        console.log('No admin user found, attempting regular Supabase auth');
-        // Try regular Supabase auth for members/artists
-        const success = await login(normalizedEmail, password);
-        if (!success) {
-          throw new Error('Invalid credentials');
-        }
-        return success;
+        console.log('No user found in UserMST');
+        throw new Error('Invalid credentials');
       }
       
-      console.log('Admin user found:', data.role, data.email_id);
+      console.log('Legacy admin user found:', data.role, data.email_id);
       
       if (!data.password) {
         throw new Error('Password not set for this user');
       }
       
-      // Verify password using the edge function
-      console.log('Verifying password for admin user');
+      // Verify password using the edge function for legacy users
+      console.log('Verifying password for legacy admin user');
       const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-password', {
         body: { 
           password: password,
@@ -76,8 +99,8 @@ export function useLogin() {
         throw new Error('Invalid credentials');
       }
       
-      // Login using the context function with admin role
-      console.log('Password verified, logging in admin user');
+      // Login using the context function with admin role (legacy approach)
+      console.log('Password verified, logging in legacy admin user');
       const success = await login(data.email_id, password, data.role);
       
       if (success) {
