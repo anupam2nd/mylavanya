@@ -31,8 +31,8 @@ export const useUserManagement = () => {
         .order('email_id', { ascending: true });
 
       if (error) throw error;
-      setUsers(data || []);
-      setFilteredUsers(data || []);
+      setUsers((data as User[]) || []);
+      setFilteredUsers((data as User[]) || []);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -163,7 +163,7 @@ export const useUserManagement = () => {
         if (error) throw error;
         
         if (data && data.length > 0) {
-          setUsers([...users, data[0]]);
+          setUsers([...users, data[0] as User]);
         }
         
         toast({
