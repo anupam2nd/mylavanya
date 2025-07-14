@@ -15,8 +15,8 @@ import { StatusToggleDialog } from "@/components/admin/users/StatusToggleDialog"
 import { useUserManagement } from "@/hooks/useUserManagement";
 
 interface User {
-  id: string;
-  email_id: string | null;
+  id: string | null;
+  email_id: string;
   FirstName: string | null;
   LastName: string | null;
   role: string | null;
@@ -81,7 +81,7 @@ const AdminUsers = () => {
   const handleEdit = (user: User) => {
     setIsNewUser(false);
     setCurrentUser(user);
-    setEmail(user.email_id || "");
+    setEmail(user.email_id);
     setFirstName(user.FirstName || "");
     setLastName(user.LastName || "");
     setRole(user.role || "admin");
@@ -101,13 +101,13 @@ const AdminUsers = () => {
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
-    await deleteUser(userToDelete.id);
+    await deleteUser(userToDelete.email_id);
     setOpenDeleteDialog(false);
   };
 
   const confirmDeactivate = async () => {
     if (!userToDeactivate) return;
-    await toggleUserStatus(userToDeactivate.id, userToDeactivate.active || false);
+    await toggleUserStatus(userToDeactivate.email_id, userToDeactivate.active || false);
     setOpenDeactivateDialog(false);
   };
 
@@ -121,7 +121,7 @@ const AdminUsers = () => {
         PhoneNo: phoneNo
       };
 
-      await saveUser(userData, isNewUser, currentUser?.id);
+      await saveUser(userData, isNewUser, currentUser?.email_id);
       setOpenDialog(false);
     } catch (error) {
       // Error is handled in the hook

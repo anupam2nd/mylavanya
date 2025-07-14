@@ -5,8 +5,8 @@ import { Switch } from "@/components/ui/switch";
 import { Edit, Trash2 } from "lucide-react";
 
 interface User {
-  id: string;
-  email_id: string | null;
+  id: string | null;
+  email_id: string;
   FirstName: string | null;
   LastName: string | null;
   role: string | null;
@@ -47,7 +47,7 @@ export const UserTable = ({ users, isSuperAdmin, onEdit, onDelete, onToggleStatu
         </TableHeader>
         <TableBody>
           {users.map((user) => (
-            <TableRow key={user.id}>
+            <TableRow key={user.email_id}>
               <TableCell className="font-medium">{user.email_id}</TableCell>
               <TableCell>{user.FirstName}</TableCell>
               <TableCell>{user.LastName}</TableCell>

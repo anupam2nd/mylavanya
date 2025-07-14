@@ -4,8 +4,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface User {
-  id: string;
-  email_id: string | null;
+  id: string | null;
+  email_id: string;
   FirstName: string | null;
   LastName: string | null;
   role: string | null;
@@ -80,16 +80,16 @@ export const useUserManagement = () => {
     setActiveFilter("all");
   };
 
-  const deleteUser = async (userId: string) => {
+  const deleteUser = async (userEmailId: string) => {
     try {
       const { error } = await supabase
         .from('UserMST')
         .delete()
-        .eq('id', userId);
+        .eq('email_id', userEmailId);
 
       if (error) throw error;
 
-      setUsers(users.filter(u => u.id !== userId));
+      setUsers(users.filter(u => u.email_id !== userEmailId));
       toast({
         title: "User deleted",
         description: "The user has been successfully removed",
@@ -104,23 +104,23 @@ export const useUserManagement = () => {
     }
   };
 
-  const toggleUserStatus = async (userId: string, currentStatus: boolean) => {
+  const toggleUserStatus = async (userEmailId: string, currentStatus: boolean) => {
     try {
       const newActiveState = !currentStatus;
       const { error } = await supabase
         .from('UserMST')
         .update({ active: newActiveState })
-        .eq('id', userId);
+        .eq('email_id', userEmailId);
 
       if (error) throw error;
 
       setUsers(users.map(user => 
-        user.id === userId 
+        user.email_id === userEmailId 
           ? { ...user, active: newActiveState } 
           : user
       ));
       
-      const targetUser = users.find(u => u.id === userId);
+      const targetUser = users.find(u => u.email_id === userEmailId);
       toast({
         title: newActiveState ? "User activated" : "User deactivated",
         description: `User "${targetUser?.email_id}" has been ${newActiveState ? "activated" : "deactivated"}`,
@@ -135,7 +135,7 @@ export const useUserManagement = () => {
     }
   };
 
-  const saveUser = async (userData: any, isNewUser: boolean, currentUserId?: string) => {
+  const saveUser = async (userData: any, isNewUser: boolean, currentUserEmailId?: string) => {
     try {
       if (!userData.email_id) {
         throw new Error("Email is required");
@@ -170,16 +170,16 @@ export const useUserManagement = () => {
           title: "User added",
           description: "New user has been successfully added",
         });
-      } else if (currentUserId) {
+      } else if (currentUserEmailId) {
         const { error } = await supabase
           .from('UserMST')
           .update(userPayload)
-          .eq('id', currentUserId);
+          .eq('email_id', currentUserEmailId);
 
         if (error) throw error;
 
         setUsers(users.map(user => 
-          user.id === currentUserId 
+          user.email_id === currentUserEmailId 
             ? { ...user, ...userPayload } 
             : user
         ));
