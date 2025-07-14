@@ -646,9 +646,9 @@ export type Database = {
       UserMST: {
         Row: {
           active: boolean
-          email_id: string | null
+          email_id: string
           FirstName: string | null
-          id: string
+          id: string | null
           LastName: string | null
           password: string | null
           PhoneNo: number | null
@@ -656,9 +656,9 @@ export type Database = {
         }
         Insert: {
           active?: boolean
-          email_id?: string | null
+          email_id: string
           FirstName?: string | null
-          id?: string
+          id?: string | null
           LastName?: string | null
           password?: string | null
           PhoneNo?: number | null
@@ -666,9 +666,9 @@ export type Database = {
         }
         Update: {
           active?: boolean
-          email_id?: string | null
+          email_id?: string
           FirstName?: string | null
-          id?: string
+          id?: string | null
           LastName?: string | null
           password?: string | null
           PhoneNo?: number | null
