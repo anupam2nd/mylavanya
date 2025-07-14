@@ -111,16 +111,31 @@ const handleArtistSession = async (authUser: any, setUser: (user: User | null) =
 
 const handleAdminSession = async (authUser: any, setUser: (user: User | null) => void) => {
   const userEmail = authUser.email;
+  const userMetadata = authUser.user_metadata;
 
-  // Check if user is an admin/superadmin/controller by ID or email
+  // First check if this is a migrated admin user by checking user metadata
+  if (userMetadata?.role && ['admin', 'superadmin', 'controller'].includes(userMetadata.role)) {
+    console.log('Migrated admin user detected from metadata:', userMetadata.role);
+    setUser({
+      id: authUser.id,
+      email: userEmail || '',
+      role: userMetadata.role,
+      firstName: userMetadata.firstName || '',
+      lastName: userMetadata.lastName || ''
+    });
+    return;
+  }
+
+  // Check if user is an admin/superadmin/controller by ID or email in UserMST
   const { data: adminUser } = await supabase
     .from('UserMST')
     .select('*')
     .or(`id.eq.${authUser.id},email_id.ilike.${userEmail}`)
     .eq('active', true)
-    .single();
+    .maybeSingle();
 
-  if (adminUser) {
+  if (adminUser && ['admin', 'superadmin', 'controller'].includes(adminUser.role)) {
+    console.log('Admin user found in UserMST:', adminUser.role);
     setUser({
       id: authUser.id,
       email: userEmail || '',
@@ -137,9 +152,10 @@ const handleAdminSession = async (authUser: any, setUser: (user: User | null) =>
     .select('*')
     .eq('emailid', userEmail)
     .eq('Active', true)
-    .single();
+    .maybeSingle();
 
   if (artistUser) {
+    console.log('Artist user found in ArtistMST');
     setUser({
       id: artistUser.uuid,
       email: userEmail || '',
