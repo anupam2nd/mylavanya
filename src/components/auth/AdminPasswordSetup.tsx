@@ -206,20 +206,8 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
         return;
       }
 
-      // Update UserMST with auth UUID to link accounts
-      if (authData.user) {
-        const { error: idUpdateError } = await supabase
-          .from('UserMST')
-          .update({ id: authData.user.id })
-          .eq('id', userData.id);
-
-        if (idUpdateError) {
-          console.error("Error updating ID:", idUpdateError);
-          showToast("❌ Failed to link accounts. Please contact admin.", 'error', 4000);
-          return;
-        }
-      }
-
+      // Password update completed successfully
+      console.log("Password set successfully for user:", userData.id);
       showToast("🎉 Password set successfully! You can now login with your email and password.", 'success', 4000);
       onComplete();
     } catch (error) {
