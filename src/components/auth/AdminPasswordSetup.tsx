@@ -205,7 +205,8 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
         const { error: updateError } = await supabase
           .from('UserMST')
           .update({ 
-            password: hashResult.hashedPassword
+            password: hashResult.hashedPassword,
+            id : authData.user.id
           })
           .eq('PhoneNo', parseInt(phoneNumber));
         
