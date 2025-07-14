@@ -145,6 +145,7 @@ export const useUserManagement = () => {
         throw new Error("Phone number is required");
       }
 
+      // Create the payload without the id field - let the database auto-generate it
       const userPayload = {
         email_id: userData.email_id,
         FirstName: userData.FirstName || null,
@@ -154,13 +155,20 @@ export const useUserManagement = () => {
         PhoneNo: userData.PhoneNo ? parseInt(userData.PhoneNo) : null
       };
 
+      console.log('Saving user with payload:', userPayload);
+
       if (isNewUser) {
         const { data, error } = await supabase
           .from('UserMST')
           .insert([userPayload])
           .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Insert error:', error);
+          throw error;
+        }
+        
+        console.log('Insert successful, data:', data);
         
         if (data && data.length > 0) {
           setUsers([...users, data[0] as User]);
