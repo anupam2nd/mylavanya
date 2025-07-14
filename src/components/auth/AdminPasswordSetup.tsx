@@ -208,13 +208,13 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
 
       // Update UserMST with auth UUID to link accounts
       if (authData.user) {
-        const { error: uuidUpdateError } = await supabase
+        const { error: idUpdateError } = await supabase
           .from('UserMST')
-          .update({ uuid: authData.user.id })
+          .update({ id: authData.user.id })
           .eq('id', userData.id);
 
-        if (uuidUpdateError) {
-          console.error("Error updating UUID:", uuidUpdateError);
+        if (idUpdateError) {
+          console.error("Error updating ID:", idUpdateError);
           showToast("❌ Failed to link accounts. Please contact admin.", 'error', 4000);
           return;
         }

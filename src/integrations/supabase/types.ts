@@ -648,34 +648,31 @@ export type Database = {
           active: boolean
           email_id: string | null
           FirstName: string | null
-          id: number
+          id: string
           LastName: string | null
           password: string | null
           PhoneNo: number | null
           role: string | null
-          uuid: string
         }
         Insert: {
           active?: boolean
           email_id?: string | null
           FirstName?: string | null
-          id?: number
+          id?: string
           LastName?: string | null
           password?: string | null
           PhoneNo?: number | null
           role?: string | null
-          uuid?: string
         }
         Update: {
           active?: boolean
           email_id?: string | null
           FirstName?: string | null
-          id?: number
+          id?: string
           LastName?: string | null
           password?: string | null
           PhoneNo?: number | null
           role?: string | null
-          uuid?: string
         }
         Relationships: []
       }

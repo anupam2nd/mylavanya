@@ -69,7 +69,7 @@ const handleAdminLogin = async (
   // Create a manual session for admin users (they don't use Supabase Auth)
   if (setUser) {
     setUser({
-      id: adminUser.uuid,
+      id: adminUser.id,
       email: adminUser.email_id || '',
       role: adminUser.role || 'admin',
       firstName: adminUser.FirstName,

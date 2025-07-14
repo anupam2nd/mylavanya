@@ -90,14 +90,13 @@ const ControllerBookings = () => {
           const { data: authSession } = await supabase.auth.getSession();
           
           if (authSession?.session?.user?.id) {
-            const userId = parseInt(authSession.session.user.id, 10);
+            const userId = authSession.session.user.id;
             
-            if (!isNaN(userId)) {
-              const { data: userData, error: userError } = await supabase
-                .from('UserMST')
-                .select('email_id, FirstName, LastName, role')
-                .eq('id', userId)
-                .single();
+            const { data: userData, error: userError } = await supabase
+              .from('UserMST')
+              .select('email_id, FirstName, LastName, role')
+              .eq('id', userId)
+              .single();
                 
               if (!userError && userData) {
                 console.log("Current user data fetched by ID:", userData);
@@ -113,18 +112,17 @@ const ControllerBookings = () => {
                   });
                 }
               }
+            } else {
+              console.warn("No active session found");
+              if (authUser) {
+                setCurrentUser({
+                  email_id: authUser.email || '',
+                  FirstName: '',
+                  LastName: '',
+                  role: authUser.role
+                });
+              }
             }
-          } else {
-            console.warn("No active session found");
-            if (authUser) {
-              setCurrentUser({
-                email_id: authUser.email || '',
-                FirstName: '',
-                LastName: '',
-                role: authUser.role
-              });
-            }
-          }
         }
       } catch (error) {
         console.error('Error in fetchCurrentUser:', error);

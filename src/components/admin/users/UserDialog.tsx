@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface User {
-  id: number;
+  id: string;
   email_id: string | null;
   FirstName: string | null;
   LastName: string | null;

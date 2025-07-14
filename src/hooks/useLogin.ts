@@ -28,7 +28,7 @@ export function useLogin() {
       // First check if this is an admin/controller/superadmin user
       const { data, error } = await supabase
         .from('UserMST')
-        .select('id, uuid, email_id, role, FirstName, LastName, password, active')
+        .select('id, email_id, role, FirstName, LastName, password, active')
         .ilike('email_id', normalizedEmail)
         .eq('active', true)
         .maybeSingle();

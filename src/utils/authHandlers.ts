@@ -112,11 +112,11 @@ const handleArtistSession = async (authUser: any, setUser: (user: User | null) =
 const handleAdminSession = async (authUser: any, setUser: (user: User | null) => void) => {
   const userEmail = authUser.email;
 
-  // Check if user is an admin/superadmin/controller by UUID or email
+  // Check if user is an admin/superadmin/controller by ID or email
   const { data: adminUser } = await supabase
     .from('UserMST')
     .select('*')
-    .or(`uuid.eq.${authUser.id},email_id.ilike.${userEmail}`)
+    .or(`id.eq.${authUser.id},email_id.ilike.${userEmail}`)
     .eq('active', true)
     .single();
 
