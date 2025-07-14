@@ -201,12 +201,11 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
         // Continue without updating UserMST password hash - Supabase Auth is primary now
         console.log('Continuing without UserMST password update');
       } else {
-        // Update UserMST with hashed password and link to Supabase Auth user
+        // Update UserMST with hashed password (keep original UserMST ID)
         const { error: updateError } = await supabase
           .from('UserMST')
           .update({ 
-            password: hashResult.hashedPassword,
-            id: authData.user?.id || userData.id // Link to Supabase Auth user ID
+            password: hashResult.hashedPassword
           })
           .eq('id', userData.id);
         
