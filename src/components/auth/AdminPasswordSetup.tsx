@@ -34,55 +34,32 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
   const { showToast } = useCustomToast();
 
   const sendOTP = async () => {
-    if (!phoneNumber.trim()) {
+    // Use phone number from auth user if available, otherwise ask for input
+    const phone = userData.authUser?.phone || phoneNumber.trim();
+    
+    if (!phone) {
       showToast("❌ Please enter your phone number", 'error', 4000);
-      return;
-    }
-
-    if (phoneNumber.length !== 10) {
-      showToast("❌ Please enter a valid 10-digit phone number", 'error', 4000);
       return;
     }
 
     setIsLoading(true);
     try {
-      // Check if phone number exists in UserMST for admin/controller/superadmin users
-      const { data: userExists, error: userCheckError } = await supabase
-        .from('UserMST')
-        .select('id, email_id, role, PhoneNo')
-        .eq('PhoneNo', parseInt(phoneNumber))
-        .in('role', ['admin', 'controller', 'superadmin'])
-        .eq('active', true)
-        .maybeSingle();
-
-      if (userCheckError) {
-        console.error("Error checking user:", userCheckError);
-        showToast("❌ Error checking user details", 'error', 4000);
-        return;
-      }
-
-      if (!userExists) {
-        showToast("❌ Phone number not found for admin/controller/superadmin user", 'error', 4000);
-        return;
-      }
-
-      // Verify the phone number matches the current user's data
-      if (userExists.id !== userData.id) {
-        showToast("❌ Phone number doesn't match your account", 'error', 4000);
-        return;
-      }
-
-      const response = await supabase.functions.invoke("send-registration-otp", {
-        body: { phoneNumber },
+      // Send OTP using signInWithOtp
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: phone,
+        options: {
+          shouldCreateUser: false
+        }
       });
 
-      if (response.error) {
+      if (error) {
+        console.error("Error sending OTP:", error);
         showToast("❌ Failed to send OTP. Please try again.", 'error', 4000);
-        console.error("Error sending OTP:", response.error);
         return;
       }
 
       showToast("✅ OTP sent successfully!", 'success', 4000);
+      setPhoneNumber(phone);
       setCurrentStep("otp");
     } catch (error) {
       console.error("Error sending OTP:", error);
@@ -100,21 +77,20 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
 
     setIsLoading(true);
     try {
-      const response = await supabase.functions.invoke("verify-registration-otp", {
-        body: { phoneNumber, otp },
+      // Verify OTP using verifyOtp
+      const { error } = await supabase.auth.verifyOtp({
+        phone: phoneNumber,
+        token: otp,
+        type: 'sms'
       });
 
-      if (response.error) {
-        showToast(`❌ ${response.error.message || "Invalid OTP"}`, 'error', 4000);
+      if (error) {
+        showToast(`❌ ${error.message || "Invalid OTP"}`, 'error', 4000);
         return;
       }
 
-      if (response.data.success) {
-        showToast("✅ Phone number verified successfully!", 'success', 4000);
-        setCurrentStep("password");
-      } else {
-        showToast(`❌ ${response.data.error || "Invalid OTP"}`, 'error', 4000);
-      }
+      showToast("✅ Phone number verified successfully!", 'success', 4000);
+      setCurrentStep("password");
     } catch (error) {
       console.error("Error verifying OTP:", error);
       showToast("❌ Failed to verify OTP. Please try again.", 'error', 4000);
@@ -126,11 +102,14 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
   const handleResendOtp = async () => {
     setIsResending(true);
     try {
-      const response = await supabase.functions.invoke("send-registration-otp", {
-        body: { phoneNumber },
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: phoneNumber,
+        options: {
+          shouldCreateUser: false
+        }
       });
 
-      if (response.error) {
+      if (error) {
         showToast("❌ Failed to resend OTP. Please try again.", 'error', 4000);
         return;
       }
@@ -162,74 +141,60 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
 
     setIsLoading(true);
     try {
-      console.log('Creating Supabase Auth account for admin user:', userData.email_id);
-      
-      // Create user in Supabase Auth first (NEW MIGRATION APPROACH)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: userData.email_id,
-        password: newPassword,
-        options: {
-          data: {
-            firstName: userData.FirstName,
-            lastName: userData.LastName,
-            role: userData.role,
-            userMSTId: userData.id
-          },
-          emailRedirectTo: `${window.location.origin}/`
-        }
+      // Update the user's password now that they are logged in via OTP
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
       });
 
-      if (authError) {
-        console.error("Error creating Supabase auth user:", authError);
-        if (authError.message.includes('already registered')) {
-          showToast("❌ This email is already registered. Please try logging in instead.", 'error', 4000);
-        } else {
-          showToast("❌ Failed to create account: " + authError.message, 'error', 4000);
-        }
+      if (error) {
+        console.error("Error updating password:", error);
+        showToast("❌ Failed to set password: " + error.message, 'error', 4000);
         return;
       }
 
-      console.log('Supabase auth user created successfully:', authData);
-      
-      // Hash the password for UserMST storage (for backward compatibility)
-      const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
-        body: { password: newPassword }
-      });
-      
-      if (hashError || !hashResult?.hashedPassword) {
-        console.error('Password hashing failed:', hashError);
-        // Continue without updating UserMST password hash - Supabase Auth is primary now
-        console.log('Continuing without UserMST password update');
-      } else {
-        // Update UserMST with hashed password using phone number
-        const { error: updateError } = await supabase
-          .from('UserMST')
-          .update({ 
-            password: hashResult.hashedPassword,
-            id : authData.user.id
-          })
-          .eq('PhoneNo', parseInt(phoneNumber));
-        
-        if (updateError) {
-          console.error('Error updating UserMST:', updateError);
-          // Continue even if UserMST update fails - Supabase Auth account is primary
-          console.log('Continuing despite UserMST update error');
-        }
-      }
-
-      // Password setup completed successfully
-      console.log("Admin user migrated to Supabase Auth successfully:", userData.id);
-      showToast("🎉 Account created successfully! Please use the login form to sign in.", 'success', 4000);
+      showToast("🎉 Password set successfully! You can now login with your credentials.", 'success', 4000);
       onComplete();
     } catch (error) {
       console.error("Error:", error);
-      showToast("❌ Failed to set up account. Please try again.", 'error', 4000);
+      showToast("❌ Failed to set password. Please try again.", 'error', 4000);
     } finally {
       setIsLoading(false);
     }
   };
 
   if (currentStep === "phone") {
+    // If user already has phone in auth data, skip to OTP
+    if (userData.authUser?.phone) {
+      return (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">Set Up Your Password</h3>
+            <p className="text-sm text-muted-foreground">
+              We'll send an OTP to your registered phone number: {userData.authUser.phone}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onBack}
+              className="flex-1"
+            >
+              Back
+            </Button>
+            <ButtonCustom 
+              variant="primary-gradient" 
+              className="flex-1"
+              onClick={sendOTP}
+              disabled={isLoading}
+            >
+              {isLoading ? "Sending..." : "Send OTP"}
+            </ButtonCustom>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-4">
         <div className="space-y-2">
@@ -243,15 +208,9 @@ export function AdminPasswordSetup({ userData, onComplete, onBack }: AdminPasswo
           <Input 
             id="phone"
             type="tel"
-            placeholder="Enter your 10-digit phone number" 
+            placeholder="Enter your phone number" 
             value={phoneNumber}
-            onChange={(e) => {
-              const value = e.target.value.replace(/[^0-9]/g, '');
-              if (value.length <= 10) {
-                setPhoneNumber(value);
-              }
-            }}
-            maxLength={10}
+            onChange={(e) => setPhoneNumber(e.target.value)}
             required
           />
         </div>

@@ -39,16 +39,27 @@ export default function AdminLoginForm() {
       // Check if it's email or phone
       const isEmail = normalizedInput.includes('@');
       
-      let query = supabase.from('UserMST').select('*');
-      
+      // First, check if user exists in auth.users
+      let authUser: any = null;
       if (isEmail) {
-        query = query.ilike('email_id', normalizedInput);
+        const { data: authData } = await supabase.auth.admin.listUsers();
+        authUser = authData.users?.find((user: any) => user.email?.toLowerCase() === normalizedInput);
       } else {
-        // For phone number
-        query = query.eq('PhoneNo', parseInt(normalizedInput));
+        const { data: authData } = await supabase.auth.admin.listUsers();
+        authUser = authData.users?.find((user: any) => user.phone === normalizedInput);
       }
-      
-      const { data, error } = await query.maybeSingle();
+
+      if (!authUser) {
+        showToast(isEmail ? "❌ No user found with this email" : "❌ No user found with this phone number", 'error', 4000);
+        return;
+      }
+
+      // Check UserMST for additional user details
+      const { data: userMstData, error } = await supabase
+        .from('UserMST')
+        .select('*')
+        .eq('id', authUser.id)
+        .maybeSingle();
       
       if (error) {
         console.error("Error checking user:", error);
@@ -56,30 +67,32 @@ export default function AdminLoginForm() {
         return;
       }
 
-      if (!data) {
-        showToast(isEmail ? "❌ No user found with this email" : "❌ No user found with this phone number", 'error', 4000);
+      if (!userMstData) {
+        showToast("❌ User profile not found. Please contact support.", 'error', 4000);
         return;
       }
 
       // Check if user is active
-      if (data.active === false) {
+      if (userMstData.active === false) {
         showToast("❌ Your account has been deactivated. Please contact support.", 'error', 4000);
         return;
       }
 
       // Check if user role is admin or controller
-      if (!['admin', 'controller', 'superadmin'].includes(data.role)) {
+      if (!['admin', 'controller', 'superadmin'].includes(userMstData.role)) {
         showToast("❌ Access denied. This login is for admin and controller users only.", 'error', 4000);
         return;
       }
 
       console.log('User data found, setting state - potential layout shift point');
-      setUserData(data);
       
-      if (data.password) {
-        setCurrentStep("password");
-      } else {
+      // Check if phone_confirmed_at is null (needs password setup)
+      if (!authUser.phone_confirmed_at) {
+        setUserData({ ...userMstData, authUser });
         setCurrentStep("setup");
+      } else {
+        setUserData({ ...userMstData, authUser });
+        setCurrentStep("password");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -101,34 +114,25 @@ export default function AdminLoginForm() {
     console.log('Starting password login - potential layout shift point');
     setIsLoading(true);
     try {
-      // Check if user has been migrated to Supabase Auth (has uuid)
-      if (userData.uuid) {
-        // Use Supabase Auth login for migrated users
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: userData.email_id,
-          password: password
-        });
+      // Use Supabase Auth login for all users now
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: userData.email_id,
+        password: password
+      });
 
-        if (error) {
-          throw new Error('Invalid email or password');
-        }
+      if (error) {
+        throw new Error('Invalid email or password');
+      }
 
-        if (data.user) {
-          showToast(`🎉 Login successful. Welcome back! You are now logged in as ${userData.role}.`, 'success', 4000);
-          
-          // Redirect based on role
-          if (userData.role === 'superadmin' || userData.role === 'admin') {
-            navigate('/admin/dashboard');
-          } else if (userData.role === 'controller') {
-            navigate('/controller/dashboard');
-          }
+      if (data.user) {
+        showToast(`🎉 Login successful. Welcome back! You are now logged in as ${userData.role}.`, 'success', 4000);
+        
+        // Redirect based on role
+        if (userData.role === 'superadmin' || userData.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else if (userData.role === 'controller') {
+          navigate('/controller/dashboard');
         }
-      } else {
-        // Use legacy login for users not yet migrated
-        await handleLogin({
-          email: userData.email_id,
-          password: password
-        });
       }
     } catch (error) {
       console.error("Login error:", error);
