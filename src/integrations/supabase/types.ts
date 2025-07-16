@@ -304,6 +304,53 @@ export type Database = {
         }
         Relationships: []
       }
+      ExternalLeadMST: {
+        Row: {
+          created_at: string
+          firstname: string
+          id: string
+          is_phone_whatsapp: boolean
+          lastname: string
+          phonenumber: string
+          selected_service_id: number | null
+          selected_service_name: string | null
+          updated_at: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          created_at?: string
+          firstname: string
+          id?: string
+          is_phone_whatsapp?: boolean
+          lastname: string
+          phonenumber: string
+          selected_service_id?: number | null
+          selected_service_name?: string | null
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          created_at?: string
+          firstname?: string
+          id?: string
+          is_phone_whatsapp?: boolean
+          lastname?: string
+          phonenumber?: string
+          selected_service_id?: number | null
+          selected_service_name?: string | null
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_external_lead_service"
+            columns: ["selected_service_id"]
+            isOneToOne: false
+            referencedRelation: "PriceMST"
+            referencedColumns: ["prod_id"]
+          },
+        ]
+      }
       FaqMST: {
         Row: {
           active: boolean | null
