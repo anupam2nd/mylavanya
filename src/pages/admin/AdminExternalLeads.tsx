@@ -6,11 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, Eye, Search, Calendar, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { generateBookingReference } from "@/utils/booking/referenceGenerator";
+import { getNextAvailableId } from "@/utils/booking/idGenerator";
 
 interface ExternalLead {
   id: string;
@@ -31,6 +34,14 @@ interface LeadDetails extends ExternalLead {
   pincode?: string;
   preferred_date?: string;
   preferred_time?: string;
+  new_service_id?: number;
+  new_service_name?: string;
+}
+
+interface Service {
+  prod_id: number;
+  ProductName: string;
+  Price: number;
 }
 
 const AdminExternalLeads = () => {
@@ -39,11 +50,29 @@ const AdminExternalLeads = () => {
   const [selectedLead, setSelectedLead] = useState<LeadDetails | null>(null);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState<Service[]>([]);
+  const [isCreatingBooking, setIsCreatingBooking] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchLeads();
+    fetchServices();
   }, []);
+
+  const fetchServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('PriceMST')
+        .select('prod_id, ProductName, Price')
+        .eq('active', true)
+        .order('ProductName');
+
+      if (error) throw error;
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
+  };
 
   const fetchLeads = async () => {
     try {
@@ -108,55 +137,129 @@ const AdminExternalLeads = () => {
     setShowViewDialog(true);
   };
 
-  const updateLeadDetails = (field: keyof LeadDetails, value: string) => {
+  const updateLeadDetails = (field: keyof LeadDetails, value: string | number) => {
     if (selectedLead) {
       setSelectedLead({ ...selectedLead, [field]: value });
     }
   };
 
-  const saveLeadDetails = async () => {
-    if (!selectedLead) return;
-
-    try {
-      // Since we can't modify the ExternalLeadMST structure, we'll just show a success message
-      // In a real implementation, you might want to create a separate table for extended lead details
-      toast({
-        title: "Success",
-        description: "Lead details viewed successfully",
-      });
-      setShowViewDialog(false);
-    } catch (error) {
-      console.error('Error saving lead details:', error);
+  const createBookingFromLead = async () => {
+    if (!selectedLead || !selectedLead.new_service_id || !selectedLead.preferred_date || !selectedLead.preferred_time || !selectedLead.address || !selectedLead.pincode) {
       toast({
         title: "Error",
-        description: "Failed to save lead details",
+        description: "Please fill in all required fields (service, date, time, address, pincode)",
         variant: "destructive",
       });
+      return;
+    }
+
+    setIsCreatingBooking(true);
+
+    try {
+      // Generate booking reference and ID
+      const bookingRef = await generateBookingReference();
+      const nextId = await getNextAvailableId();
+
+      // Format time to 12-hour format for display if needed
+      const formatTimeTo12Hour = (time: string) => {
+        const [hours, minutes] = time.split(':');
+        const hour = parseInt(hours, 10);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
+      };
+
+      // Create member data
+      const memberData = {
+        MemberFirstName: selectedLead.firstname,
+        MemberLastName: selectedLead.lastname,
+        MemberPhNo: selectedLead.phonenumber,
+        MemberSex: selectedLead.sex || null,
+        MemberAdress: selectedLead.address,
+        MemberPincode: selectedLead.pincode,
+        whatsapp_number: selectedLead.whatsapp_number || (selectedLead.is_phone_whatsapp ? selectedLead.phonenumber : null),
+        MemberStatus: true
+      };
+
+      // Insert or update member
+      const { data: memberResult, error: memberError } = await supabase
+        .from('MemberMST')
+        .upsert(memberData, { 
+          onConflict: 'MemberPhNo',
+          ignoreDuplicates: false 
+        })
+        .select()
+        .single();
+
+      if (memberError) throw memberError;
+
+      // Get selected service details
+      const selectedService = services.find(s => s.prod_id === selectedLead.new_service_id);
+      if (!selectedService) throw new Error('Selected service not found');
+
+      // Create booking data
+      const currentTime = new Date();
+      const bookingData = {
+        id: nextId,
+        Product: selectedLead.new_service_id,
+        Phone_no: parseInt(selectedLead.phonenumber.replace(/\D/g, '')),
+        Booking_date: selectedLead.preferred_date,
+        booking_time: formatTimeTo12Hour(selectedLead.preferred_time),
+        Status: 'pending',
+        StatusUpdated: currentTime.toISOString(),
+        price: selectedService.Price,
+        Booking_NO: parseInt(bookingRef),
+        Qty: 1,
+        Address: selectedLead.address,
+        Pincode: parseInt(selectedLead.pincode),
+        name: `${selectedLead.firstname} ${selectedLead.lastname}`,
+        ServiceName: selectedService.ProductName,
+        ProductName: selectedService.ProductName,
+        jobno: 1,
+        Purpose: selectedService.ProductName
+      };
+
+      // Insert booking
+      const { error: bookingError } = await supabase
+        .from('BookMST')
+        .insert(bookingData);
+
+      if (bookingError) throw bookingError;
+
+      toast({
+        title: "Success",
+        description: `Booking created successfully with reference: ${bookingRef}`,
+      });
+      
+      setShowViewDialog(false);
+      
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create booking. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingBooking(false);
     }
   };
 
   return (
     <DashboardLayout title="External Leads">
       <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">External Leads</h1>
-            <p className="text-muted-foreground">
-              Manage leads submitted through the booking form
-            </p>
-          </div>
-          <Button onClick={exportData} className="flex items-center gap-2">
-            <Download className="h-4 w-4" />
-            Export Data
-          </Button>
-        </div>
-
         <Card>
-          <CardHeader>
-            <CardTitle>Lead Management</CardTitle>
-            <CardDescription>
-              View and manage external leads from booking form submissions
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <div>
+              <CardTitle>Lead Management</CardTitle>
+              <CardDescription>
+                View and manage external leads from booking form submissions
+              </CardDescription>
+            </div>
+            <Button onClick={exportData} className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Export Data
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-2 mb-4">
@@ -311,6 +414,29 @@ const AdminExternalLeads = () => {
                   <Input value={selectedLead.selected_service_name || 'N/A'} disabled />
                 </div>
                 <div className="space-y-2 col-span-2">
+                  <Label>Add New Service (for booking creation)</Label>
+                  <Select
+                    value={selectedLead.new_service_id?.toString() || ''}
+                    onValueChange={(value) => {
+                      const serviceId = parseInt(value);
+                      const service = services.find(s => s.prod_id === serviceId);
+                      updateLeadDetails('new_service_id', serviceId);
+                      updateLeadDetails('new_service_name', service?.ProductName || '');
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a service" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {services.map((service) => (
+                        <SelectItem key={service.prod_id} value={service.prod_id.toString()}>
+                          {service.ProductName} - ₹{service.Price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2 col-span-2">
                   <Label>Submitted Date</Label>
                   <Input value={format(new Date(selectedLead.created_at), 'dd/MM/yyyy HH:mm')} disabled />
                 </div>
@@ -321,8 +447,12 @@ const AdminExternalLeads = () => {
               <Button variant="outline" onClick={() => setShowViewDialog(false)}>
                 Close
               </Button>
-              <Button onClick={saveLeadDetails}>
-                Save Details
+              <Button 
+                onClick={createBookingFromLead}
+                disabled={isCreatingBooking}
+                className="min-w-[120px]"
+              >
+                {isCreatingBooking ? 'Creating...' : 'Create Booking'}
               </Button>
             </div>
           </DialogContent>

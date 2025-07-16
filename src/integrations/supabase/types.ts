@@ -392,11 +392,11 @@ export type Database = {
           MemberSex: string | null
           MemberStatus: boolean | null
           NumberOfChildren: number | null
-          original_phone: string | null
           password: string | null
           SpouseName: string | null
           synthetic_email: string | null
           updated_at: string | null
+          whatsapp_number: string | null
         }
         Insert: {
           ChildrenDetails?: Json | null
@@ -414,11 +414,11 @@ export type Database = {
           MemberSex?: string | null
           MemberStatus?: boolean | null
           NumberOfChildren?: number | null
-          original_phone?: string | null
           password?: string | null
           SpouseName?: string | null
           synthetic_email?: string | null
           updated_at?: string | null
+          whatsapp_number?: string | null
         }
         Update: {
           ChildrenDetails?: Json | null
@@ -436,11 +436,11 @@ export type Database = {
           MemberSex?: string | null
           MemberStatus?: boolean | null
           NumberOfChildren?: number | null
-          original_phone?: string | null
           password?: string | null
           SpouseName?: string | null
           synthetic_email?: string | null
           updated_at?: string | null
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
