@@ -144,10 +144,10 @@ const AdminExternalLeads = () => {
   };
 
   const createBookingFromLead = async () => {
-    if (!selectedLead || !selectedLead.new_service_id || !selectedLead.preferred_date || !selectedLead.preferred_time || !selectedLead.address || !selectedLead.pincode) {
+    if (!selectedLead || !selectedLead.preferred_date || !selectedLead.preferred_time || !selectedLead.address || !selectedLead.pincode) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields (service, date, time, address, pincode)",
+        description: "Please fill in all required fields (date, time, address, pincode)",
         variant: "destructive",
       });
       return;
@@ -201,30 +201,32 @@ const AdminExternalLeads = () => {
 
       if (memberError) throw memberError;
 
-      // Get selected service details
-      const selectedService = services.find(s => s.prod_id === selectedLead.new_service_id);
-      if (!selectedService) throw new Error('Selected service not found');
+      // Get selected service details - use new service if selected, otherwise use original service
+      const serviceId = selectedLead.new_service_id || selectedLead.selected_service_id;
+      const selectedService = services.find(s => s.prod_id === serviceId);
+      const serviceName = selectedService?.ProductName || selectedLead.selected_service_name || 'Unknown Service';
+      const servicePrice = selectedService?.Price || 0;
 
       // Create booking data
       const currentTime = new Date();
       const bookingData = {
         id: nextId,
-        Product: selectedLead.new_service_id,
+        Product: serviceId || null,
         Phone_no: parseInt(selectedLead.phonenumber.replace(/\D/g, '')),
         Booking_date: selectedLead.preferred_date,
         booking_time: formatTimeTo12Hour(selectedLead.preferred_time),
         Status: 'pending',
         StatusUpdated: currentTime.toISOString(),
-        price: selectedService.Price,
+        price: servicePrice,
         Booking_NO: parseInt(bookingRef),
         Qty: 1,
         Address: selectedLead.address,
         Pincode: parseInt(selectedLead.pincode),
         name: `${selectedLead.firstname} ${selectedLead.lastname}`,
-        ServiceName: selectedService.ProductName,
-        ProductName: selectedService.ProductName,
+        ServiceName: serviceName,
+        ProductName: serviceName,
         jobno: 1,
-        Purpose: selectedService.ProductName
+        Purpose: serviceName
       };
 
       // Insert booking
