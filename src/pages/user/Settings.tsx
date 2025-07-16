@@ -60,7 +60,7 @@ const Settings = () => {
       const { data: userData, error: fetchError } = await supabase
         .from('UserMST')
         .select('password')
-        .eq('id', Number(user.id))
+        .eq('id', user.id)
         .single();
 
       if (fetchError || !userData) {
@@ -76,7 +76,7 @@ const Settings = () => {
       const { error: updateError } = await supabase
         .from('UserMST')
         .update({ password: values.newPassword })
-        .eq('id', Number(user.id));
+        .eq('id', user.id);
 
       if (updateError) {
         throw updateError;

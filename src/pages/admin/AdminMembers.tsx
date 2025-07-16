@@ -23,7 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 interface MemberItem {
-  id: number;
+  id: string;
   MemberFirstName: string;
   MemberLastName: string;
   MemberEmailId: string;
@@ -81,11 +81,9 @@ const AdminMembers = () => {
     fetchMembers();
   }, [toast]);
   
-  // Get the next available ID for a new member
-  const getNextAvailableId = () => {
-    if (members.length === 0) return 1;
-    const maxId = Math.max(...members.map(member => member.id));
-    return maxId + 1;
+  // Generate a new UUID for a new member
+  const generateNewId = () => {
+    return crypto.randomUUID();
   };
   
   // Handle form input changes
@@ -120,13 +118,13 @@ const AdminMembers = () => {
     }
     
     try {
-      // Get the next available ID
-      const nextId = getNextAvailableId();
+      // Generate a new UUID for the member
+      const newId = generateNewId();
       
       const { data, error } = await supabase
         .from('MemberMST')
         .insert([{
-          id: nextId,
+          id: newId,
           MemberFirstName: formData.MemberFirstName,
           MemberLastName: formData.MemberLastName, 
           MemberEmailId: formData.MemberEmailId,

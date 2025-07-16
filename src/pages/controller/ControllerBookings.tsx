@@ -96,7 +96,7 @@ const ControllerBookings = () => {
               const { data: userData, error: userError } = await supabase
                 .from('UserMST')
                 .select('email_id, FirstName, LastName, role')
-                .eq('id', userId)
+                .eq('id', authSession.session.user.id)
                 .single();
                 
               if (!userError && userData) {
