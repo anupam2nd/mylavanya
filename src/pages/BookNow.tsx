@@ -23,7 +23,7 @@ const bookingSchema = z.object({
   phonenumber: z.string().min(10, 'Phone number must be at least 10 digits'),
   is_phone_whatsapp: z.boolean().default(false),
   whatsapp_number: z.string().optional(),
-  address: z.string().min(1, 'Address is required'),
+  
   selected_services: z.array(z.object({
     id: z.number(),
     name: z.string(),
@@ -83,7 +83,7 @@ export default function BookNow() {
       phonenumber: '',
       is_phone_whatsapp: false,
       whatsapp_number: '',
-      address: '',
+      
       selected_services: [],
     },
   });
@@ -526,19 +526,6 @@ export default function BookNow() {
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name="address"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Address *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter your address" {...field} className="text-xs h-8" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
 
                         <FormField
                           control={form.control}

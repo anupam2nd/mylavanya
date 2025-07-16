@@ -29,6 +29,7 @@ import AdminArtistActivity from "@/pages/admin/AdminArtistActivity";
 import AdminFaqs from "@/pages/admin/AdminFaqs";
 import WishlistController from "@/pages/admin/WishlistController";
 import AdminArtistRequests from "@/pages/admin/AdminArtistRequests";
+import AdminExternalLeads from "@/pages/admin/AdminExternalLeads";
 import ControllerDashboard from "@/pages/controller/ControllerDashboard";
 import ControllerBookings from "@/pages/controller/ControllerBookings";
 import ControllerArtistRequests from "@/pages/controller/ControllerArtistRequests";
@@ -75,6 +76,7 @@ function App() {
               <Route path="/admin/faqs" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminFaqs /></ProtectedAdminRoute>} />
               <Route path="/admin/wishlist" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><WishlistController /></ProtectedAdminRoute>} />
               <Route path="/admin/artist-requests" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminArtistRequests /></ProtectedAdminRoute>} />
+              <Route path="/admin/external-leads" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin', 'controller']}><AdminExternalLeads /></ProtectedAdminRoute>} />
               
               {/* Controller Routes */}
               <Route path="/controller/dashboard" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerDashboard /></ProtectedAdminRoute>} />
@@ -82,6 +84,7 @@ function App() {
               <Route path="/controller/wishlist" element={<ProtectedAdminRoute allowedRoles={['controller']}><WishlistController /></ProtectedAdminRoute>} />
               <Route path="/controller/artist-requests" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerArtistRequests /></ProtectedAdminRoute>} />
               <Route path="/controller/artist-activity" element={<ProtectedAdminRoute allowedRoles={['controller']}><ArtistActivity /></ProtectedAdminRoute>} />
+              <Route path="/controller/external-leads" element={<ProtectedAdminRoute allowedRoles={['controller']}><AdminExternalLeads /></ProtectedAdminRoute>} />
               
               {/* Artist Routes */}
               <Route path="/artist/dashboard" element={<ProtectedAdminRoute allowedRoles={['artist']}><ArtistDashboard /></ProtectedAdminRoute>} />
