@@ -18,18 +18,16 @@ export const useUserBookings = () => {
         const { data: authSession } = await supabase.auth.getSession();
         
         if (authSession?.session?.user?.id) {
-          const userId = parseInt(authSession.session.user.id, 10);
+          const userId = authSession.session.user.id; // Already a string/uuid
           
-          if (!isNaN(userId)) {
-            const { data, error } = await supabase
-              .from('UserMST')
-              .select('email_id, FirstName, LastName')
-              .eq('id', userId)
-              .single();
-              
-            if (!error && data) {
-              setCurrentUser(data);
-            }
+          const { data, error } = await supabase
+            .from('UserMST')
+            .select('email_id, FirstName, LastName')
+            .eq('id', userId)
+            .single();
+            
+          if (!error && data) {
+            setCurrentUser(data);
           }
         }
       } catch (error) {

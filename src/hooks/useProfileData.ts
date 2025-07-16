@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileFormData, ChildDetail } from "@/types/profile";
@@ -110,7 +111,7 @@ export const useProfileData = (user: User | null) => {
             const { data: idData, error: idError } = await supabase
               .from('UserMST')
               .select('FirstName, LastName, email_id, PhoneNo')
-              .eq('id', Number(user.id))
+              .eq('id', user.id) // Use user.id directly as it's already a string/uuid
               .single();
               
             if (idError) {

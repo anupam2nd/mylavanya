@@ -14,8 +14,9 @@ import { DeleteUserDialog } from "@/components/admin/users/DeleteUserDialog";
 import { StatusToggleDialog } from "@/components/admin/users/StatusToggleDialog";
 import { useUserManagement } from "@/hooks/useUserManagement";
 
-interface User {
-  id: number;
+// Use local interface that matches the database schema
+interface LocalUser {
+  id: string; // Changed to string to match UserMST.id (uuid)
   email_id: string | null;
   FirstName: string | null;
   LastName: string | null;
@@ -45,9 +46,9 @@ const AdminUsers = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openDeactivateDialog, setOpenDeactivateDialog] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [userToDeactivate, setUserToDeactivate] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<LocalUser | null>(null);
+  const [userToDelete, setUserToDelete] = useState<LocalUser | null>(null);
+  const [userToDeactivate, setUserToDeactivate] = useState<LocalUser | null>(null);
   
   const isSuperAdmin = user?.role === 'superadmin';
   
@@ -78,7 +79,7 @@ const AdminUsers = () => {
     setOpenDialog(true);
   };
 
-  const handleEdit = (user: User) => {
+  const handleEdit = (user: LocalUser) => {
     setIsNewUser(false);
     setCurrentUser(user);
     setEmail(user.email_id || "");
@@ -89,12 +90,12 @@ const AdminUsers = () => {
     setOpenDialog(true);
   };
 
-  const handleDelete = (user: User) => {
+  const handleDelete = (user: LocalUser) => {
     setUserToDelete(user);
     setOpenDeleteDialog(true);
   };
 
-  const handleDeactivate = (user: User) => {
+  const handleDeactivate = (user: LocalUser) => {
     setUserToDeactivate(user);
     setOpenDeactivateDialog(true);
   };

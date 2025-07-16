@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Edit, Trash2 } from "lucide-react";
 
 interface User {
-  id: number;
+  id: string; // Changed to string to match UserMST.id (uuid)
   email_id: string | null;
   FirstName: string | null;
   LastName: string | null;
