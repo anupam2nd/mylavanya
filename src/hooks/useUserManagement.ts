@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface User {
-  id: string; // Changed from number to string to match UUID type
+  id: number;
   email_id: string | null;
   FirstName: string | null;
   LastName: string | null;
@@ -80,7 +80,7 @@ export const useUserManagement = () => {
     setActiveFilter("all");
   };
 
-  const deleteUser = async (userId: string) => {
+  const deleteUser = async (userId: number) => {
     try {
       const { error } = await supabase
         .from('UserMST')
@@ -104,7 +104,7 @@ export const useUserManagement = () => {
     }
   };
 
-  const toggleUserStatus = async (userId: string, currentStatus: boolean) => {
+  const toggleUserStatus = async (userId: number, currentStatus: boolean) => {
     try {
       const newActiveState = !currentStatus;
       const { error } = await supabase
@@ -135,7 +135,7 @@ export const useUserManagement = () => {
     }
   };
 
-  const saveUser = async (userData: any, isNewUser: boolean, currentUserId?: string) => {
+  const saveUser = async (userData: any, isNewUser: boolean, currentUserId?: number) => {
     try {
       if (!userData.email_id) {
         throw new Error("Email is required");

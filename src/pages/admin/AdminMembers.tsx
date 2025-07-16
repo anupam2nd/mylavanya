@@ -23,7 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 interface MemberItem {
-  id: string; // Changed from number to string to match UUID type in database
+  id: number;
   MemberFirstName: string;
   MemberLastName: string;
   MemberEmailId: string;
@@ -81,7 +81,12 @@ const AdminMembers = () => {
     fetchMembers();
   }, [toast]);
   
-  // Generate a UUID for new member (removed getNextAvailableId since we use UUID auto-generation)
+  // Get the next available ID for a new member
+  const getNextAvailableId = () => {
+    if (members.length === 0) return 1;
+    const maxId = Math.max(...members.map(member => member.id));
+    return maxId + 1;
+  };
   
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,10 +120,13 @@ const AdminMembers = () => {
     }
     
     try {
+      // Get the next available ID
+      const nextId = getNextAvailableId();
+      
       const { data, error } = await supabase
         .from('MemberMST')
         .insert([{
-          // Remove id field to let database auto-generate UUID
+          id: nextId,
           MemberFirstName: formData.MemberFirstName,
           MemberLastName: formData.MemberLastName, 
           MemberEmailId: formData.MemberEmailId,

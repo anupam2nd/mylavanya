@@ -27,7 +27,7 @@ export function useLogin() {
       
       const { data, error } = await supabase
         .from('UserMST')
-        .select('id, email_id, role, FirstName, LastName, password, active')
+        .select('id, uuid, email_id, role, FirstName, LastName, password, active')
         .ilike('email_id', normalizedEmail)
         .eq('active', true)
         .maybeSingle();
@@ -65,7 +65,7 @@ export function useLogin() {
       
       // Create user object
       const userObj = {
-        id: data.id,
+        id: data.uuid,
         email: data.email_id,
         role: data.role,
         firstName: data.FirstName,

@@ -14,7 +14,7 @@ import { format } from "date-fns";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: string;  // Changed back to string to match UUID type in database
+  user_id: number;  // Changed from string to number
   created_at: string;
   service_name: string;
   service_price: number;

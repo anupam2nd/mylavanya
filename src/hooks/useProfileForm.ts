@@ -162,7 +162,7 @@ export const useProfileForm = (
               PhoneNo: formData.phone ? Number(formData.phone) : null,
               Username: userEmail
             } as any)
-            .eq('id', userId);
+            .eq('id', Number(userId));
             
           if (idError) throw idError;
         }
