@@ -12,7 +12,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 interface WishlistItem {
   id: number;
   service_id: number;
-  user_id: number;  // Changed from string to number
+  user_id: string;  // Changed back to string to match UUID type in database
   created_at: string;
   service_name: string;
   service_price: number;
@@ -52,7 +52,7 @@ const Wishlist = () => {
               Description
             )
           `)
-          .eq('user_id', parseInt(user.id));
+          .eq('user_id', user.id);
 
         if (error) {
           throw error;
@@ -94,7 +94,7 @@ const Wishlist = () => {
         .from('wishlist')
         .delete()
         .eq('id', itemId)
-        .eq('user_id', parseInt(user.id));
+        .eq('user_id', user.id);
 
       if (error) throw error;
       

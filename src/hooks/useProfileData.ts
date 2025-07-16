@@ -110,7 +110,7 @@ export const useProfileData = (user: User | null) => {
             const { data: idData, error: idError } = await supabase
               .from('UserMST')
               .select('FirstName, LastName, email_id, PhoneNo')
-              .eq('id', Number(user.id))
+              .eq('id', user.id)
               .single();
               
             if (idError) {

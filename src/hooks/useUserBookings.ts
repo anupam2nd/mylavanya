@@ -18,18 +18,16 @@ export const useUserBookings = () => {
         const { data: authSession } = await supabase.auth.getSession();
         
         if (authSession?.session?.user?.id) {
-          const userId = parseInt(authSession.session.user.id, 10);
+          const userId = authSession.session.user.id; // Keep as string UUID
           
-          if (!isNaN(userId)) {
-            const { data, error } = await supabase
-              .from('UserMST')
-              .select('email_id, FirstName, LastName')
-              .eq('id', userId)
-              .single();
-              
-            if (!error && data) {
-              setCurrentUser(data);
-            }
+          const { data, error } = await supabase
+            .from('UserMST')
+            .select('email_id, FirstName, LastName')
+            .eq('id', userId)
+            .single();
+            
+          if (!error && data) {
+            setCurrentUser(data);
           }
         }
       } catch (error) {
@@ -47,14 +45,20 @@ export const useUserBookings = () => {
         
         let query = supabase.from('BookMST').select('*');
         
-        // For artist role, filter bookings by ArtistId
+        // For artist role, filter bookings by matching artist email with ArtistMST
         if (user?.role === 'artist') {
-          const artistId = parseInt(user.id, 10);
-          if (!isNaN(artistId)) {
-            console.log("Filtering bookings by artist ID:", artistId);
-            query = query.eq('ArtistId', artistId);
+          // First get the ArtistId from ArtistMST using the user's UUID
+          const { data: artistData } = await supabase
+            .from('ArtistMST')
+            .select('ArtistId')
+            .eq('uuid', user.id)
+            .single();
+            
+          if (artistData?.ArtistId) {
+            console.log("Filtering bookings by artist ID:", artistData.ArtistId);
+            query = query.eq('ArtistId', artistData.ArtistId);
           }
-        } 
+        }
         // For member role, filter bookings by email
         else if (user?.role === 'member' && user?.email) {
           console.log("Filtering bookings by member email:", user.email);
