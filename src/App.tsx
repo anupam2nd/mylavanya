@@ -14,6 +14,7 @@ import Contact from "@/pages/Contact";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import TrackBooking from "@/pages/TrackBooking";
+import BookNow from "@/pages/BookNow";
 import NotFound from "@/pages/NotFound";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -58,6 +59,7 @@ function App() {
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/track-booking" element={<TrackBooking />} />
+              <Route path="/book-now" element={<BookNow />} />
               
               {/* Admin Routes */}
               <Route path="/admin/dashboard" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminDashboard /></ProtectedAdminRoute>} />
