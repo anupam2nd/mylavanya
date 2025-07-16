@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Search, SortAsc, SortDesc } from 'lucide-react';
+import { Search, SortAsc, SortDesc, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,8 +12,10 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import MainLayout from '@/components/layout/MainLayout';
+import ServiceDetailsDialog from '@/components/services/ServiceDetailsDialog';
 
 const bookingSchema = z.object({
   firstname: z.string().min(1, 'First name is required'),
@@ -32,8 +34,12 @@ interface Service {
   ProductName: string;
   Description: string;
   Price: number;
+  NetPayable?: number;
   Category: string;
   SubCategory: string;
+  imageUrl?: string;
+  Discount?: number;
+  Scheme?: string;
 }
 
 interface Category {
@@ -53,6 +59,8 @@ export default function BookNow() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedServiceForDialog, setSelectedServiceForDialog] = useState<Service | null>(null);
+  const [showServiceDialog, setShowServiceDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSubCategory, setSelectedSubCategory] = useState('');
@@ -82,7 +90,7 @@ export default function BookNow() {
         // Fetch services
         const { data: servicesData, error: servicesError } = await supabase
           .from('PriceMST')
-          .select('prod_id, ProductName, Description, Price, Category, SubCategory')
+          .select('prod_id, ProductName, Description, Price, NetPayable, Category, SubCategory, imageUrl, Discount, Scheme')
           .eq('active', true)
           .order('ProductName');
 
@@ -134,7 +142,9 @@ export default function BookNow() {
 
     // Sort by price
     filtered = filtered.sort((a, b) => {
-      return sortOrder === 'asc' ? (a.Price || 0) - (b.Price || 0) : (b.Price || 0) - (a.Price || 0);
+      const priceA = a.NetPayable || a.Price || 0;
+      const priceB = b.NetPayable || b.Price || 0;
+      return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
     });
 
     setFilteredServices(filtered);
@@ -196,42 +206,52 @@ export default function BookNow() {
       })
     : subCategories;
 
+  const handleServiceClick = (service: Service) => {
+    setSelectedServiceForDialog(service);
+    setShowServiceDialog(true);
+  };
+
+  const handleServiceSelect = (service: Service) => {
+    setSelectedService(service);
+    setShowServiceDialog(false);
+  };
+
   return (
     <MainLayout>
       <div className="min-h-screen bg-background py-8">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-foreground mb-4">Book Your Service</h1>
-            <p className="text-muted-foreground text-lg">Choose your service and book an appointment with us</p>
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="text-center mb-6">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2 sm:mb-4">Book Your Service</h1>
+            <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">Choose your service and book an appointment with us</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Service Selection */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Select Service</CardTitle>
-                  <CardDescription>Browse and select the service you need</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Search */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search services..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
+          <div className="space-y-6">
+            {/* Search and Filters */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg sm:text-xl">Select Service</CardTitle>
+                <CardDescription className="text-sm">Browse and select the service you need</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search services..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
 
-                  {/* Filters */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Filters - Side by side for mobile */}
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                     <Select value={selectedCategory} onValueChange={(value) => {
                       setSelectedCategory(value);
-                      setSelectedSubCategory('all'); // Reset subcategory
+                      setSelectedSubCategory('all');
                     }}>
-                      <SelectTrigger>
+                      <SelectTrigger className="text-xs sm:text-sm">
                         <SelectValue placeholder="Category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -245,7 +265,7 @@ export default function BookNow() {
                     </Select>
 
                     <Select value={selectedSubCategory} onValueChange={setSelectedSubCategory}>
-                      <SelectTrigger>
+                      <SelectTrigger className="text-xs sm:text-sm">
                         <SelectValue placeholder="Sub Category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -257,175 +277,247 @@ export default function BookNow() {
                         ))}
                       </SelectContent>
                     </Select>
-
-                    <Button
-                      variant="outline"
-                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                      className="flex items-center gap-2"
-                    >
-                      {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
-                      Price {sortOrder === 'asc' ? 'Low to High' : 'High to Low'}
-                    </Button>
                   </div>
 
-                  {/* Services List */}
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {filteredServices.map(service => (
-                      <Card
-                        key={service.prod_id}
-                        className={`cursor-pointer transition-colors ${
-                          selectedService?.prod_id === service.prod_id 
-                            ? 'border-primary bg-primary/5' 
-                            : 'hover:bg-muted/50'
-                        }`}
-                        onClick={() => setSelectedService(service)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-foreground">{service.ProductName}</h3>
-                              <p className="text-sm text-muted-foreground">{service.Description}</p>
-                              <div className="flex gap-2 mt-1">
-                                {service.Category && (
-                                  <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
-                                    {service.Category}
-                                  </span>
-                                )}
-                                {service.SubCategory && (
-                                  <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
-                                    {service.SubCategory}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-lg text-foreground">₹{service.Price || 0}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                    className="flex items-center gap-2 text-xs sm:text-sm w-full sm:w-auto"
+                  >
+                    {sortOrder === 'asc' ? <SortAsc className="h-3 w-3 sm:h-4 sm:w-4" /> : <SortDesc className="h-3 w-3 sm:h-4 sm:w-4" />}
+                    Price {sortOrder === 'asc' ? 'Low to High' : 'High to Low'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Booking Form */}
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Your Details</CardTitle>
-                  <CardDescription>Please provide your contact information</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="firstname"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>First Name *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter first name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+            {/* Services Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {filteredServices.map(service => {
+                const displayPrice = service.NetPayable || service.Price || 0;
+                const hasDiscount = service.NetPayable && service.NetPayable < service.Price;
+                
+                return (
+                  <Card
+                    key={service.prod_id}
+                    className={`cursor-pointer transition-all hover:shadow-md ${
+                      selectedService?.prod_id === service.prod_id 
+                        ? 'border-primary bg-primary/5 shadow-md' 
+                        : 'hover:bg-muted/30'
+                    }`}
+                    onClick={() => setSelectedService(service)}
+                  >
+                    {/* Service Image */}
+                    <div className="relative aspect-video bg-gray-100 overflow-hidden">
+                      {service.imageUrl ? (
+                        <img
+                          src={service.imageUrl}
+                          alt={service.ProductName}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
                         />
-
-                        <FormField
-                          control={form.control}
-                          name="lastname"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Last Name *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter last name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={form.control}
-                        name="phonenumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone Number *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter phone number" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="is_phone_whatsapp"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                              <FormLabel className="text-base">WhatsApp Number</FormLabel>
-                              <p className="text-sm text-muted-foreground">
-                                Is the phone number above your WhatsApp number?
-                              </p>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-
-                      {!watchIsPhoneWhatsapp && (
-                        <FormField
-                          control={form.control}
-                          name="whatsapp_number"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>WhatsApp Number (Optional)</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter WhatsApp number" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {/* Selected Service Display */}
-                      {selectedService && (
-                        <div className="bg-muted p-4 rounded-lg">
-                          <h3 className="font-semibold text-foreground mb-2">Selected Service:</h3>
-                          <p className="text-foreground">{selectedService.ProductName}</p>
-                          <p className="text-muted-foreground text-sm">{selectedService.Description}</p>
-                          <p className="font-bold text-lg text-foreground mt-2">₹{selectedService.Price || 0}</p>
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <span className="text-gray-400 text-xs">No image</span>
                         </div>
                       )}
-
-                      <Button 
-                        type="submit" 
-                        className="w-full" 
-                        disabled={loading || !selectedService}
+                      
+                      {/* View Details Button */}
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="absolute top-2 right-2 h-6 w-6 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleServiceClick(service);
+                        }}
                       >
-                        {loading ? 'Submitting...' : 'Book Now'}
+                        <Eye className="h-3 w-3" />
                       </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
+                    </div>
+
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="space-y-2">
+                        <h3 className="font-semibold text-sm sm:text-base text-foreground line-clamp-2">
+                          {service.ProductName}
+                        </h3>
+                        
+                        {/* Categories */}
+                        <div className="flex flex-wrap gap-1">
+                          {service.Category && (
+                            <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                              {service.Category}
+                            </Badge>
+                          )}
+                          {service.SubCategory && (
+                            <Badge variant="outline" className="text-xs px-2 py-0.5">
+                              {service.SubCategory}
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {/* Price */}
+                        <div className="flex items-baseline gap-2">
+                          <span className="font-bold text-base sm:text-lg text-primary">
+                            ₹{displayPrice}
+                          </span>
+                          {hasDiscount && (
+                            <>
+                              <span className="text-xs text-gray-500 line-through">
+                                ₹{service.Price}
+                              </span>
+                              {service.Discount && (
+                                <Badge variant="destructive" className="text-xs">
+                                  {service.Discount}% OFF
+                                </Badge>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
+
+            {filteredServices.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No services found. Try adjusting your search or filters.</p>
+              </div>
+            )}
+
+            {/* Booking Form - Fixed position on larger screens */}
+            {selectedService && (
+              <div className="lg:fixed lg:top-4 lg:right-4 lg:w-80 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:z-10">
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Your Details</CardTitle>
+                    <CardDescription className="text-sm">Please provide your contact information</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <div className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="firstname"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">First Name *</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Enter first name" {...field} className="text-sm" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="lastname"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">Last Name *</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Enter last name" {...field} className="text-sm" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="phonenumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm">Phone Number *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter phone number" {...field} className="text-sm" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="is_phone_whatsapp"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-sm">WhatsApp Number</FormLabel>
+                                <p className="text-xs text-muted-foreground">
+                                  Is the phone number above your WhatsApp number?
+                                </p>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        {!watchIsPhoneWhatsapp && (
+                          <FormField
+                            control={form.control}
+                            name="whatsapp_number"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">WhatsApp Number (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Enter WhatsApp number" {...field} className="text-sm" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+
+                        {/* Selected Service Display */}
+                        <div className="bg-muted p-3 rounded-lg">
+                          <h3 className="font-semibold text-sm text-foreground mb-2">Selected Service:</h3>
+                          <p className="text-sm text-foreground">{selectedService.ProductName}</p>
+                          <div className="flex items-baseline gap-2 mt-2">
+                            <span className="font-bold text-base text-primary">
+                              ₹{selectedService.NetPayable || selectedService.Price || 0}
+                            </span>
+                            {selectedService.NetPayable && selectedService.NetPayable < selectedService.Price && (
+                              <span className="text-xs text-gray-500 line-through">
+                                ₹{selectedService.Price}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <Button 
+                          type="submit" 
+                          className="w-full text-sm" 
+                          disabled={loading}
+                        >
+                          {loading ? 'Submitting...' : 'Book Now'}
+                        </Button>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      <ServiceDetailsDialog
+        service={selectedServiceForDialog}
+        isOpen={showServiceDialog}
+        onClose={() => setShowServiceDialog(false)}
+        onSelect={handleServiceSelect}
+      />
     </MainLayout>
   );
 }
