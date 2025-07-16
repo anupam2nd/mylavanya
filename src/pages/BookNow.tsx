@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -125,8 +126,8 @@ export default function BookNow() {
     let filtered = services.filter(service => {
       const matchesSearch = service.ProductName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            service.Description?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = !selectedCategory || service.Category === selectedCategory;
-      const matchesSubCategory = !selectedSubCategory || service.SubCategory === selectedSubCategory;
+      const matchesCategory = !selectedCategory || selectedCategory === 'all' || service.Category === selectedCategory;
+      const matchesSubCategory = !selectedSubCategory || selectedSubCategory === 'all' || service.SubCategory === selectedSubCategory;
       
       return matchesSearch && matchesCategory && matchesSubCategory;
     });
@@ -188,7 +189,7 @@ export default function BookNow() {
   };
 
   // Filter subcategories based on selected category
-  const filteredSubCategories = selectedCategory 
+  const filteredSubCategories = selectedCategory && selectedCategory !== 'all'
     ? subCategories.filter(sub => {
         const category = categories.find(cat => cat.category_name === selectedCategory);
         return category && sub.category_id === category.category_id;
@@ -228,13 +229,13 @@ export default function BookNow() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Select value={selectedCategory} onValueChange={(value) => {
                       setSelectedCategory(value);
-                      setSelectedSubCategory(''); // Reset subcategory
+                      setSelectedSubCategory('all'); // Reset subcategory
                     }}>
                       <SelectTrigger>
                         <SelectValue placeholder="Category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Categories</SelectItem>
+                        <SelectItem value="all">All Categories</SelectItem>
                         {categories.map(category => (
                           <SelectItem key={category.category_id} value={category.category_name}>
                             {category.category_name}
@@ -248,7 +249,7 @@ export default function BookNow() {
                         <SelectValue placeholder="Sub Category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Sub Categories</SelectItem>
+                        <SelectItem value="all">All Sub Categories</SelectItem>
                         {filteredSubCategories.map(subCategory => (
                           <SelectItem key={subCategory.sub_category_id} value={subCategory.sub_category_name}>
                             {subCategory.sub_category_name}
