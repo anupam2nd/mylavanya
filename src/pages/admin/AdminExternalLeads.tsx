@@ -169,6 +169,13 @@ const AdminExternalLeads = () => {
         return `${displayHour}:${minutes} ${ampm}`;
       };
 
+      // Hash the phone number to use as password
+      const { data: hashedPassword, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: selectedLead.phonenumber }
+      });
+
+      if (hashError) throw hashError;
+
       // Create member data
       const memberData = {
         MemberFirstName: selectedLead.firstname,
@@ -178,6 +185,7 @@ const AdminExternalLeads = () => {
         MemberAdress: selectedLead.address,
         MemberPincode: selectedLead.pincode,
         whatsapp_number: selectedLead.whatsapp_number || (selectedLead.is_phone_whatsapp ? selectedLead.phonenumber : null),
+        password: hashedPassword.hashedPassword,
         MemberStatus: true
       };
 
@@ -365,11 +373,19 @@ const AdminExternalLeads = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Sex</Label>
-                  <Input 
-                    value={selectedLead.sex || ''} 
-                    onChange={(e) => updateLeadDetails('sex', e.target.value)}
-                    placeholder="Enter sex"
-                  />
+                  <Select
+                    value={selectedLead.sex || ''}
+                    onValueChange={(value) => updateLeadDetails('sex', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select sex" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="others">Others</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Pincode</Label>
