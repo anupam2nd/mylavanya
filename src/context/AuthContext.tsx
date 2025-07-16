@@ -39,12 +39,12 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         const { data: userData, error } = await supabase
           .from('UserMST')
           .select('*')
-          .eq('uuid', data.session.user.id)
+          .eq('id', data.session.user.id)
           .single();
 
         if (userData && !error) {
           const userObj = {
-            id: userData.uuid,
+            id: userData.id,
             email: userData.email_id || data.session.user.email || '',
             role: userData.role || 'user',
             firstName: userData.FirstName,
@@ -67,8 +67,8 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
             // Check if this user exists in UserMST and has a password
             const { data: userData, error } = await supabase
               .from('UserMST')
-              .select('uuid, email_id, password')
-              .eq('uuid', parsedUser.id)
+              .select('id, email_id, password')
+              .eq('id', parsedUser.id)
               .single();
 
             if (userData && userData.password) {
@@ -109,12 +109,12 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           const { data: userData, error } = await supabase
             .from('UserMST')
             .select('*')
-            .eq('uuid', session.user.id)
+            .eq('id', session.user.id)
             .single();
 
           if (userData && !error) {
             const userObj = {
-              id: userData.uuid,
+              id: userData.id,
               email: userData.email_id || session.user.email || '',
               role: userData.role || 'user',
               firstName: userData.FirstName,
@@ -177,12 +177,12 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           const { data: userData, error } = await supabase
             .from('UserMST')
             .select('*')
-            .eq('uuid', session.user.id)
+            .eq('id', session.user.id)
             .single();
 
           if (userData && !error) {
             const userObj = {
-              id: userData.uuid,
+              id: userData.id,
               email: userData.email_id || session.user.email || '',
               role: userData.role || 'user',
               firstName: userData.FirstName,
