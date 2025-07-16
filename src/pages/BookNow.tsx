@@ -239,10 +239,22 @@ export default function BookNow() {
         if (updated.length === 0) {
           setShowDetailsForm(false);
         }
+        // Update form with selected services
+        form.setValue('selected_services', updated.map(s => ({
+          id: s.prod_id,
+          name: s.ProductName,
+          price: s.NetPayable || s.Price || 0
+        })));
         return updated;
       } else {
         const updated = [...prev, service];
         setShowDetailsForm(true);
+        // Update form with selected services
+        form.setValue('selected_services', updated.map(s => ({
+          id: s.prod_id,
+          name: s.ProductName,
+          price: s.NetPayable || s.Price || 0
+        })));
         return updated;
       }
     });
