@@ -299,7 +299,10 @@ const AdminExternalLeads = () => {
           ServiceName: service.service_name,
           ProductName: service.service_name,
           jobno: index + 1,
-          Purpose: service.service_name
+          Purpose: service.service_name,
+          submission_date: new Date(selectedLead.created_at).toISOString(),
+          source: 'campaign',
+          campaign_service_selected: selectedLead.selected_service_name
         };
 
         return supabase.from('BookMST').insert(bookingData);
@@ -452,15 +455,15 @@ const AdminExternalLeads = () => {
               <div className="overflow-y-auto flex-1 pr-2">
                 <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>First Name</Label>
+                  <Label>First Name *</Label>
                   <Input value={selectedLead.firstname} disabled />
                 </div>
                 <div className="space-y-2">
-                  <Label>Last Name</Label>
+                  <Label>Last Name *</Label>
                   <Input value={selectedLead.lastname} disabled />
                 </div>
                 <div className="space-y-2">
-                  <Label>Phone Number</Label>
+                  <Label>Phone Number *</Label>
                   <Input value={selectedLead.phonenumber} disabled />
                 </div>
                 <div className="space-y-2">
@@ -487,7 +490,7 @@ const AdminExternalLeads = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Pincode</Label>
+                  <Label>Pincode *</Label>
                   <Input 
                     value={selectedLead.pincode || ''} 
                     onChange={(e) => updateLeadDetails('pincode', e.target.value)}
@@ -495,7 +498,7 @@ const AdminExternalLeads = () => {
                   />
                 </div>
                 <div className="space-y-2 col-span-2">
-                  <Label>Address</Label>
+                  <Label>Address *</Label>
                   <Input 
                     value={selectedLead.address || ''} 
                     onChange={(e) => updateLeadDetails('address', e.target.value)}
@@ -505,7 +508,7 @@ const AdminExternalLeads = () => {
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    Preferred Date
+                    Preferred Date *
                   </Label>
                   <Input 
                     type="date"
@@ -516,7 +519,7 @@ const AdminExternalLeads = () => {
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    Preferred Time
+                    Preferred Time *
                   </Label>
                   <Input 
                     type="time"

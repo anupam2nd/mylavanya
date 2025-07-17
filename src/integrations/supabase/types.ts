@@ -191,6 +191,7 @@ export type Database = {
           Booking_date: string | null
           Booking_NO: number | null
           booking_time: string | null
+          campaign_service_selected: string | null
           created_at: string
           email: string | null
           id: number
@@ -205,8 +206,10 @@ export type Database = {
           Qty: number | null
           Scheme: string | null
           ServiceName: string | null
+          source: string | null
           Status: string | null
           StatusUpdated: string | null
+          submission_date: string | null
           SubService: string | null
           uuid: string | null
         }
@@ -221,6 +224,7 @@ export type Database = {
           Booking_date?: string | null
           Booking_NO?: number | null
           booking_time?: string | null
+          campaign_service_selected?: string | null
           created_at?: string
           email?: string | null
           id?: number
@@ -235,8 +239,10 @@ export type Database = {
           Qty?: number | null
           Scheme?: string | null
           ServiceName?: string | null
+          source?: string | null
           Status?: string | null
           StatusUpdated?: string | null
+          submission_date?: string | null
           SubService?: string | null
           uuid?: string | null
         }
@@ -251,6 +257,7 @@ export type Database = {
           Booking_date?: string | null
           Booking_NO?: number | null
           booking_time?: string | null
+          campaign_service_selected?: string | null
           created_at?: string
           email?: string | null
           id?: number
@@ -265,8 +272,10 @@ export type Database = {
           Qty?: number | null
           Scheme?: string | null
           ServiceName?: string | null
+          source?: string | null
           Status?: string | null
           StatusUpdated?: string | null
+          submission_date?: string | null
           SubService?: string | null
           uuid?: string | null
         }

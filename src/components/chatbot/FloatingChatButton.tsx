@@ -25,8 +25,7 @@ export default function FloatingChatButton({
               "text-white",
               "hover:scale-110 hover:shadow-xl active:scale-95",
               "flex items-center justify-center",
-              "border-2 border-white/20",
-              hasNewMessage && "animate-bounce-soft"
+              "border-2 border-white/20"
             )}
             style={{ 
               background: `linear-gradient(135deg, #080c2a 0%, #0f1635 50%, #1a2040 100%)` 

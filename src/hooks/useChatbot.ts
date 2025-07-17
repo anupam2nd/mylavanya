@@ -21,8 +21,14 @@ export function useChatbot() {
   // Play notification sound
   const playNotificationSound = useCallback(() => {
     try {
-      // Create a simple notification beep sound using Web Audio API
+      // Create and resume audio context for better browser compatibility
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Resume audio context if it's suspended (required for modern browsers)
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
@@ -144,12 +150,27 @@ export function useChatbot() {
   }, [showToast]);
 
   const toggleChat = useCallback(() => {
-    setState(prev => ({ 
-      ...prev, 
-      isOpen: !prev.isOpen,
-      hasNewMessage: false // Clear notification when opening chat
-    }));
-  }, []);
+    setState(prev => {
+      const newState = { 
+        ...prev, 
+        isOpen: !prev.isOpen,
+        hasNewMessage: false // Clear notification when opening chat
+      };
+      
+      // Add welcome message when opening chat for the first time
+      if (!prev.isOpen && hasShownWelcome && prev.messages.length === 0) {
+        const welcomeMessage: ChatMessage = {
+          id: generateId(),
+          content: "Hi! I'm Lavanya, your assistant. What can I help you with today?",
+          sender: 'ai',
+          timestamp: new Date(),
+        };
+        newState.messages = [welcomeMessage];
+      }
+      
+      return newState;
+    });
+  }, [hasShownWelcome]);
 
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));
