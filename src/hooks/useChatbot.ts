@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ChatMessage, ChatbotState } from '@/types/chatbot';
 import { useCustomToast } from '@/context/ToastContext';
 
@@ -12,9 +12,59 @@ export function useChatbot() {
     isOpen: false,
     error: null,
   });
+  const [hasShownWelcome, setHasShownWelcome] = useState(false);
   const { showToast } = useCustomToast();
 
   const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
+
+  // Play notification sound
+  const playNotificationSound = useCallback(() => {
+    try {
+      // Create a simple notification beep sound using Web Audio API
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      console.log('Audio not supported or failed:', error);
+    }
+  }, []);
+
+  // Show welcome message after 5 seconds
+  useEffect(() => {
+    if (!hasShownWelcome) {
+      const timer = setTimeout(() => {
+        const welcomeMessage: ChatMessage = {
+          id: generateId(),
+          content: "Hi! I'm Lavanya, your assistant. What can I help you with today?",
+          sender: 'ai',
+          timestamp: new Date(),
+        };
+        
+        setState(prev => ({
+          ...prev,
+          messages: [welcomeMessage],
+          isOpen: true,
+        }));
+        
+        playNotificationSound();
+        setHasShownWelcome(true);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [hasShownWelcome, playNotificationSound]);
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim()) return;

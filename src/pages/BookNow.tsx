@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import MainLayout from '@/components/layout/MainLayout';
 
@@ -16,6 +17,7 @@ const bookingSchema = z.object({
   fullname: z.string().min(1, 'Full name is required'),
   phonenumber: z.string().min(10, 'Phone number must be at least 10 digits'),
   interested_category: z.string().min(1, 'Please select a category'),
+  has_whatsapp: z.boolean().optional(),
 });
 
 type BookingFormData = z.infer<typeof bookingSchema>;
@@ -38,6 +40,7 @@ export default function BookNow() {
       fullname: '',
       phonenumber: '',
       interested_category: '',
+      has_whatsapp: false,
     },
   });
 
@@ -78,7 +81,7 @@ export default function BookNow() {
         firstname,
         lastname,
         phonenumber: data.phonenumber,
-        is_phone_whatsapp: false,
+        is_phone_whatsapp: data.has_whatsapp || false,
         selected_service_name: data.interested_category,
       });
 
@@ -161,6 +164,30 @@ export default function BookNow() {
                           />
                         </FormControl>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* WhatsApp Toggle */}
+                  <FormField
+                    control={form.control}
+                    name="has_whatsapp"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            WhatsApp Account
+                          </FormLabel>
+                          <p className="text-sm text-muted-foreground">
+                            Does this phone number have a WhatsApp account?
+                          </p>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
                       </FormItem>
                     )}
                   />
