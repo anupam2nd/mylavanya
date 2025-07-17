@@ -18,6 +18,25 @@ export function useChatbot() {
 
   const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
+  // Generate or retrieve session ID that looks like a JWT token
+  const getSessionId = useCallback(() => {
+    let sessionId = sessionStorage.getItem('chatbot_session_id');
+    if (!sessionId) {
+      // Generate a JWT-like token (header.payload.signature format)
+      const header = btoa(JSON.stringify({typ: "JWT", alg: "HS256"}));
+      const payload = btoa(JSON.stringify({
+        sessionId: generateId(),
+        timestamp: Date.now(),
+        origin: window.location.origin
+      }));
+      const signature = btoa(Math.random().toString(36).substr(2, 15) + Math.random().toString(36).substr(2, 15));
+      
+      sessionId = `${header}.${payload}.${signature}`;
+      sessionStorage.setItem('chatbot_session_id', sessionId);
+    }
+    return sessionId;
+  }, []);
+
   // Play notification sound
   const playNotificationSound = useCallback(() => {
     try {
@@ -91,6 +110,7 @@ export function useChatbot() {
         },
         body: JSON.stringify({
           chatInput: content.trim(),
+          sessionId: getSessionId(),
         }),
       });
 
