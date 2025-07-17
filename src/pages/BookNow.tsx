@@ -111,6 +111,15 @@ export default function BookNow() {
           <div className="text-center py-6">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mb-2">Book Your Service</h1>
             <p className="text-muted-foreground text-xs sm:text-sm lg:text-base">Fill in your details and we will contact you soon</p>
+            <div className="mt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/')}
+                className="text-primary hover:text-primary-foreground"
+              >
+                Visit Our Home Page
+              </Button>
+            </div>
           </div>
 
           <Card>

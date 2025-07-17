@@ -36,6 +36,7 @@ interface LeadDetails extends ExternalLead {
   preferred_time?: string;
   new_service_id?: number;
   new_service_name?: string;
+  services?: Array<{ service_id: number; service_name: string; quantity: number; price: number; }>;
 }
 
 interface Service {
@@ -132,7 +133,8 @@ const AdminExternalLeads = () => {
       address: '',
       pincode: '',
       preferred_date: '',
-      preferred_time: ''
+      preferred_time: '',
+      services: []
     });
     setShowViewDialog(true);
   };
@@ -140,6 +142,38 @@ const AdminExternalLeads = () => {
   const updateLeadDetails = (field: keyof LeadDetails, value: string | number) => {
     if (selectedLead) {
       setSelectedLead({ ...selectedLead, [field]: value });
+    }
+  };
+
+  const addService = () => {
+    if (selectedLead) {
+      const newServices = [...(selectedLead.services || [])];
+      newServices.push({ service_id: 0, service_name: '', quantity: 1, price: 0 });
+      setSelectedLead({ ...selectedLead, services: newServices });
+    }
+  };
+
+  const updateService = (index: number, field: string, value: any) => {
+    if (selectedLead && selectedLead.services) {
+      const updatedServices = [...selectedLead.services];
+      updatedServices[index] = { ...updatedServices[index], [field]: value };
+      
+      if (field === 'service_id') {
+        const service = services.find(s => s.prod_id === value);
+        if (service) {
+          updatedServices[index].service_name = service.ProductName;
+          updatedServices[index].price = service.Price;
+        }
+      }
+      
+      setSelectedLead({ ...selectedLead, services: updatedServices });
+    }
+  };
+
+  const removeService = (index: number) => {
+    if (selectedLead && selectedLead.services) {
+      const updatedServices = selectedLead.services.filter((_, i) => i !== index);
+      setSelectedLead({ ...selectedLead, services: updatedServices });
     }
   };
 
@@ -153,12 +187,40 @@ const AdminExternalLeads = () => {
       return;
     }
 
+    // Check if services are selected
+    const servicesToBook = selectedLead.services && selectedLead.services.length > 0 
+      ? selectedLead.services.filter(s => s.service_id > 0)
+      : [];
+
+    // If no services selected, use the original service from the lead
+    if (servicesToBook.length === 0) {
+      const originalServiceId = selectedLead.new_service_id || selectedLead.selected_service_id;
+      const originalService = services.find(s => s.prod_id === originalServiceId);
+      if (originalService) {
+        servicesToBook.push({
+          service_id: originalService.prod_id,
+          service_name: originalService.ProductName,
+          quantity: 1,
+          price: originalService.Price
+        });
+      }
+    }
+
+    if (servicesToBook.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one service",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsCreatingBooking(true);
 
     try {
       // Generate booking reference and ID
       const bookingRef = await generateBookingReference();
-      const nextId = await getNextAvailableId();
+      let nextId = await getNextAvailableId();
 
       // Format time to 12-hour format for display if needed
       const formatTimeTo12Hour = (time: string) => {
@@ -201,44 +263,44 @@ const AdminExternalLeads = () => {
 
       if (memberError) throw memberError;
 
-      // Get selected service details - use new service if selected, otherwise use original service
-      const serviceId = selectedLead.new_service_id || selectedLead.selected_service_id;
-      const selectedService = services.find(s => s.prod_id === serviceId);
-      const serviceName = selectedService?.ProductName || selectedLead.selected_service_name || 'Unknown Service';
-      const servicePrice = selectedService?.Price || 0;
-
-      // Create booking data
+      // Create bookings for each service
       const currentTime = new Date();
-      const bookingData = {
-        id: nextId,
-        Product: serviceId || null,
-        Phone_no: parseInt(selectedLead.phonenumber.replace(/\D/g, '')),
-        Booking_date: selectedLead.preferred_date,
-        booking_time: formatTimeTo12Hour(selectedLead.preferred_time),
-        Status: 'pending',
-        StatusUpdated: currentTime.toISOString(),
-        price: servicePrice,
-        Booking_NO: parseInt(bookingRef),
-        Qty: 1,
-        Address: selectedLead.address,
-        Pincode: parseInt(selectedLead.pincode),
-        name: `${selectedLead.firstname} ${selectedLead.lastname}`,
-        ServiceName: serviceName,
-        ProductName: serviceName,
-        jobno: 1,
-        Purpose: serviceName
-      };
+      const bookingPromises = servicesToBook.map(async (service, index) => {
+        const bookingData = {
+          id: nextId + index,
+          Product: service.service_id,
+          Phone_no: parseInt(selectedLead.phonenumber.replace(/\D/g, '')),
+          Booking_date: selectedLead.preferred_date,
+          booking_time: formatTimeTo12Hour(selectedLead.preferred_time),
+          Status: 'pending',
+          StatusUpdated: currentTime.toISOString(),
+          price: service.price * service.quantity,
+          Booking_NO: parseInt(bookingRef),
+          Qty: service.quantity,
+          Address: selectedLead.address,
+          Pincode: parseInt(selectedLead.pincode),
+          name: `${selectedLead.firstname} ${selectedLead.lastname}`,
+          ServiceName: service.service_name,
+          ProductName: service.service_name,
+          jobno: index + 1,
+          Purpose: service.service_name
+        };
 
-      // Insert booking
-      const { error: bookingError } = await supabase
-        .from('BookMST')
-        .insert(bookingData);
+        return supabase.from('BookMST').insert(bookingData);
+      });
 
-      if (bookingError) throw bookingError;
+      // Execute all booking insertions
+      const bookingResults = await Promise.all(bookingPromises);
+      
+      // Check for any errors
+      const bookingErrors = bookingResults.filter(result => result.error);
+      if (bookingErrors.length > 0) {
+        throw bookingErrors[0].error;
+      }
 
       toast({
         title: "Success",
-        description: `Booking created successfully with reference: ${bookingRef}`,
+        description: `${servicesToBook.length} booking(s) created successfully with reference: ${bookingRef}`,
       });
       
       setShowViewDialog(false);
@@ -431,28 +493,70 @@ const AdminExternalLeads = () => {
                   <Label>Selected Service</Label>
                   <Input value={selectedLead.selected_service_name || 'N/A'} disabled />
                 </div>
-                <div className="space-y-2 col-span-2">
-                  <Label>Add New Service (for booking creation)</Label>
-                  <Select
-                    value={selectedLead.new_service_id?.toString() || ''}
-                    onValueChange={(value) => {
-                      const serviceId = parseInt(value);
-                      const service = services.find(s => s.prod_id === serviceId);
-                      updateLeadDetails('new_service_id', serviceId);
-                      updateLeadDetails('new_service_name', service?.ProductName || '');
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {services.map((service) => (
-                        <SelectItem key={service.prod_id} value={service.prod_id.toString()}>
-                          {service.ProductName} - ₹{service.Price}
-                        </SelectItem>
+                <div className="space-y-4 col-span-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Services for Booking</Label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={addService}
+                    >
+                      Add Service
+                    </Button>
+                  </div>
+                  
+                  {selectedLead.services && selectedLead.services.length > 0 ? (
+                    <div className="space-y-3">
+                      {selectedLead.services.map((service, index) => (
+                        <div key={index} className="grid grid-cols-4 gap-2 items-end">
+                          <div className="col-span-2">
+                            <Label className="text-xs">Service</Label>
+                            <Select
+                              value={service.service_id.toString()}
+                              onValueChange={(value) => updateService(index, 'service_id', parseInt(value))}
+                            >
+                              <SelectTrigger className="h-8">
+                                <SelectValue placeholder="Select service" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {services.map((svc) => (
+                                  <SelectItem key={svc.prod_id} value={svc.prod_id.toString()}>
+                                    {svc.ProductName} - ₹{svc.Price}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Quantity</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              value={service.quantity}
+                              onChange={(e) => updateService(index, 'quantity', parseInt(e.target.value) || 1)}
+                              className="h-8"
+                            />
+                          </div>
+                          <div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removeService(index)}
+                              className="h-8"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-md text-center">
+                      No services added. Click "Add Service" to add services for booking, or the original service from the lead will be used.
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2 col-span-2">
                   <Label>Submitted Date</Label>
