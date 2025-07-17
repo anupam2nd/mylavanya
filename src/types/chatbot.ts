@@ -11,6 +11,7 @@ export interface ChatbotState {
   isLoading: boolean;
   isOpen: boolean;
   error: string | null;
+  hasNewMessage?: boolean;
 }
 
 export interface ApiResponse {

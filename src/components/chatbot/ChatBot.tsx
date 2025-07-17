@@ -9,6 +9,7 @@ export default function ChatBot() {
     isLoading,
     isOpen,
     error,
+    hasNewMessage,
     sendMessage,
     toggleChat,
     clearError,
@@ -20,6 +21,7 @@ export default function ChatBot() {
       <FloatingChatButton
         isOpen={isOpen}
         onClick={toggleChat}
+        hasNewMessage={hasNewMessage}
       />
       
       {isOpen && (

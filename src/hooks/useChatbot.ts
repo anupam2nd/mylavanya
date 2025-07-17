@@ -11,6 +11,7 @@ export function useChatbot() {
     isLoading: false,
     isOpen: false,
     error: null,
+    hasNewMessage: false,
   });
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
   const { showToast } = useCustomToast();
@@ -45,21 +46,14 @@ export function useChatbot() {
   useEffect(() => {
     if (!hasShownWelcome) {
       const timer = setTimeout(() => {
-        const welcomeMessage: ChatMessage = {
-          id: generateId(),
-          content: "Hi! I'm Lavanya, your assistant. What can I help you with today?",
-          sender: 'ai',
-          timestamp: new Date(),
-        };
-        
-        setState(prev => ({
-          ...prev,
-          messages: [welcomeMessage],
-          isOpen: true,
-        }));
-        
         playNotificationSound();
         setHasShownWelcome(true);
+        
+        // Just set hasNewMessage to true to show tooltip-like behavior
+        setState(prev => ({
+          ...prev,
+          hasNewMessage: true,
+        }));
       }, 5000);
 
       return () => clearTimeout(timer);
@@ -150,7 +144,11 @@ export function useChatbot() {
   }, [showToast]);
 
   const toggleChat = useCallback(() => {
-    setState(prev => ({ ...prev, isOpen: !prev.isOpen }));
+    setState(prev => ({ 
+      ...prev, 
+      isOpen: !prev.isOpen,
+      hasNewMessage: false // Clear notification when opening chat
+    }));
   }, []);
 
   const clearError = useCallback(() => {
