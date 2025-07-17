@@ -193,6 +193,14 @@ const AdminExternalLeads = () => {
     if (!selectedLead.preferred_time) missingFields.push("Preferred Time");
     if (!selectedLead.address || selectedLead.address.trim() === '') missingFields.push("Address");
     if (!selectedLead.pincode || selectedLead.pincode.trim() === '') missingFields.push("Pincode");
+    
+    console.log('Validation check:', {
+      address: selectedLead.address,
+      pincode: selectedLead.pincode,
+      preferred_date: selectedLead.preferred_date,
+      preferred_time: selectedLead.preferred_time,
+      missingFields
+    });
 
     if (missingFields.length > 0) {
       toast({
@@ -514,6 +522,7 @@ const AdminExternalLeads = () => {
                     type="date"
                     value={selectedLead.preferred_date || ''} 
                     onChange={(e) => updateLeadDetails('preferred_date', e.target.value)}
+                    min={undefined}
                   />
                 </div>
                 <div className="space-y-2">
