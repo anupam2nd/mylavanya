@@ -178,10 +178,26 @@ const AdminExternalLeads = () => {
   };
 
   const createBookingFromLead = async () => {
-    if (!selectedLead || !selectedLead.preferred_date || !selectedLead.preferred_time || !selectedLead.address || !selectedLead.pincode) {
+    if (!selectedLead) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields (date, time, address, pincode)",
+        description: "No lead selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check required fields and provide specific error messages
+    const missingFields = [];
+    if (!selectedLead.preferred_date) missingFields.push("Preferred Date");
+    if (!selectedLead.preferred_time) missingFields.push("Preferred Time");
+    if (!selectedLead.address || selectedLead.address.trim() === '') missingFields.push("Address");
+    if (!selectedLead.pincode || selectedLead.pincode.trim() === '') missingFields.push("Pincode");
+
+    if (missingFields.length > 0) {
+      toast({
+        title: "Error",
+        description: `Please fill in the following required fields: ${missingFields.join(', ')}`,
         variant: "destructive",
       });
       return;
@@ -406,8 +422,8 @@ const AdminExternalLeads = () => {
         </Card>
 
         <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle>Lead Details</DialogTitle>
               <DialogDescription>
                 View and add additional information for this lead
@@ -415,7 +431,8 @@ const AdminExternalLeads = () => {
             </DialogHeader>
 
             {selectedLead && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="overflow-y-auto flex-1 pr-2">
+                <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>First Name</Label>
                   <Input value={selectedLead.firstname} disabled />
@@ -563,9 +580,10 @@ const AdminExternalLeads = () => {
                   <Input value={format(new Date(selectedLead.created_at), 'dd/MM/yyyy HH:mm')} disabled />
                 </div>
               </div>
+            </div>
             )}
 
-            <div className="flex justify-end space-x-2 mt-6">
+            <div className="flex justify-end space-x-2 mt-6 flex-shrink-0">
               <Button variant="outline" onClick={() => setShowViewDialog(false)}>
                 Close
               </Button>
