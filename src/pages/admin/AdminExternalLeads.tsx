@@ -314,9 +314,27 @@ const AdminExternalLeads = () => {
         throw bookingErrors[0].error;
       }
 
+      // Delete the lead from ExternalLeadMST as booking has been created
+      const { error: deleteError } = await supabase
+        .from('ExternalLeadMST')
+        .delete()
+        .eq('id', selectedLead.id);
+
+      if (deleteError) {
+        console.error('Error deleting lead:', deleteError);
+        toast({
+          title: "Warning",
+          description: "Booking created but failed to remove lead from external leads",
+          variant: "destructive",
+        });
+      } else {
+        // Remove the lead from the local state
+        setLeads(prevLeads => prevLeads.filter(lead => lead.id !== selectedLead.id));
+      }
+
       toast({
         title: "Success",
-        description: `${servicesToBook.length} booking(s) created successfully with reference: ${bookingRef}`,
+        description: `${servicesToBook.length} booking(s) created successfully with reference: ${bookingRef}. Lead removed from external leads.`,
       });
       
       setShowViewDialog(false);
