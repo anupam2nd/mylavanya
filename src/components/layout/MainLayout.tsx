@@ -44,7 +44,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       <main className="flex-grow w-full max-w-full">
         {children}
       </main>
-      {/* <ChatBot /> */}
+      <ChatBot />
       <Footer />
     </div>
   );
