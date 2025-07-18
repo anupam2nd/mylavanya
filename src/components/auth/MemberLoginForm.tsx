@@ -31,7 +31,7 @@ export default function MemberLoginForm({ onLoginSuccess }: MemberLoginFormProps
   const handleForgotPasswordSuccess = (phone: string) => {
     // Auto-fill the phone number in the login form
     setLoginData(prev => ({ ...prev, emailOrPhone: phone }));
-    showToast("🔐 Password reset successful. Please login with your new password.", 'info', 4000);
+    // Toast is already shown in PasswordResetForm component
   };
 
   const togglePasswordVisibility = () => {
