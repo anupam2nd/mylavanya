@@ -25,7 +25,7 @@ export default function MessageList({ messages, isLoading }: MessageListProps) {
       {messages.length === 0 && (
         <div className="flex flex-col items-center justify-center h-full text-center">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 max-w-sm border border-white/10">
-            <h3 className="text-white text-lg font-semibold mb-2">Welcome to AI Chat!</h3>
+            <h3 className="text-white text-lg font-semibold mb-2">Welcome to Lavanya!</h3>
             <p className="text-white/70 text-sm">
               Ask me anything and I'll be happy to help you. How can I assist you today?
             </p>

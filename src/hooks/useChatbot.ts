@@ -196,7 +196,7 @@ export function useChatbot() {
       if (!prev.isOpen && hasShownWelcome && prev.messages.length === 0) {
         const welcomeMessage: ChatMessage = {
           id: generateId(),
-          content: "Hi! I'm Lavanya, your assistant. What can I help you with today?",
+          content: "Hi! I'm Ananya, your assistant. What can I help you with today?",
           sender: 'ai',
           timestamp: new Date(),
         };
