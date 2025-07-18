@@ -38,10 +38,10 @@ export default function ChatWindow({
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center border border-white/20">
-              <span className="text-white font-semibold text-sm">AI</span>
+              <span className="text-white font-semibold text-sm">AN</span>
             </div>
             <div>
-              <h2 className="text-white font-semibold">AI Assistant</h2>
+              <h4 className="text-white font-semibold text-2xl">Ananya Assistant</h4>
               <p className="text-white/70 text-xs">Always here to help</p>
             </div>
           </div>
