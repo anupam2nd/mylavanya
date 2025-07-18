@@ -114,25 +114,40 @@ export function useChatbot() {
         }),
       });
 
+      console.log('API Response status:', response.status);
+      console.log('API Response headers:', response.headers);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
-      const data = await response.json();
+      const responseText = await response.text();
+      console.log('Raw API Response:', responseText);
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (jsonError) {
+        console.error('JSON Parse Error:', jsonError);
+        console.error('Response that failed to parse:', responseText);
+        throw new Error('Invalid JSON response from server');
+      }
       
       // Check if response is empty, null, or contains no meaningful data
-      const responseText = data.response || '';
-      const isEmptyResponse = !responseText || 
-                              responseText.trim() === '' || 
-                              responseText.toLowerCase().includes('no data') ||
-                              responseText.toLowerCase().includes('not found') ||
-                              responseText.toLowerCase().includes('unable to find');
+      const responseContent = data.response || '';
+      const isEmptyResponse = !responseContent || 
+                              responseContent.trim() === '' || 
+                              responseContent.toLowerCase().includes('no data') ||
+                              responseContent.toLowerCase().includes('not found') ||
+                              responseContent.toLowerCase().includes('unable to find');
       
       let aiResponseContent;
       if (isEmptyResponse) {
         aiResponseContent = "I'm unable to process your request at the moment. For immediate assistance, please contact us at +91 9230967221. Our team will be happy to help you with your query.";
       } else {
-        aiResponseContent = responseText;
+        aiResponseContent = responseContent;
       }
       
       const aiMessage: ChatMessage = {
