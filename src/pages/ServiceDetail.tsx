@@ -193,7 +193,7 @@ const ServiceDetail = () => {
                 onCancel={() => setShowBookingForm(false)}
                 onSuccess={() => {
                   setShowBookingForm(false);
-                  toast.success("Booking completed successfully!");
+                  // Custom booking success component already handles the notification
                 }}
               />
             </div>
