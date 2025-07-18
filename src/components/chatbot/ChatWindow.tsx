@@ -41,7 +41,7 @@ export default function ChatWindow({
               <span className="text-white font-semibold text-sm">AN</span>
             </div>
             <div>
-              <h4 className="text-white font-semibold">Ananya Assistant</h4>
+              <h4 className="text-white font-semibold text-2xl">Ananya Assistant</h4>
               <p className="text-white/70 text-xs">Always here to help</p>
             </div>
           </div>
