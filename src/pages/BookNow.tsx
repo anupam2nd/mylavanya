@@ -202,7 +202,7 @@ export default function BookNow() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a service category" />
+                              <SelectValue placeholder="Please choose a service" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
