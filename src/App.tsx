@@ -87,6 +87,7 @@ function App() {
               <Route path="/controller/artist-requests" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerArtistRequests /></ProtectedAdminRoute>} />
               <Route path="/controller/artist-activity" element={<ProtectedAdminRoute allowedRoles={['controller']}><ArtistActivity /></ProtectedAdminRoute>} />
               <Route path="/controller/external-leads" element={<ProtectedAdminRoute allowedRoles={['controller']}><AdminExternalLeads /></ProtectedAdminRoute>} />
+              <Route path="/controller/banner-images" element={<ProtectedAdminRoute allowedRoles={['controller']}><AdminBannerImages /></ProtectedAdminRoute>} />
               
               {/* Artist Routes */}
               <Route path="/artist/dashboard" element={<ProtectedAdminRoute allowedRoles={['artist']}><ArtistDashboard /></ProtectedAdminRoute>} />
