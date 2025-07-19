@@ -48,7 +48,7 @@ export default function FloatingChatButton({
           side="left" 
           className="bg-white text-gray-800 border shadow-lg max-w-xs p-3"
         >
-          <p className="text-sm font-medium">Hi! I'm Lavanya, your assistant.</p>
+          <p className="text-sm font-medium">Hi! I'm Ananya, your assistant.</p>
           <p className="text-sm text-gray-600">What can I help you with today?</p>
         </TooltipContent>
       </Tooltip>
