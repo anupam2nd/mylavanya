@@ -141,15 +141,6 @@ const AdminNav = ({
         Artist Request
       </NavLink>
 
-      <NavLink
-        to={
-          isController ? "/controller/banner-images" : "/admin/banner-image"
-        }
-        icon={Image}
-      >
-        Banner Images
-      </NavLink>
-
       {/* External Leads - Available for all roles except artists */}
       <NavLink
         to={
