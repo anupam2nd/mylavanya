@@ -34,6 +34,7 @@ import ControllerDashboard from "@/pages/controller/ControllerDashboard";
 import ControllerBookings from "@/pages/controller/ControllerBookings";
 import ControllerArtistRequests from "@/pages/controller/ControllerArtistRequests";
 import ArtistActivity from "@/pages/controller/ArtistActivity";
+import ControllerBannerImages from "@/pages/controller/ControllerBannerImages";
 import ArtistDashboard from "@/pages/artist/ArtistDashboard";
 import ArtistBookings from "@/pages/artist/ArtistBookings";
 import UserDashboard from "@/pages/user/UserDashboard";
@@ -82,6 +83,7 @@ function App() {
               <Route path="/controller/dashboard" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerDashboard /></ProtectedAdminRoute>} />
               <Route path="/controller/bookings" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerBookings /></ProtectedAdminRoute>} />
               <Route path="/controller/wishlist" element={<ProtectedAdminRoute allowedRoles={['controller']}><WishlistController /></ProtectedAdminRoute>} />
+              <Route path="/controller/banner-images" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerBannerImages /></ProtectedAdminRoute>} />
               <Route path="/controller/artist-requests" element={<ProtectedAdminRoute allowedRoles={['controller']}><ControllerArtistRequests /></ProtectedAdminRoute>} />
               <Route path="/controller/artist-activity" element={<ProtectedAdminRoute allowedRoles={['controller']}><ArtistActivity /></ProtectedAdminRoute>} />
               <Route path="/controller/external-leads" element={<ProtectedAdminRoute allowedRoles={['controller']}><AdminExternalLeads /></ProtectedAdminRoute>} />

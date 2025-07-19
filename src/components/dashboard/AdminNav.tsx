@@ -1,5 +1,19 @@
-
-import { LayoutDashboard, Users, Calendar, Settings, Wrench, UserCheck, Heart, HelpCircle, Palette, LogOut, Image, FolderTree, FileText, UserPlus } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  Settings,
+  Wrench,
+  UserCheck,
+  Heart,
+  HelpCircle,
+  Palette,
+  LogOut,
+  Image,
+  FolderTree,
+  FileText,
+  UserPlus,
+} from "lucide-react";
 import NavLink from "./NavLink";
 import { Button } from "@/components/ui/button";
 
@@ -11,7 +25,13 @@ interface AdminNavProps {
   logout: () => void;
 }
 
-const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: AdminNavProps) => {
+const AdminNav = ({
+  isAdmin,
+  isSuperAdmin,
+  isController,
+  isArtist,
+  logout,
+}: AdminNavProps) => {
   // If user is an artist, only show Dashboard, Bookings, and Logout
   if (isArtist) {
     return (
@@ -44,12 +64,18 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
   return (
     <nav className="mt-8 space-y-2">
       {/* Dashboard - Available for all roles */}
-      <NavLink to={isController ? "/controller/dashboard" : "/admin/dashboard"} icon={LayoutDashboard}>
+      <NavLink
+        to={isController ? "/controller/dashboard" : "/admin/dashboard"}
+        icon={LayoutDashboard}
+      >
         Dashboard
       </NavLink>
 
       {/* Bookings - Available for all roles */}
-      <NavLink to={isController ? "/controller/bookings" : "/admin/bookings"} icon={Calendar}>
+      <NavLink
+        to={isController ? "/controller/bookings" : "/admin/bookings"}
+        icon={Calendar}
+      >
         Bookings
       </NavLink>
 
@@ -81,11 +107,11 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
           </NavLink>
 
           {/* Banner Images - Available for Admin, SuperAdmin, and Controller */}
-          {(isAdmin || isSuperAdmin || isController) && (
+          {/* {(isAdmin || isSuperAdmin) && (
             <NavLink to="/admin/banner-images" icon={Image}>
               Banner Images
             </NavLink>
-          )}
+          )} */}
 
           {/* Users - Only for SuperAdmin */}
           {isSuperAdmin && (
@@ -104,17 +130,41 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
       )}
 
       {/* Artist Request - Available for all roles except artists */}
-      <NavLink to={isController ? "/controller/artist-requests" : "/admin/artist-requests"} icon={FileText}>
+      <NavLink
+        to={
+          isController
+            ? "/controller/artist-requests"
+            : "/admin/artist-requests"
+        }
+        icon={FileText}
+      >
         Artist Request
       </NavLink>
 
+      <NavLink
+        to={
+          isController ? "/controller/banner-images" : "/admin/banner-image"
+        }
+        icon={Image}
+      >
+        Banner Images
+      </NavLink>
+
       {/* External Leads - Available for all roles except artists */}
-      <NavLink to={isController ? "/controller/external-leads" : "/admin/external-leads"} icon={UserPlus}>
+      <NavLink
+        to={
+          isController ? "/controller/external-leads" : "/admin/external-leads"
+        }
+        icon={UserPlus}
+      >
         External Leads
       </NavLink>
 
       {/* Wishlist Controller - Available for all roles except artists */}
-      <NavLink to={isController ? "/controller/wishlist" : "/admin/wishlist"} icon={Heart}>
+      <NavLink
+        to={isController ? "/controller/wishlist" : "/admin/wishlist"}
+        icon={Heart}
+      >
         Wishlist
       </NavLink>
 
