@@ -55,7 +55,7 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
 
       {/* Banner Images - Available for Admin, SuperAdmin, and Controller */}
       {(isAdmin || isSuperAdmin || isController) && (
-        <NavLink to="/admin/banner-images" icon={Image}>
+        <NavLink to={isController ? "/controller/banner-images" : "/admin/banner-images"} icon={Image}>
           Banner Images
         </NavLink>
       )}
