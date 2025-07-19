@@ -80,8 +80,8 @@ const AdminNav = ({ isAdmin, isSuperAdmin, isController, isArtist, logout }: Adm
             Artists
           </NavLink>
 
-          {/* Banner Images - Only for Admin and SuperAdmin */}
-          {(isAdmin || isSuperAdmin) && (
+          {/* Banner Images - Available for Admin, SuperAdmin, and Controller */}
+          {(isAdmin || isSuperAdmin || isController) && (
             <NavLink to="/admin/banner-images" icon={Image}>
               Banner Images
             </NavLink>
