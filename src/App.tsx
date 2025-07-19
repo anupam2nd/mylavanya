@@ -69,7 +69,7 @@ function App() {
               <Route path="/admin/bookings" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminBookings /></ProtectedAdminRoute>} />
               <Route path="/admin/services" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminServices /></ProtectedAdminRoute>} />
               <Route path="/admin/categories" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminCategories /></ProtectedAdminRoute>} />
-              <Route path="/admin/banner-images" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminBannerImages /></ProtectedAdminRoute>} />
+              <Route path="/admin/banner-images" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin', 'controller']}><AdminBannerImages /></ProtectedAdminRoute>} />
               <Route path="/admin/status" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminStatus /></ProtectedAdminRoute>} />
               <Route path="/admin/artists" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminArtists /></ProtectedAdminRoute>} />
               <Route path="/admin/artist-activity" element={<ProtectedAdminRoute allowedRoles={['admin', 'superadmin']}><AdminArtistActivity /></ProtectedAdminRoute>} />
