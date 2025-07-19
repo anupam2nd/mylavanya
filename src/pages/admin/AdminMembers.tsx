@@ -266,7 +266,9 @@ const AdminMembers = () => {
     <div key={member.id} className="bg-card rounded-lg border p-4 mb-4">
       <div className="flex flex-col gap-2">
         <div className="flex justify-between items-center">
-          <span className="font-medium text-sm">ID: {member.id}</span>
+          <h3 className="font-semibold text-base">
+            {member.MemberFirstName} {member.MemberLastName}
+          </h3>
           <div className="flex items-center space-x-2">
             <Switch
               checked={member.MemberStatus}
@@ -278,10 +280,6 @@ const AdminMembers = () => {
             </span>
           </div>
         </div>
-        
-        <h3 className="font-semibold text-base">
-          {member.MemberFirstName} {member.MemberLastName}
-        </h3>
         
         <div className="text-sm text-muted-foreground">
           <p>{member.MemberEmailId}</p>
@@ -345,7 +343,6 @@ const AdminMembers = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[60px]">ID</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead className="hidden md:table-cell">Email</TableHead>
                         <TableHead className="hidden sm:table-cell">Phone</TableHead>
@@ -356,7 +353,6 @@ const AdminMembers = () => {
                     <TableBody>
                       {members.map((member) => (
                         <TableRow key={member.id}>
-                          <TableCell>{member.id}</TableCell>
                           <TableCell className="font-medium">
                             <div>
                               {member.MemberFirstName} {member.MemberLastName}
