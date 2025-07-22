@@ -53,10 +53,27 @@ export const useUserBookings = () => {
             query = query.eq('ArtistId', artistId);
           }
         } 
-        // For member role, filter bookings by email
-        else if (user?.role === 'member' && user?.email) {
-          console.log("Filtering bookings by member email:", user.email);
-          query = query.eq('email', user.email);
+        // For member role, filter bookings by phone number from MemberMST
+        else if (user?.role === 'member' && user?.id) {
+          try {
+            // First get the member's phone number from MemberMST
+            const { data: memberData, error: memberError } = await supabase
+              .from('MemberMST')
+              .select('MemberPhNo')
+              .eq('id', user.id)
+              .single();
+            
+            if (!memberError && memberData?.MemberPhNo) {
+              console.log("Filtering bookings by member phone number:", memberData.MemberPhNo);
+              query = query.eq('Phone_no', parseInt(memberData.MemberPhNo));
+            } else {
+              console.log("No member phone number found, no bookings will be shown");
+              query = query.eq('id', -1); // This will return no results
+            }
+          } catch (error) {
+            console.error('Error fetching member phone number:', error);
+            query = query.eq('id', -1); // This will return no results
+          }
         }
         // For admin, superadmin, and controller roles, show all bookings (no filter)
         else if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'controller') {

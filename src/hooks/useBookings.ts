@@ -54,10 +54,25 @@ export const useBookings = () => {
           query = query.eq('ArtistId', artistId);
         }
       } else if (user.role === 'member') {
-        // For member users, only show their own bookings
-        if (user.email) {
-          console.log("Filtering bookings for member email:", user.email);
-          query = query.eq('email', user.email);
+        // For member users, only show their own bookings by phone number
+        try {
+          // First get the member's phone number from MemberMST
+          const { data: memberData, error: memberError } = await supabase
+            .from('MemberMST')
+            .select('MemberPhNo')
+            .eq('id', user.id)
+            .single();
+          
+          if (!memberError && memberData?.MemberPhNo) {
+            console.log("Filtering bookings by member phone number:", memberData.MemberPhNo);
+            query = query.eq('Phone_no', parseInt(memberData.MemberPhNo));
+          } else {
+            console.log("No member phone number found, no bookings will be shown");
+            query = query.eq('id', -1); // This will return no results
+          }
+        } catch (error) {
+          console.error('Error fetching member phone number:', error);
+          query = query.eq('id', -1); // This will return no results
         }
       }
       
@@ -93,19 +108,45 @@ export const useBookings = () => {
 
   // Check if the current user has any bookings
   const checkUserHasBookings = async () => {
-    if (!user || !user.email) return false;
+    if (!user || !user.id) return false;
 
     try {
-      const { data, error } = await supabase
-        .from('BookMST')
-        .select('id')
-        .eq('email', user.email)
-        .limit(1);
+      // For members, check by phone number
+      if (user.role === 'member') {
+        // First get the member's phone number from MemberMST
+        const { data: memberData, error: memberError } = await supabase
+          .from('MemberMST')
+          .select('MemberPhNo')
+          .eq('id', user.id)
+          .single();
+        
+        if (!memberError && memberData?.MemberPhNo) {
+          const { data, error } = await supabase
+            .from('BookMST')
+            .select('id')
+            .eq('Phone_no', parseInt(memberData.MemberPhNo))
+            .limit(1);
+          
+          if (error) throw error;
+          
+          setHasBookings(data && data.length > 0);
+          return data && data.length > 0;
+        }
+      } else {
+        // For other users, use email
+        const { data, error } = await supabase
+          .from('BookMST')
+          .select('id')
+          .eq('email', user.email)
+          .limit(1);
+        
+        if (error) throw error;
+        
+        setHasBookings(data && data.length > 0);
+        return data && data.length > 0;
+      }
       
-      if (error) throw error;
-      
-      setHasBookings(data && data.length > 0);
-      return data && data.length > 0;
+      return false;
     } catch (error) {
       console.error('Error checking bookings:', error);
       return false;
