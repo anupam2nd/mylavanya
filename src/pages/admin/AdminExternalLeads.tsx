@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, Eye, Search, Calendar, Clock } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -36,7 +37,15 @@ interface LeadDetails extends ExternalLead {
   preferred_time?: string;
   new_service_id?: number;
   new_service_name?: string;
-  services?: Array<{ service_id: number; service_name: string; quantity: number; price: number; }>;
+  services?: Array<{ 
+    service_id: number; 
+    service_name: string; 
+    quantity: number; 
+    price: number;
+    originalPrice: number;
+    discount: number;
+    netPayable: number;
+  }>;
 }
 
 interface Service {
@@ -53,6 +62,7 @@ const AdminExternalLeads = () => {
   const [loading, setLoading] = useState(true);
   const [services, setServices] = useState<Service[]>([]);
   const [isCreatingBooking, setIsCreatingBooking] = useState(false);
+  const [servicePricingModes, setServicePricingModes] = useState<Record<number, boolean>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -148,7 +158,15 @@ const AdminExternalLeads = () => {
   const addService = () => {
     if (selectedLead) {
       const newServices = [...(selectedLead.services || [])];
-      newServices.push({ service_id: 0, service_name: '', quantity: 1, price: 0 });
+      newServices.push({ 
+        service_id: 0, 
+        service_name: '', 
+        quantity: 1, 
+        price: 0,
+        originalPrice: 0,
+        discount: 0,
+        netPayable: 0
+      });
       setSelectedLead({ ...selectedLead, services: newServices });
     }
   };
@@ -163,6 +181,37 @@ const AdminExternalLeads = () => {
         if (service) {
           updatedServices[index].service_name = service.ProductName;
           updatedServices[index].price = service.Price;
+          updatedServices[index].originalPrice = service.Price;
+          updatedServices[index].netPayable = service.Price;
+          updatedServices[index].discount = 0;
+        }
+      }
+      
+      setSelectedLead({ ...selectedLead, services: updatedServices });
+    }
+  };
+
+  const updateServicePricing = (index: number, field: 'price' | 'discount' | 'netPayable', value: string, priceFirst: boolean) => {
+    if (selectedLead && selectedLead.services) {
+      const updatedServices = [...selectedLead.services];
+      const service = updatedServices[index];
+      
+      if (field === 'price') {
+        service.price = parseFloat(value) || 0;
+        if (priceFirst && service.discount > 0) {
+          service.netPayable = service.price * (1 - service.discount / 100);
+        } else if (!priceFirst) {
+          service.netPayable = service.price;
+        }
+      } else if (field === 'discount') {
+        service.discount = parseFloat(value) || 0;
+        if (priceFirst) {
+          service.netPayable = service.price * (1 - service.discount / 100);
+        }
+      } else if (field === 'netPayable') {
+        service.netPayable = parseFloat(value) || 0;
+        if (!priceFirst && service.price > 0) {
+          service.discount = ((service.price - service.netPayable) / service.price) * 100;
         }
       }
       
@@ -225,7 +274,10 @@ const AdminExternalLeads = () => {
           service_id: originalService.prod_id,
           service_name: originalService.ProductName,
           quantity: 1,
-          price: originalService.Price
+          price: originalService.Price,
+          originalPrice: originalService.Price,
+          discount: 0,
+          netPayable: originalService.Price
         });
       }
     }
@@ -298,7 +350,7 @@ const AdminExternalLeads = () => {
           booking_time: formatTimeTo12Hour(selectedLead.preferred_time),
           Status: 'pending',
           StatusUpdated: currentTime.toISOString(),
-          price: service.price * service.quantity,
+          price: service.netPayable * service.quantity,
           Booking_NO: parseInt(bookingRef),
           Qty: service.quantity,
           Address: selectedLead.address,
@@ -553,52 +605,119 @@ const AdminExternalLeads = () => {
                     </Button>
                   </div>
                   
-                  {selectedLead.services && selectedLead.services.length > 0 ? (
-                    <div className="space-y-3">
-                      {selectedLead.services.map((service, index) => (
-                        <div key={index} className="grid grid-cols-4 gap-2 items-end">
-                          <div className="col-span-2">
-                            <Label className="text-xs">Service</Label>
-                            <Select
-                              value={service.service_id.toString()}
-                              onValueChange={(value) => updateService(index, 'service_id', parseInt(value))}
-                            >
-                              <SelectTrigger className="h-8">
-                                <SelectValue placeholder="Select service" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {services.map((svc) => (
-                                  <SelectItem key={svc.prod_id} value={svc.prod_id.toString()}>
-                                    {svc.ProductName} - ₹{svc.Price}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label className="text-xs">Quantity</Label>
-                            <Input
-                              type="number"
-                              min="1"
-                              value={service.quantity}
-                              onChange={(e) => updateService(index, 'quantity', parseInt(e.target.value) || 1)}
-                              className="h-8"
-                            />
-                          </div>
-                          <div>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => removeService(index)}
-                              className="h-8"
-                            >
-                              Remove
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                   {selectedLead.services && selectedLead.services.length > 0 ? (
+                     <div className="space-y-6">
+                       {selectedLead.services.map((service, index) => {
+                         const priceFirst = servicePricingModes[index] ?? true;
+                         return (
+                           <div key={index} className="border rounded-lg p-4 space-y-4">
+                             <div className="flex justify-between items-start">
+                               <h4 className="font-medium">Service {index + 1}</h4>
+                               <Button
+                                 type="button"
+                                 variant="destructive"
+                                 size="sm"
+                                 onClick={() => removeService(index)}
+                               >
+                                 Remove
+                               </Button>
+                             </div>
+                             
+                             <div className="grid grid-cols-2 gap-4">
+                               <div className="space-y-2">
+                                 <Label>Service</Label>
+                                 <Select
+                                   value={service.service_id.toString()}
+                                   onValueChange={(value) => updateService(index, 'service_id', parseInt(value))}
+                                 >
+                                   <SelectTrigger>
+                                     <SelectValue placeholder="Select service" />
+                                   </SelectTrigger>
+                                   <SelectContent>
+                                     {services.map((svc) => (
+                                       <SelectItem key={svc.prod_id} value={svc.prod_id.toString()}>
+                                         {svc.ProductName} - ₹{svc.Price}
+                                       </SelectItem>
+                                     ))}
+                                   </SelectContent>
+                                 </Select>
+                               </div>
+                               
+                               <div className="space-y-2">
+                                 <Label>Quantity</Label>
+                                 <Input
+                                   type="number"
+                                   min="1"
+                                   value={service.quantity}
+                                   onChange={(e) => updateService(index, 'quantity', parseInt(e.target.value) || 1)}
+                                 />
+                               </div>
+                             </div>
+
+                             {service.service_id > 0 && (
+                               <div className="space-y-4 border-t pt-4">
+                                 <h5 className="font-medium text-sm">Pricing</h5>
+                                 
+                                 <div className="grid grid-cols-4 items-center gap-4">
+                                   <Label className="text-right">
+                                     Price (₹)*
+                                   </Label>
+                                   <Input
+                                     type="number"
+                                     value={service.price}
+                                     onChange={(e) => updateServicePricing(index, 'price', e.target.value, priceFirst)}
+                                     className="col-span-3"
+                                   />
+                                 </div>
+                                 
+                                 <div className="grid grid-cols-4 items-center gap-4">
+                                   <div className="text-right flex items-center justify-end">
+                                     <Label className="mr-2">
+                                       Price first
+                                     </Label>
+                                     <Switch
+                                       checked={priceFirst}
+                                       onCheckedChange={(checked) => 
+                                         setServicePricingModes(prev => ({ ...prev, [index]: checked }))
+                                       }
+                                     />
+                                   </div>
+                                   <div className="col-span-3 text-sm text-muted-foreground">
+                                     {priceFirst 
+                                       ? "Enter price and discount % to calculate net payable" 
+                                       : "Enter price and net payable to calculate discount %"}
+                                   </div>
+                                 </div>
+                                 
+                                 <div className="grid grid-cols-4 items-center gap-4">
+                                   <Label className="text-right">
+                                     Discount %
+                                   </Label>
+                                   <Input
+                                     type="number"
+                                     value={service.discount}
+                                     onChange={(e) => updateServicePricing(index, 'discount', e.target.value, priceFirst)}
+                                     className="col-span-3"
+                                   />
+                                 </div>
+                                 
+                                 <div className="grid grid-cols-4 items-center gap-4">
+                                   <Label className="text-right">
+                                     Net Payable (₹)
+                                   </Label>
+                                   <Input
+                                     type="number"
+                                     value={service.netPayable}
+                                     onChange={(e) => updateServicePricing(index, 'netPayable', e.target.value, priceFirst)}
+                                     className="col-span-3"
+                                   />
+                                 </div>
+                               </div>
+                             )}
+                           </div>
+                         );
+                       })}
+                     </div>
                   ) : (
                     <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-md text-center">
                       No services added. Click "Add Service" to add services for booking, or the original service from the lead will be used.
