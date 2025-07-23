@@ -384,6 +384,85 @@ export type Database = {
         }
         Relationships: []
       }
+      LeadPendingBooking: {
+        Row: {
+          approved_at: string | null
+          approved_by_email: string | null
+          approved_by_user_id: string | null
+          booking_details: Json | null
+          created_at: string
+          created_by_controller_id: string | null
+          created_by_email: string
+          customer_phone: string
+          id: string
+          lead_id: string | null
+          modified_price: number
+          original_price: number
+          percentage: number | null
+          service_details: Json | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by_email?: string | null
+          approved_by_user_id?: string | null
+          booking_details?: Json | null
+          created_at?: string
+          created_by_controller_id?: string | null
+          created_by_email: string
+          customer_phone: string
+          id?: string
+          lead_id?: string | null
+          modified_price: number
+          original_price: number
+          percentage?: number | null
+          service_details?: Json | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by_email?: string | null
+          approved_by_user_id?: string | null
+          booking_details?: Json | null
+          created_at?: string
+          created_by_controller_id?: string | null
+          created_by_email?: string
+          customer_phone?: string
+          id?: string
+          lead_id?: string | null
+          modified_price?: number
+          original_price?: number
+          percentage?: number | null
+          service_details?: Json | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "LeadPendingBooking_approved_by_user_id_fkey"
+            columns: ["approved_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "UserMST"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "LeadPendingBooking_created_by_controller_id_fkey"
+            columns: ["created_by_controller_id"]
+            isOneToOne: false
+            referencedRelation: "UserMST"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "LeadPendingBooking_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "ExternalLeadMST"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       MemberMST: {
         Row: {
           ChildrenDetails: Json | null
