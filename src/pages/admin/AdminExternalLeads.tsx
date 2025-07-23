@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { generateBookingReference } from "@/utils/booking/referenceGenerator";
 import { getNextAvailableId } from "@/utils/booking/idGenerator";
+import { useAuth } from "@/context/AuthContext";
 
 interface ExternalLead {
   id: string;
@@ -63,12 +64,18 @@ const AdminExternalLeads = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [isCreatingBooking, setIsCreatingBooking] = useState(false);
   const [servicePricingModes, setServicePricingModes] = useState<Record<number, boolean>>({});
+  const [pendingBookings, setPendingBookings] = useState<any[]>([]);
+  const [showPendingDialog, setShowPendingDialog] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchLeads();
     fetchServices();
-  }, []);
+    if (user?.role === 'admin' || user?.role === 'superadmin') {
+      fetchPendingBookings();
+    }
+  }, [user]);
 
   const fetchServices = async () => {
     try {
@@ -82,6 +89,21 @@ const AdminExternalLeads = () => {
       setServices(data || []);
     } catch (error) {
       console.error('Error fetching services:', error);
+    }
+  };
+
+  const fetchPendingBookings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('LeadPendingBooking')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPendingBookings(data || []);
+    } catch (error) {
+      console.error('Error fetching pending bookings:', error);
     }
   };
 
@@ -226,6 +248,150 @@ const AdminExternalLeads = () => {
     }
   };
 
+  const handleApproval = async (pendingId: string, status: 'approved' | 'rejected') => {
+    try {
+      const { error } = await supabase
+        .from('LeadPendingBooking')
+        .update({ 
+          status,
+          approved_by_user_id: user?.id,
+          approved_by_email: user?.email,
+          approved_at: new Date().toISOString()
+        })
+        .eq('id', pendingId);
+
+      if (error) throw error;
+
+      // If approved, create the actual booking
+      if (status === 'approved') {
+        const pendingBooking = pendingBookings.find(p => p.id === pendingId);
+        if (pendingBooking) {
+          await createBookingFromPending(pendingBooking);
+        }
+      }
+
+      // Refresh pending bookings
+      fetchPendingBookings();
+      
+      toast({
+        title: "Success",
+        description: `Booking ${status} successfully`,
+      });
+    } catch (error) {
+      console.error('Error updating approval:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update approval status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const createBookingFromPending = async (pendingBooking: any) => {
+    try {
+      const bookingRef = await generateBookingReference();
+      let nextId = await getNextAvailableId();
+
+      const formatTimeTo12Hour = (time: string) => {
+        const [hours, minutes] = time.split(':');
+        const hour = parseInt(hours, 10);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
+      };
+
+      // Hash the phone number to use as password
+      const { data: hashedPassword, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: pendingBooking.customer_phone }
+      });
+
+      if (hashError) throw hashError;
+
+      // Get lead data for member creation
+      const { data: leadData } = await supabase
+        .from('ExternalLeadMST')
+        .select('*')
+        .eq('id', pendingBooking.lead_id)
+        .single();
+
+      if (leadData) {
+        // Create member data
+        const memberData = {
+          MemberFirstName: leadData.firstname,
+          MemberLastName: leadData.lastname,
+          MemberPhNo: pendingBooking.customer_phone,
+          MemberSex: pendingBooking.booking_details?.sex || null,
+          MemberAdress: pendingBooking.booking_details?.address,
+          MemberPincode: pendingBooking.booking_details?.pincode,
+          whatsapp_number: leadData.whatsapp_number || (leadData.is_phone_whatsapp ? leadData.phonenumber : null),
+          password: hashedPassword.hashedPassword,
+          MemberStatus: true
+        };
+
+        // Insert or update member
+        await supabase
+          .from('MemberMST')
+          .upsert(memberData, { 
+            onConflict: 'MemberPhNo',
+            ignoreDuplicates: false 
+          });
+
+        // Create bookings for each service
+        const servicesToBook = pendingBooking.service_details || [];
+        const currentTime = new Date();
+        
+        const bookingPromises = servicesToBook.map(async (service: any, index: number) => {
+          const bookingData = {
+            id: nextId + index,
+            Product: service.service_id,
+            Phone_no: parseInt(pendingBooking.customer_phone.replace(/\D/g, '')),
+            Booking_date: pendingBooking.booking_details?.preferred_date,
+            booking_time: formatTimeTo12Hour(pendingBooking.booking_details?.preferred_time),
+            Status: 'pending',
+            StatusUpdated: currentTime.toISOString(),
+            price: service.netPayable * service.quantity,
+            Booking_NO: parseInt(bookingRef),
+            Qty: service.quantity,
+            Address: pendingBooking.booking_details?.address,
+            Pincode: parseInt(pendingBooking.booking_details?.pincode),
+            name: pendingBooking.booking_details?.customer_name,
+            ServiceName: service.service_name,
+            ProductName: service.service_name,
+            jobno: index + 1,
+            Purpose: service.service_name,
+            submission_date: new Date(leadData.created_at).toISOString(),
+            source: 'campaign',
+            campaign_service_selected: leadData.selected_service_name
+          };
+
+          return supabase.from('BookMST').insert(bookingData);
+        });
+
+        await Promise.all(bookingPromises);
+
+        // Delete the lead from ExternalLeadMST
+        await supabase
+          .from('ExternalLeadMST')
+          .delete()
+          .eq('id', pendingBooking.lead_id);
+
+        // Refresh leads
+        fetchLeads();
+      }
+    } catch (error) {
+      console.error('Error creating booking from pending:', error);
+      throw error;
+    }
+  };
+
+  const viewPendingDetails = (pending: any) => {
+    // Show a dialog with pending booking details
+    toast({
+      title: "Pending Booking Details",
+      description: `Customer: ${pending.booking_details?.customer_name}\nServices: ${pending.service_details?.length || 0} items\nPrice change: ${pending.percentage?.toFixed(1)}%`,
+    });
+  };
+
   const createBookingFromLead = async () => {
     if (!selectedLead) {
       toast({
@@ -289,6 +455,62 @@ const AdminExternalLeads = () => {
         variant: "destructive",
       });
       return;
+    }
+
+    // Check if controller modified prices and needs approval
+    if (user?.role === 'controller') {
+      const priceChanged = servicesToBook.some(service => 
+        service.netPayable !== service.originalPrice
+      );
+
+      if (priceChanged) {
+        // Store in LeadPendingBooking for approval
+        const totalOriginalPrice = servicesToBook.reduce((sum, service) => sum + (service.originalPrice * service.quantity), 0);
+        const totalModifiedPrice = servicesToBook.reduce((sum, service) => sum + (service.netPayable * service.quantity), 0);
+        const percentage = ((totalModifiedPrice - totalOriginalPrice) / totalOriginalPrice) * 100;
+
+        try {
+          const { error: pendingError } = await supabase
+            .from('LeadPendingBooking')
+            .insert({
+              lead_id: selectedLead.id,
+              created_by_controller_id: user.id,
+              created_by_email: user.email,
+              customer_phone: selectedLead.phonenumber,
+              original_price: totalOriginalPrice,
+              modified_price: totalModifiedPrice,
+              percentage: percentage,
+              service_details: servicesToBook,
+              booking_details: {
+                preferred_date: selectedLead.preferred_date,
+                preferred_time: selectedLead.preferred_time,
+                address: selectedLead.address,
+                pincode: selectedLead.pincode,
+                sex: selectedLead.sex,
+                customer_name: `${selectedLead.firstname} ${selectedLead.lastname}`
+              }
+            });
+
+          if (pendingError) throw pendingError;
+
+          toast({
+            title: "Pending Approval",
+            description: "Price changes detected. Booking sent for admin approval.",
+            variant: "default",
+          });
+          
+          setShowViewDialog(false);
+          return;
+        } catch (error) {
+          console.error('Error creating pending booking:', error);
+          toast({
+            title: "Error",
+            description: "Failed to submit for approval.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
     }
 
     setIsCreatingBooking(true);
@@ -501,6 +723,85 @@ const AdminExternalLeads = () => {
             )}
           </CardContent>
         </Card>
+
+        {(user?.role === 'admin' || user?.role === 'superadmin') && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Pending Price Approvals</CardTitle>
+              <CardDescription>
+                Review price changes from controllers that require approval
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {pendingBookings.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No pending approvals
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Controller</TableHead>
+                      <TableHead>Original Price</TableHead>
+                      <TableHead>Modified Price</TableHead>
+                      <TableHead>Change %</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingBookings.map((pending) => (
+                      <TableRow key={pending.id}>
+                        <TableCell className="font-medium">
+                          {pending.booking_details?.customer_name || 'N/A'}
+                        </TableCell>
+                        <TableCell>{pending.customer_phone}</TableCell>
+                        <TableCell>{pending.created_by_email}</TableCell>
+                        <TableCell>₹{pending.original_price}</TableCell>
+                        <TableCell>₹{pending.modified_price}</TableCell>
+                        <TableCell>
+                          <Badge variant={pending.percentage > 0 ? 'destructive' : 'secondary'}>
+                            {pending.percentage?.toFixed(1)}%
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(pending.created_at), 'dd/MM/yyyy HH:mm')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleApproval(pending.id, 'approved')}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleApproval(pending.id, 'rejected')}
+                            >
+                              Reject
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => viewPendingDetails(pending)}
+                            >
+                              View
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
