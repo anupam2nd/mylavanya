@@ -65,7 +65,10 @@ const AdminExternalLeads = () => {
   const [isCreatingBooking, setIsCreatingBooking] = useState(false);
   const [servicePricingModes, setServicePricingModes] = useState<Record<number, boolean>>({});
   const [pendingBookings, setPendingBookings] = useState<any[]>([]);
+  const [rejectedBookings, setRejectedBookings] = useState<any[]>([]);
   const [showPendingDialog, setShowPendingDialog] = useState(false);
+  const [selectedRejectedLead, setSelectedRejectedLead] = useState<any>(null);
+  const [showRejectedDialog, setShowRejectedDialog] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -74,6 +77,9 @@ const AdminExternalLeads = () => {
     fetchServices();
     if (user?.role === 'admin' || user?.role === 'superadmin') {
       fetchPendingBookings();
+    }
+    if (user?.role === 'controller') {
+      fetchRejectedBookings();
     }
   }, [user]);
 
@@ -104,6 +110,22 @@ const AdminExternalLeads = () => {
       setPendingBookings(data || []);
     } catch (error) {
       console.error('Error fetching pending bookings:', error);
+    }
+  };
+
+  const fetchRejectedBookings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('LeadPendingBooking')
+        .select('*')
+        .eq('status', 'rejected')
+        .eq('created_by_email', user?.email)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setRejectedBookings(data || []);
+    } catch (error) {
+      console.error('Error fetching rejected bookings:', error);
     }
   };
 
@@ -375,6 +397,12 @@ const AdminExternalLeads = () => {
           .delete()
           .eq('id', pendingBooking.lead_id);
 
+        // Delete the pending booking
+        await supabase
+          .from('LeadPendingBooking')
+          .delete()
+          .eq('id', pendingBooking.id);
+
         // Refresh leads
         fetchLeads();
       }
@@ -390,6 +418,188 @@ const AdminExternalLeads = () => {
       title: "Pending Booking Details",
       description: `Customer: ${pending.booking_details?.customer_name}\nServices: ${pending.service_details?.length || 0} items\nPrice change: ${pending.percentage?.toFixed(1)}%`,
     });
+  };
+
+  const handleModifyRejectedLead = (rejected: any) => {
+    setSelectedRejectedLead(rejected);
+    setShowRejectedDialog(true);
+  };
+
+  const updateRejectedServicePricing = (index: number, field: 'price' | 'discount' | 'netPayable', value: string, priceFirst: boolean) => {
+    if (selectedRejectedLead && selectedRejectedLead.service_details) {
+      const updatedServices = [...selectedRejectedLead.service_details];
+      const service = updatedServices[index];
+      
+      if (field === 'price') {
+        service.price = parseFloat(value) || 0;
+        if (priceFirst && service.discount > 0) {
+          service.netPayable = service.price * (1 - service.discount / 100);
+        } else if (!priceFirst) {
+          service.netPayable = service.price;
+        }
+      } else if (field === 'discount') {
+        service.discount = parseFloat(value) || 0;
+        if (priceFirst) {
+          service.netPayable = service.price * (1 - service.discount / 100);
+        }
+      } else if (field === 'netPayable') {
+        service.netPayable = parseFloat(value) || 0;
+        if (!priceFirst && service.price > 0) {
+          service.discount = ((service.price - service.netPayable) / service.price) * 100;
+        }
+      }
+      
+      setSelectedRejectedLead({ ...selectedRejectedLead, service_details: updatedServices });
+    }
+  };
+
+  const handleResubmitRejectedLead = async () => {
+    if (!selectedRejectedLead) return;
+
+    try {
+      const servicesToBook = selectedRejectedLead.service_details || [];
+      const totalOriginalPrice = servicesToBook.reduce((sum: number, service: any) => sum + (service.originalPrice * service.quantity), 0);
+      const totalModifiedPrice = servicesToBook.reduce((sum: number, service: any) => sum + (service.netPayable * service.quantity), 0);
+      
+      // Check if prices match original prices
+      const pricesMatchOriginal = servicesToBook.every((service: any) => 
+        service.netPayable === service.originalPrice
+      );
+
+      if (pricesMatchOriginal) {
+        // Create booking directly
+        await createBookingFromRejected(selectedRejectedLead);
+        
+        // Delete the rejected booking
+        await supabase
+          .from('LeadPendingBooking')
+          .delete()
+          .eq('id', selectedRejectedLead.id);
+
+        // Refresh rejected bookings
+        fetchRejectedBookings();
+        
+        toast({
+          title: "Success",
+          description: "Booking created successfully with original prices.",
+        });
+        
+        setShowRejectedDialog(false);
+      } else {
+        // Update the existing record with new prices and change status to pending
+        const percentage = ((totalModifiedPrice - totalOriginalPrice) / totalOriginalPrice) * 100;
+        
+        const { error } = await supabase
+          .from('LeadPendingBooking')
+          .update({
+            status: 'pending',
+            modified_price: totalModifiedPrice,
+            percentage: percentage,
+            service_details: servicesToBook,
+            approved_by_user_id: null,
+            approved_by_email: null,
+            approved_at: null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', selectedRejectedLead.id);
+
+        if (error) throw error;
+
+        // Refresh rejected bookings
+        fetchRejectedBookings();
+        
+        toast({
+          title: "Resubmitted for Approval",
+          description: "Price changes detected. Booking sent back for admin approval.",
+        });
+        
+        setShowRejectedDialog(false);
+      }
+    } catch (error) {
+      console.error('Error resubmitting rejected lead:', error);
+      toast({
+        title: "Error",
+        description: "Failed to resubmit booking. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const createBookingFromRejected = async (rejectedBooking: any) => {
+    try {
+      const bookingRef = await generateBookingReference();
+      let nextId = await getNextAvailableId();
+
+      const formatTimeTo12Hour = (time: string) => {
+        const [hours, minutes] = time.split(':');
+        const hour = parseInt(hours, 10);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
+      };
+
+      // Hash the phone number to use as password
+      const { data: hashedPassword, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: rejectedBooking.customer_phone }
+      });
+
+      if (hashError) throw hashError;
+
+      // Create member data
+      const memberData = {
+        MemberFirstName: rejectedBooking.booking_details?.customer_name?.split(' ')[0] || '',
+        MemberLastName: rejectedBooking.booking_details?.customer_name?.split(' ').slice(1).join(' ') || '',
+        MemberPhNo: rejectedBooking.customer_phone,
+        MemberSex: rejectedBooking.booking_details?.sex || null,
+        MemberAdress: rejectedBooking.booking_details?.address,
+        MemberPincode: rejectedBooking.booking_details?.pincode,
+        password: hashedPassword.hashedPassword,
+        MemberStatus: true
+      };
+
+      // Insert or update member
+      await supabase
+        .from('MemberMST')
+        .upsert(memberData, { 
+          onConflict: 'MemberPhNo',
+          ignoreDuplicates: false 
+        });
+
+      // Create bookings for each service
+      const servicesToBook = rejectedBooking.service_details || [];
+      const currentTime = new Date();
+      
+      const bookingPromises = servicesToBook.map(async (service: any, index: number) => {
+        const bookingData = {
+          id: nextId + index,
+          Product: service.service_id,
+          Phone_no: parseInt(rejectedBooking.customer_phone.replace(/\D/g, '')),
+          Booking_date: rejectedBooking.booking_details?.preferred_date,
+          booking_time: formatTimeTo12Hour(rejectedBooking.booking_details?.preferred_time),
+          Status: 'pending',
+          StatusUpdated: currentTime.toISOString(),
+          price: service.netPayable * service.quantity,
+          Booking_NO: parseInt(bookingRef),
+          Qty: service.quantity,
+          Address: rejectedBooking.booking_details?.address,
+          Pincode: parseInt(rejectedBooking.booking_details?.pincode),
+          name: rejectedBooking.booking_details?.customer_name,
+          ServiceName: service.service_name,
+          ProductName: service.service_name,
+          jobno: index + 1,
+          Purpose: service.service_name,
+          submission_date: currentTime.toISOString(),
+          source: 'campaign'
+        };
+
+        return supabase.from('BookMST').insert(bookingData);
+      });
+
+      await Promise.all(bookingPromises);
+    } catch (error) {
+      console.error('Error creating booking from rejected:', error);
+      throw error;
+    }
   };
 
   const createBookingFromLead = async () => {
@@ -492,6 +702,15 @@ const AdminExternalLeads = () => {
             });
 
           if (pendingError) throw pendingError;
+
+          // Delete the lead from ExternalLeadMST after storing in pending
+          await supabase
+            .from('ExternalLeadMST')
+            .delete()
+            .eq('id', selectedLead.id);
+
+          // Remove from local state
+          setLeads(prevLeads => prevLeads.filter(lead => lead.id !== selectedLead.id));
 
           toast({
             title: "Pending Approval",
@@ -803,6 +1022,61 @@ const AdminExternalLeads = () => {
           </Card>
         )}
 
+        {user?.role === 'controller' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Rejected Price Modifications</CardTitle>
+              <CardDescription>
+                Review and modify prices for rejected booking requests
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {rejectedBookings.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No rejected bookings
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Original Price</TableHead>
+                      <TableHead>Last Modified Price</TableHead>
+                      <TableHead>Rejected On</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rejectedBookings.map((rejected) => (
+                      <TableRow key={rejected.id}>
+                        <TableCell className="font-medium">
+                          {rejected.booking_details?.customer_name || 'N/A'}
+                        </TableCell>
+                        <TableCell>{rejected.customer_phone}</TableCell>
+                        <TableCell>₹{rejected.original_price}</TableCell>
+                        <TableCell>₹{rejected.modified_price}</TableCell>
+                        <TableCell>
+                          {format(new Date(rejected.approved_at || rejected.updated_at), 'dd/MM/yyyy HH:mm')}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleModifyRejectedLead(rejected)}
+                          >
+                            Modify Price
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
             <DialogHeader className="flex-shrink-0">
@@ -1043,6 +1317,147 @@ const AdminExternalLeads = () => {
                 className="min-w-[120px]"
               >
                 {isCreatingBooking ? 'Creating...' : 'Create Booking'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showRejectedDialog} onOpenChange={setShowRejectedDialog}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle>Modify Rejected Booking</DialogTitle>
+              <DialogDescription>
+                Update prices for this rejected booking request
+              </DialogDescription>
+            </DialogHeader>
+
+            {selectedRejectedLead && (
+              <div className="overflow-y-auto flex-1 pr-2">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Customer Name</Label>
+                      <Input value={selectedRejectedLead.booking_details?.customer_name || ''} disabled />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Phone Number</Label>
+                      <Input value={selectedRejectedLead.customer_phone} disabled />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Original Total Price</Label>
+                      <Input value={`₹${selectedRejectedLead.original_price}`} disabled />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Last Modified Price</Label>
+                      <Input value={`₹${selectedRejectedLead.modified_price}`} disabled />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label>Services</Label>
+                    {selectedRejectedLead.service_details && selectedRejectedLead.service_details.length > 0 ? (
+                      <div className="space-y-6">
+                        {selectedRejectedLead.service_details.map((service: any, index: number) => {
+                          const priceFirst = servicePricingModes[index] ?? true;
+                          return (
+                            <div key={index} className="border rounded-lg p-4 space-y-4">
+                              <div className="flex justify-between items-start">
+                                <h4 className="font-medium">Service {index + 1}</h4>
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label>Service Name</Label>
+                                  <Input value={service.service_name} disabled />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label>Quantity</Label>
+                                  <Input value={service.quantity} disabled />
+                                </div>
+                              </div>
+
+                              <div className="space-y-4 border-t pt-4">
+                                <h5 className="font-medium text-sm">Pricing</h5>
+                                
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label className="text-right">
+                                    Price (₹)*
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    value={service.price}
+                                    onChange={(e) => updateRejectedServicePricing(index, 'price', e.target.value, priceFirst)}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <div className="text-right flex items-center justify-end">
+                                    <Label className="mr-2">
+                                      Price first
+                                    </Label>
+                                    <Switch
+                                      checked={priceFirst}
+                                      onCheckedChange={(checked) => 
+                                        setServicePricingModes(prev => ({ ...prev, [index]: checked }))
+                                      }
+                                    />
+                                  </div>
+                                  <div className="col-span-3 text-sm text-muted-foreground">
+                                    {priceFirst 
+                                      ? "Enter price and discount % to calculate net payable" 
+                                      : "Enter price and net payable to calculate discount %"}
+                                  </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label className="text-right">
+                                    Discount %
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    value={service.discount}
+                                    onChange={(e) => updateRejectedServicePricing(index, 'discount', e.target.value, priceFirst)}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label className="text-right">
+                                    Net Payable (₹)
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    value={service.netPayable}
+                                    onChange={(e) => updateRejectedServicePricing(index, 'netPayable', e.target.value, priceFirst)}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-md text-center">
+                        No services found
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-2 mt-6 flex-shrink-0">
+              <Button variant="outline" onClick={() => setShowRejectedDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleResubmitRejectedLead}
+                className="min-w-[120px]"
+              >
+                Resubmit
               </Button>
             </div>
           </DialogContent>
