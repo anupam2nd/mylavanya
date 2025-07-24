@@ -62,7 +62,7 @@ serve(async (req) => {
       .eq("status_type", statusType)
       .eq("otp_code", otp)
       .eq("verified", false)
-      .single();
+      .maybeSingle();
     
     if (otpError || !otpRecord) {
       return new Response(
