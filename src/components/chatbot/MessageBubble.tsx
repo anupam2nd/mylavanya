@@ -1,6 +1,7 @@
 
 import { ChatMessage } from '@/types/chatbot';
 import { cn } from '@/lib/utils';
+import TypewriterText from './TypewriterText';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -26,7 +27,15 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       )}
       style={isUser ? userBubbleStyle : undefined}
       >
-        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">{message.content}</p>
+        {isUser ? (
+          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">{message.content}</p>
+        ) : (
+          <TypewriterText 
+            text={message.content}
+            className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere block"
+            speed={25}
+          />
+        )}
         <p className={cn(
           "text-xs mt-2 opacity-70",
           isUser ? "text-white/70" : "text-gray-500"
