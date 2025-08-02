@@ -6,6 +6,20 @@ interface TypewriterTextProps {
   className?: string;
 }
 
+// Function to parse markdown-style text and convert to JSX
+const parseMarkdownText = (text: string) => {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      // Remove the asterisks and make bold
+      const boldText = part.slice(2, -2);
+      return <strong key={index}>{boldText}</strong>;
+    }
+    return part;
+  });
+};
+
 export default function TypewriterText({ text, speed = 30, className }: TypewriterTextProps) {
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -27,9 +41,11 @@ export default function TypewriterText({ text, speed = 30, className }: Typewrit
     setCurrentIndex(0);
   }, [text]);
 
+  const formattedText = parseMarkdownText(displayedText);
+
   return (
     <span className={className}>
-      {displayedText}
+      {formattedText}
       {currentIndex < text.length && (
         <span className="animate-pulse">|</span>
       )}
