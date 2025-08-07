@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import MainLayout from '@/components/layout/MainLayout';
 
@@ -18,6 +19,7 @@ const bookingSchema = z.object({
   phonenumber: z.string().min(10, 'Phone number must be at least 10 digits'),
   interested_category: z.string().min(1, 'Please select a category'),
   has_whatsapp: z.boolean().optional(),
+  consent: z.boolean().refine(val => val === true, 'You must agree to the Terms & Conditions and Privacy Policy'),
 });
 
 type BookingFormData = z.infer<typeof bookingSchema>;
@@ -41,6 +43,7 @@ export default function BookNow() {
       phonenumber: '',
       interested_category: '',
       has_whatsapp: false,
+      consent: false,
     },
   });
 
@@ -69,6 +72,15 @@ export default function BookNow() {
   }, [toast]);
 
   const onSubmit = async (data: BookingFormData) => {
+    if (!data.consent) {
+      toast({
+        title: 'Consent Required',
+        description: 'Please agree to the Terms & Conditions and Privacy Policy to proceed.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -216,17 +228,56 @@ export default function BookNow() {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                   />
 
-                  {/* Submit Button */}
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={loading}
-                  >
-                    {loading ? 'Submitting...' : 'Book Now'}
-                  </Button>
-                </form>
+                   {/* Terms & Conditions and Privacy Policy Checkbox */}
+                   <FormField
+                     control={form.control}
+                     name="consent"
+                     render={({ field }) => (
+                       <FormItem>
+                         <div className="flex items-start space-x-3 pt-2">
+                           <FormControl>
+                             <Checkbox
+                               checked={field.value}
+                               onCheckedChange={field.onChange}
+                               className="mt-1"
+                             />
+                           </FormControl>
+                           <FormLabel className="text-sm text-muted-foreground leading-relaxed">
+                             I have read and agree to the{" "}
+                             <Link 
+                               to="/terms" 
+                               className="text-primary hover:underline font-medium"
+                               target="_blank"
+                             >
+                               Terms & Conditions
+                             </Link>
+                             {" "}and{" "}
+                             <Link 
+                               to="/privacy" 
+                               className="text-primary hover:underline font-medium"
+                               target="_blank"
+                             >
+                               Privacy Policy
+                             </Link>
+                             .
+                           </FormLabel>
+                         </div>
+                         <FormMessage />
+                       </FormItem>
+                     )}
+                   />
+
+                   {/* Submit Button */}
+                   <Button 
+                     type="submit" 
+                     className="w-full" 
+                     disabled={loading || !form.watch('consent')}
+                   >
+                     {loading ? 'Submitting...' : 'Book Now'}
+                   </Button>
+                 </form>
               </Form>
             </CardContent>
           </Card>
