@@ -73,7 +73,23 @@ export default function Terms() {
                   We reserve the right to modify these terms at any time. We will inform you of any changes by posting the new Terms of Service on this page. Changes will be effective when posted.
                 </p>
                 
-                <h2 className="text-2xl font-display mt-10 mb-4">10. Contact Information</h2>
+                <h2 className="text-2xl font-display mt-10 mb-4">10. Promotional Messages and Communications</h2>
+                <p>
+                  By using our service, you agree to receive promotional messages and communications from us. These messages may include offers, updates, and information about our products and services.
+                </p>
+                <p className="mt-4">
+                  You authorize us to send these communications to you via:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li><strong>SMS:</strong> Standard text messages.</li>
+                  <li><strong>RCS:</strong> Rich Communication Services messages.</li>
+                  <li><strong>WABA:</strong> WhatsApp Business API messages.</li>
+                </ul>
+                <p className="mt-4">
+                  These messages will be sent to the phone numbers you've provided to us. You can opt out of receiving these promotional communications at any time by following the unsubscribe instructions provided in the messages themselves.
+                </p>
+
+                <h2 className="text-2xl font-display mt-10 mb-4">11. Contact Information</h2>
                 <p>
                   If you have any questions about these Terms of Service, please contact us at:
                 </p>
