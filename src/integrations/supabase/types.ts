@@ -316,10 +316,13 @@ export type Database = {
       ExternalLeadMST: {
         Row: {
           created_at: string
+          email: string | null
           firstname: string
+          from_contact_us: boolean
           id: string
           is_phone_whatsapp: boolean
           lastname: string
+          message: string | null
           phonenumber: string
           selected_service_id: number | null
           selected_service_name: string | null
@@ -328,10 +331,13 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          email?: string | null
           firstname: string
+          from_contact_us?: boolean
           id?: string
           is_phone_whatsapp?: boolean
           lastname: string
+          message?: string | null
           phonenumber: string
           selected_service_id?: number | null
           selected_service_name?: string | null
@@ -340,10 +346,13 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          email?: string | null
           firstname?: string
+          from_contact_us?: boolean
           id?: string
           is_phone_whatsapp?: boolean
           lastname?: string
+          message?: string | null
           phonenumber?: string
           selected_service_id?: number | null
           selected_service_name?: string | null

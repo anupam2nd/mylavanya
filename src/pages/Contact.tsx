@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 export default function Contact() {
   const {
     toast
@@ -28,7 +29,7 @@ export default function Contact() {
       [name]: value
     }));
   };
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!consentChecked) {
@@ -39,15 +40,50 @@ export default function Contact() {
       });
       return;
     }
+
+    // Validate required fields
+    if (!formData.name.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter your name.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.phone.trim()) {
+      toast({
+        title: "Phone Number Required",
+        description: "Please enter your phone number.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsSubmitting(true);
 
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      // Save to ExternalLeadMST table
+      const { error } = await supabase
+        .from('ExternalLeadMST')
+        .insert({
+          firstname: formData.name.split(' ')[0] || formData.name,
+          lastname: formData.name.split(' ').slice(1).join(' ') || '',
+          phonenumber: formData.phone,
+          email: formData.email,
+          message: formData.message,
+          from_contact_us: true
+        });
+
+      if (error) {
+        throw error;
+      }
+
       toast({
         title: "Message sent!",
         description: "We'll get back to you as soon as possible."
       });
+      
       setFormData({
         name: "",
         email: "",
@@ -55,8 +91,16 @@ export default function Contact() {
         message: ""
       });
       setConsentChecked(false);
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      toast({
+        title: "Error",
+        description: "There was an error sending your message. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
   return <>
       <Navbar />
@@ -135,7 +179,7 @@ export default function Contact() {
                     
                     <div>
                       <label htmlFor="phone" className="block text-sm font-medium mb-1">Phone Number</label>
-                      <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} className="w-full rounded-md border border-input px-4 py-2 bg-background" />
+                      <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} required className="w-full rounded-md border border-input px-4 py-2 bg-background" />
                     </div>
                     
                     <div>
