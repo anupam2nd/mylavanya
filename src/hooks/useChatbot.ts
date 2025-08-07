@@ -12,7 +12,9 @@ export function useChatbot() {
     error: null,
     hasNewMessage: false,
   });
-  const [hasShownWelcome, setHasShownWelcome] = useState(false);
+  const [hasShownWelcome, setHasShownWelcome] = useState(() => {
+    return sessionStorage.getItem('chatbot_welcome_shown') === 'true';
+  });
   const { showToast } = useCustomToast();
 
   const generateId = () =>
@@ -82,6 +84,7 @@ export function useChatbot() {
       const timer = setTimeout(() => {
         playNotificationSound();
         setHasShownWelcome(true);
+        sessionStorage.setItem('chatbot_welcome_shown', 'true');
 
         // Just set hasNewMessage to true to show tooltip-like behavior
         setState((prev) => ({
