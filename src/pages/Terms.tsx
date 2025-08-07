@@ -85,9 +85,6 @@ export default function Terms() {
                   <li><strong>RCS:</strong> Rich Communication Services messages.</li>
                   <li><strong>WABA:</strong> WhatsApp Business API messages.</li>
                 </ul>
-                <p className="mt-4">
-                  These messages will be sent to the phone numbers you've provided to us. You can opt out of receiving these promotional communications at any time by following the unsubscribe instructions provided in the messages themselves.
-                </p>
 
                 <h2 className="text-2xl font-display mt-10 mb-4">11. Contact Information</h2>
                 <p>
