@@ -22,10 +22,13 @@ interface ExternalLead {
   firstname: string;
   lastname: string;
   phonenumber: string;
+  email: string | null;
   is_phone_whatsapp: boolean;
   whatsapp_number: string | null;
   selected_service_id: number | null;
   selected_service_name: string | null;
+  message: string | null;
+  from_contact_us: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -159,15 +162,19 @@ const AdminExternalLeads = () => {
 
   const exportData = () => {
     const csvContent = [
-      ['First Name', 'Last Name', 'Phone Number', 'WhatsApp Same', 'WhatsApp Number', 'Service', 'Created At'].join(','),
+      ['First Name', 'Last Name', 'Phone Number', 'Email', 'WhatsApp Same', 'WhatsApp Number', 'Service', 'Message', 'From Contact Us', 'Created At', 'Updated At'].join(','),
       ...filteredLeads.map(lead => [
         lead.firstname,
         lead.lastname,
         lead.phonenumber,
+        lead.email || 'N/A',
         lead.is_phone_whatsapp ? 'Yes' : 'No',
         lead.whatsapp_number || 'N/A',
         lead.selected_service_name || 'N/A',
-        format(new Date(lead.created_at), 'dd/MM/yyyy HH:mm')
+        lead.message || 'N/A',
+        lead.from_contact_us ? 'Yes' : 'No',
+        format(new Date(lead.created_at), 'dd/MM/yyyy HH:mm'),
+        format(new Date(lead.updated_at), 'dd/MM/yyyy HH:mm')
       ].join(','))
     ].join('\n');
 
