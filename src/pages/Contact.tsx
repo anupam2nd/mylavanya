@@ -174,7 +174,7 @@ export default function Contact() {
                     
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium mb-1">Email Address</label>
-                      <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required className="w-full rounded-md border border-input px-4 py-2 bg-background" />
+                      <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} className="w-full rounded-md border border-input px-4 py-2 bg-background" />
                     </div>
                     
                     <div>
@@ -184,7 +184,7 @@ export default function Contact() {
                     
                     <div>
                       <label htmlFor="message" className="block text-sm font-medium mb-1">Your Message</label>
-                      <textarea id="message" name="message" value={formData.message} onChange={handleChange} required rows={5} className="w-full rounded-md border border-input px-4 py-2 bg-background"></textarea>
+                      <textarea id="message" name="message" value={formData.message} onChange={handleChange}  rows={5} className="w-full rounded-md border border-input px-4 py-2 bg-background"></textarea>
                     </div>
                     
                     <div className="flex items-start space-x-3 pt-2">
