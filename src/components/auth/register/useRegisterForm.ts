@@ -30,6 +30,7 @@ export function useRegisterForm({ onSuccess }: UseRegisterFormProps) {
       password: "",
       confirmPassword: "",
       isPhoneVerified: false,
+      acceptTerms: false,
     },
   });
   

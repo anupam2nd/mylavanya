@@ -9,6 +9,8 @@ import PasswordFields from "./PasswordFields";
 import { useRegisterForm } from "./useRegisterForm";
 import { Button } from "@/components/ui/button";
 import { useCustomToast } from "@/context/ToastContext";
+import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface RegisterFormProps {
   onSuccess: (email: string, password: string) => void;
@@ -38,11 +40,39 @@ export default function RegisterForm({ onSuccess, onSignInClick }: RegisterFormP
         <DateOfBirthField />
         <PasswordFields />
         
+        <FormField
+          control={form.control}
+          name="acceptTerms"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <p className="text-sm">
+                  I agree to the{" "}
+                  <a href="/terms" className="text-primary hover:underline">
+                    Terms of Service
+                  </a>{" "}
+                  and{" "}
+                  <a href="/privacy" className="text-primary hover:underline">
+                    Privacy Policy
+                  </a>
+                </p>
+                <FormMessage />
+              </div>
+            </FormItem>
+          )}
+        />
+        
         <ButtonCustom 
           variant="primary-gradient" 
           className="w-full"
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || !form.watch('acceptTerms')}
         >
           {isLoading ? "Creating Account..." : "Create Account"}
         </ButtonCustom>

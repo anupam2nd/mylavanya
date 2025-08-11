@@ -21,6 +21,9 @@ export const registerFormSchema = z.object({
   isPhoneVerified: z.boolean().refine(val => val === true, {
     message: "Phone number must be verified",
   }),
+  acceptTerms: z.boolean().refine(val => val === true, {
+    message: "You must accept the terms and conditions",
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],

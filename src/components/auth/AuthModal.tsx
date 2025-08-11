@@ -90,15 +90,6 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "member", onLo
             </>
           )}
         </div>
-        
-        <div className="p-4 sm:p-6 pt-2 border-t">
-          <div className="text-center text-xs sm:text-sm">
-            By continuing, you agree to our{" "}
-            <a href="/terms" className="text-primary hover:underline">Terms of Service</a>{" "}
-            and{" "}
-            <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
-          </div>
-        </div>
       </DialogContent>
     </Dialog>
   );
