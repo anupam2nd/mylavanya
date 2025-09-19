@@ -2,7 +2,10 @@ import { useState, useCallback, useEffect } from "react";
 import { ChatMessage, ChatbotState } from "@/types/chatbot";
 import { useCustomToast } from "@/context/ToastContext";
 
-const API_ENDPOINT = 'https://n8n.srv896137.hstgr.cloud/webhook/81e8ebb8-4382-4693-82b3-e66a35fe0c30';
+// const API_ENDPOINT =
+//   "https://n8n.srv896137.hstgr.cloud/webhook/621306e2-3aa9-4d20-97a2-22f85e25d694";
+
+const API_ENDPOINT = "https://n8n.srv896137.hstgr.cloud/webhook/lavanyachatbot"
 
 export function useChatbot() {
   const [state, setState] = useState<ChatbotState>({
@@ -13,7 +16,7 @@ export function useChatbot() {
     hasNewMessage: false,
   });
   const [hasShownWelcome, setHasShownWelcome] = useState(() => {
-    return sessionStorage.getItem('chatbot_welcome_shown') === 'true';
+    return sessionStorage.getItem("chatbot_welcome_shown") === "true";
   });
   const { showToast } = useCustomToast();
 
@@ -84,7 +87,7 @@ export function useChatbot() {
       const timer = setTimeout(() => {
         playNotificationSound();
         setHasShownWelcome(true);
-        sessionStorage.setItem('chatbot_welcome_shown', 'true');
+        sessionStorage.setItem("chatbot_welcome_shown", "true");
 
         // Just set hasNewMessage to true to show tooltip-like behavior
         setState((prev) => ({
@@ -115,58 +118,62 @@ export function useChatbot() {
         error: null,
       }));
 
-    try {
-      const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        mode : 'cors',
-        credentials: 'omit', // Include cookies for session management
-        body: JSON.stringify({
-          chatInput: content.trim(),
-          sessionId: getSessionId(),
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-      }
-
-      const responseText = await response.text();
-      console.log('Raw API Response:', responseText);
-      
-      let data;
       try {
-        data = JSON.parse(responseText);
-      } catch (jsonError) {
-        console.error('JSON Parse Error:', jsonError);
-        console.error('Response that failed to parse:', responseText);
-        throw new Error('Invalid JSON response from server');
-      }
-      
-      // Check if response is empty, null, or contains no meaningful data
-      const responseContent = data.response || '';
-      const isEmptyResponse = !responseContent || 
-                              responseContent.trim() === '' || 
-                              responseContent.toLowerCase().includes('no data') ||
-                              responseContent.toLowerCase().includes('not found') ||
-                              responseContent.toLowerCase().includes('unable to find');
-      
-      let aiResponseContent;
-      if (isEmptyResponse) {
-        aiResponseContent = "I'm unable to process your request at the moment. For immediate assistance, please contact us at +91 9230967221. Our team will be happy to help you with your query.";
-      } else {
-        aiResponseContent = responseContent;
-      }
-      
-      const aiMessage: ChatMessage = {
-        id: generateId(),
-        content: aiResponseContent,
-        sender: 'ai',
-        timestamp: new Date(),
-      };
+        const response = await fetch(API_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          mode: "cors",
+          credentials: "omit", // Include cookies for session management
+          body: JSON.stringify({
+            chatInput: content.trim(),
+            sessionId: getSessionId(),
+          }),
+        });
+        console.log(response)
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `HTTP error! status: ${response.status}, message: ${errorText}`
+          );
+        }
+
+        const responseText = await response.text();
+        console.log("Raw API Response:", responseText);
+
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (jsonError) {
+          console.error("JSON Parse Error:", jsonError);
+          console.error("Response that failed to parse:", responseText);
+          throw new Error("Invalid JSON response from server");
+        }
+
+        // Check if response is empty, null, or contains no meaningful data
+        const responseContent = data.response || "";
+        const isEmptyResponse =
+          !responseContent ||
+          responseContent.trim() === "" ||
+          responseContent.toLowerCase().includes("no data") ||
+          responseContent.toLowerCase().includes("not found") ||
+          responseContent.toLowerCase().includes("unable to find");
+
+        let aiResponseContent;
+        if (isEmptyResponse) {
+          aiResponseContent =
+            "I'm unable to process your request at the moment. For immediate assistance, please contact us at +91 9230967221. Our team will be happy to help you with your query.";
+        } else {
+          aiResponseContent = responseContent;
+        }
+
+        const aiMessage: ChatMessage = {
+          id: generateId(),
+          content: aiResponseContent,
+          sender: "ai",
+          timestamp: new Date(),
+        };
 
         setState((prev) => ({
           ...prev,
@@ -214,7 +221,7 @@ export function useChatbot() {
         const welcomeMessage: ChatMessage = {
           id: generateId(),
           content:
-            "Hi! I'm Lavanya, your assistant. What can I help you with today?",
+            "Hi! I'm Ananya, your assistant. What can I help you with today?",
           sender: "ai",
           timestamp: new Date(),
         };
